@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Career Coach</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <h1>AI Career Coach</h1>
+            <p>Your personal AI-powered career assistant</p>
+        </header>
+
+        <nav class="tabs">
+            <button class="tab-btn active" data-tab="resume">Resume Analysis</button>
+            <button class="tab-btn" data-tab="interview">Interview Coach</button>
+            <button class="tab-btn" data-tab="planner">Career Planner</button>
+            <button class="tab-btn" data-tab="linkedin">LinkedIn Optimizer</button>
+            <button class="tab-btn" data-tab="cover-letter">Cover Letter</button>
+            <button class="tab-btn" data-tab="tab-resume-builder">Resume Builder</button>
+        </nav>
+
+        <main class="tab-content">
+            <!-- Tab 1: Resume Analysis -->
+            <section id="resume" class="tab-pane active">
+                <div class="card">
+                    <h2>Resume Analysis</h2>
+                    <p>Paste your resume below for AI feedback.</p>
+                    <textarea id="resume-input" placeholder="Paste your resume text here..."></textarea>
+                    <button id="analyze-resume-btn" class="action-btn">Analyze Resume</button>
+                    <div id="resume-result" class="result-area"></div>
+                </div>
+            </section>
+
+            <!-- Tab 2: Interview Coach -->
+            <section id="interview" class="tab-pane">
+                <div class="card">
+                    <h2>Interview Coach</h2>
+                    <p>Practice with a strict hiring manager.</p>
+                    <div class="form-group">
+                        <label for="interview-job-posting">Target Job Posting (Optional)</label>
+                        <textarea id="interview-job-posting"
+                            placeholder="Paste the job description here to tailor the interview..."
+                            style="min-height: 80px;"></textarea>
+                        <button id="start-interview-btn" class="secondary-btn" style="margin-top: 5px;">Start
+                            Interview</button>
+                    </div>
+                    <div class="form-group" style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
+                        <div style="flex: 1;">
+                            <label for="voice-select">Voice</label>
+                            <select id="voice-select">
+                                <option value="en-US-AriaNeural">Aria (Female)</option>
+                                <option value="en-US-JennyNeural">Jenny (Female)</option>
+                                <option value="en-GB-SoniaNeural">Sonia (British Female)</option>
+                            </select>
+                        </div>
+
+                    </div>
+                    <div id="chat-window" class="chat-window">
+                        <div class="message system">System: I am a strict hiring manager. Let's begin.</div>
+                    </div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="Type your answer...">
+                        <button id="record-btn" class="action-btn" style="width: auto; background: #dc3545;"
+                            onclick="toggleRecording()">🎤</button>
+                        <button id="send-chat-btn" class="action-btn">Send</button>
+                    </div>
+                    <audio id="ai-audio-player" controls style="display:none; width: 100%; margin-top: 10px;"></audio>
+                </div>
+            </section>
+
+            <!-- Tab 3: Career Planner -->
+            <section id="planner" class="tab-pane">
+                <div class="card">
+                    <h2>Career Planner</h2>
+                    <p>Generate a 30-60-90 day plan.</p>
+                    <div class="form-group">
+                        <label for="job-title">Job Title</label>
+                        <input type="text" id="job-title" placeholder="e.g. Product Manager">
+                    </div>
+                    <div class="form-group">
+                        <label for="company">Company</label>
+                        <input type="text" id="company" placeholder="e.g. Google">
+                    </div>
+                    <div class="form-group">
+                        <label for="job-posting">Job Posting / Description (Optional)</label>
+                        <textarea id="job-posting"
+                            placeholder="Paste the job description here for a more tailored plan..."
+                            rows="4"></textarea>
+                    </div>
+                    <button id="generate-plan-btn" class="action-btn">Generate Plan</button>
+                    <div id="planner-result" class="result-area"></div>
+                </div>
+            </section>
+
+            <!-- Tab 4: LinkedIn Optimizer -->
+            <section id="linkedin" class="tab-pane">
+                <div class="card">
+                    <h2>LinkedIn Optimizer</h2>
+                    <p>Rewrite your "About Me" section for SEO.</p>
+                    <textarea id="linkedin-input" placeholder="Paste your current About Me section..."></textarea>
+                    <button id="optimize-linkedin-btn" class="action-btn">Optimize</button>
+                    <div id="linkedin-result" class="result-area"></div>
+                </div>
+            </section>
+
+            <!-- Tab 5: Cover Letter Generator -->
+            <section id="cover-letter" class="tab-pane">
+                <div class="card">
+                    <h2>Cover Letter Generator</h2>
+                    <p>Generate a tailored cover letter.</p>
+                    <div class="form-group">
+                        <label for="cl-job-desc">Job Description</label>
+                        <textarea id="cl-job-desc" placeholder="Paste job description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="cl-resume">Your Resume</label>
+                        <textarea id="cl-resume" placeholder="Paste your resume..."></textarea>
+                    </div>
+                    <button id="generate-cl-btn" class="action-btn">Generate Cover Letter</button>
+                    <div id="cl-result" class="result-area"></div>
+                </div>
+            </section>
+
+            <!-- Tab 6: Resume Builder -->
+            <section id="tab-resume-builder" class="tab-pane">
+                <div class="card">
+                    <h2>Resume Builder</h2>
+                    <button id="rb-sample-btn" class="secondary-btn" style="margin-bottom: 20px;">Load Sample User
+                        Info</button>
+                    <div class="resume-builder-container">
+                        <!-- Input Form -->
+                        <div class="resume-form">
+                            <!-- Target Job Description -->
+                            <div class="form-section">
+                                <h3>Target Job Description (Optional)</h3>
+                                <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">Paste the job description
+                                    here to tailor your resume to the role.</p>
+                                <textarea id="rb-job-desc" placeholder="Paste Job Description here..."
+                                    style="height: 100px;"></textarea>
+                            </div>
+
+                            <h3>1. Personal Info</h3>
+                            <div class="input-group">
+                                <input type="text" id="rb-name" placeholder="Full Name">
+                                <input type="text" id="rb-email" placeholder="Email">
+                                <input type="text" id="rb-phone" placeholder="Phone">
+                                <input type="text" id="rb-linkedin" placeholder="LinkedIn URL">
+                                <input type="text" id="rb-location" placeholder="City, State">
+                            </div>
+
+                            <h3>2. Professional Summary</h3>
+                            <div class="input-group">
+                                <textarea id="rb-summary" placeholder="Brief professional summary..."></textarea>
+                            </div>
+
+                            <h3>3. Experience</h3>
+                            <div id="rb-experience-list">
+                                <!-- Experience items will be added here -->
+                                <div class="experience-item">
+                                    <input type="text" class="rb-exp-role" placeholder="Job Title">
+                                    <input type="text" class="rb-exp-company" placeholder="Company">
+                                    <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)">
+                                    <textarea class="rb-exp-desc"
+                                        placeholder="Job responsibilities and achievements..."></textarea>
+                                </div>
+                            </div>
+                            <button id="rb-add-exp-btn" class="secondary-btn">+ Add Another Job</button>
+
+                            <h3>4. Education</h3>
+                            <div id="rb-education-list">
+                                <div class="education-item">
+                                    <input type="text" class="rb-edu-school" placeholder="School/University">
+                                    <input type="text" class="rb-edu-degree" placeholder="Degree/Major">
+                                    <input type="text" class="rb-edu-year" placeholder="Graduation Year">
+                                </div>
+                            </div>
+                            <button id="rb-add-edu-btn" class="secondary-btn">+ Add Education</button>
+
+                            <h3>5. Skills</h3>
+                            <div class="input-group">
+                                <textarea id="rb-skills" placeholder="List your skills (comma separated)..."></textarea>
+                            </div>
+
+                            <button id="rb-generate-btn" class="primary-btn"
+                                style="margin-top: 20px; width: 100%;">Generate Resume</button>
+                        </div>
+
+                        <!-- Preview Section -->
+                        <div class="resume-preview-section">
+                            <h3>Select Template</h3>
+                            <div class="template-selector">
+                                <button class="template-btn active" data-template="modern">Modern</button>
+                                <button class="template-btn" data-template="classic">Classic</button>
+                                <button class="template-btn" data-template="creative">Creative</button>
+                                <button class="template-btn" data-template="minimal">Minimal</button>
+                                <button class="template-btn" data-template="executive">Executive</button>
+                                <button class="template-btn" data-template="condensed">Condensed</button>
+                            </div>
+
+                            <div id="resume-preview-container" class="resume-preview modern">
+                                <div class="placeholder-text">Fill out the form and click Generate to see your resume
+                                    here.</div>
+                            </div>
+                            <div class="preview-actions" style="margin-top: 10px;">
+                                <button id="rb-print-btn" class="secondary-btn">Print / Save PDF</button>
+                                <button id="rb-gdocs-btn" class="secondary-btn" style="margin-left: 10px;">Copy for
+                                    Google Docs</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <div id="print-area"></div>
+    <script src="app.js?v=6"></script>
+</body>
+
+</html>
