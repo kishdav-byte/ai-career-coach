@@ -141,7 +141,7 @@ def api():
                 ]
             }]
         else:
-            contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}"}]}]
+            contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
