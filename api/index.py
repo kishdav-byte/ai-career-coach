@@ -125,7 +125,7 @@ def api():
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Start with a relevant interview question."
         
-        system_instruction = f"System Instruction: You are a strict hiring manager. You ALWAYS evaluate candidate answers on a scale of 0-5. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Start the interview IMMEDIATELY with the first question. Keep responses concise and professional.{context}"
+        system_instruction = f"System Instruction: You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Start the interview IMMEDIATELY with the first question. Keep responses concise and professional.{context}"
         
         if audio_data:
             if "base64," in audio_data:
@@ -133,7 +133,7 @@ def api():
                 
             contents = [{
                 "parts": [
-                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, provide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '...', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
+                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, evaluate the answer and provide a SCORE (0-5).\nCRITICAL: You MUST include the score in the 'feedback' text. Start the feedback with: \"I would score this answer a [score] because...\".\n\nReturn JSON: {{'transcript': '...', 'feedback': 'I would score this answer a [score] because...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
                     {
                         "inline_data": {
                             "mime_type": "audio/webm",
