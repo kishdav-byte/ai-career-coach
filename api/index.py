@@ -175,29 +175,52 @@ def api():
     elif action == 'linkedin_optimize':
         about_me = data.get('aboutMe', '')
         prompt = f"""
-        Act as an expert LinkedIn Profile Consultant.
-        Analyze the following "About Me" section and provide:
-        1. A list of specific recommendations to improve it (SEO, keywords, tone, formatting).
-        2. A completely rewritten, professionally formatted "Refined Sample" that implements these recommendations. use the following example as a guide for the tone and format:
-        
-        Example Format:
-        "Passionate [Role] with [Number] years of experience in [Industry]...
-        
-        Core Competencies:
-        - Skill 1
-        - Skill 2
-        
-        Key Achievements:
-        - Achievement 1
-        - Achievement 2"
+        Act as an expert Executive Profile Writer. Your goal is to rewrite the user's "About Me" section to be a "10/10" LinkedIn profile.
+
+        CRITICAL QUALITY STANDARDS (The "10/10" Criteria):
+        1. STRONG OPENING HOOK (First 2-3 sentences):
+           - Must grab attention in the first 150 characters (mobile preview).
+           - State a specific accomplishment or unique insight immediately.
+           - Example: "I've led teams of 150+ employees across multiple locations, delivering $1M+ in documented process improvements."
+           - DO NOT start with generic phrases like "Results-driven professional".
+
+        2. QUANTIFIED ACHIEVEMENTS (No vague claims):
+           - Every achievement MUST have a number (Exact $, %, Team Size, Time Saved).
+           - Replace "significant cost savings" with "$X in cost reductions".
+           - Replace "improved efficiency" with "70% reduction in processing time".
+
+        3. CONVERSATIONAL TONE (No Robot Speak):
+           - Write like a human, not a resume. Use "I" statements.
+           - Short paragraphs (2-3 sentences max).
+           - FORBIDDEN BUZZWORDS: "transforming", "leveraging", "driving", "passionate about", "synergistic", "dynamic", "results-driven".
+           - Use clear language: "I build", "I lead", "I designed", "I reduced".
+
+        4. PERSONALITY & PHILOSOPHY:
+           - Include one memorable phrase about their approach (e.g., "I turn data chaos into executive clarity").
+           - Show how they think, not just what they did.
+
+        5. NO DESPERATION SIGNALS:
+           - NEVER use: "Seeking opportunities", "Looking for", "Available for".
+           - Use: "Open to connecting", "Interested in", "Happy to discuss".
+
+        STRUCTURE OF THE REFINED SAMPLE:
+        - Paragraph 1: The Hook (Impact & Scale immediately).
+        - Paragraph 2: Core Expertise / "What I Do" (Conversational summary).
+        - Paragraph 3: Key Achievements (3-5 Bullet points, EVERY bullet must have a NUMBER).
+        - Paragraph 4: Professional Philosophy (1-2 sentences).
+        - Paragraph 5: Closing CTA (Confident).
 
         Original "About Me":
         {about_me}
 
         Return STRICT JSON (use double quotes for keys/values):
         {{
-            "recommendations": ["Recommendation 1", "Recommendation 2", ...],
-            "refined_sample": "The complete rewritten profile text..."
+            "recommendations": [
+                "Specific advice on what was fixed (e.g., 'Replaced generic opening with specific hook about $5M revenue')",
+                "Advice on metrics added/needed",
+                "Tone check results"
+            ],
+            "refined_sample": "The complete rewritten profile text following the structure above..."
         }}
         """
         contents = [{"parts": [{"text": prompt}]}]
