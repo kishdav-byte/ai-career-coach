@@ -245,7 +245,20 @@ def api():
                     response_data['improved_sample'] = improved_sample
                     
                     # Generate Audio
-                    speech_text = f"{response_data.get('feedback', '')} Here is an improved version: {response_data.get('improved_sample', '')}. Now, are you ready for the next question? {response_data.get('next_question', '')}"
+                    # Generate Audio
+                    speech_text = ""
+                    if response_data.get('feedback'):
+                        speech_text += f"{response_data.get('feedback')} "
+                    
+                    if response_data.get('improved_sample'):
+                        speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
+                    
+                    if response_data.get('next_question'):
+                        speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
+                    
+                    # Fallback if everything is empty (shouldn't happen)
+                    if not speech_text:
+                        speech_text = "I am ready. Let's continue."
                     audio_base64 = generate_audio_gtts(speech_text, voice)
                     
                     if audio_base64:
