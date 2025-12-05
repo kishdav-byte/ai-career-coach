@@ -178,37 +178,33 @@ def api():
         Act as an expert Executive Profile Writer. Your goal is to rewrite the user's "About Me" section to be a "10/10" LinkedIn profile.
 
         CRITICAL QUALITY STANDARDS (The "10/10" Criteria):
-        1. STRONG OPENING HOOK (First 2-3 sentences):
-           - Must grab attention in the first 150 characters (mobile preview).
-           - State a specific accomplishment or unique insight immediately.
-           - Example: "I've led teams of 150+ employees across multiple locations, delivering $1M+ in documented process improvements."
-           - DO NOT start with generic phrases like "Results-driven professional".
+        1. MEMORABLE HOOK (Mandatory):
+           - Must include ONE memorable phrase (8-12 words) that captures their unique approach.
+           - Examples: "I turn data chaos into executive clarity", "I make complex data impossible to ignore".
+           - Use concrete language, NO abstract buzzwords.
 
-        2. QUANTIFIED ACHIEVEMENTS (No vague claims):
-           - Every achievement MUST have a number (Exact $, %, Team Size, Time Saved).
-           - Replace "significant cost savings" with "$X in cost reductions".
-           - Replace "improved efficiency" with "70% reduction in processing time".
+        2. PHILOSOPHY STATEMENT (Mandatory):
+           - Include ONE sentence about what they've learned.
+           - Format: "After [X years] in [field], here's what I know: [specific insight]" OR "Here's what [X years] in [field] taught me: [specific insight]".
 
-        3. CONVERSATIONAL TONE (No Robot Speak):
-           - Write like a human, not a resume. Use "I" statements.
-           - Short paragraphs (2-3 sentences max).
-           - FORBIDDEN BUZZWORDS: "transforming", "leveraging", "driving", "passionate about", "synergistic", "dynamic", "results-driven".
-           - Use clear language: "I build", "I lead", "I designed", "I reduced".
+        3. BANNED PHRASES (Remove these completely):
+           - "Transform [X] into [Y]", "Drive [anything]", "Leverage [anything]", "Passionate about", "Proven track record", "Results-driven", "Strategic assets", "Overarching goals", "Empowering teams", "I believe in", "Aligned with".
 
-        4. PERSONALITY & PHILOSOPHY:
-           - Include one memorable phrase about their approach (e.g., "I turn data chaos into executive clarity").
-           - Show how they think, not just what they did.
+        4. CONCRETE LANGUAGE TEST:
+           - Replace "Strategic assets" -> "Executive decisions"
+           - Replace "Drive performance" -> "Cut costs by X%" or "Increased output by X%"
+           - Replace "Data-driven insights" -> "Analysis that leadership acts on"
+           - Replace "Optimize processes" -> "Reduce manual work by X%"
 
-        5. NO DESPERATION SIGNALS:
-           - NEVER use: "Seeking opportunities", "Looking for", "Available for".
-           - Use: "Open to connecting", "Interested in", "Happy to discuss".
+        STRUCTURE OF THE REFINED SAMPLE (Strictly follow this):
+        - Paragraph 1: Hook with immediate proof (2-3 sentences).
+        - Paragraph 2: Scope and scale (years, team sizes, budget, impact).
+        - Paragraph 3: What I do (bullet points or short paragraph).
+        - Paragraph 4: Key scope metrics (role, team size, budget, satisfaction scores).
+        - Paragraph 5: Philosophy statement (what experience taught them).
+        - Paragraph 6: CTA (open to connecting with...).
 
-        STRUCTURE OF THE REFINED SAMPLE:
-        - Paragraph 1: The Hook (Impact & Scale immediately).
-        - Paragraph 2: Core Expertise / "What I Do" (Conversational summary).
-        - Paragraph 3: Key Achievements (3-5 Bullet points, EVERY bullet must have a NUMBER).
-        - Paragraph 4: Professional Philosophy (1-2 sentences).
-        - Paragraph 5: Closing CTA (Confident).
+        Total Length: 180-220 words maximum.
 
         Original "About Me":
         {about_me}
