@@ -119,6 +119,7 @@ def api():
         audio_data = data.get('audio', '') # Base64 audio string
         voice = data.get('voice', 'en-US-AriaNeural')
         speed = data.get('speed', '+0%')
+        is_start = data.get('isStart', False)
         
         context = ""
         if job_posting:
@@ -142,7 +143,12 @@ def api():
                 ]
             }]
         else:
-            contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
+            if is_start:
+                 # Start Mode: Just ask the first question. No feedback needed.
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview with the first question. Do NOT provide feedback on this message.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '...'}}"}]}]
+            else:
+                 # Answer Mode: Provide feedback
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')

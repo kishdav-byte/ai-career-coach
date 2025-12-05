@@ -180,7 +180,8 @@ function init() {
         const jobPosting = document.getElementById('interview-job-posting').value;
         if (jobPosting.trim()) {
             primeAudio();
-            sendChatMessage("I have provided the job description. Please start the interview.");
+            primeAudio();
+            sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
             alert("Please paste a job description first.");
         }
@@ -248,7 +249,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null) {
+    async function sendChatMessage(msg = null, isStart = false) {
         const message = msg || chatInput.value;
         if (!message) return;
 
@@ -269,7 +270,7 @@ function init() {
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'interview_chat', message: message, jobPosting: jobPosting, voice: voice, speed: speed })
+                body: JSON.stringify({ action: 'interview_chat', message: message, jobPosting: jobPosting, voice: voice, speed: speed, isStart: isStart })
             });
             const result = await response.json();
 
