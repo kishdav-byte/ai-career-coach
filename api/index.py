@@ -148,7 +148,7 @@ def api():
                  contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: 'Welcome to the interview. The first question that I have for you is'. Then ask the question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': 'Welcome to the interview. The first question that I have for you is...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, a SCORE (0-5), an IMPROVED VERSION of their answer, and the next question.\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': '...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, a SCORE (0-5), an IMPROVED VERSION of their answer, and the next question.\n\nCRITICAL: You MUST include the score in the 'feedback' text. Start the feedback with: \"I would score this answer a [score] because...\".\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': 'I would score this answer a [score] because...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
