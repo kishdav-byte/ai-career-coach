@@ -201,6 +201,12 @@ def api():
     payload = {
         "contents": contents
     }
+    
+    # Enable JSON mode for actions that require structured output
+    if action in ['interview_chat', 'career_plan', 'optimize_resume']: # optimize_resume is separate endpoint but good practice
+         payload["generationConfig"] = {
+             "responseMimeType": "application/json"
+         }
 
     try:
         response = requests.post(api_url, json=payload)
