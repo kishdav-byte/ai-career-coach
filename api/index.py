@@ -175,55 +175,79 @@ def api():
     elif action == 'linkedin_optimize':
         about_me = data.get('aboutMe', '')
         prompt = f"""
-        LINKEDIN PROFILE OPTIMIZER - INSTRUCTIONS FOR GENERATING 9-10/10 ABOUT SECTIONS
+        LINKEDIN PROFILE OPTIMIZER - MANDATORY TEMPLATE
 
-        You are building a tool that takes a user's existing LinkedIn profile data and generates an exceptional "About" section that scores 9-10/10.
-
-        CORE PRINCIPLE:
-        Most LinkedIn profiles are generic, buzzword-heavy, and forgettable. Your job is to extract the user's BEST achievements, quantify everything, remove all corporate clichés, and create a profile that makes them stand out while remaining professional.
+        You MUST use this EXACT structure and fill in the user's specific details. Do NOT deviate from this format.
 
         ---
 
-        STEP 1: DATA EXTRACTION & ANALYSIS
+        PARAGRAPH 1 (OPENING HOOK):
+        [State user's #1 most impressive metric/achievement]. [What this means in plain English]. [Current role and company].
 
-        Before writing anything, analyze their LinkedIn profile data and extract:
-        - Exact team sizes managed
-        - Budget amounts ($ figures)
-        - Performance metrics (%, time reductions, cost savings)
-        - Scope indicators (locations, departments)
-        - Tenure (total years)
-        - Unique differentiators
+        MANDATORY ELEMENTS:
+        - Use their BEST single metric (highest %, largest $, biggest team size)
+        - Active voice only ("I led" not "I've seen")
+        - No buzzwords
+        - 2-3 sentences max
 
-        STEP 2: OPENING HOOK CONSTRUCTION (CRITICAL)
-        The first 2-3 sentences MUST grab attention. Use one of these formulas:
-        Option A: Lead with Impact ("I [specific accomplishment with number]. [What this means].")
-        Option B: Lead with Insight ("After [X years], I've learned [insight].")
-        Option C: Lead with Problem-Solution ("[Common problem]. [How I solve it]. [Proof].")
+        PARAGRAPH 2 (SCOPE & SCALE):
+        Over [TOTAL years in field, not just current role] in [industry/function], including [key milestone]. Key scope: [team sizes], [budget size], [geographic reach], [major projects].
 
-        STEP 3: STRUCTURE THE FULL ABOUT SECTION (180-220 words)
-        PARAGRAPH 1: OPENING HOOK (50-70 words) - Lead with impact/insight, best metric, current role.
-        PARAGRAPH 2: SCOPE & SCALE (40-60 words) - Total years, team sizes, budget, key accomplishments.
-        PARAGRAPH 3: WHAT I DO (50-70 words) - 3-5 specific capabilities with metrics. Active verbs (Build, Lead, Design).
-        PARAGRAPH 4: PHILOSOPHY STATEMENT (30-40 words) - "After [X years], here's what I know: [insight]". ONE sentence.
-        PARAGRAPH 5: CALL TO ACTION (20-30 words) - "Open to connecting with..." (NOT "Seeking opportunities").
+        MANDATORY ELEMENTS:
+        - TOTAL career years (not current role duration)
+        - ALL team sizes managed (largest number)
+        - Budget amounts if available
+        - Specific projects (command centers, systems, programs)
 
-        STEP 4: WRITING RULES (CRITICAL)
-        BANNED PHRASES - NEVER USE:
-        ❌ "Transform [X] into [Y]", "Drive [anything]", "Leverage [anything]", "Passionate about", "Proven track record", "Results-driven", "Strategic assets", "Overarching goals", "Empowering teams", "I believe in", "Aligned with", "Synergy", "Robust", "Utilize", "Impact" (as verb), "Champion" (as verb), "Spearhead".
+        PARAGRAPH 3 (WHAT I DO):
+        My focus areas:
+        - [Specific capability with metric]
+        - [Specific capability with metric]  
+        - [Specific capability with metric]
 
-        REQUIRED LANGUAGE STYLE:
-        ✅ Concrete over abstract ("executive decisions" not "strategic assets")
-        ✅ Specific over vague ("$2M budget" not "significant budget")
-        ✅ Active over passive ("Built" not "Responsible for building")
-        ✅ Numbers over adjectives ("150+ employees" not "large team")
-        ✅ Plain English over corporate speak
+        MANDATORY ELEMENTS:
+        - 3-4 bullet points only
+        - Each MUST include a number/metric
+        - Active verbs (Build, Lead, Design, Reduce, Increase)
+        - NO generic phrases
 
-        STEP 5: QUALITY CHECKS
-        1. DIFFERENTIATION: Could this describe 100 other people? If yes, rewrite.
-        2. BUZZWORDS: Search for banned words. If found, rewrite.
-        3. NUMBERS: Count specific metrics. If < 4, add more.
-        4. MEMORABLE PHRASE: Is there ONE quotable line?
-        5. MOBILE PREVIEW: Does the first 150 chars hook the reader?
+        PARAGRAPH 4 (PHILOSOPHY):
+        After/Over [X years] in [field]: [specific insight they've learned].
+
+        MANDATORY ELEMENTS:
+        - ONE sentence only
+        - Ties to their actual experience (years in field)
+        - Specific, not generic wisdom
+        - No buzzwords
+
+        PARAGRAPH 5 (CTA):
+        Open to connecting with [2-3 specific types of professionals].
+
+        MANDATORY ELEMENTS:
+        - "Open to connecting" (NOT "seeking" or "looking for")
+        - Specific audience types
+        - No desperate language
+
+        ---
+
+        TOTAL LENGTH: 180-220 words
+
+        DATA YOU MUST INCLUDE (if present in user's profile):
+        ✅ Total years of experience (career-wide)
+        ✅ Largest team size managed
+        ✅ Budget amounts (if mentioned)
+        ✅ Top 3-5 metrics (percentages, dollar amounts, satisfaction scores)
+        ✅ Major projects (systems built, programs launched, centers designed)
+        ✅ Current role and company
+
+        BANNED WORDS (search and replace):
+        - "Transform" -> "Turn" or "Convert"
+        - "Drive/Driving" -> "Build" or "Achieve" or "Deliver"
+        - "Leverage" -> "Use"
+        - "Strategic assets" -> "Decisions" or "Actions"
+        - "Passionate about" -> DELETE
+        - "Data-driven insights" -> "Analysis" or "Recommendations"
+        - "Empower" -> "Help" or "Enable"
 
         Original "About Me":
         {about_me}
@@ -231,9 +255,9 @@ def api():
         Return STRICT JSON (use double quotes for keys/values):
         {{
             "recommendations": [
-                "Analysis of original profile (e.g., 'Found 3 buzzwords, removed them')",
-                "Specific metrics identified and highlighted",
-                "Explanation of the chosen Hook Strategy"
+                "List specific metrics extracted and used",
+                "Explanation of the Hook chosen",
+                "Confirmation that banned words were removed"
             ],
             "refined_sample": "The complete rewritten profile text following the structure above..."
         }}
