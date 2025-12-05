@@ -145,7 +145,7 @@ def api():
         else:
             if is_start:
                  # Start Mode: Just ask the first question. No feedback needed.
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview with the first question. Do NOT provide feedback on this message.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '...'}}"}]}]
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: 'Welcome to the interview. The first question that I have for you is'. Then ask the question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': 'Welcome to the interview. The first question that I have for you is...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
                  contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
@@ -254,7 +254,12 @@ def api():
                         speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
                     
                     if response_data.get('next_question'):
-                        speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
+                        if is_start:
+                            # For the first question, just speak the question (which includes the Welcome message)
+                            speech_text += f"{response_data.get('next_question')}"
+                        else:
+                            # For subsequent questions, add the transition
+                            speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
                     
                     # Fallback if everything is empty (shouldn't happen)
                     if not speech_text:
