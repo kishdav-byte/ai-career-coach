@@ -279,8 +279,24 @@ function init() {
             if (result.data) {
                 // Check if it's a JSON string (sometimes happens if mixed mode) or just text
                 if (typeof result.data === 'object') {
-                    const text = result.data.text || result.data.next_question || JSON.stringify(result.data);
-                    addMessage(text, 'system');
+                    // Standardized UI rendering (same as sendVoiceMessage)
+                    let systemMsg = `<strong>Feedback:</strong> ${result.data.feedback || ''}`;
+
+                    if (result.data.improved_sample) {
+                        systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <strong>✨ Better Answer:</strong><br>
+                            ${result.data.improved_sample}
+                        </div>`;
+                    }
+
+                    systemMsg += `<br><br><strong>Next Question:</strong> ${result.data.next_question || result.data.text || ''}`;
+
+                    // If we only got text back (fallback), just show it
+                    if (!result.data.feedback && !result.data.next_question) {
+                        systemMsg = result.data.text || JSON.stringify(result.data);
+                    }
+
+                    addMessage(systemMsg, 'system', true);
 
                     // Play Audio if present
                     if (result.data.audio) {
@@ -288,11 +304,9 @@ function init() {
                         const audioPlayer = document.getElementById('ai-audio-player');
                         audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
                         audioPlayer.style.display = 'block';
-                        audioPlayer.play().then(() => {
-                            console.log("Audio playing successfully");
-                        }).catch(e => {
+                        audioPlayer.play().catch(e => {
                             console.error("Audio playback error:", e);
-                            alert("Audio playback failed: " + e.message);
+                            alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
                         });
                     } else {
                         console.warn("No audio data in response");
