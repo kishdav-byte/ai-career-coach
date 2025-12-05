@@ -414,10 +414,64 @@ function init() {
         container.innerHTML = html;
     }
     // Tab 4: LinkedIn Optimizer
-    document.getElementById('optimize-linkedin-btn').addEventListener('click', () => {
+    document.getElementById('optimize-linkedin-btn').addEventListener('click', async () => {
         const aboutMe = document.getElementById('linkedin-input').value;
         if (!aboutMe) return alert('Please paste your About Me section.');
-        callApi('linkedin_optimize', { aboutMe }, 'linkedin-result');
+
+        const resultsArea = document.getElementById('linkedin-results-area');
+        const recsDiv = document.getElementById('linkedin-recommendations');
+        const sampleDiv = document.getElementById('linkedin-refined-sample');
+
+        // Show loading
+        resultsArea.style.display = 'block';
+        recsDiv.innerHTML = '<div class="loading-spinner"></div>';
+        sampleDiv.innerHTML = '<div class="loading-spinner"></div>';
+
+        try {
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'linkedin_optimize', aboutMe })
+            });
+            const result = await response.json();
+
+            if (result.data) {
+                // Handle JSON response
+                let data = result.data;
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        // Fallback if not JSON
+                        recsDiv.innerHTML = "Could not parse recommendations.";
+                        sampleDiv.innerHTML = marked.parse(data);
+                        return;
+                    }
+                }
+
+                // Render Recommendations
+                if (data.recommendations && Array.isArray(data.recommendations)) {
+                    recsDiv.innerHTML = `<ul>${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>`;
+                } else {
+                    recsDiv.innerHTML = '<p>No specific recommendations provided.</p>';
+                }
+
+                // Render Refined Sample
+                if (data.refined_sample) {
+                    sampleDiv.innerHTML = marked.parse(data.refined_sample);
+                } else {
+                    sampleDiv.innerHTML = '<p>No sample generated.</p>';
+                }
+
+            } else {
+                recsDiv.innerHTML = 'Error generating optimization.';
+                sampleDiv.innerHTML = '';
+            }
+        } catch (e) {
+            console.error(e);
+            recsDiv.innerHTML = 'Error generating optimization.';
+            sampleDiv.innerHTML = '';
+        }
     });
 
     // Tab 5: Cover Letter

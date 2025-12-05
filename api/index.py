@@ -174,7 +174,32 @@ def api():
         contents = [{"parts": [{"text": prompt}]}]
     elif action == 'linkedin_optimize':
         about_me = data.get('aboutMe', '')
-        prompt = f"Rewrite this LinkedIn 'About Me' section to be more SEO-friendly, professional, and engaging.\n\nOriginal:\n{about_me}"
+        prompt = f"""
+        Act as an expert LinkedIn Profile Consultant.
+        Analyze the following "About Me" section and provide:
+        1. A list of specific recommendations to improve it (SEO, keywords, tone, formatting).
+        2. A completely rewritten, professionally formatted "Refined Sample" that implements these recommendations. use the following example as a guide for the tone and format:
+        
+        Example Format:
+        "Passionate [Role] with [Number] years of experience in [Industry]...
+        
+        Core Competencies:
+        - Skill 1
+        - Skill 2
+        
+        Key Achievements:
+        - Achievement 1
+        - Achievement 2"
+
+        Original "About Me":
+        {about_me}
+
+        Return STRICT JSON (use double quotes for keys/values):
+        {{
+            "recommendations": ["Recommendation 1", "Recommendation 2", ...],
+            "refined_sample": "The complete rewritten profile text..."
+        }}
+        """
         contents = [{"parts": [{"text": prompt}]}]
     elif action == 'cover_letter':
         job_desc = data.get('jobDesc', '')
@@ -203,7 +228,7 @@ def api():
     }
     
     # Enable JSON mode for actions that require structured output
-    if action in ['interview_chat', 'career_plan', 'optimize_resume']: # optimize_resume is separate endpoint but good practice
+    if action in ['interview_chat', 'career_plan', 'optimize_resume', 'linkedin_optimize']: # optimize_resume is separate endpoint but good practice
          payload["generationConfig"] = {
              "responseMimeType": "application/json"
          }

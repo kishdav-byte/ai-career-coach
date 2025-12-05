@@ -103,11 +103,32 @@
             <!-- Tab 4: LinkedIn Optimizer -->
             <section id="linkedin" class="tab-pane">
                 <div class="card">
-                    <h2>LinkedIn Optimizer</h2>
-                    <p>Rewrite your "About Me" section for SEO.</p>
-                    <textarea id="linkedin-input" placeholder="Paste your current About Me section..."></textarea>
-                    <button id="optimize-linkedin-btn" class="action-btn">Optimize</button>
-                    <div id="linkedin-result" class="result-area"></div>
+                    <h2>LinkedIn Profile Optimizer</h2>
+                    <p>Rewrite your "About Me" section for SEO and impact.</p>
+
+                    <div class="form-group">
+                        <label for="linkedin-input">Paste Your "About Me" Section</label>
+                        <textarea id="linkedin-input" placeholder="Paste your current About Me section..."
+                            style="min-height: 150px;"></textarea>
+                    </div>
+
+                    <button id="optimize-linkedin-btn" class="action-btn">Optimize Profile</button>
+
+                    <div id="linkedin-results-area" style="display: none; margin-top: 20px;">
+                        <div class="result-section">
+                            <h3>Recommendations</h3>
+                            <div id="linkedin-recommendations" class="recommendations-box"
+                                style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                            </div>
+                        </div>
+
+                        <div class="result-section">
+                            <h3>Refined Sample</h3>
+                            <div id="linkedin-refined-sample" class="refined-sample-box"
+                                style="background: #e8f5e9; padding: 20px; border-radius: 8px; border: 1px solid #c3e6cb;">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </section>
 
