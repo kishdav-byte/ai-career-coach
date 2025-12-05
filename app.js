@@ -45,7 +45,10 @@ async function sendVoiceMessage(base64Audio) {
                 const audioPlayer = document.getElementById('ai-audio-player');
                 audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
                 audioPlayer.style.display = 'block';
-                audioPlayer.play().catch(e => console.error("Audio playback error:", e));
+                audioPlayer.play().catch(e => {
+                    console.error("Audio playback error:", e);
+                    alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
+                });
             }
         } else if (result.data) {
             // Fallback for text-only
@@ -60,7 +63,15 @@ async function sendVoiceMessage(base64Audio) {
 }
 
 function init() {
-    console.log("AI Career Coach App v6 Loaded");
+    console.log("AI Career Coach App v7 Loaded");
+    const versionDisplay = document.createElement('div');
+    versionDisplay.style.position = 'fixed';
+    versionDisplay.style.bottom = '10px';
+    versionDisplay.style.right = '10px';
+    versionDisplay.style.fontSize = '12px';
+    versionDisplay.style.color = '#888';
+    versionDisplay.textContent = 'v7.0 (Audio Fix)';
+    document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
     const panes = document.querySelectorAll('.tab-pane');
