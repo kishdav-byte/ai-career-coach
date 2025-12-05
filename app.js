@@ -28,7 +28,17 @@ async function sendVoiceMessage(base64Audio) {
         if (result.data && typeof result.data === 'object') {
             // Handle structured voice response
             window.addMessage(`(Transcript): ${result.data.transcript}`, 'user');
-            window.addMessage(`(Feedback): ${result.data.feedback}\n\n(Next Question): ${result.data.next_question}`, 'system');
+
+            let systemMsg = `<strong>Feedback:</strong> ${result.data.feedback}`;
+            if (result.data.improved_sample) {
+                systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
+                    <strong>✨ Better Answer:</strong><br>
+                    ${result.data.improved_sample}
+                </div>`;
+            }
+            systemMsg += `<br><br><strong>Next Question:</strong> ${result.data.next_question}`;
+
+            window.addMessage(systemMsg, 'system', true);
 
             // Play Audio
             if (result.data.audio) {
@@ -288,11 +298,15 @@ function init() {
         }
     }
 
-    function addMessage(text, sender) {
+    function addMessage(text, sender, isHtml = false) {
         const div = document.createElement('div');
         div.classList.add('message', sender);
         div.id = 'msg-' + Date.now();
-        div.textContent = text;
+        if (isHtml) {
+            div.innerHTML = text;
+        } else {
+            div.textContent = text;
+        }
         chatWindow.appendChild(div);
         chatWindow.scrollTop = chatWindow.scrollHeight;
         return div.id;

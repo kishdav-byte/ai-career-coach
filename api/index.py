@@ -131,7 +131,7 @@ def api():
                 
             contents = [{
                 "parts": [
-                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, provide a critique and the next question. Return JSON: {{'transcript': '...', 'feedback': '...', 'next_question': '...'}}"},
+                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, provide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '...', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
                     {
                         "inline_data": {
                             "mime_type": "audio/webm",
