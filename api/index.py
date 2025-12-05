@@ -175,36 +175,55 @@ def api():
     elif action == 'linkedin_optimize':
         about_me = data.get('aboutMe', '')
         prompt = f"""
-        Act as an expert Executive Profile Writer. Your goal is to rewrite the user's "About Me" section to be a "10/10" LinkedIn profile.
+        LINKEDIN PROFILE OPTIMIZER - INSTRUCTIONS FOR GENERATING 9-10/10 ABOUT SECTIONS
 
-        CRITICAL QUALITY STANDARDS (The "10/10" Criteria):
-        1. MEMORABLE HOOK (Mandatory):
-           - Must include ONE memorable phrase (8-12 words) that captures their unique approach.
-           - Examples: "I turn data chaos into executive clarity", "I make complex data impossible to ignore".
-           - Use concrete language, NO abstract buzzwords.
+        You are building a tool that takes a user's existing LinkedIn profile data and generates an exceptional "About" section that scores 9-10/10.
 
-        2. PHILOSOPHY STATEMENT (Mandatory):
-           - Include ONE sentence about what they've learned.
-           - Format: "After [X years] in [field], here's what I know: [specific insight]" OR "Here's what [X years] in [field] taught me: [specific insight]".
+        CORE PRINCIPLE:
+        Most LinkedIn profiles are generic, buzzword-heavy, and forgettable. Your job is to extract the user's BEST achievements, quantify everything, remove all corporate clichés, and create a profile that makes them stand out while remaining professional.
 
-        3. BANNED PHRASES (Remove these completely):
-           - "Transform [X] into [Y]", "Drive [anything]", "Leverage [anything]", "Passionate about", "Proven track record", "Results-driven", "Strategic assets", "Overarching goals", "Empowering teams", "I believe in", "Aligned with".
+        ---
 
-        4. CONCRETE LANGUAGE TEST:
-           - Replace "Strategic assets" -> "Executive decisions"
-           - Replace "Drive performance" -> "Cut costs by X%" or "Increased output by X%"
-           - Replace "Data-driven insights" -> "Analysis that leadership acts on"
-           - Replace "Optimize processes" -> "Reduce manual work by X%"
+        STEP 1: DATA EXTRACTION & ANALYSIS
 
-        STRUCTURE OF THE REFINED SAMPLE (Strictly follow this):
-        - Paragraph 1: Hook with immediate proof (2-3 sentences).
-        - Paragraph 2: Scope and scale (years, team sizes, budget, impact).
-        - Paragraph 3: What I do (bullet points or short paragraph).
-        - Paragraph 4: Key scope metrics (role, team size, budget, satisfaction scores).
-        - Paragraph 5: Philosophy statement (what experience taught them).
-        - Paragraph 6: CTA (open to connecting with...).
+        Before writing anything, analyze their LinkedIn profile data and extract:
+        - Exact team sizes managed
+        - Budget amounts ($ figures)
+        - Performance metrics (%, time reductions, cost savings)
+        - Scope indicators (locations, departments)
+        - Tenure (total years)
+        - Unique differentiators
 
-        Total Length: 180-220 words maximum.
+        STEP 2: OPENING HOOK CONSTRUCTION (CRITICAL)
+        The first 2-3 sentences MUST grab attention. Use one of these formulas:
+        Option A: Lead with Impact ("I [specific accomplishment with number]. [What this means].")
+        Option B: Lead with Insight ("After [X years], I've learned [insight].")
+        Option C: Lead with Problem-Solution ("[Common problem]. [How I solve it]. [Proof].")
+
+        STEP 3: STRUCTURE THE FULL ABOUT SECTION (180-220 words)
+        PARAGRAPH 1: OPENING HOOK (50-70 words) - Lead with impact/insight, best metric, current role.
+        PARAGRAPH 2: SCOPE & SCALE (40-60 words) - Total years, team sizes, budget, key accomplishments.
+        PARAGRAPH 3: WHAT I DO (50-70 words) - 3-5 specific capabilities with metrics. Active verbs (Build, Lead, Design).
+        PARAGRAPH 4: PHILOSOPHY STATEMENT (30-40 words) - "After [X years], here's what I know: [insight]". ONE sentence.
+        PARAGRAPH 5: CALL TO ACTION (20-30 words) - "Open to connecting with..." (NOT "Seeking opportunities").
+
+        STEP 4: WRITING RULES (CRITICAL)
+        BANNED PHRASES - NEVER USE:
+        ❌ "Transform [X] into [Y]", "Drive [anything]", "Leverage [anything]", "Passionate about", "Proven track record", "Results-driven", "Strategic assets", "Overarching goals", "Empowering teams", "I believe in", "Aligned with", "Synergy", "Robust", "Utilize", "Impact" (as verb), "Champion" (as verb), "Spearhead".
+
+        REQUIRED LANGUAGE STYLE:
+        ✅ Concrete over abstract ("executive decisions" not "strategic assets")
+        ✅ Specific over vague ("$2M budget" not "significant budget")
+        ✅ Active over passive ("Built" not "Responsible for building")
+        ✅ Numbers over adjectives ("150+ employees" not "large team")
+        ✅ Plain English over corporate speak
+
+        STEP 5: QUALITY CHECKS
+        1. DIFFERENTIATION: Could this describe 100 other people? If yes, rewrite.
+        2. BUZZWORDS: Search for banned words. If found, rewrite.
+        3. NUMBERS: Count specific metrics. If < 4, add more.
+        4. MEMORABLE PHRASE: Is there ONE quotable line?
+        5. MOBILE PREVIEW: Does the first 150 chars hook the reader?
 
         Original "About Me":
         {about_me}
@@ -212,9 +231,9 @@ def api():
         Return STRICT JSON (use double quotes for keys/values):
         {{
             "recommendations": [
-                "Specific advice on what was fixed (e.g., 'Replaced generic opening with specific hook about $5M revenue')",
-                "Advice on metrics added/needed",
-                "Tone check results"
+                "Analysis of original profile (e.g., 'Found 3 buzzwords, removed them')",
+                "Specific metrics identified and highlighted",
+                "Explanation of the chosen Hook Strategy"
             ],
             "refined_sample": "The complete rewritten profile text following the structure above..."
         }}
