@@ -210,7 +210,7 @@ def api():
                     if text.endswith('```'): text = text[:-3]
                     
                     response_data = json.loads(text)
-                    speech_text = f"{response_data.get('feedback', '')} {response_data.get('next_question', '')}"
+                    speech_text = f"{response_data.get('feedback', '')} Here is an improved version: {response_data.get('improved_sample', '')}. Now, are you ready for the next question? {response_data.get('next_question', '')}"
                     audio_base64 = generate_audio_gtts(speech_text, voice)
                     
                     if audio_base64:
