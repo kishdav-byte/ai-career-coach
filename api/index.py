@@ -148,7 +148,7 @@ def api():
                  contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview with the first question. Do NOT provide feedback on this message.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nProvide a critique, an IMPROVED VERSION of their answer, and the next question.\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': '...', 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
@@ -216,14 +216,21 @@ def api():
                     match = re.search(r"\{.*\}", text, re.DOTALL)
                     if match:
                         json_str = match.group(0)
-                        response_data = json.loads(json_str)
+                        try:
+                            response_data = json.loads(json_str)
+                        except json.JSONDecodeError:
+                            # Fallback for single-quoted keys (Python dict style)
+                            response_data = ast.literal_eval(json_str)
                     else:
                         # Fallback: try cleaning markdown manually if regex fails
                         clean_text = text.strip()
                         if clean_text.startswith('```json'): clean_text = clean_text[7:]
                         elif clean_text.startswith('```'): clean_text = clean_text[3:]
                         if clean_text.endswith('```'): clean_text = clean_text[:-3]
-                        response_data = json.loads(clean_text.strip())
+                        try:
+                            response_data = json.loads(clean_text.strip())
+                        except json.JSONDecodeError:
+                            response_data = ast.literal_eval(clean_text.strip())
                     
                     # Handle None/null for improved_sample
                     improved_sample = response_data.get('improved_sample')

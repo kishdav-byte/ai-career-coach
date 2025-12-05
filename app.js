@@ -281,7 +281,10 @@ function init() {
                 // Check if it's a JSON string (sometimes happens if mixed mode) or just text
                 if (typeof result.data === 'object') {
                     // Standardized UI rendering (same as sendVoiceMessage)
-                    let systemMsg = `<strong>Feedback:</strong> ${result.data.feedback || ''}`;
+                    let systemMsg = '';
+                    if (result.data.feedback) {
+                        systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
+                    }
 
                     if (result.data.improved_sample) {
                         systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
