@@ -29,7 +29,13 @@ async function sendVoiceMessage(base64Audio) {
             // Handle structured voice response
             window.addMessage(`(Transcript): ${result.data.transcript}`, 'user');
 
-            let systemMsg = `<strong>Feedback:</strong> ${result.data.feedback}`;
+            let systemMsg = '';
+            if (result.data.score !== undefined && result.data.score !== null) {
+                systemMsg += `<div style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;">
+                    Score: ${result.data.score}/5
+                </div><br>`;
+            }
+            systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
             if (result.data.improved_sample) {
                 systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
                     <strong>✨ Better Answer:</strong><br>
@@ -282,6 +288,11 @@ function init() {
                 if (typeof result.data === 'object') {
                     // Standardized UI rendering (same as sendVoiceMessage)
                     let systemMsg = '';
+                    if (result.data.score !== undefined && result.data.score !== null) {
+                        systemMsg += `<div style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;">
+                            Score: ${result.data.score}/5
+                        </div><br>`;
+                    }
                     if (result.data.feedback) {
                         systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
                     }
