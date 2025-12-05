@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify
 import os
 import requests
 import json
@@ -6,51 +6,39 @@ from gtts import gTTS
 import base64
 import io
 from dotenv import load_dotenv
-from flask_cors import CORS # Added for CORS(app) to be syntactically correct
 
-load_dotenv() # Load environment variables from .env file
+load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
 
 # API Key from Environment Variable
 API_KEY = os.environ.get('GEMINI_API_KEY')
 
-if not API_KEY:
-    print("WARNING: GEMINI_API_KEY not found in environment variables.")
-
-@app.route('/')
-def index():
-    return send_from_directory('.', 'index.html')
-
-@app.route('/<path:path>')
-def serve_static(path):
-    return send_from_directory('.', path)
-
-@app.route('/api/profile', methods=['GET'])
-def get_profile():
-    print("GET /api/profile called")
+def generate_audio_gtts(text, voice_id):
+    """Generates audio using gTTS."""
+    tld = 'us'
+    if 'GB' in voice_id:
+        tld = 'co.uk'
+    
     try:
-        if os.path.exists('profile.json'):
-            with open('profile.json', 'r') as f:
-                return jsonify(json.load(f))
-        return jsonify({})
+        tts = gTTS(text, lang='en', tld=tld)
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+        return base64.b64encode(mp3_fp.read()).decode('utf-8')
     except Exception as e:
-        return jsonify({"error": str(e)})
+        print(f"gTTS error: {e}")
+        return None
 
 @app.route('/api/optimize', methods=['POST'])
 def optimize_resume_content():
+    if not API_KEY:
+        return jsonify({"error": "Server configuration error: API Key missing"}), 500
+
     data = request.json
     user_data = data.get('user_data')
     template_name = data.get('template_name', 'modern')
     job_description = data.get('job_description', '')
-
-    # Auto-save profile data
-    try:
-        with open('profile.json', 'w') as f:
-            json.dump(user_data, f, indent=2)
-    except Exception as e:
-        print(f"Error saving profile: {e}")
 
     # Construct Prompt
     base_instruction = "Optimize the following resume content for a professional look. Improve clarity and impact."
@@ -108,23 +96,6 @@ def optimize_resume_content():
         print(f"Error calling Gemini: {e}")
         return jsonify({"error": str(e)}), 500
 
-def generate_audio_gtts(text, voice_id):
-    """Generates audio using gTTS."""
-    # Map voice to accent (default US)
-    tld = 'us'
-    if 'GB' in voice_id:
-        tld = 'co.uk'
-    
-    try:
-        tts = gTTS(text, lang='en', tld=tld)
-        mp3_fp = io.BytesIO()
-        tts.write_to_fp(mp3_fp)
-        mp3_fp.seek(0)
-        return base64.b64encode(mp3_fp.read()).decode('utf-8')
-    except Exception as e:
-        print(f"gTTS error: {e}")
-        return None
-
 @app.route('/api', methods=['POST'])
 def api():
     if not API_KEY:
@@ -147,8 +118,7 @@ def api():
         audio_data = data.get('audio', '') # Base64 audio string
         voice = data.get('voice', 'en-US-AriaNeural')
         speed = data.get('speed', '+0%')
-        print(f"DEBUG: Voice={voice}, Speed={speed}")
-
+        
         context = ""
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Start with a relevant interview question."
@@ -156,8 +126,6 @@ def api():
         system_instruction = f"System Instruction: You are a strict hiring manager. Keep responses concise and professional.{context}"
         
         if audio_data:
-            # Multimodal input: Audio + Text Prompt
-            # Remove header if present (e.g., "data:audio/webm;base64,")
             if "base64," in audio_data:
                 audio_data = audio_data.split("base64,")[1]
                 
@@ -166,14 +134,13 @@ def api():
                     {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, provide a critique and the next question. Return JSON: {{'transcript': '...', 'feedback': '...', 'next_question': '...'}}"},
                     {
                         "inline_data": {
-                            "mime_type": "audio/webm", # Assuming webm from browser
+                            "mime_type": "audio/webm",
                             "data": audio_data
                         }
                     }
                 ]
             }]
         else:
-            # Text-only input
             contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}"}]}]
 
     elif action == 'career_plan':
@@ -236,64 +203,42 @@ def api():
         if 'candidates' in result and result['candidates']:
             text = result['candidates'][0]['content']['parts'][0]['text']
             
-            # Special handling for Voice Mode (Multimodal)
             if action == 'interview_chat' and data.get('audio'):
                 try:
-                    # Clean markdown
                     if text.startswith('```json'): text = text[7:]
                     if text.startswith('```'): text = text[3:]
                     if text.endswith('```'): text = text[:-3]
                     
                     response_data = json.loads(text)
-                    
-                    # Generate Audio for the response (Feedback + Next Question)
                     speech_text = f"{response_data.get('feedback', '')} {response_data.get('next_question', '')}"
-                    
-                    # Generate Audio for the response (Feedback + Next Question)
-                    speech_text = f"{response_data.get('feedback', '')} {response_data.get('next_question', '')}"
-                    
-                    # Use gTTS
                     audio_base64 = generate_audio_gtts(speech_text, voice)
                     
                     if audio_base64:
                         response_data['audio'] = audio_base64
-                    else:
-                        print("Failed to generate audio")
-                    return jsonify({"data": response_data}) # Return structured data
+                    return jsonify({"data": response_data})
                     
                 except Exception as e:
                     print(f"Error processing voice response: {e}")
-                    return jsonify({"data": text}) # Fallback to raw text
+                    return jsonify({"data": text})
 
-            # Special handling for Text Mode (Standard Chat) to enable TTS
             elif action == 'interview_chat':
                 try:
-                    # Generate Audio for the text response
-                    # Use gTTS
                     audio_base64 = generate_audio_gtts(text, voice)
-                    
                     if audio_base64:
-                        # Return structured data with text and audio
-                        print("Generated gTTS audio for text chat")
                         return jsonify({"data": {"text": text, "audio": audio_base64}})
                     else:
                          return jsonify({"data": text})
                 except Exception as e:
-                    print(f"Error generating TTS for text chat: {e}")
                     return jsonify({"data": text})
 
-            # Special handling for Career Plan (JSON)
             elif action == 'career_plan':
                 try:
-                    # Clean markdown
                     if text.startswith('```json'): text = text[7:]
                     if text.startswith('```'): text = text[3:]
                     if text.endswith('```'): text = text[:-3]
-                    
                     return jsonify({"data": json.loads(text)})
                 except Exception as e:
-                    print(f"Error parsing career plan JSON: {e}")
-                    return jsonify({"data": text}) # Fallback
+                    return jsonify({"data": text})
 
             return jsonify({"data": text})
 
@@ -303,6 +248,4 @@ def api():
     except Exception as e:
         return jsonify({"error": str(e)})
 
-if __name__ == '__main__':
-    print("Starting server on http://localhost:8000")
-    app.run(port=8000, debug=True)
+# For Vercel, we don't need app.run()

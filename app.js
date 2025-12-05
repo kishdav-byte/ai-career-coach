@@ -615,6 +615,10 @@ function init() {
         });
 
         try {
+            // Save to LocalStorage
+            localStorage.setItem('user_profile', JSON.stringify(userData));
+            console.log("Profile saved to LocalStorage");
+
             const response = await fetch('/api/optimize', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -740,69 +744,73 @@ function init() {
         }
     });
 
-    // Load Profile Data
-    async function loadProfile() {
-        console.log("Loading profile...");
+    // Load Profile Data from LocalStorage
+    function loadProfile() {
+        console.log("Loading profile from LocalStorage...");
         try {
-            const response = await fetch('/api/profile?t=' + Date.now());
-            const data = await response.json();
-            console.log("Profile data loaded:", data);
+            const storedData = localStorage.getItem('user_profile');
+            if (storedData) {
+                const data = JSON.parse(storedData);
+                console.log("Profile data loaded:", data);
 
-            if (data && Object.keys(data).length > 0) {
-                // Personal Info
-                if (data.personal) {
-                    console.log("Setting personal info:", data.personal);
-                    document.getElementById('rb-name').value = data.personal.name || '';
-                    document.getElementById('rb-email').value = data.personal.email || '';
-                    document.getElementById('rb-phone').value = data.personal.phone || '';
-                    document.getElementById('rb-linkedin').value = data.personal.linkedin || '';
-                    document.getElementById('rb-location').value = data.personal.location || '';
+                if (data && Object.keys(data).length > 0) {
+                    // Personal Info
+                    if (data.personal) {
+                        console.log("Setting personal info:", data.personal);
+                        document.getElementById('rb-name').value = data.personal.name || '';
+                        document.getElementById('rb-email').value = data.personal.email || '';
+                        document.getElementById('rb-phone').value = data.personal.phone || '';
+                        document.getElementById('rb-linkedin').value = data.personal.linkedin || '';
+                        document.getElementById('rb-location').value = data.personal.location || '';
+                    }
+
+                    // Summary
+                    document.getElementById('rb-summary').value = data.summary || '';
+
+                    // Experience
+                    if (data.experience && data.experience.length > 0) {
+                        const container = document.getElementById('rb-experience-list');
+                        container.innerHTML = ''; // Clear default
+
+                        data.experience.forEach(job => {
+                            const div = document.createElement('div');
+                            div.classList.add('experience-item');
+                            div.innerHTML = `
+                                <input type="text" class="rb-exp-role" placeholder="Job Title" value="${job.role || ''}">
+                                <input type="text" class="rb-exp-company" placeholder="Company" value="${job.company || ''}">
+                                <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${job.dates || ''}">
+                                <textarea class="rb-exp-desc" placeholder="Job responsibilities and achievements...">${job.description || ''}</textarea>
+                                <button class="secondary-btn remove-btn" style="background: #dc3545; padding: 5px 10px; margin-top: 5px;">Remove</button>
+                            `;
+                            container.appendChild(div);
+                            div.querySelector('.remove-btn').addEventListener('click', () => div.remove());
+                        });
+                    }
+
+                    // Education
+                    if (data.education && data.education.length > 0) {
+                        const container = document.getElementById('rb-education-list');
+                        container.innerHTML = ''; // Clear default
+
+                        data.education.forEach(edu => {
+                            const div = document.createElement('div');
+                            div.classList.add('education-item');
+                            div.innerHTML = `
+                                <input type="text" class="rb-edu-school" placeholder="School/University" value="${edu.school || ''}">
+                                <input type="text" class="rb-edu-degree" placeholder="Degree/Major" value="${edu.degree || ''}">
+                                <input type="text" class="rb-edu-year" placeholder="Graduation Year" value="${edu.year || ''}">
+                                <button class="secondary-btn remove-btn" style="background: #dc3545; padding: 5px 10px; margin-top: 5px;">Remove</button>
+                            `;
+                            container.appendChild(div);
+                            div.querySelector('.remove-btn').addEventListener('click', () => div.remove());
+                        });
+                    }
+
+                    // Skills
+                    document.getElementById('rb-skills').value = data.skills || '';
                 }
-
-                // Summary
-                document.getElementById('rb-summary').value = data.summary || '';
-
-                // Experience
-                if (data.experience && data.experience.length > 0) {
-                    const container = document.getElementById('rb-experience-list');
-                    container.innerHTML = ''; // Clear default
-
-                    data.experience.forEach(job => {
-                        const div = document.createElement('div');
-                        div.classList.add('experience-item');
-                        div.innerHTML = `
-                            <input type="text" class="rb-exp-role" placeholder="Job Title" value="${job.role || ''}">
-                            <input type="text" class="rb-exp-company" placeholder="Company" value="${job.company || ''}">
-                            <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${job.dates || ''}">
-                            <textarea class="rb-exp-desc" placeholder="Job responsibilities and achievements...">${job.description || ''}</textarea>
-                            <button class="secondary-btn remove-btn" style="background: #dc3545; padding: 5px 10px; margin-top: 5px;">Remove</button>
-                        `;
-                        container.appendChild(div);
-                        div.querySelector('.remove-btn').addEventListener('click', () => div.remove());
-                    });
-                }
-
-                // Education
-                if (data.education && data.education.length > 0) {
-                    const container = document.getElementById('rb-education-list');
-                    container.innerHTML = ''; // Clear default
-
-                    data.education.forEach(edu => {
-                        const div = document.createElement('div');
-                        div.classList.add('education-item');
-                        div.innerHTML = `
-                            <input type="text" class="rb-edu-school" placeholder="School/University" value="${edu.school || ''}">
-                            <input type="text" class="rb-edu-degree" placeholder="Degree/Major" value="${edu.degree || ''}">
-                            <input type="text" class="rb-edu-year" placeholder="Graduation Year" value="${edu.year || ''}">
-                            <button class="secondary-btn remove-btn" style="background: #dc3545; padding: 5px 10px; margin-top: 5px;">Remove</button>
-                        `;
-                        container.appendChild(div);
-                        div.querySelector('.remove-btn').addEventListener('click', () => div.remove());
-                    });
-                }
-
-                // Skills
-                document.getElementById('rb-skills').value = data.skills || '';
+            } else {
+                console.log("No profile found in LocalStorage.");
             }
         } catch (e) {
             console.error("Error loading profile:", e);
