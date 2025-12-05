@@ -124,7 +124,7 @@ def api():
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Start with a relevant interview question."
         
-        system_instruction = f"System Instruction: You are a strict hiring manager. Keep responses concise and professional.{context}"
+        system_instruction = f"System Instruction: You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Start the interview IMMEDIATELY with the first question. Keep responses concise and professional.{context}"
         
         if audio_data:
             if "base64," in audio_data:
