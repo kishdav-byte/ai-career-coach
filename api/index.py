@@ -203,32 +203,26 @@ def api():
         if 'candidates' in result and result['candidates']:
             text = result['candidates'][0]['content']['parts'][0]['text']
             
-            if action == 'interview_chat' and data.get('audio'):
+            if action == 'interview_chat':
                 try:
                     if text.startswith('```json'): text = text[7:]
                     if text.startswith('```'): text = text[3:]
                     if text.endswith('```'): text = text[:-3]
                     
                     response_data = json.loads(text)
+                    
+                    # Generate Audio
                     speech_text = f"{response_data.get('feedback', '')} Here is an improved version: {response_data.get('improved_sample', '')}. Now, are you ready for the next question? {response_data.get('next_question', '')}"
                     audio_base64 = generate_audio_gtts(speech_text, voice)
                     
                     if audio_base64:
                         response_data['audio'] = audio_base64
+                    
                     return jsonify({"data": response_data})
                     
                 except Exception as e:
-                    print(f"Error processing voice response: {e}")
-                    return jsonify({"data": text})
-
-            elif action == 'interview_chat':
-                try:
-                    audio_base64 = generate_audio_gtts(text, voice)
-                    if audio_base64:
-                        return jsonify({"data": {"text": text, "audio": audio_base64}})
-                    else:
-                         return jsonify({"data": text})
-                except Exception as e:
+                    print(f"Error processing interview response: {e}")
+                    # Fallback if JSON parsing fails
                     return jsonify({"data": text})
 
             elif action == 'career_plan':
