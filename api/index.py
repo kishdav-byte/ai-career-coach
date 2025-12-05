@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+import re
 import os
 import requests
 import json
@@ -203,12 +204,6 @@ def api():
         if 'candidates' in result and result['candidates']:
             text = result['candidates'][0]['content']['parts'][0]['text']
             
-            if action == 'interview_chat':
-import re
-
-# ... (existing imports)
-
-# ... (inside api function)
             if action == 'interview_chat':
                 try:
                     # Robust JSON extraction
