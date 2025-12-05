@@ -204,12 +204,31 @@ def api():
             text = result['candidates'][0]['content']['parts'][0]['text']
             
             if action == 'interview_chat':
+import re
+
+# ... (existing imports)
+
+# ... (inside api function)
+            if action == 'interview_chat':
                 try:
-                    if text.startswith('```json'): text = text[7:]
-                    if text.startswith('```'): text = text[3:]
-                    if text.endswith('```'): text = text[:-3]
+                    # Robust JSON extraction
+                    match = re.search(r"\{.*\}", text, re.DOTALL)
+                    if match:
+                        json_str = match.group(0)
+                        response_data = json.loads(json_str)
+                    else:
+                        # Fallback: try cleaning markdown manually if regex fails
+                        clean_text = text.strip()
+                        if clean_text.startswith('```json'): clean_text = clean_text[7:]
+                        elif clean_text.startswith('```'): clean_text = clean_text[3:]
+                        if clean_text.endswith('```'): clean_text = clean_text[:-3]
+                        response_data = json.loads(clean_text.strip())
                     
-                    response_data = json.loads(text)
+                    # Handle None/null for improved_sample
+                    improved_sample = response_data.get('improved_sample')
+                    if improved_sample is None:
+                        improved_sample = ""
+                    response_data['improved_sample'] = improved_sample
                     
                     # Generate Audio
                     speech_text = f"{response_data.get('feedback', '')} Here is an improved version: {response_data.get('improved_sample', '')}. Now, are you ready for the next question? {response_data.get('next_question', '')}"
