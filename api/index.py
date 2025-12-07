@@ -684,21 +684,29 @@ def stripe_webhook():
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         
-        # Fulfill the purchase...
         user_email = session.get('metadata', {}).get('user_email')
         customer_id = session.get('customer')
         
-        if user_email and supabase:
-            try:
-                supabase.table('users').update({
-                    'account_status': 'paid', 
-                    'payment_tier': 'pro',
-                    'stripe_customer_id': customer_id
-                }).eq('email', user_email).execute()
-                print(f"Updated user {user_email} to paid status.")
-            except Exception as e:
-                print(f"Error updating Supabase from webhook: {e}")
+        if not user_email:
+            print("Error: No email in metadata")
+            return jsonify({'error': 'No email in metadata'}), 400
 
-    return jsonify({'status': 'success'})
+        if not supabase:
+            print("Error: Supabase not initialized")
+            return jsonify({'error': 'Supabase not connected'}), 500
+
+        try:
+            supabase.table('users').update({
+                'account_status': 'paid', 
+                'payment_tier': 'pro',
+                'stripe_customer_id': customer_id
+            }).eq('email', user_email).execute()
+            print(f"Updated user {user_email} to paid status.")
+            return jsonify({'status': 'success'})
+        except Exception as e:
+            print(f"Error updating Supabase: {e}")
+            return jsonify({'error': f"Database update failed: {str(e)}"}), 500
+
+    return jsonify({'status': 'ignored'})
 # For Vercel, we don't need app.run()
 
