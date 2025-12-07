@@ -78,7 +78,7 @@ function init() {
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v7.3 (Refined Start)';
+    versionDisplay.textContent = 'v7.4 (Confirmation Step)';
     document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
@@ -189,7 +189,7 @@ function init() {
         if (jobPosting.trim()) {
             primeAudio();
             primeAudio();
-            questionCount = 1; // Reset counter
+            questionCount = 0; // Reset counter to 0 for welcome message
             sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
             alert("Please paste a job description first.");
