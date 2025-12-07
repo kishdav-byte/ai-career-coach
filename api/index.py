@@ -151,21 +151,80 @@ def api():
         {{
             "overall_score": 85,
             "summary": "Brief 1-sentence summary of where they stand.",
+            "benchmark": {{
+                "level": "Mid-Senior",
+                "percentile": "Top 20%",
+                "user_score": 85,
+                "avg_score": 68,
+                "top_10_score": 92,
+                "text": "You are 25% stronger than the average candidate.",
+                "ahead_reasons": ["Reason 1", "Reason 2", "Reason 3"],
+                "gap_reasons": ["Reason 1", "Reason 2", "Reason 3"]
+            }},
             "strengths": [
                 {{"title": "Strength 1", "description": "Why it is good..."}},
                 {{"title": "Strength 2", "description": "Why it is good..."}},
                 {{"title": "Strength 3", "description": "Why it is good..."}}
             ],
             "improvements": [
-                {{"priority": "HIGH", "title": "Improvement 1", "suggestion": "Actionable advice..."}},
-                {{"priority": "MEDIUM", "title": "Improvement 2", "suggestion": "Actionable advice..."}},
-                {{"priority": "LOW", "title": "Improvement 3", "suggestion": "Actionable advice..."}}
+                {{
+                    "priority": "HIGH", 
+                    "title": "Clarify Impact", 
+                    "suggestion": "Quantify your achievements...",
+                    "current": "Managed a team...", 
+                    "better": "Managed a team of 12, increasing productivity by 20%...", 
+                    "why": "Recruiters need numbers...", 
+                    "how_to": "Review your last 2 roles..."
+                }},
+                {{
+                    "priority": "MEDIUM", 
+                    "title": "Improvement 2", 
+                    "suggestion": "...",
+                    "current": "...", 
+                    "better": "...", 
+                    "why": "...", 
+                    "how_to": "..."
+                }},
+                {{
+                    "priority": "LOW", 
+                    "title": "Improvement 3", 
+                    "suggestion": "...",
+                    "current": "...", 
+                    "better": "...", 
+                    "why": "...", 
+                    "how_to": "..."
+                }}
             ],
             "keywords": {{
-                "high_priority": ["Keyword1", "Keyword2", "Keyword3", "Keyword4", "Keyword5"],
-                "medium_priority": ["Keyword6", "Keyword7"],
-                "advice": "How to include them..."
+                "good": [{{"word": "Leadership", "count": 5}}, {{"word": "Project Management", "count": 4}}],
+                "missing": [{{"word": "Stakeholder Management", "advice": "Add to recent roles"}}, {{"word": "Change Management", "advice": "Add to leadership bullets"}}],
+                "overused": [{{"word": "Managed", "count": 8, "alternatives": ["Led", "Directed", "Oversaw"]}}],
+                "advice": "Add missing keywords to your most recent experience."
             }},
+            "rewrites": [
+                {{
+                    "type": "Leadership",
+                    "original": "Led a team of employees...",
+                    "rewritten": "Directed 15-person team, increasing efficiency by 25%...",
+                    "explanation": "Added team size and specific metric."
+                }},
+                {{
+                    "type": "Project Management",
+                    "original": "Managed projects...",
+                    "rewritten": "Spearheaded 3 global projects with budgets over $500k...",
+                    "explanation": "Added scope and budget."
+                }},
+                {{
+                    "type": "Achievement",
+                    "original": "Saved money...",
+                    "rewritten": "Reduced operational costs by $50k annually through...",
+                    "explanation": "Quantified savings."
+                }}
+            ],
+            "role_gaps": [
+                {{"role": "Most Recent Role", "missing_keywords": ["Strategy", "Budgeting"]}},
+                {{"role": "Previous Role", "missing_keywords": ["Team Building", "Mentoring"]}}
+            ],
             "ats_compatibility": {{
                 "score": 8,
                 "issues": ["Issue 1", "Issue 2"],
@@ -181,11 +240,7 @@ def api():
                 "medium_effort": ["Task 1", "Task 2"],
                 "long_term": ["Task 1", "Task 2"]
             }},
-            "benchmark": {{
-                "level": "Mid-Senior",
-                "percentile": "Top 20%",
-                "text": "Your resume is better than 80% of candidates at this level."
-            }}
+            "interview_tip": "Practice answering 'Tell me about a time...' using the STAR method."
         }}
         """
         messages = [{"role": "user", "content": prompt}]

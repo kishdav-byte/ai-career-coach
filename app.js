@@ -245,19 +245,36 @@ function init() {
 
             const html = `
                 <div class="resume-report">
-                    <!-- 1. HEADER & SCORE -->
-                    <div class="report-header">
-                        <div class="score-container">
-                            <div class="score-circle">
+                    <!-- 1. COMPARISON & SCORE -->
+                    <div class="report-section benchmark-section">
+                        <h4>📊 Competitive Positioning</h4>
+                        <div class="benchmark-grid">
+                             <div class="score-circle-large">
                                 <span>${data.overall_score}</span>
-                                <span class="calc-text">/ 100</span>
+                                <label>Your Score</label>
                             </div>
-                        </div>
-                        <div class="summary-container">
-                            <h3>Analysis Summary</h3>
-                            <p>${data.summary}</p>
-                            <div class="benchmark-pill">
-                                📊 ${data.benchmark.text}
+                            <div class="benchmark-bars">
+                                <div class="bar-group">
+                                    <div class="bar-label">
+                                        <span>Avg. Candidate</span>
+                                        <span>${data.benchmark.avg_score}/100</span>
+                                    </div>
+                                    <div class="progress-bar"><div class="fill avg" style="width: ${data.benchmark.avg_score}%"></div></div>
+                                </div>
+                                <div class="bar-group">
+                                    <div class="bar-label">
+                                        <span>Top 10%</span>
+                                        <span>${data.benchmark.top_10_score}/100</span>
+                                    </div>
+                                    <div class="progress-bar"><div class="fill top" style="width: ${data.benchmark.top_10_score}%"></div></div>
+                                </div>
+                                <div class="benchmark-text">
+                                    <strong>Status:</strong> ${data.benchmark.text}<br>
+                                    <span style="font-size:0.9em; color:#666">
+                                        ✅ ${data.benchmark.ahead_reasons[0]}<br>
+                                        ⚠️ Gap: ${data.benchmark.gap_reasons[0]}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -266,7 +283,7 @@ function init() {
                     <div class="report-section strengths">
                         <h4>💪 Key Strengths</h4>
                         <div class="grid-3">
-                            ${data.strengths.map(s => `
+                            ${(data.strengths || []).map(s => `
                                 <div class="card-item">
                                     <h5>${s.title}</h5>
                                     <p>${s.description}</p>
@@ -275,57 +292,126 @@ function init() {
                         </div>
                     </div>
 
-                    <!-- 3. IMPROVEMENTS -->
+                    <!-- 3. IMPROVEMENTS WITH EXAMPLES -->
                     <div class="report-section improvements">
                         <h4>🚀 High Impact Improvements</h4>
                         <div class="list-cards">
-                            ${data.improvements.map(i => `
-                                <div class="list-item">
-                                    <span class="badge" style="background:${getPriorityColor(i.priority)}">${i.priority}</span>
-                                    <strong>${i.title}:</strong> ${i.suggestion}
+                            ${(data.improvements || []).map(i => `
+                                <div class="list-item detailed">
+                                    <div class="list-header">
+                                        <span class="badge" style="background:${getPriorityColor(i.priority)}">${i.priority}</span>
+                                        <strong>${i.title}</strong>
+                                    </div>
+                                    <div class="list-body">
+                                        <p>${i.suggestion}</p>
+                                        <div class="example-box">
+                                            <div class="ex-row"><strong>Current:</strong> "${i.current}"</div>
+                                            <div class="ex-arrow">⬇️ Better</div>
+                                            <div class="ex-row better"><strong>Stronger:</strong> "${i.better}"</div>
+                                        </div>
+                                        <div class="why-box">
+                                            <strong>Why:</strong> ${i.why}
+                                        </div>
+                                    </div>
                                 </div>
                             `).join('')}
                         </div>
                     </div>
 
-                    <!-- 4. KEYWORDS -->
-                    <div class="report-section">
-                        <h4>🔑 Missing Keywords</h4>
-                        <p class="section-advice">${data.keywords.advice}</p>
-                        <div class="keyword-cloud">
-                            ${data.keywords.high_priority.map(k => `<span class="tag high">${k}</span>`).join('')}
-                            ${data.keywords.medium_priority.map(k => `<span class="tag med">${k}</span>`).join('')}
+                    <!-- 4. QUICK REWRITES -->
+                    <div class="report-section rewrites">
+                        <h4>📝 Quick Rewrites (Copy These)</h4>
+                        <div class="grid-1">
+                            ${(data.rewrites || []).map((r, idx) => `
+                                <div class="rewrite-card">
+                                    <h5>${idx + 1}. ${r.type} Bullet</h5>
+                                    <div class="rewrite-grid">
+                                        <div class="rewrite-col old">
+                                            <h6>Your Version</h6>
+                                            <p>"${r.original}"</p>
+                                        </div>
+                                        <div class="rewrite-col new">
+                                            <h6>Stronger Version</h6>
+                                            <p>"${r.rewritten}"</p>
+                                        </div>
+                                    </div>
+                                    <p class="explanation">💡 ${r.explanation}</p>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
 
-                    <!-- 5. ATS & FORMATTING -->
+                    <!-- 5. KEYWORD ANALYSIS -->
+                    <div class="report-section keywords-detailed">
+                        <h4>🔑 Keyword Analysis</h4>
+                        <div class="keyword-grids">
+                            <div class="k-col">
+                                <h5>✅ Using Well</h5>
+                                <ul class="k-list good">
+                                    ${(data.keywords.good || []).map(k => `<li>"${k.word}" (${k.count}x)</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="k-col">
+                                <h5>❌ Missing High-Priority</h5>
+                                <ul class="k-list missing">
+                                    ${(data.keywords.missing || []).map(k => `<li>"${k.word}" <span class="tip">(${k.advice})</span></li>`).join('')}
+                                </ul>
+                            </div>
+                            <div class="k-col">
+                                <h5>⚠️ Overused</h5>
+                                <ul class="k-list overused">
+                                    ${(data.keywords.overused || []).map(k => `<li>"${k.word}" (${k.count}x) <br><span class="alts">Try: ${k.alternatives.join(', ')}</span></li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        ${data.role_gaps ? `
+                        <div class="role-gaps">
+                            <h5>Role-Specific Gaps</h5>
+                            ${data.role_gaps.map(rg => `
+                                <div class="gap-item">
+                                    <strong>${rg.role}:</strong> Missing terms: ${rg.missing_keywords.map(w => `<span class="tag med">${w}</span>`).join('')}
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- 6. ATS & FORMATTING -->
                     <div class="grid-2">
                         <div class="report-section ats">
-                            <h4>🤖 ATS Compatibility: ${data.ats_compatibility.score}/10</h4>
+                            <h4>🤖 ATS Compatibility: ${(data.ats_compatibility || {}).score || 0}/10</h4>
                             <ul>
-                                ${data.ats_compatibility.issues.map(issue => `<li>⚠️ ${issue}</li>`).join('')}
+                                ${(data.ats_compatibility?.issues || []).map(issue => `<li>⚠️ ${issue}</li>`).join('')}
                             </ul>
-                            <p><em>${data.ats_compatibility.recommendation}</em></p>
+                            <p><em>${(data.ats_compatibility || {}).recommendation}</em></p>
                         </div>
                         <div class="report-section formatting">
                             <h4>🎨 Formatting Fixes</h4>
                             <ul>
-                                ${data.formatting.map(f => `<li><strong>${f.issue}:</strong> ${f.fix}</li>`).join('')}
+                                ${(data.formatting || []).map(f => `<li><strong>${f.issue}:</strong> ${f.fix}</li>`).join('')}
                             </ul>
                         </div>
                     </div>
 
                     <!-- 7. ACTION PLAN -->
                     <div class="report-section action-plan">
-                        <h4>⚡ Next Steps (Action Plan)</h4>
+                        <h4>⚡ Next Steps</h4>
                         <div class="action-group">
                             <h5>Quick Wins (30 mins)</h5>
-                            <ul>${data.action_plan.quick_wins.map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                            <ul>${(data.action_plan?.quick_wins || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
                         </div>
                         <div class="action-group">
                             <h5>Deep Work (2 hours)</h5>
-                            <ul>${data.action_plan.medium_effort.map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                            <ul>${(data.action_plan?.medium_effort || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
                         </div>
+                    </div>
+
+                     <!-- 8. INTERVIEW TIP -->
+                    <div class="report-section interview-tip">
+                        <h4>💡 Interview Readiness</h4>
+                        <p>${data.interview_tip || "Practice your STAR method answers."}</p>
+                        <a href="#" onclick="document.querySelector('.tab-btn[data-tab=\\'interview-coach\\']').click()">→ Practice Interview Questions ($19.99 Value)</a>
                     </div>
 
                     <!-- 9. UPSELL -->

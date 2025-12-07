@@ -1589,3 +1589,261 @@ textarea {
     .resume-report { box-shadow: none; border: none; }
     .score-circle { border: 4px solid #007bff; }
 }
+
+/* ========================================
+   RESUME ANALYSIS REPORT - PHASE 2 UPGRADES
+   ======================================== */
+
+.benchmark-section {
+    background: linear-gradient(to right, #ffffff, #f0f8ff);
+}
+
+.benchmark-grid {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.score-circle-large {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: #fff;
+    border: 10px solid var(--primary-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,123,255,0.25);
+}
+
+.score-circle-large span {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.score-circle-large label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 5px;
+}
+
+.benchmark-bars {
+    flex: 1;
+    min-width: 300px;
+}
+
+.bar-group {
+    margin-bottom: 15px;
+}
+
+.bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.progress-bar {
+    height: 12px;
+    background: #e9ecef;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.progress-bar .fill {
+    height: 100%;
+    border-radius: 6px;
+}
+
+.progress-bar .fill.avg { background: #6c757d; }
+.progress-bar .fill.top { background: #28a745; }
+
+.benchmark-text {
+    margin-top: 15px;
+    font-size: 0.95rem;
+    padding: 10px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Detailed Improvements */
+.list-item.detailed {
+    display: block; /* Override flex */
+    padding: 20px;
+}
+
+.list-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+}
+
+.list-body {
+    padding-left: 0;
+}
+
+.example-box {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #6c757d;
+}
+
+.ex-row {
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.ex-row.better {
+    color: #155724;
+    background: #d4edda;
+    padding: 10px;
+    border-radius: 4px;
+    margin-top: 5px;
+}
+
+.ex-arrow {
+    font-size: 0.8rem;
+    color: #28a745;
+    margin: 5px 0;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.why-box {
+    font-size: 0.9rem;
+    color: #666;
+    font-style: italic;
+}
+
+/* Quick Rewrites */
+.rewrite-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.rewrite-card h5 {
+    margin: 0 0 15px 0;
+    color: #007bff;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.rewrite-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.rewrite-col h6 {
+    margin: 0 0 5px 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.rewrite-col.old p {
+    color: #dc3545;
+    background: #fff5f5;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 3px solid #dc3545;
+    font-size: 0.9rem;
+}
+
+.rewrite-col.new p {
+    color: #155724;
+    background: #effaf3;
+    padding: 10px;
+    border-radius: 4px;
+    border-left: 3px solid #155724;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.explanation {
+    margin-top: 15px;
+    font-size: 0.9rem;
+    color: #555;
+    padding-top: 10px;
+    border-top: 1px dashed #eee;
+}
+
+/* Keyword Grids */
+.keyword-grids {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.k-col h5 {
+    margin: 0 0 10px 0;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 5px;
+}
+
+.k-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.k-list li {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #f8f8f8;
+}
+
+.k-list.good li { color: #28a745; }
+.k-list.missing li { color: #dc3545; }
+.k-list.overused li { color: #856404; }
+
+.k-list .tip, .k-list .alts {
+    display: block;
+    font-size: 0.8rem;
+    color: #999;
+}
+
+/* Role Gaps */
+.role-gaps {
+    margin-top: 25px;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+}
+
+.gap-item {
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+}
+
+/* Interview Tip */
+.interview-tip {
+    background: #fff3cd;
+    border: 1px solid #ffeeba;
+}
+
+.interview-tip h4 { color: #856404; border-bottom-color: #ffeeba; }
+.interview-tip a { color: #856404; font-weight: bold; text-decoration: underline; }
+
+@media (max-width: 768px) {
+    .rewrite-grid { grid-template-columns: 1fr; }
+    .benchmark-grid { flex-direction: column; align-items: flex-start; }
+}
+
