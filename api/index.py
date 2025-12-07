@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # API Key from Environment Variable
-API_KEY = os.environ.get('GEMINI_API_KEY')
+API_KEY = os.environ.get('OPENAI_API_KEY')
 
 def generate_audio_gtts(text, voice_id):
     """Generates audio using gTTS."""
@@ -31,6 +31,31 @@ def generate_audio_gtts(text, voice_id):
     except Exception as e:
         print(f"gTTS error: {e}")
         return None
+
+def call_openai(messages, json_mode=False):
+    """Helper function to call OpenAI API."""
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": messages,
+        "max_tokens": 4096
+    }
+    
+    if json_mode:
+        payload["response_format"] = {"type": "json_object"}
+    
+    response = requests.post(
+        "https://api.openai.com/v1/chat/completions",
+        headers=headers,
+        json=payload
+    )
+    response.raise_for_status()
+    result = response.json()
+    return result['choices'][0]['message']['content']
 
 @app.route('/api/optimize', methods=['POST'])
 def optimize_resume_content():
@@ -67,35 +92,22 @@ def optimize_resume_content():
     Do not include markdown formatting (like ```json). Just the raw JSON string.
     """
 
-    # Call Gemini API
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={API_KEY}"
-    payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }]
-    }
-
     try:
-        response = requests.post(api_url, json=payload)
-        response.raise_for_status()
-        result = response.json()
+        messages = [{"role": "user", "content": prompt}]
+        text = call_openai(messages, json_mode=True)
         
-        if 'candidates' in result and result['candidates']:
-            text = result['candidates'][0]['content']['parts'][0]['text']
-            # Clean up markdown if present
-            if text.startswith('```json'):
-                text = text[7:]
-            if text.startswith('```'):
-                text = text[3:]
-            if text.endswith('```'):
-                text = text[:-3]
-            
-            return jsonify(json.loads(text))
-        else:
-            return jsonify({"error": "Invalid response from Gemini", "raw": result}), 500
+        # Clean up markdown if present
+        if text.startswith('```json'):
+            text = text[7:]
+        if text.startswith('```'):
+            text = text[3:]
+        if text.endswith('```'):
+            text = text[:-3]
+        
+        return jsonify(json.loads(text))
             
     except Exception as e:
-        print(f"Error calling Gemini: {e}")
+        print(f"Error calling OpenAI: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api', methods=['POST'])
@@ -106,64 +118,51 @@ def api():
     data = request.json
     action = data.get('action')
     
-    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key={API_KEY}"
-    
-    contents = []
+    messages = []
+    json_mode = False
 
     if action == 'analyze_resume':
         resume = data.get('resume', '')
         prompt = f"Analyze this resume and provide 3 strengths and 3 areas for improvement. Be specific.\n\nResume:\n{resume}"
-        contents = [{"parts": [{"text": prompt}]}]
+        messages = [{"role": "user", "content": prompt}]
+        
     elif action == 'interview_chat':
         message = data.get('message', '')
         job_posting = data.get('jobPosting', '')
-        audio_data = data.get('audio', '') # Base64 audio string
         voice = data.get('voice', 'en-US-AriaNeural')
         speed = data.get('speed', '+0%')
         is_start = data.get('isStart', False)
         question_count = data.get('questionCount', 1)
+        json_mode = True
         
         context = ""
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Start with a relevant interview question."
         
-        system_instruction = f"System Instruction: You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
+        system_instruction = f"You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
         
-        if audio_data:
-            if "base64," in audio_data:
-                audio_data = audio_data.split("base64,")[1]
-                
-            contents = [{
-                "parts": [
-                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, evaluate the answer and provide a SCORE (0-5).\nCRITICAL: You MUST include the score in the 'feedback' text. Start the feedback with: \"I would score this answer a [score] because...\".\n\nIf question_count >= 5, set 'next_question' to 'That concludes our interview. Thank you for your time.'\n\nReturn JSON: {{'transcript': '...', 'feedback': 'I would score this answer a [score] because...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
-                    {
-                        "inline_data": {
-                            "mime_type": "audio/webm",
-                            "data": audio_data
-                        }
-                    }
-                ]
-            }]
+        if is_start:
+            welcome_msg = "Welcome to the interview. This interview consists of 5 questions. You are encouraged to think about a specific situation or task that you experienced, the specific actions that you took, and the results of the actions you took. Are you ready for the first question?"
+            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Do NOT ask the first question yet.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg}\"}}"
+        elif question_count == 1:
+            user_prompt = f"User: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nYou MUST start the question with exactly: 'The First Question that I have for you is: '\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"The First Question that I have for you is: [Question]...\"}}"
         else:
-            if is_start:
-                 # Start Mode: Just the welcome message.
-                 welcome_msg = "Welcome to the interview. This interview consists of 5 questions. You are encouraged to think about a specific situation or task that you experienced, the specific actions that you took, and the results of the actions you took. Are you ready for the first question?"
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Do NOT ask the first question yet.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '{welcome_msg}'}}"}]}]
-            elif question_count == 1:
-                 # First Question Mode: User confirmed readiness. Ask Question 1.
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nYou MUST start the question with exactly: 'The First Question that I have for you is: '\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': 'The First Question that I have for you is: [Question]...'}}"}]}]
-            else:
-                 # Answer Mode: Provide feedback
-                 next_q_instruction = "Ask the next question. You MUST start the question with exactly: 'The next question that I have for you is '"
-                 if question_count > 5:
-                     next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
-                 
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n{next_q_instruction}\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': 'I would score this answer a [score] because... [rest of feedback]', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
+            next_q_instruction = "Ask the next question. You MUST start the question with exactly: 'The next question that I have for you is '"
+            if question_count > 5:
+                next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
+            
+            user_prompt = f"User: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n{next_q_instruction}\n\nReturn STRICT JSON (use double quotes for keys/values): {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because... [rest of feedback]\", \"score\": 0, \"improved_sample\": \"... (A more professional/impactful version of the user's answer)\", \"next_question\": \"...\"}}"
+        
+        messages = [
+            {"role": "system", "content": system_instruction},
+            {"role": "user", "content": user_prompt}
+        ]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
         company = data.get('company', '')
         job_posting = data.get('jobPosting', '')
+        json_mode = True
         
         prompt = f"""
         Create a 30-60-90 day plan for a {job_title} role at {company}.
@@ -181,9 +180,11 @@ def api():
         }}
         Do not include markdown formatting. Just the raw JSON string.
         """
-        contents = [{"parts": [{"text": prompt}]}]
+        messages = [{"role": "user", "content": prompt}]
+        
     elif action == 'linkedin_optimize':
         about_me = data.get('aboutMe', '')
+        json_mode = True
         prompt = f"""
         LINKEDIN PROFILE OPTIMIZER - MANDATORY TEMPLATE
 
@@ -272,7 +273,8 @@ def api():
             "refined_sample": "The complete rewritten profile text following the structure above..."
         }}
         """
-        contents = [{"parts": [{"text": prompt}]}]
+        messages = [{"role": "user", "content": prompt}]
+        
     elif action == 'cover_letter':
         job_desc = data.get('jobDesc', '')
         resume = data.get('resume', '')
@@ -291,10 +293,11 @@ def api():
         Resume:
         {resume}
         """
-        """
-        contents = [{"parts": [{"text": prompt}]}]
+        messages = [{"role": "user", "content": prompt}]
+        
     elif action == 'generate_report':
         history = data.get('history', [])
+        json_mode = True
         prompt = f"""
         Generate a Final Interview Report based on the following interview history.
         
@@ -310,103 +313,79 @@ def api():
         
         Return JSON: {{ "report": "<html>...</html>" }}
         """
-        contents = [{"parts": [{"text": prompt}]}]
+        messages = [{"role": "user", "content": prompt}]
     else:
         return jsonify({"error": "Invalid action"}), 400
 
-    payload = {
-        "contents": contents
-    }
-    
-    # Enable JSON mode for actions that require structured output
-    if action in ['interview_chat', 'career_plan', 'optimize_resume', 'linkedin_optimize', 'generate_report']: # optimize_resume is separate endpoint but good practice
-         payload["generationConfig"] = {
-             "responseMimeType": "application/json"
-         }
-
     try:
-        response = requests.post(api_url, json=payload)
-        response.raise_for_status()
-        result = response.json()
+        text = call_openai(messages, json_mode=json_mode)
         
-        if 'candidates' in result and result['candidates']:
-            text = result['candidates'][0]['content']['parts'][0]['text']
-            
-            if action == 'interview_chat':
-                try:
-                    # Robust JSON extraction
-                    match = re.search(r"\{.*\}", text, re.DOTALL)
-                    if match:
-                        json_str = match.group(0)
-                        try:
-                            response_data = json.loads(json_str)
-                        except json.JSONDecodeError:
-                            # Fallback for single-quoted keys (Python dict style)
-                            response_data = ast.literal_eval(json_str)
+        if action == 'interview_chat':
+            try:
+                # Robust JSON extraction
+                match = re.search(r"\{.*\}", text, re.DOTALL)
+                if match:
+                    json_str = match.group(0)
+                    try:
+                        response_data = json.loads(json_str)
+                    except json.JSONDecodeError:
+                        response_data = ast.literal_eval(json_str)
+                else:
+                    clean_text = text.strip()
+                    if clean_text.startswith('```json'): clean_text = clean_text[7:]
+                    elif clean_text.startswith('```'): clean_text = clean_text[3:]
+                    if clean_text.endswith('```'): clean_text = clean_text[:-3]
+                    try:
+                        response_data = json.loads(clean_text.strip())
+                    except json.JSONDecodeError:
+                        response_data = ast.literal_eval(clean_text.strip())
+                
+                # Handle None/null for improved_sample
+                improved_sample = response_data.get('improved_sample')
+                if improved_sample is None:
+                    improved_sample = ""
+                response_data['improved_sample'] = improved_sample
+                
+                # Generate Audio
+                speech_text = ""
+                if response_data.get('feedback'):
+                    speech_text += f"{response_data.get('feedback')} "
+                
+                if response_data.get('improved_sample'):
+                    speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
+                
+                if response_data.get('next_question'):
+                    if is_start:
+                        speech_text += f"{response_data.get('next_question')}"
                     else:
-                        # Fallback: try cleaning markdown manually if regex fails
-                        clean_text = text.strip()
-                        if clean_text.startswith('```json'): clean_text = clean_text[7:]
-                        elif clean_text.startswith('```'): clean_text = clean_text[3:]
-                        if clean_text.endswith('```'): clean_text = clean_text[:-3]
-                        try:
-                            response_data = json.loads(clean_text.strip())
-                        except json.JSONDecodeError:
-                            response_data = ast.literal_eval(clean_text.strip())
-                    
-                    # Handle None/null for improved_sample
-                    improved_sample = response_data.get('improved_sample')
-                    if improved_sample is None:
-                        improved_sample = ""
-                    response_data['improved_sample'] = improved_sample
-                    
-                    # Generate Audio
-                    # Generate Audio
-                    speech_text = ""
-                    if response_data.get('feedback'):
-                        speech_text += f"{response_data.get('feedback')} "
-                    
-                    if response_data.get('improved_sample'):
-                        speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
-                    
-                    if response_data.get('next_question'):
-                        if is_start:
-                            # For the first question, just speak the question (which includes the Welcome message)
-                            speech_text += f"{response_data.get('next_question')}"
-                        else:
-                            # For subsequent questions, add the transition
-                            speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
-                    
-                    # Fallback if everything is empty (shouldn't happen)
-                    if not speech_text:
-                        speech_text = "I am ready. Let's continue."
-                    audio_base64 = generate_audio_gtts(speech_text, voice)
-                    
-                    if audio_base64:
-                        response_data['audio'] = audio_base64
-                    
-                    return jsonify({"data": response_data})
-                    
-                except Exception as e:
-                    print(f"Error processing interview response: {e}")
-                    # Fallback if JSON parsing fails
-                    return jsonify({"data": text})
+                        speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
+                
+                if not speech_text:
+                    speech_text = "I am ready. Let's continue."
+                audio_base64 = generate_audio_gtts(speech_text, voice)
+                
+                if audio_base64:
+                    response_data['audio'] = audio_base64
+                
+                return jsonify({"data": response_data})
+                
+            except Exception as e:
+                print(f"Error processing interview response: {e}")
+                return jsonify({"data": text})
 
-            elif action == 'career_plan' or action == 'generate_report':
-                try:
-                    if text.startswith('```json'): text = text[7:]
-                    if text.startswith('```'): text = text[3:]
-                    if text.endswith('```'): text = text[:-3]
-                    return jsonify({"data": json.loads(text)})
-                except Exception as e:
-                    return jsonify({"data": text})
+        elif action == 'career_plan' or action == 'generate_report':
+            try:
+                if text.startswith('```json'): text = text[7:]
+                if text.startswith('```'): text = text[3:]
+                if text.endswith('```'): text = text[:-3]
+                return jsonify({"data": json.loads(text)})
+            except Exception as e:
+                return jsonify({"data": text})
 
-            return jsonify({"data": text})
+        return jsonify({"data": text})
 
-        else:
-            return jsonify({"error": "Invalid response from Gemini", "raw": result})
-            
     except Exception as e:
-        return jsonify({"error": str(e)})
+        print(f"OpenAI API error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # For Vercel, we don't need app.run()
