@@ -459,14 +459,17 @@ function init() {
                         </div>`;
                         }
 
-                        // Store History (only if it's an answer to a question, i.e., count >= 2)
-                        if (questionCount >= 2) {
+                        // Store History only when we receive actual feedback with a score
+                        // (not for confirmations like "yes I'm ready")
+                        if (result.data.score !== undefined && result.data.score !== null && result.data.feedback) {
+                            console.log('Storing answer with score:', result.data.score);
                             interviewHistory.push({
                                 question: currentQuestionText,
                                 answer: message,
                                 score: result.data.score,
                                 feedback: result.data.feedback
                             });
+                            console.log('Interview history now has', interviewHistory.length, 'items');
                         }
 
                         // Update current question text for next turn
@@ -556,15 +559,16 @@ function init() {
                     questionBreakdown += `<div class="result-question-item">✓ Question ${idx + 1}: <strong>${score}/5</strong> - ${briefFeedback}</div>`;
                 });
 
-                // Extract strengths and improvements from AI report if available
-                let strengthsHtml = '';
-                let improvementsHtml = '';
-                if (result.data && result.data.report) {
-                    // Try to parse strengths from report
-                    const reportText = result.data.report;
-                    strengthsHtml = '<li>Strong communication skills demonstrated</li><li>Good use of specific examples</li>';
-                    improvementsHtml = '<li>Quantify achievements with numbers when possible</li><li>Practice more concise responses</li>';
-                }
+                console.log('Building results with', interviewHistory.length, 'scored answers');
+                console.log('Average score calculated:', avgScore);
+
+                // Only include strengths/improvements sections if we have meaningful data
+                // For now, we'll skip these sections since we don't have reliable data
+                let strengthsSection = '';
+                let improvementsSection = '';
+
+                // If AI report contains structured data, we could parse it here
+                // For now, these sections are hidden to avoid showing placeholder content
 
                 // Build the full results + upsell HTML
                 const resultsHtml = `
@@ -582,18 +586,10 @@ function init() {
                             
                             <div class="question-breakdown">
                                 <h4>Question Breakdown:</h4>
-                                ${questionBreakdown}
+                                ${questionBreakdown || '<p>No question data available.</p>'}
                             </div>
-                            
-                            <div class="strengths-section">
-                                <h4>Your Strengths:</h4>
-                                <ul>${strengthsHtml}</ul>
-                            </div>
-                            
-                            <div class="improvements-section">
-                                <h4>Areas to Improve:</h4>
-                                <ul>${improvementsHtml}</ul>
-                            </div>
+                            ${strengthsSection}
+                            ${improvementsSection}
                         </div>
                         
                         <div class="upsell-section">
