@@ -231,10 +231,57 @@
                     <li>Priority Support</li>
                     <li>Cancel Checks Anytime</li>
                 </ul>
-                <a href="#" onclick="alert('Payment integration coming soon!')" class="btn btn-primary">Choose Pro</a>
+                <a href="#" onclick="handleCheckout(event)" class="btn btn-primary">Choose Pro</a>
             </div>
         </div>
     </div>
+
+    <script>
+        async function handleCheckout(event) {
+            event.preventDefault();
+
+            // Check authentication
+            const sessionStr = localStorage.getItem('aceinterview_session');
+            if (!sessionStr) {
+                window.location.href = '/login?redirect=/pricing';
+                return;
+            }
+
+            const session = JSON.parse(sessionStr);
+            const email = session.email;
+            const btn = event.target;
+            const originalText = btn.innerText;
+
+            btn.innerText = 'Redirecting...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert('Error starting checkout: ' + (data.error || 'Unknown error'));
+                    btn.innerText = originalText;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                }
+            } catch (e) {
+                console.error(e);
+                alert('Connection error. Please try again.');
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
+            }
+        }
+    </script>
 </body>
 
 </html>

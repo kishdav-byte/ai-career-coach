@@ -8,6 +8,7 @@ import base64
 import io
 import ast
 from dotenv import load_dotenv
+import stripe
 
 load_dotenv()
 
@@ -15,6 +16,12 @@ app = Flask(__name__)
 
 # API Key from Environment Variable
 API_KEY = os.environ.get('OPENAI_API_KEY_')
+
+# Initialize Stripe
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+stripe_price_id = os.environ.get('STRIPE_PRICE_ID')
+stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+app_domain = os.environ.get('APP_DOMAIN', 'http://localhost:3000')
 
 def generate_audio_openai(text, voice_id):
     """Generates audio using OpenAI TTS API."""
@@ -623,6 +630,75 @@ def update_user_status():
     except Exception as e:
         print(f"Update status error: {e}")
         return jsonify({"error": "Unable to update user"}), 500
+    except Exception as e:
+        print(f"Update status error: {e}")
+        return jsonify({"error": "Unable to update user"}), 500
 
+# ========================================
+# STRIPE PAYMENTS
+# ========================================
+
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    try:
+        data = request.json
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({'error': 'Email is required'}), 400
+
+        checkout_session = stripe.checkout.Session.create(
+            customer_email=email,
+            line_items=[
+                {
+                    'price': stripe_price_id,
+                    'quantity': 1,
+                },
+            ],
+            mode='payment',
+            success_url=app_domain + '/dashboard.html?payment=success',
+            cancel_url=app_domain + '/pricing.html?payment=cancelled',
+            metadata={
+                'user_email': email
+            }
+        )
+        return jsonify({'url': checkout_session.url})
+    except Exception as e:
+        print(f"Stripe Checkout Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    payload = request.get_data(as_text=True)
+    sig_header = request.headers.get('Stripe-Signature')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, stripe_webhook_secret
+        )
+    except ValueError as e:
+        return 'Invalid payload', 400
+    except stripe.error.SignatureVerificationError as e:
+        return 'Invalid signature', 400
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        
+        # Fulfill the purchase...
+        user_email = session.get('metadata', {}).get('user_email')
+        customer_id = session.get('customer')
+        
+        if user_email and supabase:
+            try:
+                supabase.table('users').update({
+                    'account_status': 'paid', 
+                    'payment_tier': 'pro',
+                    'stripe_customer_id': customer_id
+                }).eq('email', user_email).execute()
+                print(f"Updated user {user_email} to paid status.")
+            except Exception as e:
+                print(f"Error updating Supabase from webhook: {e}")
+
+    return jsonify({'status': 'success'})
 # For Vercel, we don't need app.run()
 
