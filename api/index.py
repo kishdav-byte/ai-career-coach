@@ -291,6 +291,25 @@ def api():
         Resume:
         {resume}
         """
+        """
+        contents = [{"parts": [{"text": prompt}]}]
+    elif action == 'generate_report':
+        history = data.get('history', [])
+        prompt = f"""
+        Generate a Final Interview Report based on the following interview history.
+        
+        History:
+        {json.dumps(history)}
+        
+        Create a professional HTML report (NO markdown, just HTML content) that includes:
+        1.  **Performance Summary**: A brief paragraph summarizing the candidate's overall performance.
+        2.  **Question Breakdown**: A table with columns: Question, Score (0-5), and Key Feedback.
+        3.  **Recommended Improvements**: A bulleted list of specific, actionable steps to improve.
+        
+        Style the HTML with simple inline CSS for readability (e.g., borders for table, bold text for headers).
+        
+        Return JSON: {{ "report": "<html>...</html>" }}
+        """
         contents = [{"parts": [{"text": prompt}]}]
     else:
         return jsonify({"error": "Invalid action"}), 400
@@ -300,7 +319,7 @@ def api():
     }
     
     # Enable JSON mode for actions that require structured output
-    if action in ['interview_chat', 'career_plan', 'optimize_resume', 'linkedin_optimize']: # optimize_resume is separate endpoint but good practice
+    if action in ['interview_chat', 'career_plan', 'optimize_resume', 'linkedin_optimize', 'generate_report']: # optimize_resume is separate endpoint but good practice
          payload["generationConfig"] = {
              "responseMimeType": "application/json"
          }
@@ -373,7 +392,7 @@ def api():
                     # Fallback if JSON parsing fails
                     return jsonify({"data": text})
 
-            elif action == 'career_plan':
+            elif action == 'career_plan' or action == 'generate_report':
                 try:
                     if text.startswith('```json'): text = text[7:]
                     if text.startswith('```'): text = text[3:]

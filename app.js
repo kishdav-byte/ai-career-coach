@@ -78,7 +78,7 @@ function init() {
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v7.7 (JSON Fix)';
+    versionDisplay.textContent = 'v7.8 (Final Report)';
     document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
@@ -190,6 +190,7 @@ function init() {
             primeAudio();
             primeAudio();
             questionCount = 0; // Reset counter to 0 for welcome message
+            interviewHistory = []; // Reset history
             sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
             alert("Please paste a job description first.");
@@ -212,6 +213,8 @@ function init() {
     let mediaRecorder;
     let audioChunks = [];
     let questionCount = 0;
+    let interviewHistory = [];
+    let currentQuestionText = "";
 
     window.toggleRecording = async function () {
         const recordBtn = document.getElementById('record-btn');
@@ -312,10 +315,25 @@ function init() {
                         </div>`;
                     }
 
+                    // Store History (only if it's an answer to a question, i.e., count >= 2)
+                    if (questionCount >= 2) {
+                        interviewHistory.push({
+                            question: currentQuestionText,
+                            answer: message,
+                            score: result.data.score,
+                            feedback: result.data.feedback
+                        });
+                    }
+
+                    // Update current question text for next turn
+                    currentQuestionText = result.data.next_question || result.data.text || '';
+
                     if (isStart) {
                         systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
                     } else if (questionCount > 5) {
                         systemMsg += `<br><br><strong>Conclusion:</strong> ${result.data.next_question || result.data.text || ''}`;
+                        // Trigger Report Generation
+                        setTimeout(generateInterviewReport, 2000);
                     } else {
                         systemMsg += `<br><br><strong>Question ${questionCount} of 5:</strong> ${result.data.next_question || result.data.text || ''}`;
                     }
@@ -349,6 +367,29 @@ function init() {
         } catch (e) {
             document.getElementById(loadingId).remove();
             addMessage('Error: ' + e.message, 'system');
+        }
+    }
+
+    async function generateInterviewReport() {
+        const loadingId = addMessage('Generating Final Interview Report...', 'system');
+
+        try {
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'generate_report', history: interviewHistory })
+            });
+            const result = await response.json();
+            document.getElementById(loadingId).remove();
+
+            if (result.data && result.data.report) {
+                addMessage(result.data.report, 'system', true);
+            } else {
+                addMessage("Could not generate report.", 'system');
+            }
+        } catch (e) {
+            document.getElementById(loadingId).remove();
+            addMessage("Error generating report: " + e.message, 'system');
         }
     }
 
