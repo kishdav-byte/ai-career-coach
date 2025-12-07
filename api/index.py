@@ -155,11 +155,16 @@ def api():
             welcome_msg = "Welcome to the interview. ... This interview consists of 5 questions. You are encouraged to think about a specific situation or task that you experienced, the specific actions that you took, and the results of the actions you took. ... Keep in mind, you can type your answer or you can press the red mic button below when you are ready to speak. The button will turn green while you provide your response. When you are done, press the microphone to submit your response. ... Are you ready for the first question?"
             user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Do NOT ask the first question yet.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg}\"}}"
         elif question_count == 1:
-            user_prompt = f"User: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nYou MUST start the question with exactly: 'The First Question that I have for you is: '\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"The First Question that I have for you is: [Question]...\"}}"
+            user_prompt = f"User: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nYou MUST start the question with exactly: 'The first question that I have for you is: '\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"The first question that I have for you is: [Question]...\"}}"
         else:
-            next_q_instruction = "Ask the next question. You MUST start the question with exactly: 'The next question that I have for you is '"
+            # Determine ordinal for next question
+            ordinals = {2: "second", 3: "third", 4: "fourth", 5: "fifth"}
+            next_ordinal = ordinals.get(question_count, "next")
+            
             if question_count > 5:
                 next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
+            else:
+                next_q_instruction = f"After providing feedback, ask if they're ready for the next question. You MUST end your response with exactly: 'Are you ready for the {next_ordinal} question?'"
             
             user_prompt = f"User: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n{next_q_instruction}\n\nReturn STRICT JSON (use double quotes for keys/values): {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because... [rest of feedback]\", \"score\": 0, \"improved_sample\": \"... (A more professional/impactful version of the user's answer)\", \"next_question\": \"...\"}}"
         
