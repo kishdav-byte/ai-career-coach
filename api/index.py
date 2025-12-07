@@ -157,16 +157,23 @@ def api():
         elif question_count == 1:
             user_prompt = f"User: {message}\n\nThe user confirmed they are ready. Ask the first interview question NOW.\n\nCRITICAL: Do NOT say 'Now, are you ready for the next question' or any other preamble. Do NOT ask if they're ready again. Just ask the question directly.\n\nYou MUST start your response with EXACTLY: 'The first question that I have for you is: ' followed immediately by the question.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"The first question that I have for you is: [Your interview question here]\"}}"
         else:
-            # Determine ordinal for next question
+            # Determine ordinals
             ordinals = {2: "second", 3: "third", 4: "fourth", 5: "fifth"}
-            next_ordinal = ordinals.get(question_count, "next")
+            current_ordinal = ordinals.get(question_count - 1, "next")  # For asking the current question
+            next_ordinal = ordinals.get(question_count, "next")  # For asking if ready for next
             
-            if question_count > 5:
-                next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
+            # Check if this is a short confirmation message (user just saying they're ready)
+            is_confirmation = len(message.strip()) < 50 and any(word in message.lower() for word in ['yes', 'ready', 'ok', 'sure', 'go ahead', 'let\'s go', 'bring it', 'next', 'yep', 'yeah'])
+            
+            if is_confirmation and question_count <= 5:
+                # User is confirming they're ready for the next question - ask it with ordinal prefix
+                user_prompt = f"User: {message}\n\nThe user confirmed they are ready for the next question. Ask the {current_ordinal} interview question NOW.\n\nCRITICAL: Do NOT provide any feedback or preamble. Just ask the question directly.\n\nYou MUST start your response with EXACTLY: 'The {current_ordinal} question that I have for you is: ' followed immediately by the question.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"The {current_ordinal} question that I have for you is: [Your interview question here]\"}}"
+            elif question_count > 5:
+                # Final question already answered - end the interview
+                user_prompt = f"User: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n\nThis was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'\n\nReturn STRICT JSON: {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because... [rest of feedback]\", \"score\": 0, \"improved_sample\": \"... (A more professional/impactful version of the user's answer)\", \"next_question\": \"That concludes our interview. Thank you for your time.\"}}"
             else:
-                next_q_instruction = f"After providing feedback, ask if they're ready for the next question. You MUST end your response with exactly: 'Are you ready for the {next_ordinal} question?'"
-            
-            user_prompt = f"User: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n{next_q_instruction}\n\nReturn STRICT JSON (use double quotes for keys/values): {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because... [rest of feedback]\", \"score\": 0, \"improved_sample\": \"... (A more professional/impactful version of the user's answer)\", \"next_question\": \"...\"}}"
+                # User provided an actual answer - evaluate it and ask if ready for next
+                user_prompt = f"User: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n\nAfter providing feedback, ask if they're ready for the next question. You MUST end your response with exactly: 'Are you ready for the {next_ordinal} question?'\n\nReturn STRICT JSON (use double quotes for keys/values): {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because... [rest of feedback]\", \"score\": 0, \"improved_sample\": \"... (A more professional/impactful version of the user's answer)\", \"next_question\": \"Are you ready for the {next_ordinal} question?\"}}"
         
         messages = [
             {"role": "system", "content": system_instruction},
