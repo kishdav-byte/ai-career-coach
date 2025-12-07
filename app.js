@@ -78,7 +78,7 @@ function init() {
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v7.5 (Question Phrasing)';
+    versionDisplay.textContent = 'v7.6 (Dynamic Labels)';
     document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
@@ -314,8 +314,10 @@ function init() {
 
                     if (isStart) {
                         systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
+                    } else if (questionCount > 5) {
+                        systemMsg += `<br><br><strong>Conclusion:</strong> ${result.data.next_question || result.data.text || ''}`;
                     } else {
-                        systemMsg += `<br><br><strong>Next Question:</strong> ${result.data.next_question || result.data.text || ''}`;
+                        systemMsg += `<br><br><strong>Question ${questionCount} of 5:</strong> ${result.data.next_question || result.data.text || ''}`;
                     }
 
                     // If we only got text back (fallback), just show it
