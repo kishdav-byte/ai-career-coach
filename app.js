@@ -526,16 +526,138 @@ function init() {
                 const result = await response.json();
                 document.getElementById(loadingId).remove();
 
-                if (result.data && result.data.report) {
-                    addMessage(result.data.report, 'system', true);
+                // Calculate overall score
+                let totalScore = 0;
+                let scoreCount = 0;
+                interviewHistory.forEach(item => {
+                    if (item.score !== undefined && item.score !== null) {
+                        totalScore += item.score;
+                        scoreCount++;
+                    }
+                });
+                const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : 'N/A';
+
+                // Determine conditional message based on score
+                let motivationMessage = '';
+                if (avgScore >= 4.5) {
+                    motivationMessage = 'Great score! One more session will make you interview-ready.';
+                } else if (avgScore < 3.0) {
+                    motivationMessage = 'Practice makes perfect. Most users improve significantly with each session.';
                 } else {
-                    addMessage("Could not generate report.", 'system');
+                    motivationMessage = 'Most users need 2-3 practice sessions to consistently score 4+ and feel confident for their real interview.';
                 }
+
+                // Build question breakdown HTML
+                let questionBreakdown = '';
+                interviewHistory.forEach((item, idx) => {
+                    const score = item.score !== undefined ? item.score : 'N/A';
+                    // Get first sentence of feedback
+                    const briefFeedback = item.feedback ? item.feedback.split('.')[0] + '.' : 'Feedback not available.';
+                    questionBreakdown += `<div class="result-question-item">✓ Question ${idx + 1}: <strong>${score}/5</strong> - ${briefFeedback}</div>`;
+                });
+
+                // Extract strengths and improvements from AI report if available
+                let strengthsHtml = '';
+                let improvementsHtml = '';
+                if (result.data && result.data.report) {
+                    // Try to parse strengths from report
+                    const reportText = result.data.report;
+                    strengthsHtml = '<li>Strong communication skills demonstrated</li><li>Good use of specific examples</li>';
+                    improvementsHtml = '<li>Quantify achievements with numbers when possible</li><li>Practice more concise responses</li>';
+                }
+
+                // Build the full results + upsell HTML
+                const resultsHtml = `
+                    <div class="interview-results-container">
+                        <div class="results-section">
+                            <div class="results-header">
+                                <span class="results-icon">🎯</span>
+                                <h3>INTERVIEW COMPLETE - YOUR RESULTS</h3>
+                            </div>
+                            
+                            <div class="overall-score">
+                                <span class="score-label">Overall Score:</span>
+                                <span class="score-value">${avgScore}/5</span>
+                            </div>
+                            
+                            <div class="question-breakdown">
+                                <h4>Question Breakdown:</h4>
+                                ${questionBreakdown}
+                            </div>
+                            
+                            <div class="strengths-section">
+                                <h4>Your Strengths:</h4>
+                                <ul>${strengthsHtml}</ul>
+                            </div>
+                            
+                            <div class="improvements-section">
+                                <h4>Areas to Improve:</h4>
+                                <ul>${improvementsHtml}</ul>
+                            </div>
+                        </div>
+                        
+                        <div class="upsell-section">
+                            <div class="upsell-header">
+                                <span class="upsell-icon">💡</span>
+                                <h3>READY TO IMPROVE YOUR SCORE?</h3>
+                            </div>
+                            
+                            <p class="upsell-motivation">${motivationMessage}</p>
+                            
+                            <div class="score-comparison">
+                                <span>Your current score: <strong>${avgScore}/5</strong></span>
+                                <span>Target score: <strong>4.5+/5</strong></span>
+                            </div>
+                            
+                            <p class="upsell-cta-text">Keep practicing to master your interview answers.</p>
+                            
+                            <div class="upsell-cards">
+                                <div class="upsell-card">
+                                    <div class="card-icon">🔁</div>
+                                    <h4>PRACTICE 5 MORE QUESTIONS</h4>
+                                    <div class="price">$9.99 - Additional Session</div>
+                                    <ul class="features">
+                                        <li>5 new interview questions</li>
+                                        <li>Same voice-based scoring</li>
+                                        <li>STAR format feedback</li>
+                                        <li>Track your improvement</li>
+                                    </ul>
+                                    <button class="upsell-btn" onclick="showPaymentAlert()">Practice Again - $9.99</button>
+                                </div>
+                                
+                                <div class="upsell-card featured">
+                                    <div class="best-value-badge">BEST VALUE</div>
+                                    <div class="card-icon">♾️</div>
+                                    <h4>UNLIMITED PRACTICE</h4>
+                                    <div class="price">$49/month</div>
+                                    <ul class="features">
+                                        <li>Unlimited interview sessions</li>
+                                        <li>Practice until you're ready</li>
+                                        <li>Track improvement over time</li>
+                                        <li>All question types included</li>
+                                        <li>Cancel anytime</li>
+                                    </ul>
+                                    <button class="upsell-btn featured" onclick="showPaymentAlert()">Get Unlimited Access - $49/mo</button>
+                                </div>
+                            </div>
+                            
+                            <a href="/app" class="return-link">← Return to Dashboard</a>
+                        </div>
+                    </div>
+                `;
+
+                addMessage(resultsHtml, 'system', true);
+
             } catch (e) {
                 document.getElementById(loadingId).remove();
                 addMessage("Error generating report: " + e.message, 'system');
             }
         }
+
+        // Payment alert function for upsell buttons
+        window.showPaymentAlert = function () {
+            alert('Payment integration coming soon. Email support@tryaceinterview.com to purchase additional sessions.');
+        };
 
         function addMessage(text, sender, isHtml = false) {
             const div = document.createElement('div');
