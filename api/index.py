@@ -370,10 +370,8 @@ def api():
                     speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
                 
                 if response_data.get('next_question'):
-                    if is_start:
-                        speech_text += f"{response_data.get('next_question')}"
-                    else:
-                        speech_text += f"Now, are you ready for the next question? {response_data.get('next_question')}"
+                    # Don't add any preamble - the AI response already includes proper phrasing
+                    speech_text += f"{response_data.get('next_question')}"
                 
                 if not speech_text:
                     speech_text = "I am ready. Let's continue."
