@@ -223,41 +223,77 @@ function init() {
 
     // Resume Analysis Print Button
     document.getElementById('resume-print-btn').addEventListener('click', () => {
-        try {
-            const printArea = document.getElementById('print-area');
-            const content = document.getElementById('resume-result').cloneNode(true);
-            printArea.innerHTML = '<h2 style="text-align: center; margin-bottom: 20px;">Resume Analysis Report</h2>';
-            printArea.appendChild(content);
+        const content = document.getElementById('resume-result').innerHTML;
 
-            // Try to print
-            if (window.print) {
-                window.print();
-            } else {
-                // Fallback: Open in new window for mobile
-                const printWindow = window.open('', '_blank');
-                if (printWindow) {
-                    printWindow.document.write(`
-                        <html>
-                        <head>
-                            <title>Resume Analysis Report</title>
-                            <style>
-                                body { font-family: Arial, sans-serif; padding: 20px; }
-                                .analysis-section { padding: 15px; margin: 15px 0; border-radius: 8px; }
-                                .strengths { border-left: 5px solid #28a745; background: #e8f5e9; }
-                                .improvements { border-left: 5px solid #007bff; background: #e3f2fd; }
-                                h3 { margin-top: 0; }
-                            </style>
-                        </head>
-                        <body>${printArea.innerHTML}</body>
-                        </html>
-                    `);
-                    printWindow.document.close();
-                    printWindow.print();
-                }
-            }
-        } catch (e) {
-            // If print fails, offer to copy instead
-            alert('Print is not available on this device. Use the "Copy to Clipboard" button and paste into a document app.');
+        // Open a new window with styled content for printing
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (printWindow) {
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Resume Analysis Report</title>
+                    <style>
+                        body { 
+                            font-family: Arial, sans-serif; 
+                            padding: 40px; 
+                            max-width: 800px; 
+                            margin: 0 auto;
+                            line-height: 1.6;
+                        }
+                        h2 { 
+                            text-align: center; 
+                            margin-bottom: 30px; 
+                            color: #333;
+                        }
+                        .analysis-section { 
+                            padding: 20px; 
+                            margin: 20px 0; 
+                            border-radius: 8px; 
+                        }
+                        .analysis-section.strengths { 
+                            border-left: 5px solid #28a745; 
+                            background: #e8f5e9; 
+                        }
+                        .analysis-section.strengths h3 { 
+                            color: #28a745; 
+                        }
+                        .analysis-section.improvements { 
+                            border-left: 5px solid #007bff; 
+                            background: #e3f2fd; 
+                        }
+                        .analysis-section.improvements h3 { 
+                            color: #007bff; 
+                        }
+                        h3 { 
+                            margin-top: 0; 
+                            margin-bottom: 15px;
+                        }
+                        @media print {
+                            body { padding: 20px; }
+                            .analysis-section { 
+                                -webkit-print-color-adjust: exact !important;
+                                print-color-adjust: exact !important;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <h2>Resume Analysis Report</h2>
+                    ${content}
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            // Close the window after a short delay (allows print dialog to open)
+                            setTimeout(function() { window.close(); }, 500);
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        } else {
+            alert('Pop-up blocked. Please allow pop-ups for this site to use the print feature.');
         }
     });
 
