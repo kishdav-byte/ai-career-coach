@@ -150,10 +150,10 @@ def api():
                  contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Do NOT ask the first question yet.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '{welcome_msg}'}}"}]}]
             elif question_count == 1:
                  # First Question Mode: User confirmed readiness. Ask Question 1.
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '[First Question]...'}}"}]}]
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nThe user has confirmed they are ready. Ask the first question. Do NOT provide feedback on their confirmation.\n\nYou MUST start the question with exactly: 'The First Question that I have for you is: '\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': 'The First Question that I have for you is: [Question]...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
-                 next_q_instruction = "Ask the next question."
+                 next_q_instruction = "Ask the next question. You MUST start the question with exactly: 'The next question that I have for you is '"
                  if question_count > 5:
                      next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
                  
