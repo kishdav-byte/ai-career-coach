@@ -223,11 +223,42 @@ function init() {
 
     // Resume Analysis Print Button
     document.getElementById('resume-print-btn').addEventListener('click', () => {
-        const printArea = document.getElementById('print-area');
-        const content = document.getElementById('resume-result').cloneNode(true);
-        printArea.innerHTML = '<h2 style="text-align: center; margin-bottom: 20px;">Resume Analysis Report</h2>';
-        printArea.appendChild(content);
-        window.print();
+        try {
+            const printArea = document.getElementById('print-area');
+            const content = document.getElementById('resume-result').cloneNode(true);
+            printArea.innerHTML = '<h2 style="text-align: center; margin-bottom: 20px;">Resume Analysis Report</h2>';
+            printArea.appendChild(content);
+
+            // Try to print
+            if (window.print) {
+                window.print();
+            } else {
+                // Fallback: Open in new window for mobile
+                const printWindow = window.open('', '_blank');
+                if (printWindow) {
+                    printWindow.document.write(`
+                        <html>
+                        <head>
+                            <title>Resume Analysis Report</title>
+                            <style>
+                                body { font-family: Arial, sans-serif; padding: 20px; }
+                                .analysis-section { padding: 15px; margin: 15px 0; border-radius: 8px; }
+                                .strengths { border-left: 5px solid #28a745; background: #e8f5e9; }
+                                .improvements { border-left: 5px solid #007bff; background: #e3f2fd; }
+                                h3 { margin-top: 0; }
+                            </style>
+                        </head>
+                        <body>${printArea.innerHTML}</body>
+                        </html>
+                    `);
+                    printWindow.document.close();
+                    printWindow.print();
+                }
+            }
+        } catch (e) {
+            // If print fails, offer to copy instead
+            alert('Print is not available on this device. Use the "Copy to Clipboard" button and paste into a document app.');
+        }
     });
 
     // Resume Analysis Copy Button
