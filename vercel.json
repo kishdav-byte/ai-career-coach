@@ -3,6 +3,14 @@
         {
             "source": "/api/(.*)",
             "destination": "/api/index.py"
+        },
+        {
+            "source": "/signup",
+            "destination": "/signup.html"
+        },
+        {
+            "source": "/app",
+            "destination": "/app.html"
         }
     ]
 }
