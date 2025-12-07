@@ -107,37 +107,38 @@ function init() {
             const tabId = tab.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
 
-            // Auto-populate Cover Letter from Resume Builder
+            // Auto-populate Cover Letter from Resume Builder (only on tools page)
             if (tabId === 'cover-letter') {
-                const rbJobDesc = document.getElementById('rb-job-desc').value;
+                const rbJobDesc = document.getElementById('rb-job-desc');
                 const clJobDesc = document.getElementById('cl-job-desc');
-                if (rbJobDesc && !clJobDesc.value) {
-                    clJobDesc.value = rbJobDesc;
+                if (rbJobDesc && clJobDesc && rbJobDesc.value && !clJobDesc.value) {
+                    clJobDesc.value = rbJobDesc.value;
                 }
 
                 const clResume = document.getElementById('cl-resume');
-                if (!clResume.value) {
+                const rbName = document.getElementById('rb-name');
+                if (clResume && rbName && !clResume.value) {
                     // Construct resume text from builder
-                    const name = document.getElementById('rb-name').value;
-                    const email = document.getElementById('rb-email').value;
-                    const phone = document.getElementById('rb-phone').value;
-                    const summary = document.getElementById('rb-summary').value;
-                    const skills = document.getElementById('rb-skills').value;
+                    const name = rbName.value;
+                    const email = document.getElementById('rb-email')?.value || '';
+                    const phone = document.getElementById('rb-phone')?.value || '';
+                    const summary = document.getElementById('rb-summary')?.value || '';
+                    const skills = document.getElementById('rb-skills')?.value || '';
 
                     let text = `Name: ${name}\nContact: ${email} | ${phone}\n\nSummary:\n${summary}\n\nExperience:\n`;
 
                     document.querySelectorAll('.experience-item').forEach(item => {
-                        const role = item.querySelector('.rb-exp-role').value;
-                        const company = item.querySelector('.rb-exp-company').value;
-                        const dates = item.querySelector('.rb-exp-dates').value;
-                        const desc = item.querySelector('.rb-exp-desc').value;
+                        const role = item.querySelector('.rb-exp-role')?.value || '';
+                        const company = item.querySelector('.rb-exp-company')?.value || '';
+                        const dates = item.querySelector('.rb-exp-dates')?.value || '';
+                        const desc = item.querySelector('.rb-exp-desc')?.value || '';
                         if (role) text += `- ${role} at ${company} (${dates}): ${desc}\n`;
                     });
 
                     text += `\nEducation:\n`;
                     document.querySelectorAll('.education-item').forEach(item => {
-                        const school = item.querySelector('.rb-edu-school').value;
-                        const degree = item.querySelector('.rb-edu-degree').value;
+                        const school = item.querySelector('.rb-edu-school')?.value || '';
+                        const degree = item.querySelector('.rb-edu-degree')?.value || '';
                         if (school) text += `- ${degree} from ${school}\n`;
                     });
 
