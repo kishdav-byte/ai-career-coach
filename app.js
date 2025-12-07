@@ -1129,12 +1129,13 @@ function init() {
 
         loadProfile();
     } // End of Career Tools Page
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', init);
-    } else {
-        init();
-    }
 } // End of init function
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 window.init = init;
