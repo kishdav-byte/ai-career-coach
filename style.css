@@ -154,6 +154,38 @@ textarea {
     display: none;
 }
 
+/* Resume Analysis Sections */
+.analysis-section {
+    padding: 15px 20px;
+    margin: 15px 0;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.analysis-section h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.analysis-section.strengths {
+    border-left: 5px solid #28a745;
+    background: linear-gradient(to right, #e8f5e9, #fff);
+}
+
+.analysis-section.strengths h3 {
+    color: #28a745;
+}
+
+.analysis-section.improvements {
+    border-left: 5px solid #007bff;
+    background: linear-gradient(to right, #e3f2fd, #fff);
+}
+
+.analysis-section.improvements h3 {
+    color: #007bff;
+}
+
 /* Chat Interface */
 .chat-window {
     height: 300px;

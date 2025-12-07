@@ -175,10 +175,73 @@ function init() {
     }
 
     // Tab 1: Resume Analysis
-    document.getElementById('analyze-resume-btn').addEventListener('click', () => {
+    document.getElementById('analyze-resume-btn').addEventListener('click', async () => {
         const resumeText = document.getElementById('resume-input').value;
         if (!resumeText) return alert('Please paste your resume.');
-        callApi('analyze_resume', { resume: resumeText }, 'resume-result');
+
+        const resultEl = document.getElementById('resume-result');
+        const actionsEl = document.getElementById('resume-result-actions');
+        resultEl.innerHTML = '<em>Analyzing your resume...</em>';
+        resultEl.style.display = 'block';
+        actionsEl.style.display = 'none';
+
+        try {
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'analyze_resume', resume: resumeText })
+            });
+            const result = await response.json();
+
+            if (result.error) {
+                resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+            } else {
+                // Format the response with styled sections
+                let formatted = result.data
+                    // Replace ## Strengths or **Strengths** with styled green section
+                    .replace(/#{1,3}\s*\*?\*?Strengths\*?\*?:?/gi, '<div class="analysis-section strengths"><h3>Strengths</h3>')
+                    // Replace ## Areas for Improvement with styled blue section
+                    .replace(/#{1,3}\s*\*?\*?Areas\s*(for|of)?\s*Improvement\*?\*?:?/gi, '</div><div class="analysis-section improvements"><h3>Areas for Improvement</h3>')
+                    // Convert remaining markdown-like formatting
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                    .replace(/^\s*[-•]\s*/gm, '• ')
+                    .replace(/\n/g, '<br>');
+
+                // Close any open div
+                if (!formatted.includes('</div>')) {
+                    formatted += '</div>';
+                }
+
+                resultEl.innerHTML = formatted;
+                actionsEl.style.display = 'flex';
+            }
+        } catch (error) {
+            resultEl.innerHTML = `<strong style="color:red">Connection Error: ${error.message}</strong>`;
+        }
+    });
+
+    // Resume Analysis Print Button
+    document.getElementById('resume-print-btn').addEventListener('click', () => {
+        const printArea = document.getElementById('print-area');
+        const content = document.getElementById('resume-result').cloneNode(true);
+        printArea.innerHTML = '<h2 style="text-align: center; margin-bottom: 20px;">Resume Analysis Report</h2>';
+        printArea.appendChild(content);
+        window.print();
+    });
+
+    // Resume Analysis Copy Button
+    document.getElementById('resume-copy-btn').addEventListener('click', async () => {
+        const content = document.getElementById('resume-result');
+        try {
+            await navigator.clipboard.writeText(content.innerText);
+            const btn = document.getElementById('resume-copy-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        } catch (err) {
+            alert('Failed to copy. Please select text manually.');
+        }
     });
 
     // Tab 2: Interview Coach
