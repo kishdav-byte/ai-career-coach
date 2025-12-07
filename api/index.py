@@ -447,7 +447,7 @@ def signup():
     """Create a new user account."""
     try:
         if not supabase:
-            return jsonify({"error": "Database not configured. Please contact support."}), 500
+            return jsonify({"error": "Database not configured. Check SUPABASE_URL and SUPABASE_KEY."}), 500
         
         data = request.json
         email = data.get('email', '').strip().lower()
@@ -505,7 +505,7 @@ def signup():
     
     except Exception as e:
         print(f"Signup error: {e}")
-        return jsonify({"error": "Unable to create account. Please try again or contact support@tryaceinterview.com"}), 500
+        return jsonify({"error": f"Signup failed: {str(e)}"}), 500
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
