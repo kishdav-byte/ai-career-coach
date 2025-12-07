@@ -140,7 +140,54 @@ def api():
 
     if action == 'analyze_resume':
         resume = data.get('resume', '')
-        prompt = f"Analyze this resume and provide 3 strengths and 3 areas for improvement. Be specific.\n\nResume:\n{resume}"
+        json_mode = True
+        prompt = f"""
+        Analyze this resume and provide a comprehensive career coaching report.
+        
+        RESUME CONTENT:
+        {resume}
+        
+        Return valid JSON with this EXACT structure:
+        {{
+            "overall_score": 85,
+            "summary": "Brief 1-sentence summary of where they stand.",
+            "strengths": [
+                {{"title": "Strength 1", "description": "Why it is good..."}},
+                {{"title": "Strength 2", "description": "Why it is good..."}},
+                {{"title": "Strength 3", "description": "Why it is good..."}}
+            ],
+            "improvements": [
+                {{"priority": "HIGH", "title": "Improvement 1", "suggestion": "Actionable advice..."}},
+                {{"priority": "MEDIUM", "title": "Improvement 2", "suggestion": "Actionable advice..."}},
+                {{"priority": "LOW", "title": "Improvement 3", "suggestion": "Actionable advice..."}}
+            ],
+            "keywords": {{
+                "high_priority": ["Keyword1", "Keyword2", "Keyword3", "Keyword4", "Keyword5"],
+                "medium_priority": ["Keyword6", "Keyword7"],
+                "advice": "How to include them..."
+            }},
+            "ats_compatibility": {{
+                "score": 8,
+                "issues": ["Issue 1", "Issue 2"],
+                "recommendation": "Fix advice..."
+            }},
+            "formatting": [
+                {{"issue": "Formatting Issue 1", "fix": "How to fix..."}},
+                {{"issue": "Formatting Issue 2", "fix": "How to fix..."}},
+                {{"issue": "Formatting Issue 3", "fix": "How to fix..."}}
+            ],
+            "action_plan": {{
+                "quick_wins": ["Task 1", "Task 2", "Task 3"],
+                "medium_effort": ["Task 1", "Task 2"],
+                "long_term": ["Task 1", "Task 2"]
+            }},
+            "benchmark": {{
+                "level": "Mid-Senior",
+                "percentile": "Top 20%",
+                "text": "Your resume is better than 80% of candidates at this level."
+            }}
+        }}
+        """
         messages = [{"role": "user", "content": prompt}]
         
     elif action == 'interview_chat':

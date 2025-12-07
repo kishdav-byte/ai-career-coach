@@ -190,7 +190,7 @@ function init() {
 
             const resultEl = document.getElementById('resume-result');
             const actionsEl = document.getElementById('resume-result-actions');
-            resultEl.innerHTML = '<em>Analyzing your resume...</em>';
+            resultEl.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center">Analyzing... This may take up to 30 seconds.</p>';
             resultEl.style.display = 'block';
             actionsEl.style.display = 'none';
 
@@ -204,31 +204,142 @@ function init() {
 
                 if (result.error) {
                     resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+                } else if (!result.data) {
+                    resultEl.innerHTML = `<strong style="color:red">Error: No data received.</strong>`;
                 } else {
-                    // Format the response with styled sections
-                    let formatted = result.data
-                        // Replace ## Strengths or **Strengths** with styled green section
-                        .replace(/#{1,3}\s*\*?\*?Strengths\*?\*?:?/gi, '<div class="analysis-section strengths"><h3>Strengths</h3>')
-                        // Replace ## Areas for Improvement with styled blue section
-                        .replace(/#{1,3}\s*\*?\*?Areas\s*(for|of)?\s*Improvement\*?\*?:?/gi, '</div><div class="analysis-section improvements"><h3>Areas for Improvement</h3>')
-                        // Convert remaining markdown-like formatting
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                        .replace(/^\s*[-•]\s*/gm, '• ')
-                        .replace(/\n/g, '<br>');
+                    let data = result.data;
 
-                    // Close any open div
-                    if (!formatted.includes('</div>')) {
-                        formatted += '</div>';
+                    // Handle case where data is a string (rare with json_mode but possible)
+                    if (typeof data === 'string') {
+                        try {
+                            // Try to fix markdown json if present
+                            let clean = data.trim();
+                            if (clean.startsWith('```json')) clean = clean.slice(7);
+                            if (clean.startsWith('```')) clean = clean.slice(3);
+                            if (clean.endsWith('```')) clean = clean.slice(0, -3);
+                            data = JSON.parse(clean);
+                        } catch (e) {
+                            // Fallback to text display if not JSON
+                            console.error("Could not parse JSON", e);
+                            resultEl.innerHTML = data.replace(/\n/g, '<br>');
+                            actionsEl.style.display = 'flex';
+                            return;
+                        }
                     }
 
-                    resultEl.innerHTML = formatted;
+                    // Render the UI
+                    renderResumeReport(data, resultEl);
                     actionsEl.style.display = 'flex';
                 }
             } catch (error) {
                 resultEl.innerHTML = `<strong style="color:red">Connection Error: ${error.message}</strong>`;
             }
         });
+
+        function renderResumeReport(data, container) {
+            // Helper for priority colors
+            const getPriorityColor = (p) => {
+                const map = { 'HIGH': '#dc3545', 'MEDIUM': '#ffc107', 'LOW': '#28a745' };
+                return map[p] || '#6c757d';
+            };
+
+            const html = `
+                <div class="resume-report">
+                    <!-- 1. HEADER & SCORE -->
+                    <div class="report-header">
+                        <div class="score-container">
+                            <div class="score-circle">
+                                <span>${data.overall_score}</span>
+                                <span class="calc-text">/ 100</span>
+                            </div>
+                        </div>
+                        <div class="summary-container">
+                            <h3>Analysis Summary</h3>
+                            <p>${data.summary}</p>
+                            <div class="benchmark-pill">
+                                📊 ${data.benchmark.text}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. STRENGTHS -->
+                    <div class="report-section strengths">
+                        <h4>💪 Key Strengths</h4>
+                        <div class="grid-3">
+                            ${data.strengths.map(s => `
+                                <div class="card-item">
+                                    <h5>${s.title}</h5>
+                                    <p>${s.description}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 3. IMPROVEMENTS -->
+                    <div class="report-section improvements">
+                        <h4>🚀 High Impact Improvements</h4>
+                        <div class="list-cards">
+                            ${data.improvements.map(i => `
+                                <div class="list-item">
+                                    <span class="badge" style="background:${getPriorityColor(i.priority)}">${i.priority}</span>
+                                    <strong>${i.title}:</strong> ${i.suggestion}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 4. KEYWORDS -->
+                    <div class="report-section">
+                        <h4>🔑 Missing Keywords</h4>
+                        <p class="section-advice">${data.keywords.advice}</p>
+                        <div class="keyword-cloud">
+                            ${data.keywords.high_priority.map(k => `<span class="tag high">${k}</span>`).join('')}
+                            ${data.keywords.medium_priority.map(k => `<span class="tag med">${k}</span>`).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 5. ATS & FORMATTING -->
+                    <div class="grid-2">
+                        <div class="report-section ats">
+                            <h4>🤖 ATS Compatibility: ${data.ats_compatibility.score}/10</h4>
+                            <ul>
+                                ${data.ats_compatibility.issues.map(issue => `<li>⚠️ ${issue}</li>`).join('')}
+                            </ul>
+                            <p><em>${data.ats_compatibility.recommendation}</em></p>
+                        </div>
+                        <div class="report-section formatting">
+                            <h4>🎨 Formatting Fixes</h4>
+                            <ul>
+                                ${data.formatting.map(f => `<li><strong>${f.issue}:</strong> ${f.fix}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- 7. ACTION PLAN -->
+                    <div class="report-section action-plan">
+                        <h4>⚡ Next Steps (Action Plan)</h4>
+                        <div class="action-group">
+                            <h5>Quick Wins (30 mins)</h5>
+                            <ul>${data.action_plan.quick_wins.map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                        </div>
+                        <div class="action-group">
+                            <h5>Deep Work (2 hours)</h5>
+                            <ul>${data.action_plan.medium_effort.map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+
+                    <!-- 9. UPSELL -->
+                    <div class="upsell-container">
+                        <p>Need help implementing these changes?</p>
+                        <div class="upsell-buttons">
+                            <button onclick="window.location.href='/pricing'" class="premium-btn">✨ Rewrite My Resume ($9.99)</button>
+                            <button onclick="window.location.href='/pricing'" class="premium-btn outline">📝 Write Cover Letter ($4.99)</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML = html;
+        }
 
         // Resume Analysis Print Button
         document.getElementById('resume-print-btn').addEventListener('click', () => {
