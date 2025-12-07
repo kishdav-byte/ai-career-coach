@@ -76,7 +76,7 @@ function init() {
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v7.0 (Audio Fix)';
+    versionDisplay.textContent = 'v7.1 (System Msg Removed)';
     document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
