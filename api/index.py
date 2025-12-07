@@ -14,7 +14,7 @@ load_dotenv()
 app = Flask(__name__)
 
 # API Key from Environment Variable
-API_KEY = os.environ.get('OPENAI_API_KEY')
+API_KEY = os.environ.get('OPENAI_API_KEY_')
 
 def generate_audio_gtts(text, voice_id):
     """Generates audio using gTTS."""
