@@ -147,7 +147,7 @@ def api():
             if is_start:
                  # Start Mode: Just ask the first question. No feedback needed.
                  welcome_msg = "Welcome to the interview. This interview consists of 5 questions. You are encouraged to think about a specific situation or task that you experienced, the specific actions that you took, and the results of the actions you took."
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg} The first question is'. Then ask the question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '{welcome_msg} The first question is...'}}"}]}]
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Then ask the first question immediately.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '{welcome_msg} [First Question]...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
                  next_q_instruction = "Ask the next question."
