@@ -40,6 +40,35 @@ header p {
     color: #666;
 }
 
+/* Page Navigation (between Interview and Tools) */
+.page-nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.page-nav-link {
+    padding: 8px 20px;
+    background: #f0f0f0;
+    color: #555;
+    text-decoration: none;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.page-nav-link:hover {
+    background: var(--primary-light);
+    color: var(--primary-color);
+}
+
+.page-nav-link.active {
+    background: var(--primary-color);
+    color: white;
+}
+
 /* Tabs */
 .tabs {
     display: flex;

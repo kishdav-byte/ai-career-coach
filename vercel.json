@@ -11,6 +11,10 @@
         {
             "source": "/app",
             "destination": "/app.html"
+        },
+        {
+            "source": "/tools",
+            "destination": "/tools.html"
         }
     ]
 }
