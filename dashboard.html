@@ -308,6 +308,55 @@
             window.location.href = '/?logout=success';
         }
 
+        async function checkPaymentStatus(email) {
+            const loadingDiv = document.getElementById('loading');
+            loadingDiv.style.display = 'block';
+            loadingDiv.innerHTML = '<h3>Payment Successful!</h3><p>Activating your account...</p>';
+            document.getElementById('dashboard-content').style.display = 'none';
+
+            let attempts = 0;
+            const maxAttempts = 10; // Try for 20 seconds
+
+            const poll = setInterval(async () => {
+                attempts++;
+                try {
+                    const response = await fetch('/api/auth/user', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email })
+                    });
+                    const result = await response.json();
+
+                    if (result.success && result.user.account_status === 'paid') {
+                        clearInterval(poll);
+                        // Update session and reload UI
+                        const session = getSession();
+                        session.account_status = 'paid';
+                        session.payment_tier = 'pro';
+                        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+
+                        // Reset UI
+                        loadingDiv.style.display = 'none';
+                        document.getElementById('dashboard-content').style.display = 'block';
+                        document.getElementById('unpaid-section').style.display = 'none';
+                        document.getElementById('paid-section').classList.add('show');
+
+                        // Show success message
+                        alert('Account activated! You now have full access.');
+                    }
+                } catch (e) {
+                    console.log('Error checking status');
+                }
+
+                if (attempts >= maxAttempts) {
+                    clearInterval(poll);
+                    loadingDiv.style.display = 'none';
+                    document.getElementById('dashboard-content').style.display = 'block';
+                    alert('Activation is taking longer than expected. Please refresh the page in a moment.');
+                }
+            }, 2000);
+        }
+
         async function initDashboard() {
             const session = getSession();
 
@@ -321,7 +370,14 @@
             document.getElementById('user-display').textContent = displayName;
             document.getElementById('welcome-message').textContent = `Welcome back, ${session.name || 'there'}!`;
 
-            // Verify session with server and get latest status
+            // Check for payment success URL param
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'success' && session.account_status !== 'paid') {
+                checkPaymentStatus(session.email);
+                return; // Stop normal init
+            }
+
+            // Normal Init: Verify session with server and get latest status
             try {
                 const response = await fetch('/api/auth/user', {
                     method: 'POST',
