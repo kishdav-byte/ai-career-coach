@@ -546,10 +546,76 @@
             color: var(--white);
         }
 
+        /* Mobile Menu Styles */
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 10px;
+            z-index: 1001;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: var(--white);
+            margin: 5px 0;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+
+        .nav-toggle.active span:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .nav-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .nav-toggle.active span:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
+            .nav-toggle {
+                display: block;
+            }
+
             .nav-links {
                 display: none;
+                position: fixed;
+                top: 0;
+                right: 0;
+                width: 280px;
+                height: 100vh;
+                background: rgba(15, 23, 42, 0.98);
+                flex-direction: column;
+                padding: 80px 30px 30px;
+                gap: 0;
+                box-shadow: -5px 0 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links li {
+                width: 100%;
+            }
+
+            .nav-links a {
+                display: block;
+                padding: 15px 0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                font-size: 1.1rem;
+            }
+
+            .nav-links .nav-cta {
+                margin-top: 20px;
+                text-align: center;
             }
 
             .hero {
@@ -589,6 +655,18 @@
                 flex-direction: column;
                 text-align: center;
             }
+
+            .steps-grid,
+            .features-grid,
+            .pricing-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feature-card,
+            .step-card,
+            .pricing-card {
+                padding: 2rem;
+            }
         }
 
         /* Smooth scroll */
@@ -620,7 +698,12 @@
     <nav class="nav">
         <div class="nav-container">
             <div class="nav-logo">AI Career Coach</div>
-            <ul class="nav-links">
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <ul class="nav-links" id="nav-links">
                 <li><a href="#how-it-works">How It Works</a></li>
                 <li><a href="#features">Features</a></li>
                 <li><a href="#pricing">Pricing</a></li>
@@ -798,6 +881,23 @@
                 nav.style.background = 'rgba(15, 23, 42, 0.95)';
                 nav.style.boxShadow = 'none';
             }
+        });
+
+        // Mobile Menu Toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navLinks = document.getElementById('nav-links');
+
+        navToggle.addEventListener('click', () => {
+            navToggle.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Close menu when clicking on a link
+        navLinks.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                navToggle.classList.remove('active');
+                navLinks.classList.remove('active');
+            });
         });
     </script>
 </body>

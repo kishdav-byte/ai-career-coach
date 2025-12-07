@@ -627,6 +627,7 @@ textarea {
         background: transparent !important;
     }
 }
+
 /* Career Plan Layout */
 .career-plan-container {
     display: grid;
@@ -671,4 +672,346 @@ textarea {
     font-weight: bold;
     position: absolute;
     left: 0;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN - Media Queries
+   ======================================== */
+
+/* Tablet Breakpoint */
+@media (max-width: 992px) {
+    .app-container {
+        margin: 20px 15px;
+        padding: 15px;
+    }
+
+    .resume-builder-container {
+        flex-direction: column;
+    }
+
+    .resume-form,
+    .resume-preview-section {
+        flex: none;
+        width: 100%;
+        max-height: none;
+    }
+
+    .resume-preview-section {
+        position: static;
+    }
+
+    .resume-preview {
+        min-height: 400px;
+        max-height: none;
+    }
+
+    .career-plan-container {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Mobile Breakpoint */
+@media (max-width: 768px) {
+    .app-container {
+        margin: 10px;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    header h1 {
+        font-size: 1.5rem;
+    }
+
+    header p {
+        font-size: 0.9rem;
+    }
+
+    /* Tabs - Horizontal Scrollable */
+    .tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        justify-content: flex-start;
+        gap: 5px;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tab-btn {
+        flex-shrink: 0;
+        padding: 10px 15px;
+        font-size: 14px;
+        white-space: nowrap;
+        min-height: 44px;
+        /* Touch target */
+    }
+
+    /* Cards */
+    .card {
+        padding: 15px;
+    }
+
+    .card h2 {
+        font-size: 1.3rem;
+    }
+
+    /* Forms - Larger Touch Targets */
+    textarea,
+    input[type="text"],
+    select {
+        padding: 14px;
+        font-size: 16px;
+        /* Prevents iOS zoom */
+        min-height: 44px;
+    }
+
+    textarea {
+        min-height: 120px;
+    }
+
+    .action-btn,
+    .primary-btn,
+    .secondary-btn {
+        padding: 14px 20px;
+        font-size: 16px;
+        min-height: 48px;
+    }
+
+    /* Chat Interface */
+    .chat-window {
+        height: 250px;
+        padding: 10px;
+    }
+
+    .message {
+        max-width: 90%;
+        padding: 12px;
+        font-size: 15px;
+    }
+
+    .chat-input-area {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .chat-input-area input {
+        flex: 1 1 100%;
+        order: 1;
+    }
+
+    .chat-input-area button {
+        flex: 1;
+        order: 2;
+        min-height: 48px;
+    }
+
+    #record-btn {
+        flex: 0 0 auto;
+        width: 60px !important;
+    }
+
+    /* Resume Builder */
+    .resume-form {
+        padding: 15px;
+        max-height: none;
+    }
+
+    .resume-preview {
+        padding: 20px;
+        min-height: 300px;
+    }
+
+    .template-selector {
+        gap: 5px;
+    }
+
+    .template-btn {
+        padding: 8px 12px;
+        font-size: 12px;
+        min-height: 40px;
+    }
+
+    /* Preview Actions */
+    .preview-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .preview-actions button {
+        margin-left: 0 !important;
+        width: 100%;
+    }
+
+    /* Cover Letter */
+    .cl-preview {
+        padding: 20px;
+    }
+
+    .cl-header h1 {
+        font-size: 20px;
+    }
+
+    .cl-contact {
+        font-size: 0.8em;
+    }
+
+    /* LinkedIn Results */
+    #linkedin-results-area {
+        margin-top: 15px;
+    }
+
+    .recommendations-box,
+    .refined-sample-box {
+        padding: 12px;
+    }
+
+    /* Result Areas */
+    .result-area {
+        padding: 12px;
+        font-size: 14px;
+    }
+
+    /* Plan Cards */
+    .plan-card {
+        padding: 15px;
+    }
+
+    .plan-card h3 {
+        font-size: 1.1rem;
+    }
+
+    /* Form Groups */
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .input-group input,
+    .input-group textarea {
+        margin-bottom: 10px;
+    }
+
+    /* Experience/Education Items */
+    .experience-item,
+    .education-item {
+        padding: 10px;
+        margin-bottom: 15px;
+        background: #f9f9f9;
+        border-radius: 8px;
+    }
+
+    /* Voice Select Row */
+    #interview .form-group[style*="display: flex"] {
+        flex-direction: column !important;
+    }
+
+    #interview .form-group[style*="display: flex"]>div {
+        width: 100% !important;
+    }
+}
+
+/* Small Mobile Breakpoint */
+@media (max-width: 480px) {
+    .app-container {
+        margin: 5px;
+        padding: 10px;
+    }
+
+    header h1 {
+        font-size: 1.3rem;
+    }
+
+    .tab-btn {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+
+    .card h2 {
+        font-size: 1.2rem;
+    }
+
+    /* Chat */
+    .chat-window {
+        height: 200px;
+    }
+
+    .message {
+        max-width: 95%;
+        font-size: 14px;
+    }
+
+    /* Resume Preview */
+    .resume-preview {
+        padding: 15px;
+        font-size: 12px;
+    }
+
+    .resume-preview h1 {
+        font-size: 1.3em;
+    }
+
+    .resume-preview h2 {
+        font-size: 1em;
+    }
+
+    /* Template Buttons - Two Rows */
+    .template-selector {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
+
+    .template-btn {
+        padding: 6px 8px;
+        font-size: 11px;
+    }
+
+    /* Cover Letter */
+    .cl-header h1 {
+        font-size: 18px;
+        letter-spacing: 1px;
+    }
+
+    .cl-body {
+        font-size: 10pt;
+    }
+
+    /* Plan Cards */
+    .career-plan-container {
+        gap: 15px;
+    }
+
+    .plan-card li {
+        font-size: 0.9rem;
+        padding-left: 15px;
+    }
+
+    /* Buttons Stack Fully */
+    .preview-actions button,
+    .action-btn,
+    .primary-btn,
+    .secondary-btn {
+        font-size: 15px;
+    }
+}
+
+/* Touch Device Improvements */
+@media (hover: none) and (pointer: coarse) {
+
+    .tab-btn:hover,
+    .action-btn:hover,
+    .template-btn:hover,
+    .step-card:hover,
+    .feature-card:hover {
+        transform: none;
+    }
+
+    /* Ensure all interactive elements have good tap targets */
+    button,
+    .btn,
+    a.action-btn,
+    input[type="submit"] {
+        min-height: 44px;
+        min-width: 44px;
+    }
 }
