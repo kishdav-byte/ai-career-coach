@@ -14,7 +14,7 @@
         },
         {
             "source": "/tools",
-            "destination": "/tools.html"
+            "destination": "/app.html"
         }
     ]
 }
