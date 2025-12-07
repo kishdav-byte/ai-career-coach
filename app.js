@@ -275,6 +275,9 @@ function init() {
                                 -webkit-print-color-adjust: exact !important;
                                 print-color-adjust: exact !important;
                             }
+                            .analysis-section.improvements {
+                                page-break-before: always;
+                            }
                         }
                     </style>
                 </head>
