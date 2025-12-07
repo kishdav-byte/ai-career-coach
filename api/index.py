@@ -655,7 +655,7 @@ def create_checkout_session():
                     'quantity': 1,
                 },
             ],
-            mode='payment',
+            mode='subscription',
             success_url=app_domain + '/dashboard.html?payment=success',
             cancel_url=app_domain + '/pricing.html?payment=cancelled',
             metadata={
