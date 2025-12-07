@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AceInterview</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --dark: #0f172a;
+            --gray-600: #475569;
+            --gray-200: #e2e8f0;
+            --gray-100: #f1f5f9;
+            --white: #ffffff;
+            --warning: #f59e0b;
+            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-100);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: var(--white);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-name {
+            color: var(--gray-600);
+            font-size: 0.9rem;
+        }
+
+        .logout-btn {
+            padding: 0.5rem 1rem;
+            background: var(--gray-100);
+            border: 1px solid var(--gray-200);
+            border-radius: 8px;
+            color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: var(--white);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .welcome {
+            margin-bottom: 2rem;
+        }
+
+        .welcome h1 {
+            font-size: 1.75rem;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome p {
+            color: var(--gray-600);
+        }
+
+        /* Unpaid State */
+        .purchase-required {
+            background: linear-gradient(135deg, #fef3c7, #fef9c3);
+            border: 2px solid #fbbf24;
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .purchase-required .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .purchase-required h2 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .purchase-required p {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+        }
+
+        .purchase-required .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .purchase-required .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Paid State - Feature Cards */
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            display: none;
+        }
+
+        .feature-cards.show {
+            display: grid;
+        }
+
+        .feature-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-card .icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        .feature-card p {
+            color: var(--gray-600);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .feature-card .btn {
+            display: inline-block;
+            padding: 0.875rem 1.5rem;
+            background: var(--gradient-primary);
+            color: var(--white);
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .feature-card .btn:hover {
+            transform: scale(1.02);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--gray-600);
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 1rem;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .feature-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <div class="logo">AceInterview</div>
+        <div class="header-right">
+            <span class="user-name" id="user-display"></span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="loading" id="loading">
+            Loading your dashboard...
+        </div>
+
+        <div id="dashboard-content" style="display: none;">
+            <div class="welcome">
+                <h1 id="welcome-message">Welcome back!</h1>
+                <p>Ready to ace your next interview?</p>
+            </div>
+
+            <!-- Unpaid State -->
+            <div class="purchase-required" id="unpaid-section">
+                <div class="icon">🔒</div>
+                <h2>PURCHASE REQUIRED</h2>
+                <p>Get access to Resume Analysis and Interview Coach to prepare for your next interview.</p>
+                <a href="/pricing" class="btn">View Pricing</a>
+            </div>
+
+            <!-- Paid State - Feature Cards -->
+            <div class="feature-cards" id="paid-section">
+                <div class="feature-card">
+                    <div class="icon">📄</div>
+                    <h3>Resume Analysis</h3>
+                    <p>Upload your resume and get instant AI-powered feedback with specific improvements to stand out.
+                    </p>
+                    <a href="/app#resume" class="btn">Start Analysis</a>
+                </div>
+
+                <div class="feature-card">
+                    <div class="icon">🎤</div>
+                    <h3>Interview Coach</h3>
+                    <p>Practice with voice-based AI interviews. Get scored feedback and STAR-format answer improvements.
+                    </p>
+                    <a href="/app#interview" class="btn">Start Practice</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const SESSION_KEY = 'aceinterview_session';
+        const SESSION_EXPIRY_DAYS = 7;
+
+        function getSession() {
+            const sessionStr = localStorage.getItem(SESSION_KEY);
+            if (!sessionStr) return null;
+
+            try {
+                const session = JSON.parse(sessionStr);
+
+                // Check if session is expired (7 days)
+                const now = Date.now();
+                const loggedInAt = session.logged_in_at || 0;
+                const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+                if (now - loggedInAt > expiryMs) {
+                    localStorage.removeItem(SESSION_KEY);
+                    return null;
+                }
+
+                return session;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem(SESSION_KEY);
+            window.location.href = '/?logout=success';
+        }
+
+        async function initDashboard() {
+            const session = getSession();
+
+            if (!session) {
+                window.location.href = '/login';
+                return;
+            }
+
+            // Display user info
+            const displayName = session.name || session.email;
+            document.getElementById('user-display').textContent = displayName;
+            document.getElementById('welcome-message').textContent = `Welcome back, ${session.name || 'there'}!`;
+
+            // Verify session with server and get latest status
+            try {
+                const response = await fetch('/api/auth/user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: session.email })
+                });
+
+                const result = await response.json();
+
+                if (result.success && result.user) {
+                    // Update session with latest data
+                    session.account_status = result.user.account_status;
+                    session.payment_tier = result.user.payment_tier;
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                }
+            } catch (e) {
+                console.log('Could not verify session with server');
+            }
+
+            // Show appropriate content based on payment status
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('dashboard-content').style.display = 'block';
+
+            if (session.account_status === 'paid') {
+                document.getElementById('unpaid-section').style.display = 'none';
+                document.getElementById('paid-section').classList.add('show');
+            } else {
+                document.getElementById('unpaid-section').style.display = 'block';
+                document.getElementById('paid-section').classList.remove('show');
+            }
+        }
+
+        // Initialize on load
+        initDashboard();
+    </script>
+</body>
+
+</html>

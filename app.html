@@ -83,6 +83,47 @@
     </div>
     <div id="print-area"></div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        // Access Control - Check login and payment status
+        (function checkAccess() {
+            const SESSION_KEY = 'aceinterview_session';
+            const sessionStr = localStorage.getItem(SESSION_KEY);
+
+            if (!sessionStr) {
+                // Not logged in - redirect to login
+                window.location.href = '/login?redirect=app&message=login_required';
+                return;
+            }
+
+            try {
+                const session = JSON.parse(sessionStr);
+                const SESSION_EXPIRY_DAYS = 7;
+                const now = Date.now();
+                const loggedInAt = session.logged_in_at || 0;
+                const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+                // Check if session expired
+                if (now - loggedInAt > expiryMs) {
+                    localStorage.removeItem(SESSION_KEY);
+                    window.location.href = '/login?redirect=app&message=session_expired';
+                    return;
+                }
+
+                // Check payment status
+                if (session.account_status !== 'paid') {
+                    window.location.href = '/pricing?message=payment_required';
+                    return;
+                }
+
+                // User is logged in and paid - allow access
+                console.log('Access granted for:', session.email);
+            } catch (e) {
+                // Invalid session - redirect to login
+                localStorage.removeItem(SESSION_KEY);
+                window.location.href = '/login?redirect=app&message=login_required';
+            }
+        })();
+    </script>
     <script src="app.js?v=8.0"></script>
 </body>
 

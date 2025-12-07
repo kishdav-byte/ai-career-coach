@@ -408,4 +408,233 @@ def api():
         print(f"OpenAI API error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# ========================================
+# USER AUTHENTICATION ENDPOINTS
+# ========================================
+
+import bcrypt
+import uuid
+from datetime import datetime
+
+# Simple in-memory storage simulation for Vercel serverless
+# In production, this would use window.storage via frontend or a real database
+# For now, we'll use a file-based approach that persists on disk
+USERS_FILE = '/tmp/aceinterview_users.json'
+
+def load_users():
+    """Load users from file storage."""
+    try:
+        if os.path.exists(USERS_FILE):
+            with open(USERS_FILE, 'r') as f:
+                return json.load(f)
+    except Exception as e:
+        print(f"Error loading users: {e}")
+    return {}
+
+def save_users(users):
+    """Save users to file storage."""
+    try:
+        with open(USERS_FILE, 'w') as f:
+            json.dump(users, f)
+        return True
+    except Exception as e:
+        print(f"Error saving users: {e}")
+        return False
+
+def hash_password(password):
+    """Hash password using bcrypt."""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password, hashed):
+    """Verify password against hash."""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+def validate_email(email):
+    """Basic email validation."""
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+@app.route('/api/auth/signup', methods=['POST'])
+def signup():
+    """Create a new user account."""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        confirm_password = data.get('confirm_password', '')
+        name = data.get('name', '').strip()
+        
+        # Validation
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        
+        if not validate_email(email):
+            return jsonify({"error": "Please enter a valid email address"}), 400
+        
+        if not password:
+            return jsonify({"error": "Password is required"}), 400
+        
+        if len(password) < 8:
+            return jsonify({"error": "Password must be at least 8 characters"}), 400
+        
+        if password != confirm_password:
+            return jsonify({"error": "Passwords must match"}), 400
+        
+        # Check if user exists
+        users = load_users()
+        user_key = f"user:{email}"
+        
+        if user_key in users:
+            return jsonify({"error": "This email is already registered. Please login."}), 400
+        
+        # Create user
+        user_id = str(uuid.uuid4())
+        user_data = {
+            "user_id": user_id,
+            "email": email,
+            "password": hash_password(password),
+            "name": name,
+            "created_date": datetime.now().isoformat(),
+            "account_status": "unpaid",
+            "payment_tier": None,
+            "stripe_customer_id": None,
+            "last_login": None
+        }
+        
+        users[user_key] = user_data
+        
+        if save_users(users):
+            # Don't return password in response
+            safe_user = {k: v for k, v in user_data.items() if k != 'password'}
+            return jsonify({
+                "success": True,
+                "message": "Account created! Please log in.",
+                "user": safe_user
+            })
+        else:
+            return jsonify({"error": "Unable to create account. Please try again or contact support@tryaceinterview.com"}), 500
+    
+    except Exception as e:
+        print(f"Signup error: {e}")
+        return jsonify({"error": "Unable to create account. Please try again or contact support@tryaceinterview.com"}), 500
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    """Authenticate user and return session data."""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        password = data.get('password', '')
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+        users = load_users()
+        user_key = f"user:{email}"
+        
+        if user_key not in users:
+            return jsonify({"error": "Invalid email or password"}), 401
+        
+        user = users[user_key]
+        
+        if not verify_password(password, user['password']):
+            return jsonify({"error": "Invalid email or password"}), 401
+        
+        # Update last login
+        user['last_login'] = datetime.now().isoformat()
+        users[user_key] = user
+        save_users(users)
+        
+        # Return session data (no password)
+        session_data = {
+            "user_id": user['user_id'],
+            "email": user['email'],
+            "name": user.get('name', ''),
+            "account_status": user['account_status'],
+            "payment_tier": user['payment_tier'],
+            "logged_in_at": int(datetime.now().timestamp() * 1000)
+        }
+        
+        return jsonify({
+            "success": True,
+            "message": "Login successful",
+            "session": session_data
+        })
+    
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({"error": "Login failed. Please try again."}), 500
+
+@app.route('/api/auth/user', methods=['POST'])
+def get_user():
+    """Get user data by email (for session verification)."""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        
+        users = load_users()
+        user_key = f"user:{email}"
+        
+        if user_key not in users:
+            return jsonify({"error": "User not found"}), 404
+        
+        user = users[user_key]
+        
+        # Return user data (no password)
+        safe_user = {
+            "user_id": user['user_id'],
+            "email": user['email'],
+            "name": user.get('name', ''),
+            "account_status": user['account_status'],
+            "payment_tier": user['payment_tier']
+        }
+        
+        return jsonify({"success": True, "user": safe_user})
+    
+    except Exception as e:
+        print(f"Get user error: {e}")
+        return jsonify({"error": "Unable to get user data"}), 500
+
+@app.route('/api/auth/update-status', methods=['POST'])
+def update_user_status():
+    """Update user payment status (for admin use)."""
+    try:
+        data = request.json
+        email = data.get('email', '').strip().lower()
+        account_status = data.get('account_status')
+        payment_tier = data.get('payment_tier')
+        admin_key = data.get('admin_key')
+        
+        # Simple admin key check (should use proper admin auth in production)
+        if admin_key != os.environ.get('ADMIN_KEY', 'aceinterview_admin_2024'):
+            return jsonify({"error": "Unauthorized"}), 403
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+        
+        users = load_users()
+        user_key = f"user:{email}"
+        
+        if user_key not in users:
+            return jsonify({"error": "User not found"}), 404
+        
+        user = users[user_key]
+        
+        if account_status:
+            user['account_status'] = account_status
+        if payment_tier:
+            user['payment_tier'] = payment_tier
+        
+        users[user_key] = user
+        save_users(users)
+        
+        return jsonify({"success": True, "message": f"User {email} updated successfully"})
+    
+    except Exception as e:
+        print(f"Update status error: {e}")
+        return jsonify({"error": "Unable to update user"}), 500
+
 # For Vercel, we don't need app.run()

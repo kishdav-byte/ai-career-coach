@@ -899,6 +899,61 @@
                 navLinks.classList.remove('active');
             });
         });
+
+        // Dynamic Navigation Based on Login Status
+        (function updateNavForUser() {
+            const SESSION_KEY = 'aceinterview_session';
+            const sessionStr = localStorage.getItem(SESSION_KEY);
+
+            // Find the Get Started link
+            const navLinksContainer = document.getElementById('nav-links');
+            const lastNavItem = navLinksContainer.querySelector('li:last-child');
+
+            if (sessionStr) {
+                try {
+                    const session = JSON.parse(sessionStr);
+                    const SESSION_EXPIRY_DAYS = 7;
+                    const now = Date.now();
+                    const loggedInAt = session.logged_in_at || 0;
+                    const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+
+                    if (now - loggedInAt <= expiryMs && session.email) {
+                        // User is logged in - update nav
+                        lastNavItem.innerHTML = '<a href="/dashboard" class="nav-cta">Dashboard</a>';
+
+                        // Add logout button
+                        const logoutItem = document.createElement('li');
+                        logoutItem.innerHTML = '<a href="#" onclick="localStorage.removeItem(\'aceinterview_session\'); location.reload();" style="opacity: 0.7;">Logout</a>';
+                        navLinksContainer.appendChild(logoutItem);
+
+                        // Update hero CTA buttons based on payment status
+                        const heroPrimaryBtn = document.querySelector('.hero-buttons .btn-primary');
+                        if (heroPrimaryBtn) {
+                            if (session.account_status === 'paid') {
+                                heroPrimaryBtn.textContent = 'Go to Dashboard';
+                                heroPrimaryBtn.href = '/dashboard';
+                            } else {
+                                heroPrimaryBtn.textContent = 'View Pricing';
+                                heroPrimaryBtn.href = '#pricing';
+                            }
+                        }
+                    }
+                } catch (e) {
+                    // Invalid session, keep default nav
+                }
+            }
+
+            // Check for logout message
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('logout') === 'success') {
+                const nav = document.querySelector('.nav');
+                const message = document.createElement('div');
+                message.style.cssText = 'background: #10b981; color: white; text-align: center; padding: 0.5rem; font-size: 0.9rem;';
+                message.textContent = "You've been logged out successfully.";
+                nav.parentNode.insertBefore(message, nav.nextSibling);
+                setTimeout(() => message.remove(), 3000);
+            }
+        })();
     </script>
 </body>
 

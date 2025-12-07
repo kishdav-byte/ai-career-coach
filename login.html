@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up - AceInterview</title>
+    <title>Login - AceInterview</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -38,13 +38,13 @@
             padding: 2rem;
         }
 
-        .signup-container {
+        .login-container {
             background: var(--white);
             border-radius: 24px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             padding: 3rem;
             width: 100%;
-            max-width: 450px;
+            max-width: 420px;
         }
 
         .logo {
@@ -72,7 +72,7 @@
         }
 
         .form-group {
-            margin-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
         }
 
         .form-group label {
@@ -81,12 +81,6 @@
             color: var(--dark);
             margin-bottom: 0.5rem;
             font-size: 0.9rem;
-        }
-
-        .form-group label .optional {
-            font-weight: 400;
-            color: var(--gray-600);
-            font-size: 0.8rem;
         }
 
         .form-group input {
@@ -105,13 +99,6 @@
 
         .form-group input.error {
             border-color: var(--error);
-        }
-
-        .error-message {
-            color: var(--error);
-            font-size: 0.85rem;
-            margin-top: 0.5rem;
-            display: none;
         }
 
         .alert {
@@ -162,43 +149,33 @@
             transform: none;
         }
 
-        .password-requirements {
-            font-size: 0.8rem;
-            color: var(--gray-600);
+        .forgot-link {
+            text-align: right;
             margin-top: 0.5rem;
         }
 
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 1.5rem 0;
+        .forgot-link a {
             color: var(--gray-600);
+            text-decoration: none;
+            font-size: 0.85rem;
         }
 
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            border-bottom: 1px solid var(--gray-200);
+        .forgot-link a:hover {
+            color: var(--primary);
         }
 
-        .divider span {
-            padding: 0 1rem;
-            font-size: 0.9rem;
-        }
-
-        .login-link {
+        .signup-link {
             text-align: center;
             margin-top: 1.5rem;
         }
 
-        .login-link a {
+        .signup-link a {
             color: var(--primary);
             text-decoration: none;
             font-weight: 600;
         }
 
-        .login-link a:hover {
+        .signup-link a:hover {
             text-decoration: underline;
         }
 
@@ -217,152 +194,113 @@
 </head>
 
 <body>
-    <div class="signup-container">
+    <div class="login-container">
         <div class="logo">AceInterview</div>
-        <h1>Create Account</h1>
-        <p class="subtitle">Get started with your interview prep</p>
+        <h1>Welcome Back</h1>
+        <p class="subtitle">Log in to your account</p>
 
         <div id="alert" class="alert"></div>
 
-        <form id="signup-form">
-            <div class="form-group">
-                <label for="name">Name <span class="optional">(optional)</span></label>
-                <input type="text" id="name" name="name" placeholder="John Doe">
-            </div>
+        <form id="login-form">
             <div class="form-group">
                 <label for="email">Email Address</label>
                 <input type="email" id="email" name="email" placeholder="john@example.com" required>
-                <div class="error-message" id="email-error"></div>
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
-                <div class="password-requirements">Must be at least 8 characters</div>
-                <div class="error-message" id="password-error"></div>
+                <div class="forgot-link">
+                    <a href="#" onclick="showForgotMessage()">Forgot password?</a>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••" required>
-                <div class="error-message" id="confirm-error"></div>
-            </div>
-            <button type="submit" class="btn" id="submit-btn">Create Account</button>
+            <button type="submit" class="btn" id="submit-btn">Login</button>
         </form>
 
-        <div class="login-link">
-            <p>Already have an account? <a href="/login">Login</a></p>
+        <div class="signup-link">
+            <p>Don't have an account? <a href="/signup">Sign up</a></p>
         </div>
 
         <a href="/" class="back-link">← Back to Home</a>
     </div>
 
     <script>
-        const form = document.getElementById('signup-form');
-        const alert = document.getElementById('alert');
+        const SESSION_KEY = 'aceinterview_session';
+        const form = document.getElementById('login-form');
+        const alertEl = document.getElementById('alert');
         const submitBtn = document.getElementById('submit-btn');
 
+        // Check if coming from signup
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('signup') === 'success') {
+            showAlert('Account created successfully! Please log in.', 'success');
+        }
+
+        // Check if already logged in
+        const existingSession = localStorage.getItem(SESSION_KEY);
+        if (existingSession) {
+            try {
+                const session = JSON.parse(existingSession);
+                if (session.email) {
+                    window.location.href = '/dashboard';
+                }
+            } catch (e) { }
+        }
+
         function showAlert(message, type) {
-            alert.textContent = message;
-            alert.className = `alert ${type} show`;
+            alertEl.textContent = message;
+            alertEl.className = `alert ${type} show`;
         }
 
         function hideAlert() {
-            alert.className = 'alert';
+            alertEl.className = 'alert';
         }
 
-        function showError(fieldId, message) {
-            const errorEl = document.getElementById(fieldId + '-error');
-            const inputEl = document.getElementById(fieldId);
-            if (errorEl) {
-                errorEl.textContent = message;
-                errorEl.style.display = 'block';
-            }
-            if (inputEl) {
-                inputEl.classList.add('error');
-            }
-        }
-
-        function clearErrors() {
-            document.querySelectorAll('.error-message').forEach(el => {
-                el.style.display = 'none';
-            });
-            document.querySelectorAll('input').forEach(el => {
-                el.classList.remove('error');
-            });
-        }
-
-        function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        function showForgotMessage() {
+            alert('To reset your password, please email support@tryaceinterview.com');
         }
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
-            clearErrors();
 
-            const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
 
-            // Client-side validation
-            let hasError = false;
-
-            if (!email) {
-                showError('email', 'Email is required');
-                hasError = true;
-            } else if (!validateEmail(email)) {
-                showError('email', 'Please enter a valid email address');
-                hasError = true;
+            if (!email || !password) {
+                showAlert('Please enter your email and password.', 'error');
+                return;
             }
 
-            if (!password) {
-                showError('password', 'Password is required');
-                hasError = true;
-            } else if (password.length < 8) {
-                showError('password', 'Password must be at least 8 characters');
-                hasError = true;
-            }
-
-            if (password !== confirmPassword) {
-                showError('confirm', 'Passwords must match');
-                hasError = true;
-            }
-
-            if (hasError) return;
-
-            // Submit to API
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Creating Account...';
+            submitBtn.textContent = 'Logging in...';
 
             try {
-                const response = await fetch('/api/auth/signup', {
+                const response = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        email,
-                        password,
-                        confirm_password: confirmPassword,
-                        name
-                    })
+                    body: JSON.stringify({ email, password })
                 });
 
                 const result = await response.json();
 
-                if (result.success) {
-                    showAlert('Account created! Redirecting to login...', 'success');
+                if (result.success && result.session) {
+                    // Store session in localStorage
+                    localStorage.setItem(SESSION_KEY, JSON.stringify(result.session));
+
+                    showAlert('Login successful! Redirecting...', 'success');
                     setTimeout(() => {
-                        window.location.href = '/login?signup=success';
-                    }, 1500);
+                        window.location.href = '/dashboard';
+                    }, 1000);
                 } else {
-                    showAlert(result.error || 'Unable to create account. Please try again.', 'error');
+                    showAlert(result.error || 'Invalid email or password', 'error');
                     submitBtn.disabled = false;
-                    submitBtn.textContent = 'Create Account';
+                    submitBtn.textContent = 'Login';
                 }
             } catch (error) {
-                console.error('Signup error:', error);
-                showAlert('Unable to create account. Please try again or contact support@tryaceinterview.com', 'error');
+                console.error('Login error:', error);
+                showAlert('Login failed. Please try again.', 'error');
                 submitBtn.disabled = false;
-                submitBtn.textContent = 'Create Account';
+                submitBtn.textContent = 'Login';
             }
         });
     </script>
