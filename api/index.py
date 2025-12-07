@@ -3,7 +3,7 @@ import re
 import os
 import requests
 import json
-from gtts import gTTS
+
 import base64
 import io
 import ast
@@ -16,20 +16,30 @@ app = Flask(__name__)
 # API Key from Environment Variable
 API_KEY = os.environ.get('OPENAI_API_KEY_')
 
-def generate_audio_gtts(text, voice_id):
-    """Generates audio using gTTS."""
-    tld = 'us'
-    if 'GB' in voice_id:
-        tld = 'co.uk'
-    
+def generate_audio_openai(text, voice_id):
+    """Generates audio using OpenAI TTS API."""
     try:
-        tts = gTTS(text, lang='en', tld=tld)
-        mp3_fp = io.BytesIO()
-        tts.write_to_fp(mp3_fp)
-        mp3_fp.seek(0)
-        return base64.b64encode(mp3_fp.read()).decode('utf-8')
+        headers = {
+            "Authorization": f"Bearer {API_KEY}",
+            "Content-Type": "application/json"
+        }
+        
+        payload = {
+            "model": "tts-1",
+            "input": text,
+            "voice": voice_id if voice_id in ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] else "alloy"
+        }
+        
+        response = requests.post(
+            "https://api.openai.com/v1/audio/speech",
+            headers=headers,
+            json=payload
+        )
+        response.raise_for_status()
+        
+        return base64.b64encode(response.content).decode('utf-8')
     except Exception as e:
-        print(f"gTTS error: {e}")
+        print(f"OpenAI TTS error: {e}")
         return None
 
 def call_openai(messages, json_mode=False):
@@ -362,7 +372,7 @@ def api():
                 
                 if not speech_text:
                     speech_text = "I am ready. Let's continue."
-                audio_base64 = generate_audio_gtts(speech_text, voice)
+                audio_base64 = generate_audio_openai(speech_text, voice)
                 
                 if audio_base64:
                     response_data['audio'] = audio_base64
