@@ -415,31 +415,19 @@ def api():
 import bcrypt
 import uuid
 from datetime import datetime
+from supabase import create_client, Client
 
-# Simple in-memory storage simulation for Vercel serverless
-# In production, this would use window.storage via frontend or a real database
-# For now, we'll use a file-based approach that persists on disk
-USERS_FILE = '/tmp/aceinterview_users.json'
+# Initialize Supabase client
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 
-def load_users():
-    """Load users from file storage."""
+supabase: Client = None
+if SUPABASE_URL and SUPABASE_KEY:
     try:
-        if os.path.exists(USERS_FILE):
-            with open(USERS_FILE, 'r') as f:
-                return json.load(f)
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+        print("Supabase client initialized successfully")
     except Exception as e:
-        print(f"Error loading users: {e}")
-    return {}
-
-def save_users(users):
-    """Save users to file storage."""
-    try:
-        with open(USERS_FILE, 'w') as f:
-            json.dump(users, f)
-        return True
-    except Exception as e:
-        print(f"Error saving users: {e}")
-        return False
+        print(f"Error initializing Supabase: {e}")
 
 def hash_password(password):
     """Hash password using bcrypt."""
@@ -458,6 +446,9 @@ def validate_email(email):
 def signup():
     """Create a new user account."""
     try:
+        if not supabase:
+            return jsonify({"error": "Database not configured. Please contact support."}), 500
+        
         data = request.json
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
@@ -481,10 +472,8 @@ def signup():
             return jsonify({"error": "Passwords must match"}), 400
         
         # Check if user exists
-        users = load_users()
-        user_key = f"user:{email}"
-        
-        if user_key in users:
+        existing = supabase.table('users').select('email').eq('email', email).execute()
+        if existing.data and len(existing.data) > 0:
             return jsonify({"error": "This email is already registered. Please login."}), 400
         
         # Create user
@@ -492,7 +481,7 @@ def signup():
         user_data = {
             "user_id": user_id,
             "email": email,
-            "password": hash_password(password),
+            "password_hash": hash_password(password),
             "name": name,
             "created_date": datetime.now().isoformat(),
             "account_status": "unpaid",
@@ -501,11 +490,11 @@ def signup():
             "last_login": None
         }
         
-        users[user_key] = user_data
+        result = supabase.table('users').insert(user_data).execute()
         
-        if save_users(users):
+        if result.data:
             # Don't return password in response
-            safe_user = {k: v for k, v in user_data.items() if k != 'password'}
+            safe_user = {k: v for k, v in user_data.items() if k != 'password_hash'}
             return jsonify({
                 "success": True,
                 "message": "Account created! Please log in.",
@@ -522,6 +511,9 @@ def signup():
 def login():
     """Authenticate user and return session data."""
     try:
+        if not supabase:
+            return jsonify({"error": "Database not configured. Please contact support."}), 500
+        
         data = request.json
         email = data.get('email', '').strip().lower()
         password = data.get('password', '')
@@ -529,21 +521,21 @@ def login():
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
         
-        users = load_users()
-        user_key = f"user:{email}"
+        # Get user from Supabase
+        result = supabase.table('users').select('*').eq('email', email).execute()
         
-        if user_key not in users:
+        if not result.data or len(result.data) == 0:
             return jsonify({"error": "Invalid email or password"}), 401
         
-        user = users[user_key]
+        user = result.data[0]
         
-        if not verify_password(password, user['password']):
+        if not verify_password(password, user['password_hash']):
             return jsonify({"error": "Invalid email or password"}), 401
         
         # Update last login
-        user['last_login'] = datetime.now().isoformat()
-        users[user_key] = user
-        save_users(users)
+        supabase.table('users').update({
+            'last_login': datetime.now().isoformat()
+        }).eq('email', email).execute()
         
         # Return session data (no password)
         session_data = {
@@ -569,30 +561,23 @@ def login():
 def get_user():
     """Get user data by email (for session verification)."""
     try:
+        if not supabase:
+            return jsonify({"error": "Database not configured"}), 500
+        
         data = request.json
         email = data.get('email', '').strip().lower()
         
         if not email:
             return jsonify({"error": "Email is required"}), 400
         
-        users = load_users()
-        user_key = f"user:{email}"
+        result = supabase.table('users').select('user_id, email, name, account_status, payment_tier').eq('email', email).execute()
         
-        if user_key not in users:
+        if not result.data or len(result.data) == 0:
             return jsonify({"error": "User not found"}), 404
         
-        user = users[user_key]
+        user = result.data[0]
         
-        # Return user data (no password)
-        safe_user = {
-            "user_id": user['user_id'],
-            "email": user['email'],
-            "name": user.get('name', ''),
-            "account_status": user['account_status'],
-            "payment_tier": user['payment_tier']
-        }
-        
-        return jsonify({"success": True, "user": safe_user})
+        return jsonify({"success": True, "user": user})
     
     except Exception as e:
         print(f"Get user error: {e}")
@@ -602,6 +587,9 @@ def get_user():
 def update_user_status():
     """Update user payment status (for admin use)."""
     try:
+        if not supabase:
+            return jsonify({"error": "Database not configured"}), 500
+        
         data = request.json
         email = data.get('email', '').strip().lower()
         account_status = data.get('account_status')
@@ -615,21 +603,20 @@ def update_user_status():
         if not email:
             return jsonify({"error": "Email is required"}), 400
         
-        users = load_users()
-        user_key = f"user:{email}"
-        
-        if user_key not in users:
+        # Check if user exists
+        existing = supabase.table('users').select('email').eq('email', email).execute()
+        if not existing.data or len(existing.data) == 0:
             return jsonify({"error": "User not found"}), 404
         
-        user = users[user_key]
-        
+        # Update user
+        update_data = {}
         if account_status:
-            user['account_status'] = account_status
+            update_data['account_status'] = account_status
         if payment_tier:
-            user['payment_tier'] = payment_tier
+            update_data['payment_tier'] = payment_tier
         
-        users[user_key] = user
-        save_users(users)
+        if update_data:
+            supabase.table('users').update(update_data).eq('email', email).execute()
         
         return jsonify({"success": True, "message": f"User {email} updated successfully"})
     
@@ -638,3 +625,4 @@ def update_user_status():
         return jsonify({"error": "Unable to update user"}), 500
 
 # For Vercel, we don't need app.run()
+
