@@ -5,6 +5,11 @@ function getVoiceSettings() {
     return { voice, speed };
 }
 
+// Global state variables for interview tracking
+let questionCount = 0;
+let interviewHistory = [];
+let currentQuestionText = "";
+
 async function sendVoiceMessage(base64Audio) {
     // Ensure addMessage is available (it's exposed from init)
     if (!window.addMessage) {
@@ -212,9 +217,6 @@ function init() {
     // Voice Logic - Global Scope
     let mediaRecorder;
     let audioChunks = [];
-    let questionCount = 0;
-    let interviewHistory = [];
-    let currentQuestionText = "";
 
     window.toggleRecording = async function () {
         const recordBtn = document.getElementById('record-btn');
