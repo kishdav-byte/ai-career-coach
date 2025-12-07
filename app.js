@@ -16,11 +16,13 @@ async function sendVoiceMessage(base64Audio) {
     const jobPosting = document.getElementById('interview-job-posting').value;
     const { voice, speed } = getVoiceSettings();
 
+    questionCount++;
+
     try {
         const response = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'interview_chat', audio: base64Audio, jobPosting: jobPosting, voice: voice, speed: speed })
+            body: JSON.stringify({ action: 'interview_chat', audio: base64Audio, jobPosting: jobPosting, voice: voice, speed: speed, questionCount: questionCount })
         });
         const result = await response.json();
         document.getElementById(loadingId).remove();
@@ -76,7 +78,7 @@ function init() {
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v7.1 (System Msg Removed)';
+    versionDisplay.textContent = 'v7.2 (5 Questions)';
     document.body.appendChild(versionDisplay);
     // Tab Switching Logic
     const tabs = document.querySelectorAll('.tab-btn');
@@ -187,6 +189,7 @@ function init() {
         if (jobPosting.trim()) {
             primeAudio();
             primeAudio();
+            questionCount = 1; // Reset counter
             sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
             alert("Please paste a job description first.");
@@ -208,6 +211,7 @@ function init() {
     // Voice Logic - Global Scope
     let mediaRecorder;
     let audioChunks = [];
+    let questionCount = 0;
 
     window.toggleRecording = async function () {
         const recordBtn = document.getElementById('record-btn');
@@ -272,11 +276,15 @@ function init() {
         const jobPosting = document.getElementById('interview-job-posting').value;
         const { voice, speed } = getVoiceSettings();
 
+        if (!isStart) {
+            questionCount++;
+        }
+
         try {
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'interview_chat', message: message, jobPosting: jobPosting, voice: voice, speed: speed, isStart: isStart })
+                body: JSON.stringify({ action: 'interview_chat', message: message, jobPosting: jobPosting, voice: voice, speed: speed, isStart: isStart, questionCount: questionCount })
             });
             const result = await response.json();
 

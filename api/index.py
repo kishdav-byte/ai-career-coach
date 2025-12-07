@@ -120,12 +120,13 @@ def api():
         voice = data.get('voice', 'en-US-AriaNeural')
         speed = data.get('speed', '+0%')
         is_start = data.get('isStart', False)
+        question_count = data.get('questionCount', 1)
         
         context = ""
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Start with a relevant interview question."
         
-        system_instruction = f"System Instruction: You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Start the interview IMMEDIATELY with the first question. Keep responses concise and professional.{context}"
+        system_instruction = f"System Instruction: You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Start the interview IMMEDIATELY with the first question. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
         
         if audio_data:
             if "base64," in audio_data:
@@ -133,7 +134,7 @@ def api():
                 
             contents = [{
                 "parts": [
-                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, evaluate the answer and provide a SCORE (0-5).\nCRITICAL: You MUST include the score in the 'feedback' text. Start the feedback with: \"I would score this answer a [score] because...\".\n\nReturn JSON: {{'transcript': '...', 'feedback': 'I would score this answer a [score] because...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
+                    {"text": f"{system_instruction}\n\nThe user has provided an audio answer. Please transcribe it exactly.\nCRITICAL INSTRUCTION: If the audio is silent, unclear, or contains no speech, set 'transcript' to '(No speech detected)', set 'feedback' to 'I didn\\'t catch that.', and set 'next_question' to 'Could you please repeat your answer?'.\nOtherwise, evaluate the answer and provide a SCORE (0-5).\nCRITICAL: You MUST include the score in the 'feedback' text. Start the feedback with: \"I would score this answer a [score] because...\".\n\nIf question_count >= 5, set 'next_question' to 'That concludes our interview. Thank you for your time.'\n\nReturn JSON: {{'transcript': '...', 'feedback': 'I would score this answer a [score] because...', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"},
                     {
                         "inline_data": {
                             "mime_type": "audio/webm",
@@ -145,10 +146,15 @@ def api():
         else:
             if is_start:
                  # Start Mode: Just ask the first question. No feedback needed.
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: 'Welcome to the interview. The first question that I have for you is'. Then ask the question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': 'Welcome to the interview. The first question that I have for you is...'}}"}]}]
+                 welcome_msg = "Welcome to the interview. This interview consists of 5 questions. You are encouraged to think about a specific situation or task that you experienced, the specific actions that you took, and the results of the actions you took."
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg} The first question is'. Then ask the question.\n\nReturn JSON: {{'transcript': '{message}', 'feedback': '', 'improved_sample': null, 'next_question': '{welcome_msg} The first question is...'}}"}]}]
             else:
                  # Answer Mode: Provide feedback
-                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': 'I would score this answer a [score] because... [rest of feedback]', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
+                 next_q_instruction = "Ask the next question."
+                 if question_count >= 5:
+                     next_q_instruction = "This was the final question. End the interview professionally. Set 'next_question' to 'That concludes our interview. Thank you for your time.'"
+                 
+                 contents = [{"parts": [{"text": f"{system_instruction}\n\nUser: {message}\n\nEvaluate the answer. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTION: You must start your 'feedback' with the phrase: \"I would score this answer a [score] because...\".\n{next_q_instruction}\n\nReturn STRICT JSON (use double quotes for keys/values): {{'transcript': '{message}', 'feedback': 'I would score this answer a [score] because... [rest of feedback]', 'score': 0, 'improved_sample': '... (A more professional/impactful version of the user\\'s answer)', 'next_question': '...'}}"}]}]
 
     elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
