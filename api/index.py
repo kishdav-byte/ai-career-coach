@@ -142,10 +142,15 @@ def api():
         resume = data.get('resume', '')
         json_mode = True
         prompt = f"""
-        Analyze this resume and provide a comprehensive career coaching report.
+        You are an expert Executive Career Coach (rate $200/hr). Analyze this resume.
         
         RESUME CONTENT:
         {resume}
+        
+        CRITICAL RULES FOR ANALYSIS:
+        1. "QUICK REWRITES" section MUST use ACTUALLY extracted bullet points from the resume. Do NOT invent extraction text.
+        2. "RED FLAGS" must only be included if they genuinely exist.
+        3. All advice must be specific to THEIR content.
         
         Return valid JSON with this EXACT structure:
         {{
@@ -157,10 +162,22 @@ def api():
                 "user_score": 85,
                 "avg_score": 68,
                 "top_10_score": 92,
-                "text": "You are 25% stronger than the average candidate.",
-                "ahead_reasons": ["Reason 1", "Reason 2", "Reason 3"],
-                "gap_reasons": ["Reason 1", "Reason 2", "Reason 3"]
+                "text": "Status: You're stronger than 75% of candidates.",
+                "ahead_reasons": ["Specific strength from THEIR resume", "Specific strength from THEIR resume"],
+                "gap_reasons": ["Specific weakness from THEIR resume", "Specific weakness from THEIR resume"]
             }},
+            "red_flags": [
+                {{
+                    "title": "Duplicate Bullet Points",
+                    "description": "Your 'Manager' and 'Director' roles have identical bullets.",
+                    "fix": "Rewrite to show progression."
+                }},
+                 {{
+                    "title": "Missing Metrics",
+                    "description": "Your most recent role (2022-Present) has zero numbers.",
+                    "fix": "Add 3-5 specific numbers."
+                }}
+            ],
             "strengths": [
                 {{"title": "Strength 1", "description": "Why it is good..."}},
                 {{"title": "Strength 2", "description": "Why it is good..."}},
@@ -184,46 +201,48 @@ def api():
                     "better": "...", 
                     "why": "...", 
                     "how_to": "..."
-                }},
-                {{
-                    "priority": "LOW", 
-                    "title": "Improvement 3", 
-                    "suggestion": "...",
-                    "current": "...", 
-                    "better": "...", 
-                    "why": "...", 
-                    "how_to": "..."
                 }}
             ],
             "keywords": {{
-                "good": [{{"word": "Leadership", "count": 5}}, {{"word": "Project Management", "count": 4}}],
-                "missing": [{{"word": "Stakeholder Management", "advice": "Add to recent roles"}}, {{"word": "Change Management", "advice": "Add to leadership bullets"}}],
-                "overused": [{{"word": "Managed", "count": 8, "alternatives": ["Led", "Directed", "Oversaw"]}}],
+                "good": [
+                    {{"word": "Leadership", "count": 5, "context": "Used in executive bullets"}}, 
+                    {{"word": "Project Management", "count": 4, "context": "Used in project descriptions"}}
+                ],
+                "missing": [
+                    {{"word": "Stakeholder Management", "advice": "Add to 'Senior Manager' role bullets about alignment."}}, 
+                    {{"word": "Change Management", "advice": "Add to leadership bullets."}}
+                ],
+                "overused": [
+                    {{"word": "Managed", "count": 8, "alternatives": ["Led", "Directed", "Oversaw"]}}
+                ],
                 "advice": "Add missing keywords to your most recent experience."
             }},
             "rewrites": [
                 {{
                     "type": "Leadership",
-                    "original": "Led a team of employees...",
+                    "original": "[EXACT text extracted from resume]",
                     "rewritten": "Directed 15-person team, increasing efficiency by 25%...",
                     "explanation": "Added team size and specific metric."
                 }},
                 {{
                     "type": "Project Management",
-                    "original": "Managed projects...",
+                    "original": "[EXACT text extracted from resume]",
                     "rewritten": "Spearheaded 3 global projects with budgets over $500k...",
                     "explanation": "Added scope and budget."
                 }},
-                {{
+                 {{
                     "type": "Achievement",
-                    "original": "Saved money...",
+                    "original": "[EXACT text extracted from resume]",
                     "rewritten": "Reduced operational costs by $50k annually through...",
                     "explanation": "Quantified savings."
                 }}
             ],
             "role_gaps": [
-                {{"role": "Most Recent Role", "missing_keywords": ["Strategy", "Budgeting"]}},
-                {{"role": "Previous Role", "missing_keywords": ["Team Building", "Mentoring"]}}
+                {{
+                    "role": "Most Recent Role Title", 
+                    "missing_keywords": ["Strategy", "Budgeting"], 
+                    "placement": "Add to bullet: 'Responsible for department budget...'"
+                }}
             ],
             "ats_compatibility": {{
                 "score": 8,
@@ -231,18 +250,16 @@ def api():
                 "recommendation": "Fix advice..."
             }},
             "formatting": [
-                {{"issue": "Formatting Issue 1", "fix": "How to fix..."}},
-                {{"issue": "Formatting Issue 2", "fix": "How to fix..."}},
-                {{"issue": "Formatting Issue 3", "fix": "How to fix..."}}
+                {{"issue": "Formatting Issue 1", "fix": "How to fix..."}}
             ],
             "action_plan": {{
                 "quick_wins": ["Task 1", "Task 2", "Task 3"],
-                "medium_effort": ["Task 1", "Task 2"],
-                "long_term": ["Task 1", "Task 2"]
+                "medium_effort": ["Task 1", "Task 2"]
             }},
             "interview_tip": "Practice answering 'Tell me about a time...' using the STAR method."
         }}
         """
+        messages = [{"role": "user", "content": prompt}]
         messages = [{"role": "user", "content": prompt}]
         
     elif action == 'interview_chat':

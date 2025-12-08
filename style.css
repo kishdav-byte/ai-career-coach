@@ -1847,3 +1847,79 @@ textarea {
     .benchmark-grid { flex-direction: column; align-items: flex-start; }
 }
 
+
+/* ========================================
+   RESUME ANALYSIS REPORT - PHASE 3 (RED FLAGS)
+   ======================================== */
+
+.red-flags {
+    background: #fff5f5;
+    border-left: 5px solid #dc3545;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.red-flags h4 {
+    color: #dc3545;
+    border-bottom: 2px solid #ffcdd2;
+}
+
+.flag-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.flag-item {
+    background: #fff;
+    padding: 15px;
+    border: 1px solid #ffcdd2;
+    border-radius: 6px;
+}
+
+.flag-item h5 {
+    color: #c62828;
+    margin: 0 0 5px 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.flag-item p {
+    margin: 0 0 10px 0;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.flag-fix {
+    font-size: 0.9rem;
+    color: #155724;
+    background: #d4edda;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+/* Enhanced Role Gaps */
+.gap-item {
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border-left: 3px solid #ffc107;
+}
+
+.gap-role {
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.gap-missing {
+    margin-bottom: 5px;
+}
+
+.gap-advice {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: #666;
+    margin-top: 5px;
+}
