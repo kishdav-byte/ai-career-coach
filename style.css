@@ -1996,3 +1996,98 @@ textarea {
     font-size: 0.85rem;
     color: #555;
 }
+
+/* ========================================
+   PRINT OPTIMIZATION (PHASE 5)
+   ======================================== */
+@media print {
+    @page {
+        margin: 0.5in;
+        size: auto;
+    }
+
+    /* General Reset for Print */
+    body {
+        background: white !important;
+        font-size: 11pt;
+        color: black;
+    }
+
+    /* Hide Navigation & non-essentials */
+    header, .nav-tabs, .upsell-container, .action-btn, .chat-input-area, .sidebar, #record-btn, .version-display, .upsell-buttons {
+        display: none !important;
+    }
+    
+    /* Ensure Report is nice and wide */
+    main { width: 100%; max-width: 100%; margin: 0; padding: 0; }
+    .container { width: 100%; max-width: 100%; padding: 0; margin: 0; }
+    .resume-report { width: 100%; border: none; box-shadow: none; padding: 0; }
+
+    /* --- PAGE 1: OVERVIEW (Score + Flags + Strengths) --- */
+    /* Force break after strengths to ensure Page 1 is Overview */
+    .report-section.strengths {
+        page-break-after: always;
+        break-after: page;
+    }
+
+    /* --- PAGE 2: IMPACT IMPROVEMENTS --- */
+    .report-section.improvements {
+        page-break-after: always;
+        break-after: page;
+    }
+
+    /* --- PAGE 3: REWRITES --- */
+    .report-section.rewrites {
+        page-break-after: always;
+        break-after: page;
+    }
+
+    /* --- SECTION CONDENSING --- */
+    .report-section {
+        margin-bottom: 20px;
+        padding: 10px;
+        border: 1px solid #eee; /* Light border for separation */
+        page-break-inside: avoid; /* Try to keep headers with content */
+    }
+
+    h4 {
+        margin-bottom: 15px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 5px;
+    }
+
+    /* Remove heavy backgrounds for ink saving */
+    .benchmark-section, .score-circle-large, .rewrite-card, .list-item, .flag-item {
+        background: white !important;
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    .score-circle-large { border: 6px solid #000; color: #000; }
+    .score-circle-large span { color: #000; }
+
+    /* Prevent breaking inside cards */
+    .card-item, .list-item, .rewrite-card, .flag-item, .gap-item {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    
+    /* Adjust Grid Layouts for Print */
+    .grid-3, .grid-2 {
+        display: block; /* Stack grids to prevent weird width issues */
+    }
+    .card-item { margin-bottom: 10px; }
+    
+    /* Benchmarks */
+    .benchmark-grid { flex-direction: row; flex-wrap: nowrap; gap: 20px; }
+    .progress-bar { border: 1px solid #999; }
+    .progress-bar .fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* Force color print for bars */
+
+    /* Typography adjustments */
+    p, li { line-height: 1.4; }
+    
+    /* Links */
+    a { text-decoration: none; color: black; }
+    a::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
+    a[href^="#"]::after { content: ""; } /* Don't show links for internal tab jumps */
+}
