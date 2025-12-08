@@ -766,28 +766,46 @@ def update_user_status():
 # STRIPE PAYMENTS
 # ========================================
 
+# Stripe Price Configuration
+PRICE_IDS = {
+    'pro': os.environ.get('STRIPE_PRICE_ID'),           # Default Pro Subscription
+    'basic': os.environ.get('STRIPE_PRICE_BASIC'),      # Complete Package ($24.99)
+    'resume': os.environ.get('STRIPE_PRICE_RESUME'),    # Resume Only ($14.99)
+    'interview': os.environ.get('STRIPE_PRICE_INTERVIEW') # Interview Practice ($19.99)
+}
+
 @app.route('/api/create-checkout-session', methods=['POST'])
 def create_checkout_session():
     try:
         data = request.json
         email = data.get('email')
+        plan_type = data.get('plan', 'pro') # Default to pro
         
         if not email:
             return jsonify({'error': 'Email is required'}), 400
+
+        # Select Price ID
+        price_id = PRICE_IDS.get(plan_type)
+        if not price_id:
+            return jsonify({'error': f'Price ID not configured for plan: {plan_type}'}), 500
+
+        # Determine Mode (Subscription vs One-Time)
+        mode = 'subscription' if plan_type == 'pro' else 'payment'
 
         checkout_session = stripe.checkout.Session.create(
             customer_email=email,
             line_items=[
                 {
-                    'price': stripe_price_id,
+                    'price': price_id,
                     'quantity': 1,
                 },
             ],
-            mode='subscription',
-            success_url=app_domain + '/dashboard.html?payment=success',
+            mode=mode,
+            success_url=app_domain + '/dashboard.html?payment=success&plan=' + plan_type,
             cancel_url=app_domain + '/pricing.html?payment=cancelled',
             metadata={
-                'user_email': email
+                'user_email': email,
+                'plan_type': plan_type
             }
         )
         return jsonify({'url': checkout_session.url})

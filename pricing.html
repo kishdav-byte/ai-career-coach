@@ -204,11 +204,25 @@
             <p>Invest in your career success properly.</p>
         </div>
 
+        <style>
+            /* Override for 2x2 Grid on Desktop */
+            .pricing-grid {
+                grid-template-columns: repeat(2, 1fr);
+                max-width: 900px;
+            }
+
+            @media (max-width: 768px) {
+                .pricing-grid {
+                    grid-template-columns: 1fr;
+                }
+            }
+        </style>
+
         <div class="pricing-grid">
-            <!-- Resume Analysis Only -->
+            <!-- 1. Resume Only -->
             <div class="pricing-card">
-                <h3>Resume Analysis</h3>
-                <div class="price">$9.99</div>
+                <h3>Resume Only</h3>
+                <div class="price">$14.99</div>
                 <ul>
                     <li>10/10 Score Report</li>
                     <li>ATS Compatibility Scan</li>
@@ -216,43 +230,58 @@
                     <li>Formatting Fixes</li>
                     <li>Action Plan</li>
                 </ul>
-                <a href="#" onclick="alert('Resume Analysis payment integration coming soon!')"
-                    class="btn btn-outline">Analyze Resume</a>
+                <a href="#" onclick="handleCheckout(event, 'resume')" class="btn btn-outline">Analyze Resume</a>
             </div>
 
-            <!-- Basic Plan -->
+            <!-- 2. Interview Practice (New) -->
             <div class="pricing-card">
-                <h3>One-Time Pass</h3>
-                <div class="price">$29.99</div>
+                <h3>Interview Practice</h3>
+                <div class="price">$19.99</div>
                 <ul>
-                    <li>5 Interview Questions</li>
-                    <li>Resume Analysis Report</li>
-                    <li>Voice-based Scoring</li>
-                    <li>STAR-format Answer Keys</li>
-                    <li>24h Access</li>
+                    <li>Unlimited Mock Interviews</li>
+                    <li>Real-time Audio Feedback</li>
+                    <li>Voice Analysis Score</li>
+                    <li>STAR Format Coaching</li>
+                    <li>Answer Improvement Tips</li>
                 </ul>
-                <a href="#" onclick="alert('Payment integration coming soon!')" class="btn btn-outline">Choose Basic</a>
+                <a href="#" onclick="handleCheckout(event, 'interview')" class="btn btn-outline">Start Practice</a>
             </div>
 
-            <!-- Pro Plan -->
+            <!-- 3. Complete Package (Moved & Repriced) -->
+            <div class="pricing-card" style="border: 2px solid #2563eb;">
+                <div class="badge" style="background:#2563eb">MOST POPULAR</div>
+                <h3>Complete Package</h3>
+                <div class="price">$24.99</div>
+                <ul>
+                    <li><strong>Everything in Resume & Interview</strong></li>
+                    <li>Full Resume Analysis Report</li>
+                    <li>Unlimited Interview Practice</li>
+                    <li>Cover Letter Generator</li>
+                    <li>24-Hour Access Pass</li>
+                </ul>
+                <a href="#" onclick="handleCheckout(event, 'basic')" class="btn btn-primary">Get Complete Pass</a>
+            </div>
+
+            <!-- 4. Pro Monthly (Moved) -->
             <div class="pricing-card featured">
                 <div class="badge">BEST VALUE</div>
                 <h3>Pro Monthly</h3>
                 <div class="price">$49<span class="period">/mo</span></div>
                 <ul>
-                    <li>Unlimited Interviews</li>
-                    <li>Unlimited Resume Scans</li>
+                    <li><strong>Unlimited Monthly Access</strong></li>
+                    <li>Continuous Resume Scans</li>
                     <li>Advanced Voice Models</li>
-                    <li>Priority Support</li>
+                    <li>Priority Email Support</li>
                     <li>Cancel Checks Anytime</li>
                 </ul>
-                <a href="#" onclick="handleCheckout(event)" class="btn btn-primary">Choose Pro</a>
+                <a href="#" onclick="handleCheckout(event, 'pro')" class="btn btn-primary"
+                    style="background:var(--dark)">Go Pro</a>
             </div>
         </div>
     </div>
 
     <script>
-        async function handleCheckout(event) {
+        async function handleCheckout(event, planType) {
             event.preventDefault();
 
             // Check authentication
@@ -275,7 +304,7 @@
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email })
+                    body: JSON.stringify({ email: email, plan: planType })
                 });
 
                 const data = await response.json();
@@ -283,7 +312,7 @@
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Error starting checkout: ' + (data.error || 'Unknown error'));
+                    alert('Error starting checkout: ' + (data.error || 'Check server logs. Did you set the Price IDs?'));
                     btn.innerText = originalText;
                     btn.style.opacity = '1';
                     btn.style.pointerEvents = 'auto';
