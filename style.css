@@ -2286,3 +2286,61 @@ h4 {
 h3, h4, h5 {
     margin-top: 0 !important;
 }
+
+/* ========================================
+   PRINT LOGIC REFINEMENT (PHASE 9)
+   Prevent Partial Page Cuts
+   ======================================== */
+
+@media print {
+    /* Force sections to stay together */
+    .report-section, 
+    .upsell-section-new,
+    .benchmark-section,
+    .red-flags,
+    .strengths,
+    .improvements,
+    .rewrites,
+    .keywords-detailed,
+    .ats,
+    .formatting,
+    .action-plan,
+    .interview-tip {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        display: block; /* Ensure block formatting context */
+        position: relative;
+    }
+
+    /* Prevent headers from being stranded at bottom of page */
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid !important;
+        break-after: avoid !important;
+    }
+
+    /* Ensure specific grid items don't split weirdly */
+    .card-item, 
+    .list-item, 
+    .rewrite-card, 
+    .flag-item, 
+    .gap-item,
+    .gap-fix-box,
+    .example-box {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Allow lists to break between items, but not inside items */
+    ul, ol {
+        page-break-inside: auto;
+    }
+    li {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    /* Ensure the wrapper for ATS/Formatting respects page breaks */
+    .final-steps-wrapper {
+        page-break-inside: auto; 
+    }
+}
