@@ -149,8 +149,12 @@ def api():
         
         CRITICAL RULES FOR ANALYSIS (VIOLATIONS = FAILURE):
         1. **NO INVENTED METRICS**: Never invent a number. If a metric is missing, use a placeholder like "[X]%" or "$[X]k".
-        2. **EXACT QUOTES ONLY**: When referencing "Current Bullet", you MUST quote the resume word-for-word. Do not summarize.
+        2. **EXACT QUOTES ONLY**: When referencing "Current Bullet", "Found", or "Example", you MUST quote the resume word-for-word. Do not summarize.
         3. **REALITY CHECK**: Only suggest keywords for bullets that ACTUALLY exist.
+        4. **HYPER-SPECIFICITY**: 
+           - ATS: Give exact counts ("appears 5x") and synonyms.
+           - Formatting: Show "Found: [A] vs [B]" and "Fix: [Instruction]".
+           - Action Plan: Reference specific roles and bullets ("Add size to 'Manager' role").
         
         Return valid JSON with this EXACT structure:
         {{
@@ -235,15 +239,31 @@ def api():
             ],
             "ats_compatibility": {{
                 "score": 8,
-                "issues": ["Issue 1", "Issue 2"],
-                "recommendation": "Fix advice..."
+                "issues": [
+                    "<b>Action Verb Repetition:</b> 'Managed' appears 8 times. <br>→ Alternatives: Led, Directed, Orchestrated. <br>→ Example: Replace 'Managed team' with 'Directed team'.",
+                    "<b>Generic Phrases:</b> 'Responsible for' found in 3 bullets. <br>→ Fix: Start with the verb directly (e.g., 'Delivered...')."
+                ],
+                "recommendation": "Varied vocabulary significantly improves ATS scoring."
             }},
             "formatting": [
-                {{"issue": "Formatting Issue 1", "fix": "How to fix..."}}
+                {{
+                    "issue": "Date Consistency", 
+                    "fix": "<b>Found:</b> '2024-Present' and '2022 - 2024'. <br><b>Fix:</b> Standardize all dates to 'Month Year - Month Year' format." 
+                }},
+                {{
+                    "issue": "Bullet Punctuation",
+                    "fix": "<b>Found:</b> Some bullets end with periods, others do not. <br><b>Fix:</b> Add periods to all bullets for consistency."
+                }}
             ],
             "action_plan": {{
-                "quick_wins": ["Task 1", "Task 2", "Task 3"],
-                "medium_effort": ["Task 1", "Task 2"]
+                "quick_wins": [
+                    "Replace 'Managed' with 'Led' in 'Senior Manager' role bullets.",
+                    "Add team size metric to your 'Director' role."
+                ],
+                "medium_effort": [
+                    "Rewrite 'Project Manager' bullets to focus on outcomes (Budget/Timeline) rather than tasks.",
+                    "Standardize date formatting across all roles."
+                ]
             }},
             "interview_tip": "Practice using the STAR method."
         }}

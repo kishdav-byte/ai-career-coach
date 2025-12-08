@@ -76,7 +76,7 @@ async function sendVoiceMessage(base64Audio) {
 }
 
 function init() {
-    console.log("AI Career Coach App v9 Loaded");
+    console.log("AI Career Coach App v9.1 Loaded");
     const versionDisplay = document.createElement('div');
     versionDisplay.style.position = 'fixed';
     versionDisplay.style.bottom = '10px';
@@ -245,15 +245,26 @@ function init() {
 
             const html = `
                 <div class="resume-report">
+                
+                <!-- 0. DISCLAIMER (Moved to Top) -->
+                <div class="upsell-disclaimer-box" style="margin-bottom: 20px; background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
+                     ⚠️ <strong>IMPORTANT:</strong> AI-generated content should always be reviewed and customized to ensure it accurately represents your experience and authentic voice. This is a tool to help implement improvements, not a replacement for your personal review and final approval.
+                </div>
+
                 <!-- 1. COMPARISON & SCORE -->
                 <div class="report-section benchmark-section">
                     <h4>📊 Competitive Positioning</h4>
-                    <div class="benchmark-grid">
+                    
+                    <!-- Score moved to top, centered -->
+                    <div style="display:flex; justify-content:center; margin-bottom:20px;">
                         <div class="score-circle-large">
                             <span>${data.overall_score}</span>
                             <label>Your Score</label>
                         </div>
-                        <div class="benchmark-bars">
+                    </div>
+
+                    <div class="benchmark-grid">
+                        <div class="benchmark-bars" style="width:100%">
                             <div class="bar-group">
                                 <div class="bar-label">
                                     <span>Avg. Candidate</span>
@@ -417,51 +428,74 @@ function init() {
                         ` : ''}
                 </div>
 
-                <!-- 6. ATS & FORMATTING -->
-                <div class="grid-2">
-                    <div class="report-section ats">
-                        <h4>🤖 ATS Compatibility: ${(data.ats_compatibility || {}).score || 0}/10</h4>
-                        <ul>
-                            ${(data.ats_compatibility?.issues || []).map(issue => `<li>⚠️ ${issue}</li>`).join('')}
-                        </ul>
-                        <p><em>${(data.ats_compatibility || {}).recommendation}</em></p>
+                <!-- 6. FINAL STEPS (Consolidated Section) -->
+                <div class="final-steps-wrapper" style="page-break-before: always;">
+                    
+                    <div class="grid-2">
+                        <!-- ATS -->
+                        <div class="report-section ats">
+                            <h4>🤖 ATS Compatibility: ${(data.ats_compatibility || {}).score || 0}/10</h4>
+                            <ul>
+                                ${(data.ats_compatibility?.issues || []).map(issue => `<li>⚠️ ${issue}</li>`).join('')}
+                            </ul>
+                            <p><em>${(data.ats_compatibility || {}).recommendation}</em></p>
+                        </div>
+                        
+                        <!-- FORMATTING -->
+                        <div class="report-section formatting">
+                            <h4>🎨 Formatting Fixes</h4>
+                            <ul>
+                                ${(data.formatting || []).map(f => `<li><strong>${f.issue}:</strong> ${f.fix}</li>`).join('')}
+                            </ul>
+                        </div>
                     </div>
-                    <div class="report-section formatting">
-                        <h4>🎨 Formatting Fixes</h4>
-                        <ul>
-                            ${(data.formatting || []).map(f => `<li><strong>${f.issue}:</strong> ${f.fix}</li>`).join('')}
+
+                    <!-- ACTION PLAN -->
+                    <div class="report-section action-plan">
+                        <h4>⚡ Next Steps</h4>
+                        <div class="action-group">
+                            <h5>Quick Wins (30 mins)</h5>
+                            <ul>${(data.action_plan?.quick_wins || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                        </div>
+                        <div class="action-group">
+                            <h5>Deep Work (2 hours)</h5>
+                            <ul>${(data.action_plan?.medium_effort || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- 9. UPSELL (Coming Soon) -->
+                <div class="upsell-section-new">
+                    <h3 class="upsell-header-large">💡 NEED HELP IMPLEMENTING THESE CHANGES?</h3>
+                    <p class="upsell-subheader">See what needs fixing but don't have time to rewrite yourself?</p>
+
+                    <div class="upsell-blue-box">
+                        <span class="blue-box-title">✨ AI-ASSISTED RESUME REWRITE - COMING SOON</span>
+                        <p class="blue-box-desc">We'll rewrite your resume implementing all the recommendations above:</p>
+                        
+                        <ul class="blue-box-list">
+                            <li><span class="check-icon">✓</span> Add missing metrics (with placeholders to fill)</li>
+                            <li><span class="check-icon">✓</span> Strengthen weak verbs and bullet points</li>
+                            <li><span class="check-icon">✓</span> Integrate missing keywords naturally</li>
+                            <li><span class="check-icon">✓</span> Fix formatting and consistency issues</li>
+                            <li><span class="check-icon">✓</span> Optimize for ATS scanning</li>
+                            <li><span class="check-icon">✓</span> Remove duplicate/redundant content</li>
                         </ul>
+
+                        <span class="blue-box-footer">Delivered as editable text for you to review, customize, and approve before using.</span>
+
+                        <button class="upsell-action-btn" disabled style="background:#ccc; cursor:not-allowed;">Get AI Resume Rewrite - Coming Soon</button>
                     </div>
                 </div>
 
-                <!-- 7. ACTION PLAN -->
-                <div class="report-section action-plan">
-                    <h4>⚡ Next Steps</h4>
-                    <div class="action-group">
-                        <h5>Quick Wins (30 mins)</h5>
-                        <ul>${(data.action_plan?.quick_wins || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
-                    </div>
-                    <div class="action-group">
-                        <h5>Deep Work (2 hours)</h5>
-                        <ul>${(data.action_plan?.medium_effort || []).map(w => `<li><input type="checkbox"> ${w}</li>`).join('')}</ul>
-                    </div>
-                </div>
-
-                <!-- 8. INTERVIEW TIP -->
+                <!-- 10. INTERVIEW TIP -->
                 <div class="report-section interview-tip">
                     <h4>💡 Interview Readiness</h4>
                     <p>${data.interview_tip || "Practice your STAR method answers."}</p>
-                    <a href="#" onclick="document.querySelector('.tab-btn[data-tab=\\'interview-coach\\']').click()">→ Practice Interview Questions ($19.99 Value)</a>
                 </div>
 
-                <!-- 9. UPSELL -->
-                <div class="upsell-container">
-                    <p>Need help implementing these changes?</p>
-                    <div class="upsell-buttons">
-                        <button onclick="window.location.href='/pricing'" class="premium-btn">✨ Rewrite My Resume ($9.99)</button>
-                        <button onclick="window.location.href='/pricing'" class="premium-btn outline">📝 Write Cover Letter ($4.99)</button>
-                    </div>
-                </div>
+
             </div>
             `;
             container.innerHTML = html;
@@ -889,7 +923,7 @@ function init() {
 
         // Payment alert function for upsell buttons
         window.showPaymentAlert = function () {
-            alert('Payment integration coming soon. Email support@tryaceinterview.com to purchase additional sessions.');
+            alert('Payment integration coming soon. Email support@tryaceinterview.com to request resume rewrite for $9.99');
         };
 
         function addMessage(text, sender, isHtml = false) {

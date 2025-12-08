@@ -2091,3 +2091,198 @@ textarea {
     a::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
     a[href^="#"]::after { content: ""; } /* Don't show links for internal tab jumps */
 }
+
+/* ========================================
+   UPSELL OVERHAUL (PHASE 6)
+   ======================================== */
+
+.upsell-section-new {
+    margin-top: 40px;
+    margin-bottom: 40px;
+    padding-top: 30px;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    page-break-inside: avoid;
+}
+
+.upsell-header-large {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 5px;
+    text-transform: uppercase;
+}
+
+.upsell-subheader {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 25px;
+    font-weight: 400;
+}
+
+/* Blue Box */
+.upsell-blue-box {
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 100%);
+    border: 2px solid #3b82f6;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    text-align: left;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.blue-box-title {
+    color: #2563eb;
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.blue-box-desc {
+    color: #374151;
+    font-size: 1rem;
+    margin-bottom: 15px;
+}
+
+.blue-box-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+}
+
+.blue-box-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.check-icon {
+    color: #059669;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.blue-box-footer {
+    font-size: 0.9rem;
+    color: #6b7280;
+    font-style: italic;
+    margin-bottom: 20px;
+    display: block;
+}
+
+/* Action Button */
+.upsell-action-btn {
+    display: block;
+    width: 100%;
+    padding: 14px 24px;
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    color: white;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2);
+    transition: all 0.2s ease;
+}
+
+.upsell-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Yellow Disclaimer */
+.upsell-disclaimer-box {
+    background: #fef3c7;
+    border-left: 4px solid #f59e0b;
+    border-radius: 6px;
+    padding: 12px 16px;
+    text-align: left;
+    color: #92400e;
+    font-size: 13px;
+    margin-top: 20px;
+}
+
+@media print {
+    .upsell-section-new {
+        display: none !important;
+    }
+}
+
+/* ========================================
+   VISUAL REFINEMENT (PHASE 8)
+   Minimize White Space & Layout Tweaks
+   ======================================== */
+
+.report-section {
+    padding: 15px !important; /* Reduce from 20px */
+    margin-bottom: 20px !important; /* Reduce gap between sections */
+}
+
+h4 {
+    margin-bottom: 10px !important;
+}
+
+/* Tighter Lists */
+.k-list li, .action-group li {
+    padding: 4px 0 !important;
+}
+
+/* Tighter Cards */
+.card-item, .rewrite-card, .flag-item, .gap-item, .list-item.detailed {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+}
+
+/* Minimize open space in example boxes */
+.example-box, .gap-fix-box {
+    margin: 10px 0 !important;
+    padding: 10px !important;
+}
+.ex-arrow { margin: 2px 0 !important; }
+.ex-row { margin-bottom: 2px !important; }
+
+/* Score Circle Adjustment */
+.score-circle-large {
+    width: 100px !important;
+    height: 100px !important;
+    border-width: 6px !important;
+}
+.score-circle-large span { font-size: 2rem !important; }
+
+/* Disclaimer Top Styling */
+.upsell-disclaimer-box {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Final Steps Wrapper (Page Break optimized) */
+@media print {
+    .final-steps-wrapper {
+        page-break-before: always;
+        break-before: page;
+        display: block;
+    }
+    
+    /* Ensure ATS/Formatting stay side-by-side or stacked cleanly */
+    .grid-2 { gap: 10px; margin-bottom: 10px; }
+}
+
+/* Further Grid Condensing */
+.grid-2, .grid-3 {
+    gap: 10px !important;
+}
+
+.list-cards {
+    gap: 10px !important;
+}
+
+/* Tighter headers */
+h3, h4, h5 {
+    margin-top: 0 !important;
+}
