@@ -76,14 +76,14 @@ async function sendVoiceMessage(base64Audio) {
 }
 
 function init() {
-    console.log("AI Career Coach App v8 Loaded");
+    console.log("AI Career Coach App v9 Loaded");
     const versionDisplay = document.createElement('div');
     versionDisplay.style.position = 'fixed';
     versionDisplay.style.bottom = '10px';
     versionDisplay.style.right = '10px';
     versionDisplay.style.fontSize = '12px';
     versionDisplay.style.color = '#888';
-    versionDisplay.textContent = 'v8.0';
+    versionDisplay.textContent = 'v9.0';
     document.body.appendChild(versionDisplay);
 
     // Helper: Safely add event listener (only if element exists)
