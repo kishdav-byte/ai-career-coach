@@ -279,16 +279,24 @@ function init() {
                     </div>
                 </div>
 
-                <!-- 1.5 RED FLAGS (New) -->
+                <!-- 1.5 RED FLAGS (Detailed) -->
                 ${data.red_flags && data.red_flags.length > 0 ? `
                         <div class="report-section red-flags">
-                            <h4>🚩 Critical Issues (Fix Immediately)</h4>
+                            <h4>🚩 Critical Issues (Fix Before Applying)</h4>
                             <div class="flag-list">
                                 ${data.red_flags.map(flag => `
                                     <div class="flag-item">
                                         <h5>${flag.title}</h5>
-                                        <p>${flag.description}</p>
-                                        <div class="flag-fix"><strong>✅ Fix:</strong> ${flag.fix}</div>
+                                        <p><strong>Problem:</strong> ${flag.issue}</p>
+                                        ${flag.examples && flag.examples.length > 0 ? `
+                                            <div class="flag-examples">
+                                                <strong>Specifically:</strong>
+                                                <ul>
+                                                    ${flag.examples.map(ex => `<li>"${ex}"</li>`).join('')}
+                                                </ul>
+                                            </div>
+                                        ` : ''}
+                                        <div class="flag-fix"><strong>✅ How to Fix:</strong> ${flag.fix}</div>
                                     </div>
                                 `).join('')}
                             </div>
@@ -323,7 +331,7 @@ function init() {
                                         <div class="example-box">
                                             <div class="ex-row"><strong>Current:</strong> "${i.current}"</div>
                                             <div class="ex-arrow">⬇️ Better</div>
-                                            <div class="ex-row better"><strong>Stronger:</strong> "${i.better}"</div>
+                                            <div class="ex-row better"><strong>Stronger:</strong> "${i.better.replace(/\[X\]/g, '<b class="place">PLACEHOLDER</b>')}"</div>
                                         </div>
                                         <div class="why-box">
                                             <strong>Why:</strong> ${i.why}
@@ -348,10 +356,11 @@ function init() {
                                         </div>
                                         <div class="rewrite-col new">
                                             <h6>Stronger Version</h6>
-                                            <p>"${r.rewritten}"</p>
+                                            <p>"${r.rewritten.replace(/\[.*?\]/g, match => `<span class="highlight-metric">${match}</span>`)}"</p>
                                         </div>
                                     </div>
                                     <p class="explanation">💡 ${r.explanation}</p>
+                                    ${r.metric_question ? `<div class="metric-prompt"><strong>❓ NEEDS METRIC:</strong> ${r.metric_question}</div>` : ''}
                                 </div>
                             `).join('')}
                     </div>
@@ -392,8 +401,16 @@ function init() {
                             ${data.role_gaps.map(rg => `
                                 <div class="gap-item">
                                     <div class="gap-role"><strong>${rg.role}</strong></div>
-                                    <div class="gap-missing">Missing: ${rg.missing_keywords.map(w => `<span class="tag med">${w}</span>`).join('')}</div>
-                                    ${rg.placement ? `<div class="gap-advice">Placement: ${rg.placement}</div>` : ''}
+                                    
+                                    ${rg.fixes ? rg.fixes.map(fix => `
+                                         <div class="gap-fix-box">
+                                            <div class="gap-row old"><strong>Generic:</strong> "${fix.existing_bullet}"</div>
+                                            <div class="gap-row new"><strong>Enhanced:</strong> "${fix.enhanced_bullet}"</div>
+                                            <div class="gap-reason">Added: ${fix.added_keywords.map(k => `<span class="tag med">${k}</span>`).join('')} - ${fix.reason}</div>
+                                         </div>
+                                    `).join('') : `
+                                        <div class="gap-missing">Missing: ${rg.missing_keywords.map(w => `<span class="tag med">${w}</span>`).join('')}</div>
+                                    `}
                                 </div>
                             `).join('')}
                         </div>

@@ -1923,3 +1923,76 @@ textarea {
     color: #666;
     margin-top: 5px;
 }
+
+/* ========================================
+   RESUME ANALYSIS REPORT - PHASE 4 (POLISH)
+   ======================================== */
+
+/* Metric Highlights */
+.highlight-metric {
+    background: #fff3cd;
+    color: #856404;
+    padding: 0 4px;
+    border-radius: 3px;
+    border-bottom: 2px solid #ffeeba;
+    font-weight: bold;
+}
+
+.place {
+    color: #007bff;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.85em;
+}
+
+/* Metric Prompt */
+.metric-prompt {
+    margin-top: 10px;
+    padding: 10px;
+    background: #e2e3e5;
+    border-radius: 6px;
+    color: #383d41;
+    font-size: 0.9rem;
+    border-left: 3px solid #6c757d;
+}
+
+/* Flag Examples */
+.flag-examples {
+    margin: 10px 0;
+    padding: 10px;
+    background: #fff;
+    border: 1px dashed #dc3545;
+    border-radius: 4px;
+}
+
+.flag-examples ul {
+    margin: 5px 0 0 20px;
+    color: #dc3545;
+    font-family: monospace;
+    font-size: 0.9em;
+}
+
+/* Enhanced Gap Fixes */
+.gap-fix-box {
+    margin-top: 10px;
+    background: #fff;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}
+
+.gap-row {
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.gap-row.old { color: #666; font-style: italic; }
+.gap-row.new { color: #155724; font-weight: 500; }
+
+.gap-reason {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+    font-size: 0.85rem;
+    color: #555;
+}

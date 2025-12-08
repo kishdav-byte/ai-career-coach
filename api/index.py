@@ -147,10 +147,10 @@ def api():
         RESUME CONTENT:
         {resume}
         
-        CRITICAL RULES FOR ANALYSIS:
-        1. "QUICK REWRITES" section MUST use ACTUALLY extracted bullet points from the resume. Do NOT invent extraction text.
-        2. "RED FLAGS" must only be included if they genuinely exist.
-        3. All advice must be specific to THEIR content.
+        CRITICAL RULES FOR ANALYSIS (VIOLATIONS = FAILURE):
+        1. **NO INVENTED METRICS**: Never invent a number. If a metric is missing, use a placeholder like "[X]%" or "$[X]k".
+        2. **EXACT QUOTES ONLY**: When referencing "Current Bullet", you MUST quote the resume word-for-word. Do not summarize.
+        3. **REALITY CHECK**: Only suggest keywords for bullets that ACTUALLY exist.
         
         Return valid JSON with this EXACT structure:
         {{
@@ -169,13 +169,15 @@ def api():
             "red_flags": [
                 {{
                     "title": "Duplicate Bullet Points",
-                    "description": "Your 'Manager' and 'Director' roles have identical bullets.",
-                    "fix": "Rewrite to show progression."
+                    "issue": "Your 'Manager' and 'Director' roles have identical bullets.",
+                    "examples": ["'Managed team of 10...' (appears in both roles)"],
+                    "fix": "Rewrite the Director role to focus on strategy and the Manager role on execution."
                 }},
                  {{
-                    "title": "Missing Metrics",
-                    "description": "Your most recent role (2022-Present) has zero numbers.",
-                    "fix": "Add 3-5 specific numbers."
+                    "title": "Missing Metrics in Recent Role",
+                    "issue": "Your most recent role (2022-Present) has zero numbers.",
+                    "examples": ["'Responsible for project delivery' (too vague)"],
+                    "fix": "Add team size, budget, or % improvement."
                 }}
             ],
             "strengths": [
@@ -189,18 +191,9 @@ def api():
                     "title": "Clarify Impact", 
                     "suggestion": "Quantify your achievements...",
                     "current": "Managed a team...", 
-                    "better": "Managed a team of 12, increasing productivity by 20%...", 
+                    "better": "Managed a team of [X] (add count), increasing productivity by [X]%...", 
                     "why": "Recruiters need numbers...", 
                     "how_to": "Review your last 2 roles..."
-                }},
-                {{
-                    "priority": "MEDIUM", 
-                    "title": "Improvement 2", 
-                    "suggestion": "...",
-                    "current": "...", 
-                    "better": "...", 
-                    "why": "...", 
-                    "how_to": "..."
                 }}
             ],
             "keywords": {{
@@ -219,29 +212,25 @@ def api():
             }},
             "rewrites": [
                 {{
-                    "type": "Leadership",
-                    "original": "[EXACT text extracted from resume]",
-                    "rewritten": "Directed 15-person team, increasing efficiency by 25%...",
-                    "explanation": "Added team size and specific metric."
-                }},
-                {{
-                    "type": "Project Management",
-                    "original": "[EXACT text extracted from resume]",
-                    "rewritten": "Spearheaded 3 global projects with budgets over $500k...",
-                    "explanation": "Added scope and budget."
-                }},
-                 {{
-                    "type": "Achievement",
-                    "original": "[EXACT text extracted from resume]",
-                    "rewritten": "Reduced operational costs by $50k annually through...",
-                    "explanation": "Quantified savings."
+                    "type": "Leadership", 
+                    "original": "[EXACT text from resume]", 
+                    "rewritten": "Directed [X]-person team... achieved [X]% improvement...", 
+                    "explanation": "Added team size and specific metric.",
+                    "metric_question": "What was your team size and actual % improvement?"
                 }}
             ],
             "role_gaps": [
                 {{
-                    "role": "Most Recent Role Title", 
+                    "role": "Role Title", 
                     "missing_keywords": ["Strategy", "Budgeting"], 
-                    "placement": "Add to bullet: 'Responsible for department budget...'"
+                    "fixes": [
+                        {{
+                            "existing_bullet": "[Exact quote of bullet]",
+                            "enhanced_bullet": "[Rewritten bullet with keyword]",
+                            "added_keywords": ["Strategy"],
+                            "reason": "Required for senior roles."
+                        }}
+                    ]
                 }}
             ],
             "ats_compatibility": {{
@@ -256,7 +245,7 @@ def api():
                 "quick_wins": ["Task 1", "Task 2", "Task 3"],
                 "medium_effort": ["Task 1", "Task 2"]
             }},
-            "interview_tip": "Practice answering 'Tell me about a time...' using the STAR method."
+            "interview_tip": "Practice using the STAR method."
         }}
         """
         messages = [{"role": "user", "content": prompt}]
