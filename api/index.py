@@ -768,10 +768,10 @@ def update_user_status():
 
 # Stripe Price Configuration
 PRICE_IDS = {
-    'pro': os.environ.get('STRIPE_PRICE_ID'),           # Default Pro Subscription
-    'basic': os.environ.get('STRIPE_PRICE_BASIC'),      # Complete Package ($24.99)
-    'resume': os.environ.get('STRIPE_PRICE_RESUME'),    # Resume Only ($14.99)
-    'interview': os.environ.get('STRIPE_PRICE_INTERVIEW') # Interview Practice ($19.99)
+    'pro': os.environ.get('Stripe_Pro_Package'),           # Monthly Subscription
+    'complete': os.environ.get('Stripe_Complete_Package'), # Resume & Interview ($24.99)
+    'resume': os.environ.get('Stripe_Resume_Only'),        # Resume Feedback Only ($14.99)
+    'interview': os.environ.get('Stripe_Interview_Only')   # Mock Interview Session ($19.99)
 }
 
 @app.route('/api/create-checkout-session', methods=['POST'])
