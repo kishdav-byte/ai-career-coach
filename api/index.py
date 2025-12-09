@@ -841,13 +841,59 @@ def stripe_webhook():
             print("Error: Supabase not initialized")
             return jsonify({'error': 'Supabase not connected'}), 500
 
+
         try:
-            supabase.table('users').update({
-                'account_status': 'paid', 
-                'payment_tier': 'pro',
-                'stripe_customer_id': customer_id
-            }).eq('email', user_email).execute()
-            print(f"Updated user {user_email} to paid status.")
+            # 1. Retrieve Plan Type from Metadata
+            plan_type = session.get('metadata', {}).get('plan_type')
+            
+            # 2. Retrieve Current User Data (credits)
+            # Use 'maybe_single()' or check length to avoid errors if user missing (Guest Checkout handling)
+            current_user = supabase.table('users').select('credits, payment_tier').eq('email', user_email).execute()
+            
+            current_credits = 0
+            current_tier = 'free'
+            
+            if current_user.data and len(current_user.data) > 0:
+                user_data = current_user.data[0]
+                current_credits = user_data.get('credits') or 0
+                current_tier = user_data.get('payment_tier') or 'free'
+            
+            # 3. Determine Update Values based on logic
+            update_data = {
+                'stripe_customer_id': customer_id, # Always save customer ID
+            }
+
+            if plan_type == 'pro':
+                update_data['payment_tier'] = 'pro'
+                update_data['account_status'] = 'active'
+            
+            elif plan_type == 'resume':
+                # Resume Only: Add 1 credit, do NOT set Pro
+                update_data['credits'] = current_credits + 1
+                if current_tier == 'free':
+                     update_data['payment_tier'] = 'basic' # Upgrade from free to basic
+            
+            elif plan_type == 'interview':
+                # Interview Only: Add 1 credit
+                update_data['credits'] = current_credits + 1
+                if current_tier == 'free':
+                     update_data['payment_tier'] = 'basic'
+
+            elif plan_type == 'complete':
+                # Complete Package: Add 2 credits
+                update_data['credits'] = current_credits + 2
+                if current_tier == 'free':
+                     update_data['payment_tier'] = 'basic'
+            
+            else:
+                 print(f"Unknown plan type: {plan_type}. Defaulting to basic update.")
+                 if current_tier == 'free':
+                     update_data['payment_tier'] = 'basic'
+
+            # 4. Execute Update
+            supabase.table('users').update(update_data).eq('email', user_email).execute()
+            print(f"Updated user {user_email} for plan {plan_type}. Data: {update_data}")
+
             return jsonify({'status': 'success'})
         except Exception as e:
             print(f"Error updating Supabase: {e}")
