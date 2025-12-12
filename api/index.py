@@ -802,7 +802,7 @@ def login():
              
         # 2. Fetch Profile from 'users' table
         # Explicitly select columns to ensure we don't accidentally get ghost columns or issues
-        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits').eq('id', user.id).execute()
+        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits, role').eq('id', user.id).execute()
         
         print(f"DEBUG: Login query for ID {user.id} returned: {len(profile_res.data) if profile_res.data else 0} rows")
 
@@ -837,6 +837,7 @@ def login():
             "is_unlimited": profile_data.get("is_unlimited", False),
             "resume_credits": profile_data.get("resume_credits", 0),
             "interview_credits": profile_data.get("interview_credits", 0),
+            "role": profile_data.get("role", "user")
         }
         
         return jsonify({

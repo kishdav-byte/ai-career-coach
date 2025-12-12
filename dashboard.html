@@ -474,6 +474,7 @@
                     session.is_unlimited = result.user.is_unlimited;
                     session.resume_credits = result.user.resume_credits || 0;
                     session.interview_credits = result.user.interview_credits || 0;
+                    session.role = result.user.role; // Update role
                     localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
                 }
             } catch (e) {
@@ -570,11 +571,23 @@
 
                 // Append to Welcome Section or Header? 
                 // Let's put it in the header-right for easy access
-                const headerRight = document.querySelector('.header-right');
-                // Insert before Logout
-                const logoutBtn = document.querySelector('.logout-btn');
-                manageBtn.style.marginRight = '10px';
                 headerRight.insertBefore(manageBtn, logoutBtn);
+            }
+
+            // Phase Admin: Admin Button
+            if (session.role === 'admin') {
+                const adminBtn = document.createElement('a');
+                adminBtn.textContent = 'Admin Console';
+                adminBtn.href = '/admin.html';
+                adminBtn.className = 'logout-btn'; // Reusing style
+                adminBtn.style.marginRight = '10px';
+                adminBtn.style.background = '#eff6ff';
+                adminBtn.style.color = '#2563eb';
+                adminBtn.style.borderColor = '#bfdbfe';
+
+                const headerRight = document.querySelector('.header-right');
+                const logoutBtn = document.querySelector('.logout-btn');
+                headerRight.insertBefore(adminBtn, logoutBtn);
             }
         }
 
