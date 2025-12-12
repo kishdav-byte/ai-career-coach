@@ -79,9 +79,10 @@ async function checkAccess() {
         // If we are on index.html or pricing.html, no need to redirect.
         const path = window.location.pathname;
         if (path === '/app.html' || path === '/app' || path.includes('admin')) {
-            // Critical: Clear artifacts to prevent Loop
-            localStorage.removeItem(SESSION_KEY);
-            localStorage.removeItem('supabase.auth.token');
+            // Updated: Don't clear session aggresively, just redirect.
+            // localStorage.removeItem(SESSION_KEY);
+            // localStorage.removeItem('supabase.auth.token');
+            console.warn("Access denied. Redirecting to login.");
             window.location.href = '/login.html';
         }
         return;
