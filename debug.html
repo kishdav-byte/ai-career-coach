@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Session</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            word-break: break-all;
+        }
+
+        .item {
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+
+        h3 {
+            margin: 0 0 5px 0;
+            color: #2563eb;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #ef4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Session Debugger</h1>
+    <button onclick="clearAll()">⚠️ CLEAR ALL SESSION DATA</button>
+    <div id="output"></div>
+
+    <script>
+        function render() {
+            const out = document.getElementById('output');
+            const keys = Object.keys(localStorage);
+            if (keys.length === 0) {
+                out.innerHTML = "<p>No session data found (localStorage is empty).</p>";
+                return;
+            }
+
+            let html = "";
+            keys.forEach(key => {
+                const val = localStorage.getItem(key);
+                html += `<div class="item"><h3>${key}</h3><div>${val}</div></div>`;
+            });
+            out.innerHTML = html;
+        }
+
+        function clearAll() {
+            if (confirm("Are you sure? This will log you out.")) {
+                localStorage.clear();
+                render();
+                alert("Storage cleared.");
+            }
+        }
+
+        render();
+    </script>
+</body>
+
+</html>

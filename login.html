@@ -8,189 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --dark: #0f172a;
-            --gray-600: #475569;
-            --gray-200: #e2e8f0;
-            --gray-100: #f1f5f9;
-            --white: #ffffff;
-            --error: #dc2626;
-            --success: #16a34a;
-            --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
-        }
-
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--gray-100);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
-        }
-
-        .login-container {
-            background: var(--white);
-            border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
-            padding: 3rem;
-            width: 100%;
-            max-width: 420px;
-        }
-
-        .logo {
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 2rem;
-        }
-
-        h1 {
-            text-align: center;
-            font-size: 1.75rem;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .subtitle {
-            text-align: center;
-            color: var(--gray-600);
-            margin-bottom: 2rem;
-        }
-
-        .form-group {
-            margin-bottom: 1.5rem;
-        }
-
-        .form-group label {
-            display: block;
-            font-weight: 600;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-            font-size: 0.9rem;
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 1rem;
-            border: 2px solid var(--gray-200);
-            border-radius: 12px;
-            font-size: 1rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .form-group input:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .form-group input.error {
-            border-color: var(--error);
-        }
-
-        .alert {
-            padding: 1rem;
-            border-radius: 8px;
-            margin-bottom: 1.5rem;
-            font-size: 0.9rem;
-            display: none;
-        }
-
-        .alert.error {
-            background: #fef2f2;
-            color: var(--error);
-            border: 1px solid #fecaca;
-        }
-
-        .alert.success {
-            background: #f0fdf4;
-            color: var(--success);
-            border: 1px solid #bbf7d0;
-        }
-
-        .alert.show {
-            display: block;
-        }
-
-        .btn {
-            width: 100%;
-            padding: 1rem;
-            background: var(--gradient-primary);
-            color: var(--white);
-            border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(37, 99, 235, 0.4);
-        }
-
-        .btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .forgot-link {
-            text-align: right;
-            margin-top: 0.5rem;
-        }
-
-        .forgot-link a {
-            color: var(--gray-600);
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-
-        .forgot-link a:hover {
-            color: var(--primary);
-        }
-
-        .signup-link {
-            text-align: center;
-            margin-top: 1.5rem;
-        }
-
-        .signup-link a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .signup-link a:hover {
-            text-decoration: underline;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 1.5rem;
-            color: var(--gray-600);
-            text-decoration: none;
-        }
-
-        .back-link:hover {
-            color: var(--primary);
-        }
-    </style>
+    <link rel="stylesheet" href="auth.css">
 </head>
 
 <body>
@@ -210,7 +28,7 @@
                 <label for="password">Password</label>
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
                 <div class="forgot-link">
-                    <a href="#" onclick="showForgotMessage()">Forgot password?</a>
+                    <a href="/forgot-password">Forgot password?</a>
                 </div>
             </div>
             <button type="submit" class="btn" id="submit-btn">Login</button>
@@ -224,7 +42,7 @@
     </div>
 
     <script>
-        const SESSION_KEY = 'aceinterview_session';
+        const SESSION_KEY = 'supabase.auth.token';
         const form = document.getElementById('login-form');
         const alertEl = document.getElementById('alert');
         const submitBtn = document.getElementById('submit-btn');
@@ -235,7 +53,8 @@
             showAlert('Account created successfully! Please log in.', 'success');
         }
 
-        // Check if already logged in
+        // Check if already logged in - DISABLED TO PREVENT LOOPS
+        /*
         const existingSession = localStorage.getItem(SESSION_KEY);
         if (existingSession) {
             try {
@@ -245,6 +64,7 @@
                 }
             } catch (e) { }
         }
+        */
 
         function showAlert(message, type) {
             alertEl.textContent = message;
@@ -253,10 +73,6 @@
 
         function hideAlert() {
             alertEl.className = 'alert';
-        }
-
-        function showForgotMessage() {
-            alert('To reset your password, please email support@tryaceinterview.com');
         }
 
         form.addEventListener('submit', async (e) => {
@@ -283,14 +99,30 @@
 
                 const result = await response.json();
 
-                if (result.success && result.session) {
-                    // Store session in localStorage
-                    localStorage.setItem(SESSION_KEY, JSON.stringify(result.session));
+                if (response.ok) {
+                    const sessionData = result.session || result;
+                    const token = sessionData.access_token;
+                    const refreshToken = sessionData.refresh_token;
 
-                    showAlert('Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 1000);
+                    if (token) {
+                        // 1. Save Raw Tokens (For Dashboard Auth Guard)
+                        localStorage.setItem('supabase.auth.token', token);
+                        if (refreshToken) {
+                            localStorage.setItem('supabase.auth.refresh_token', refreshToken);
+                        }
+
+                        // 2. Save Full Session (For App Logic/Credits/Email)
+                        // CRITICAL: Add logged_in_at for expiry check in dashboard
+                        sessionData.logged_in_at = Date.now();
+                        localStorage.setItem('aceinterview_session', JSON.stringify(sessionData));
+
+                        console.log("Tokens and Session saved.");
+                        window.location.href = '/dashboard.html';
+                    } else {
+                        console.error("No token found");
+                        showAlert('Login failed: No access token.', 'error');
+                        submitBtn.disabled = false;
+                    }
                 } else {
                     showAlert(result.error || 'Invalid email or password', 'error');
                     submitBtn.disabled = false;
