@@ -8,6 +8,33 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // 1. Define the key exactly as it is used in login.html
+        const SESSION_KEY = 'supabase.auth.token';
+
+        // 2. Check for the token
+        const token = localStorage.getItem(SESSION_KEY);
+
+        // 3. Debugging (Optional: helps you see if it works in Console)
+        console.log("Checking for token:", token ? "Found" : "Missing");
+
+        if (!token) {
+            // No token? Go to login
+            console.warn("No token found. Redirecting to Login.");
+            window.location.href = '/login.html';
+        } else {
+            // Token found? Stay here! 
+            console.log("Access granted.");
+
+            // 4. (Optional) If you have the Supabase client loaded, set the session
+            if (typeof supabase !== 'undefined') {
+                supabase.auth.setSession({
+                    access_token: token,
+                    refresh_token: localStorage.getItem('supabase.auth.refresh_token') || ''
+                });
+            }
+        }
+    </script>
     <style>
         * {
             margin: 0;
@@ -241,28 +268,22 @@
             Loading your dashboard...
         </div>
 
+
+
         <div id="dashboard-content" style="display: none;">
             <div class="welcome">
                 <h1 id="welcome-message">Welcome back!</h1>
-                <p>Ready to ace your next interview?</p>
+                <p id="status-message">Ready to ace your next interview?</p>
             </div>
 
-            <!-- Unpaid State -->
-            <div class="purchase-required" id="unpaid-section">
-                <div class="icon">🔒</div>
-                <h2>PURCHASE REQUIRED</h2>
-                <p>Get access to Resume Analysis and Interview Coach to prepare for your next interview.</p>
-                <a href="/pricing" class="btn">View Pricing</a>
-            </div>
-
-            <!-- Paid State - Feature Cards -->
-            <div class="feature-cards" id="paid-section">
+            <!-- Feature Cards (Always Visible, Buttons change based on access) -->
+            <div class="feature-cards show" id="feature-cards">
                 <div class="feature-card">
                     <div class="icon">📄</div>
                     <h3>Resume Analysis</h3>
                     <p>Upload your resume and get instant AI-powered feedback with specific improvements to stand out.
                     </p>
-                    <a href="/app#resume" class="btn">Start Analysis</a>
+                    <a href="#" class="btn" id="btn-resume">Checking Access...</a>
                 </div>
 
                 <div class="feature-card">
@@ -270,30 +291,33 @@
                     <h3>Interview Coach</h3>
                     <p>Practice with voice-based AI interviews. Get scored feedback and STAR-format answer improvements.
                     </p>
-                    <a href="/app#interview" class="btn">Start Practice</a>
+                    <a href="#" class="btn" id="btn-interview">Checking Access...</a>
                 </div>
             </div>
         </div>
     </main>
 
     <script>
-        const SESSION_KEY = 'aceinterview_session';
+        // Main Dashboard Logic
+        // We use 'aceinterview_session' here because it contains the User Profile (credits, name).
+        const APP_SESSION_KEY = 'aceinterview_session';
         const SESSION_EXPIRY_DAYS = 7;
 
         function getSession() {
-            const sessionStr = localStorage.getItem(SESSION_KEY);
+            const sessionStr = localStorage.getItem(APP_SESSION_KEY);
             if (!sessionStr) return null;
 
             try {
                 const session = JSON.parse(sessionStr);
 
-                // Check if session is expired (7 days)
+                // FIX: If logged_in_at is missing, assume it is valid (Date.now()) to prevent auto-expiry
+                const loggedInAt = session.logged_in_at || Date.now();
                 const now = Date.now();
-                const loggedInAt = session.logged_in_at || 0;
                 const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
                 if (now - loggedInAt > expiryMs) {
-                    localStorage.removeItem(SESSION_KEY);
+                    console.warn("Session expired. Logging out.");
+                    localStorage.removeItem(APP_SESSION_KEY);
                     return null;
                 }
 
@@ -304,7 +328,10 @@
         }
 
         function logout() {
-            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem(APP_SESSION_KEY);
+            // Also remove auth tokens
+            localStorage.removeItem('supabase.auth.token');
+            localStorage.removeItem('supabase.auth.refresh_token');
             window.location.href = '/?logout=success';
         }
 
@@ -325,46 +352,100 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email })
                     });
+                    console.log('Poll Response Status:', response.status);
                     const result = await response.json();
 
-                    if (result.success && result.user.account_status === 'paid') {
-                        clearInterval(poll);
-                        // Update session and reload UI
+                    if (result.success) {
+                        const updatedUser = result.user;
                         const session = getSession();
-                        session.account_status = 'paid';
-                        session.payment_tier = 'pro';
-                        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
-                        // Reset UI
-                        loadingDiv.style.display = 'none';
-                        document.getElementById('dashboard-content').style.display = 'block';
-                        document.getElementById('unpaid-section').style.display = 'none';
-                        document.getElementById('paid-section').classList.add('show');
+                        // Condition: Is unlimited OR has more credits than session OR subscription status changed
+                        const creditsAdded = (updatedUser.resume_credits > (session.resume_credits || 0)) ||
+                            (updatedUser.interview_credits > (session.interview_credits || 0));
 
-                        // Show success message
-                        alert('Account activated! You now have full access.');
+                        const statusChanged = updatedUser.subscription_status !== session.subscription_status;
+                        const becameUnlimited = updatedUser.is_unlimited && !session.is_unlimited;
+
+                        if (becameUnlimited || creditsAdded || statusChanged || attempts > 5) {
+                            clearInterval(poll);
+
+                            // Update session with NEW data
+                            session.subscription_status = updatedUser.subscription_status;
+                            session.is_unlimited = updatedUser.is_unlimited;
+                            session.resume_credits = updatedUser.resume_credits;
+                            session.interview_credits = updatedUser.interview_credits;
+
+                            localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
+
+                            // Reset UI
+                            loadingDiv.style.display = 'none';
+                            // Reset UI
+                            loadingDiv.style.display = 'none';
+                            document.getElementById('dashboard-content').style.display = 'block';
+                            // Legacy DOM elements removed to prevent crash. Logic relies on page reload.
+
+                            // Only alert if meaningful change, otherwise if it was just a timeout fallback, silence
+                            if (attempts <= 5) {
+                                alert('Account activated! You now have access.');
+                            }
+
+                            // Refresh page to ensure UI state is perfect
+                            window.location.href = '/dashboard.html';
+                        }
                     }
                 } catch (e) {
-                    console.log('Error checking status');
+                    console.error('Error checking status:', e);
                 }
 
                 if (attempts >= maxAttempts) {
                     clearInterval(poll);
-                    loadingDiv.style.display = 'none';
-                    document.getElementById('dashboard-content').style.display = 'block';
-                    alert('Activation is taking longer than expected. Please refresh the page in a moment.');
                 }
             }, 2000);
         }
-
         async function initDashboard() {
-            const session = getSession();
+            // 1. Try to get the session normally
+            let session = getSession();
 
+            // 2. RECOVERY: If session is missing but Token exists, rebuild it!
             if (!session) {
-                window.location.href = '/login';
-                return;
+                const token = localStorage.getItem('supabase.auth.token');
+                if (token) {
+                    // console.log("Session missing but Token found. Attempting recovery...");
+                    try {
+                        const parts = token.split('.');
+                        if (parts.length === 3) {
+                            const base64Url = parts[1];
+                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                            const payloadStr = atob(base64);
+                            const payload = JSON.parse(payloadStr);
+
+                            if (payload.email) {
+                                session = {
+                                    email: payload.email,
+                                    name: payload.user_metadata?.name || 'User',
+                                    logged_in_at: Date.now(),
+                                    account_status: 'active',
+                                    resume_credits: 3,
+                                    interview_credits: 3
+                                };
+                                localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
+                                // console.log("Session Recovered!");
+                            }
+                        }
+                    } catch (e) {
+                        // console.error("Recovery Error: " + e.message);
+                    }
+                }
             }
 
+            // 3. Final Check
+            if (!session) {
+                // Critical: Clear artifacts to prevent Login Redirect Loop
+                localStorage.removeItem(APP_SESSION_KEY);
+                localStorage.removeItem('supabase.auth.token');
+                window.location.href = '/login.html';
+                return;
+            }
             // Display user info
             const displayName = session.name || session.email;
             document.getElementById('user-display').textContent = displayName;
@@ -389,24 +470,111 @@
 
                 if (result.success && result.user) {
                     // Update session with latest data
-                    session.account_status = result.user.account_status;
-                    session.payment_tier = result.user.payment_tier;
-                    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                    session.subscription_status = result.user.subscription_status;
+                    session.is_unlimited = result.user.is_unlimited;
+                    session.resume_credits = result.user.resume_credits || 0;
+                    session.interview_credits = result.user.interview_credits || 0;
+                    localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
                 }
             } catch (e) {
                 console.log('Could not verify session with server');
             }
 
-            // Show appropriate content based on payment status
+            // Show Dashboard
             document.getElementById('loading').style.display = 'none';
             document.getElementById('dashboard-content').style.display = 'block';
 
-            if (session.account_status === 'paid') {
-                document.getElementById('unpaid-section').style.display = 'none';
-                document.getElementById('paid-section').classList.add('show');
+            // ---------------------------------------------------------
+            // ACCESS CONTROL UI LOGIC (Phase 13 -> 20: Split Credits)
+            // ---------------------------------------------------------
+            // FIX: Use is_unlimited flag directly as primary source of truth
+            const isUnlimited = session.is_unlimited === true || session.subscription_status === 'active';
+
+            // Phase 20: Use specific credits
+            const resume_credits = session.resume_credits || 0;
+            const interview_credits = session.interview_credits || 0;
+
+            // Check Access Per Tool
+            const hasResumeAccess = (isUnlimited || resume_credits > 0);
+            const hasInterviewAccess = (isUnlimited || interview_credits > 0);
+
+            // Update Status Message (Header)
+            const statusMsgEl = document.getElementById('status-message');
+            if (isUnlimited) {
+                statusMsgEl.innerHTML = 'You have <strong>Unlimited Access</strong> (Pro Plan).';
             } else {
-                document.getElementById('unpaid-section').style.display = 'block';
-                document.getElementById('paid-section').classList.remove('show');
+                // Display Split Breakdown
+                statusMsgEl.innerHTML = `
+    <span style="margin-right: 15px;">Resume Credits: <strong>${resume_credits}</strong></span>
+    <span>Interview Credits: <strong>${interview_credits}</strong></span>
+    `;
+            }
+
+            // Button Logic Helper
+            const updateButton = (btnId, link, text, hasAccess) => {
+                const btn = document.getElementById(btnId);
+                if (hasAccess) {
+                    // UNLOCKED
+                    btn.href = link;
+                    btn.textContent = text;
+                    btn.classList.remove('locked'); // Ensure no lock style
+                    btn.style.background = 'var(--gradient-primary)';
+                } else {
+                    // LOCKED
+                    btn.href = '/pricing.html';
+                    btn.innerHTML = '🔒 Unlock Access';
+                    btn.style.background = '#64748b'; // Gray
+                }
+            };
+
+            updateButton('btn-resume', '/app.html#resume', 'Start Analysis', hasResumeAccess);
+            updateButton('btn-interview', '/app.html#interview', 'Start Practice', hasInterviewAccess);
+
+            // Phase 47: Portal Link for Unlimited Users
+            if (isUnlimited) {
+                const manageBtn = document.createElement('button');
+                manageBtn.id = 'btn-manage-sub';
+                manageBtn.textContent = 'Manage Subscription';
+                manageBtn.style.marginTop = '1rem';
+                manageBtn.style.padding = '0.5rem 1rem';
+                manageBtn.style.background = 'transparent';
+                manageBtn.style.border = '1px solid #cbd5e1'; // gray-300
+                manageBtn.style.borderRadius = '8px';
+                manageBtn.style.color = '#475569'; // gray-600
+                manageBtn.style.cursor = 'pointer';
+                manageBtn.style.fontSize = '0.875rem';
+
+                manageBtn.onmouseover = () => manageBtn.style.background = '#f1f5f9';
+                manageBtn.onmouseout = () => manageBtn.style.background = 'transparent';
+
+                manageBtn.onclick = async () => {
+                    manageBtn.textContent = 'Loading...';
+                    try {
+                        const res = await fetch('/api/create-portal-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: session.email })
+                        });
+                        const data = await res.json();
+                        if (data.url) {
+                            window.location.href = data.url;
+                        } else {
+                            alert('Could not load subscription portal: ' + (data.error || 'Unknown error'));
+                            manageBtn.textContent = 'Manage Subscription';
+                        }
+                    } catch (e) {
+                        alert('Error connecting to server.');
+                        manageBtn.textContent = 'Manage Subscription';
+                    }
+                };
+
+                // Append to Welcome Section or Header? 
+                // Let's put it in the header-right for easy access
+                const headerRight = document.querySelector('.header-right');
+                // Insert before Logout
+                const logoutBtn = document.querySelector('.logout-btn');
+                manageBtn.style.marginRight = '10px';
+                headerRight.insertBefore(manageBtn, logoutBtn);
             }
         }
 

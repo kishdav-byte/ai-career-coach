@@ -348,6 +348,9 @@
                 // We'll reuse the existing session logic check first for speed
                 const sessionReq = localStorage.getItem('aceinterview_session');
                 if (!sessionReq) {
+                    // Prevent Loop
+                    localStorage.removeItem('aceinterview_session');
+                    localStorage.removeItem('supabase.auth.token');
                     window.location.href = '/login.html';
                     return;
                 }

@@ -45,7 +45,10 @@ async function checkAccess() {
         // But maybe we are on /app.html which should be protected
         // If we are on index.html or pricing.html, no need to redirect.
         const path = window.location.pathname;
-        if (path === '/app.html' || path === '/app') {
+        if (path === '/app.html' || path === '/app' || path.includes('admin')) {
+            // Critical: Clear artifacts to prevent Loop
+            localStorage.removeItem(SESSION_KEY);
+            localStorage.removeItem('supabase.auth.token');
             window.location.href = '/login.html';
         }
         return;
