@@ -720,11 +720,33 @@
             <p class="hero-subtitle">Practice with voice-based AI interviewer. Get real-time scoring and see the perfect
                 STAR-format answer you should have said.</p>
             <div class="hero-buttons">
-                <a href="/signup" class="btn btn-primary">Get Started - $29.99</a>
-                <a href="#pricing" class="btn btn-secondary">See Pricing</a>
+                <!-- Guest State -->
+                <div id="guest-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                    <a href="/signup.html" class="btn btn-primary">Get Started - $29.99</a>
+                    <a href="/login.html" class="btn btn-secondary">Log In</a>
+                </div>
+                <!-- Auth State (Hidden by default) -->
+                <div id="auth-buttons" style="display: none;">
+                    <a href="/dashboard.html" class="btn btn-primary" style="padding: 1rem 3rem;">Go to Dashboard</a>
+                </div>
             </div>
         </div>
     </section>
+
+    <script>
+        // Check for session and toggle buttons
+        const token = localStorage.getItem('supabase.auth.token');
+        const guestBtns = document.getElementById('guest-buttons');
+        const authBtns = document.getElementById('auth-buttons');
+
+        if (token) {
+            guestBtns.style.display = 'none';
+            authBtns.style.display = 'flex';
+        } else {
+            guestBtns.style.display = 'flex';
+            authBtns.style.display = 'none';
+        }
+    </script>
 
     <!-- How It Works -->
     <section id="how-it-works" class="how-it-works">
@@ -901,13 +923,16 @@
         });
 
         // Dynamic Navigation Based on Login Status
+        // Dynamic Navigation & Hero Buttons Based on Login Status (Phase 22)
         (function updateNavForUser() {
             const SESSION_KEY = 'aceinterview_session';
             const sessionStr = localStorage.getItem(SESSION_KEY);
-
-            // Find the Get Started link
+            const guestButtons = document.getElementById('guest-buttons');
+            const authButtons = document.getElementById('auth-buttons');
             const navLinksContainer = document.getElementById('nav-links');
             const lastNavItem = navLinksContainer.querySelector('li:last-child');
+
+            let isLoggedIn = false;
 
             if (sessionStr) {
                 try {
@@ -918,29 +943,34 @@
                     const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
                     if (now - loggedInAt <= expiryMs && session.email) {
-                        // User is logged in - update nav
-                        lastNavItem.innerHTML = '<a href="/dashboard" class="nav-cta">Dashboard</a>';
-
-                        // Add logout button
-                        const logoutItem = document.createElement('li');
-                        logoutItem.innerHTML = '<a href="#" onclick="localStorage.removeItem(\'aceinterview_session\'); location.reload();" style="opacity: 0.7;">Logout</a>';
-                        navLinksContainer.appendChild(logoutItem);
-
-                        // Update hero CTA buttons based on payment status
-                        const heroPrimaryBtn = document.querySelector('.hero-buttons .btn-primary');
-                        if (heroPrimaryBtn) {
-                            if (session.account_status === 'paid') {
-                                heroPrimaryBtn.textContent = 'Go to Dashboard';
-                                heroPrimaryBtn.href = '/dashboard';
-                            } else {
-                                heroPrimaryBtn.textContent = 'View Pricing';
-                                heroPrimaryBtn.href = '#pricing';
-                            }
-                        }
+                        isLoggedIn = true;
                     }
                 } catch (e) {
-                    // Invalid session, keep default nav
+                    // Invalid session
                 }
+            }
+
+            if (isLoggedIn) {
+                // AUTH STATE
+                // 1. Update Hero Buttons
+                if (guestButtons) guestButtons.style.display = 'none';
+                if (authButtons) authButtons.style.display = 'block';
+
+                // 2. Update Nav Bar
+                if (lastNavItem) {
+                    lastNavItem.innerHTML = '<a href="/dashboard.html" class="nav-cta">Dashboard</a>';
+
+                    // Add logout button
+                    const logoutItem = document.createElement('li');
+                    logoutItem.innerHTML = '<a href="#" onclick="localStorage.removeItem(\'aceinterview_session\'); location.reload();" style="opacity: 0.7;">Logout</a>';
+                    navLinksContainer.appendChild(logoutItem);
+                }
+
+            } else {
+                // GUEST STATE (Default)
+                // 1. Update Hero Buttons
+                if (guestButtons) guestButtons.style.display = 'flex';
+                if (authButtons) authButtons.style.display = 'none';
             }
 
             // Check for logout message
@@ -950,8 +980,23 @@
                 const message = document.createElement('div');
                 message.style.cssText = 'background: #10b981; color: white; text-align: center; padding: 0.5rem; font-size: 0.9rem;';
                 message.textContent = "You've been logged out successfully.";
-                nav.parentNode.insertBefore(message, nav.nextSibling);
-                setTimeout(() => message.remove(), 3000);
+                if (nav && nav.parentNode) {
+                    nav.parentNode.insertBefore(message, nav.nextSibling);
+                    setTimeout(() => message.remove(), 3000);
+                }
+            }
+        })();
+
+        // Fail-Safe: Check for Password Reset Token incorrectly landing here
+        (function checkRecoveryRedirect() {
+            const hash = window.location.hash.substring(1);
+            const params = new URLSearchParams(hash);
+            const accessToken = params.get('access_token');
+            const type = params.get('type');
+
+            if (accessToken && type === 'recovery') {
+                console.log('Recovery token detected. Redirecting to update-password page...');
+                window.location.href = '/update-password.html' + window.location.hash;
             }
         })();
     </script>
