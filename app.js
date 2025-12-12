@@ -22,11 +22,11 @@ function getSession() {
             return { access_token: sessionStr, email: null, subscription_status: 'unknown' };
         }
 
-        // Check expiry (24 hours)
-        const ONE_DAY = 24 * 60 * 60 * 1000;
+        // Check expiry (7 days - Matching Dashboard)
+        const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
         // FIX: Default to now if missing
         const loggedInAt = session.logged_in_at || Date.now();
-        if (Date.now() - loggedInAt > ONE_DAY) {
+        if (Date.now() - loggedInAt > SESSION_DURATION) {
             localStorage.removeItem(SESSION_KEY);
             return null;
         }
@@ -38,7 +38,40 @@ function getSession() {
 
 async function checkAccess() {
     console.log("Checking access...");
-    const session = getSession();
+    console.log("Checking access...");
+    let session = getSession();
+
+    // RECOVERY LOGIC (Matches Dashboard)
+    if (!session) {
+        const token = localStorage.getItem('supabase.auth.token');
+        if (token) {
+            console.log("Session missing but Token found. Attempting recovery...");
+            try {
+                const parts = token.split('.');
+                if (parts.length === 3) {
+                    const base64Url = parts[1];
+                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                    const payloadStr = atob(base64);
+                    const payload = JSON.parse(payloadStr);
+
+                    if (payload.email) {
+                        session = {
+                            email: payload.email,
+                            name: payload.user_metadata?.name || 'User',
+                            logged_in_at: Date.now(),
+                            account_status: 'active', // Default to active to allow entry, verify later
+                            resume_credits: 3,
+                            interview_credits: 3
+                        };
+                        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+                        console.log("Session Recovered in App!");
+                    }
+                }
+            } catch (e) {
+                console.error("Recovery Error: " + e.message);
+            }
+        }
+    }
 
     if (!session) {
         // Allow public pages? No, force login for app
