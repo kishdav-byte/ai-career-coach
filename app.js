@@ -116,7 +116,16 @@ async function sendVoiceMessage(base64Audio) {
         const response = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'interview_chat', email: email, audio: base64Audio, jobPosting: jobPosting, voice: voice, speed: speed, questionCount: questionCount })
+            body: JSON.stringify({
+                action: 'interview_chat',
+                audio: base64Audio,
+                jobPosting: jobPosting,
+                voice: voice,
+                speed: speed,
+                email: email,
+                questionCount: questionCount,
+                ghostMode: localStorage.getItem('admin_ghost_mode') === 'true'
+            })
         });
         const result = await response.json();
         document.getElementById(loadingId).remove();
@@ -806,7 +815,8 @@ function init() {
                         speed: speed,
                         isStart: isStart,
                         questionCount: questionCount + 1,
-                        email: email
+                        email: email,
+                        ghostMode: localStorage.getItem('admin_ghost_mode') === 'true'
                     })
                 });
                 const result = await response.json();
