@@ -117,7 +117,13 @@
                         localStorage.setItem('aceinterview_session', JSON.stringify(sessionData));
 
                         console.log("Tokens and Session saved.");
-                        window.location.href = '/dashboard.html';
+
+                        // Check Role and Redirect
+                        if (sessionData.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/dashboard.html';
+                        }
                     } else {
                         console.error("No token found");
                         showAlert('Login failed: No access token.', 'error');
