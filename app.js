@@ -112,7 +112,16 @@ async function checkAccess() {
             if (result.user.role === 'admin') {
                 console.log("👑 Admin Access Detected: Unhiding Tools");
                 const adminTools = document.getElementById('admin-tools-container');
-                if (adminTools) adminTools.style.display = 'block';
+                if (adminTools) {
+                    adminTools.style.display = 'block';
+                    // Auto-scroll if hash matches a hidden tool
+                    if (window.location.hash) {
+                        setTimeout(() => {
+                            const target = document.querySelector(window.location.hash);
+                            if (target) target.scrollIntoView({ behavior: 'smooth' });
+                        }, 500);
+                    }
+                }
             }
 
             // Phase 20: Split Credits
