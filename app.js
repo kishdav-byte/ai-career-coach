@@ -1409,6 +1409,87 @@ function init() {
             });
         });
 
+        // IMPORT / PARSE RESUME LOGIC
+        if (document.getElementById('rb-parse-btn')) {
+            document.getElementById('rb-parse-btn').addEventListener('click', async () => {
+                const text = document.getElementById('rb-paste-input').value;
+                if (!text) return alert("Please paste your resume text first.");
+
+                const btn = document.getElementById('rb-parse-btn');
+                const originalText = btn.textContent;
+                btn.textContent = "Analyzing & Extracting...";
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch('/api', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'parse_resume', resume_text: text })
+                    });
+                    const result = await response.json();
+
+                    if (result.data) {
+                        let data = result.data;
+                        // Handle string response
+                        if (typeof data === 'string') {
+                            try {
+                                // Clean markdown
+                                let clean = data.trim();
+                                if (clean.startsWith('```json')) clean = clean.slice(7);
+                                if (clean.startsWith('```')) clean = clean.slice(3);
+                                if (clean.endsWith('```')) clean = clean.slice(0, -3);
+                                data = JSON.parse(clean);
+                            } catch (e) {
+                                console.error("Parse error", e);
+                                alert("AI extraction failed to return valid data pattern. Please fill manually.");
+                                return;
+                            }
+                        }
+
+                        // Auto-Fill Fields
+                        if (data.personal) {
+                            document.getElementById('rb-name').value = data.personal.name || '';
+                            document.getElementById('rb-email').value = data.personal.email || '';
+                            document.getElementById('rb-phone').value = data.personal.phone || '';
+                            document.getElementById('rb-linkedin').value = data.personal.linkedin || '';
+                            document.getElementById('rb-location').value = data.personal.location || '';
+                            document.getElementById('rb-summary').value = data.personal.summary || '';
+                        }
+
+                        if (data.skills && Array.isArray(data.skills)) {
+                            document.getElementById('rb-skills').value = data.skills.join(', ');
+                        }
+
+                        // Experience
+                        const expList = document.getElementById('rb-experience-list');
+                        expList.innerHTML = '';
+                        if (data.experience && Array.isArray(data.experience)) {
+                            data.experience.forEach(exp => renderExperienceItem(exp));
+                        }
+
+                        // Education
+                        const eduList = document.getElementById('rb-education-list');
+                        eduList.innerHTML = '';
+                        if (data.education && Array.isArray(data.education)) {
+                            data.education.forEach(edu => renderEducationItem(edu));
+                        }
+
+                        alert("Resume imported successfully! Please review the fields below.");
+                    } else {
+                        alert("Could not extract data. Please try again or fill manually.");
+                    }
+
+                } catch (e) {
+                    console.error(e);
+                    alert("Error during import.");
+                } finally {
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }
+            });
+        }
+
+
         // GENERATE BUTTON
         document.getElementById('rb-generate-btn').addEventListener('click', async () => {
             const btn = document.getElementById('rb-generate-btn');

@@ -248,11 +248,30 @@ def api():
                                     else:
                                         has_access = False
                                         print("Blocked: Insufficient Interview Credits")
-
-                                # 3. Is it a Continuation? -> FREE (Already Paid)
                                 else:
+                                    # Subsequent messages checks (simplified: if they started, they can finish)
                                     has_access = True
-                                    print(f"Interview Continuation (Q{q_count}): Access Granted (Free)")
+
+                        elif action == 'parse_resume':
+                            # Utility feature: Free to use (improves UX)
+                            has_access = True
+
+                    if has_access:
+                         # ------------------------------------------------
+                         # GENERATE RESPONSE
+                         # ------------------------------------------------
+                         
+                         if action == 'parse_resume':
+                             resume_text = data.get('resume_text', '')
+                             system_msg = "You are a data extraction assistant. Parse the provided resume text and return a JSON object with these keys: personal (name, email, phone, location, linkedin, summary), skills (array of strings), experience (array of objects with role, company, dates, description), education (array of objects with degree, school, dates). Return ONLY valid JSON."
+                             user_msg = f"Resume Text:\n{resume_text}"
+                             messages = [
+                                 {"role": "system", "content": system_msg},
+                                 {"role": "user", "content": user_msg}
+                             ]
+                             json_mode = True
+
+
                     
                     if not has_access:
                         return jsonify({

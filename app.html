@@ -152,7 +152,17 @@
                     <h2>AI Resume Builder</h2>
                     <p>Build and optimize your resume from scratch.</p>
 
-                    <div class="rb-controls">
+                    <div class="rb-controls"
+                        style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+                        <h3>Option 1: Import from Existing Resume</h3>
+                        <p style="font-size: 0.9em; color: #666;">Paste your current resume here to auto-fill the form
+                            below.</p>
+                        <textarea id="rb-paste-input" placeholder="Paste your full resume text here..."
+                            style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
+                        <button id="rb-parse-btn" class="action-btn"
+                            style="background: #6c757d; font-size: 0.9rem;">Import & Auto-Fill</button>
+                        <hr style="margin: 20px 0;">
+                        <h3>Option 2: Manual Entry / Sample Data</h3>
                         <button id="rb-sample-btn" class="secondary-btn">Load Sample Data</button>
                     </div>
 
