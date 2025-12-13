@@ -1464,10 +1464,10 @@ function init() {
             const printArea = document.getElementById('print-area');
             printArea.innerHTML = content;
 
-            // Fix Title for Print Header
+            // Fix Title for Print Header (Empty to clear top-left)
             const originalTitle = document.title;
-            const name = document.getElementById('rb-name').value || 'Candidate';
-            document.title = `${name} - Resume`;
+            // Space is safer than empty string to ensure override
+            document.title = " ";
 
             window.print();
 
