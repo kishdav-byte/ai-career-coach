@@ -114,12 +114,26 @@ async function checkAccess() {
                 const adminTools = document.getElementById('admin-tools-container');
                 if (adminTools) {
                     adminTools.style.display = 'block';
-                    // Auto-scroll if hash matches a hidden tool
-                    if (window.location.hash) {
+
+                    // Logic to exclusively show the requested admin tool
+                    const hash = window.location.hash;
+                    const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
+
+                    if (hash && adminHashes.includes(hash)) {
+                        // Hide all other admin sections first
+                        adminHashes.forEach(id => {
+                            const el = document.querySelector(id);
+                            if (el) el.classList.remove('active');
+                        });
+
+                        // Show target
                         setTimeout(() => {
-                            const target = document.querySelector(window.location.hash);
-                            if (target) target.scrollIntoView({ behavior: 'smooth' });
-                        }, 500);
+                            const target = document.querySelector(hash);
+                            if (target) {
+                                target.classList.add('active');
+                                target.scrollIntoView({ behavior: 'smooth' });
+                            }
+                        }, 100);
                     }
                 }
             }
@@ -258,9 +272,15 @@ function init() {
     if (interviewSection) interviewSection.classList.remove('active');
 
     // Show based on Hash
+    const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
+
     if (hash === '#interview') {
         if (interviewSection) interviewSection.classList.add('active');
         document.title = "Interview Coach - AI Career Coach";
+    } else if (adminHashes.includes(hash)) {
+        // Do not activate Resume section. Wait for Admin Check to reveal specific tool.
+        // We can set title here though
+        document.title = "Admin Tool - AI Career Coach";
     } else {
         // Default to Resume (or if hash is #resume)
         if (resumeSection) resumeSection.classList.add('active');
