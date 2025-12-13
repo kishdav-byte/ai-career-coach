@@ -108,6 +108,13 @@ async function checkAccess() {
             session.subscription_status = status;
             session.is_unlimited = unlimited;
 
+            // ADMIN CHECK: Reveal Hidden Tools
+            if (result.user.role === 'admin') {
+                console.log("👑 Admin Access Detected: Unhiding Tools");
+                const adminTools = document.getElementById('admin-tools-container');
+                if (adminTools) adminTools.style.display = 'block';
+            }
+
             // Phase 20: Split Credits
             let resume_credits = result.user.resume_credits;
             let interview_credits = result.user.interview_credits;
@@ -1108,6 +1115,123 @@ function init() {
         window.addMessage = addMessage;
     } // End of Interview Page (Resume Analysis + Interview Coach)
 
+
+    // ADMIN TOOLS LOGIC (Restored)
+    // Only init listeners if elements exist (which they do now in app.html)
+    if (document.getElementById('generate-plan-btn')) {
+        console.log("Initializing Admin Tools...");
+
+        // Tab 3: Career Planner
+        document.getElementById('generate-plan-btn').addEventListener('click', async () => {
+            const jobTitle = document.getElementById('job-title').value;
+            const company = document.getElementById('company').value;
+            const jobPosting = document.getElementById('job-posting').value;
+            if (jobTitle && company) {
+                const outputDiv = document.getElementById('planner-result');
+                outputDiv.innerHTML = '<div class="loading-spinner">Generating plan...</div>';
+
+                try {
+                    const response = await fetch('/api', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'career_plan', jobTitle, company, jobPosting })
+                    });
+                    const result = await response.json();
+
+                    if (result.data) {
+                        renderCareerPlan(result.data, outputDiv);
+                    } else {
+                        outputDiv.innerHTML = 'Error generating plan.';
+                    }
+                } catch (e) {
+                    console.error(e);
+                    outputDiv.innerHTML = 'Error generating plan.';
+                }
+            }
+        });
+
+        function renderCareerPlan(data, container) {
+            if (typeof data === 'string') {
+                container.innerHTML = marked.parse(data);
+                return;
+            }
+            let html = '<div class="career-plan-container">';
+            const phases = [
+                { key: 'day_30', title: '30 Days: Learn & Connect' },
+                { key: 'day_60', title: '60 Days: Contribute & Build' },
+                { key: 'day_90', title: '90 Days: Lead & Innovate' }
+            ];
+            phases.forEach(phase => {
+                const items = data[phase.key] || [];
+                html += `<div class="plan-card"><h3>${phase.title}</h3><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul></div>`;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Tab 4: LinkedIn Optimizer
+        document.getElementById('optimize-linkedin-btn').addEventListener('click', async () => {
+            const aboutMe = document.getElementById('linkedin-input').value;
+            if (!aboutMe) return alert('Please paste your About Me section.');
+
+            const resultsArea = document.getElementById('linkedin-results-area');
+            const recsDiv = document.getElementById('linkedin-recommendations');
+            const sampleDiv = document.getElementById('linkedin-refined-sample');
+
+            resultsArea.style.display = 'block';
+            recsDiv.innerHTML = 'Loading...';
+            sampleDiv.innerHTML = 'Loading...';
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'linkedin_optimize', aboutMe })
+                });
+                const result = await response.json();
+
+                if (result.data) {
+                    let data = result.data;
+                    if (typeof data === 'string') {
+                        try { data = JSON.parse(data); } catch (e) {
+                            recsDiv.innerHTML = "Could not parse recommendations.";
+                            sampleDiv.innerHTML = marked.parse(data);
+                            return;
+                        }
+                    }
+                    if (data.recommendations) recsDiv.innerHTML = `<ul>${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>`;
+                    if (data.refined_sample) sampleDiv.innerHTML = marked.parse(data.refined_sample);
+                }
+            } catch (e) { console.error(e); alert("Error"); }
+        });
+
+        // Tab 5: Cover Letter (Simplified for restoration)
+        document.getElementById('generate-cl-btn').addEventListener('click', async () => {
+            const jobDesc = document.getElementById('cl-job-desc').value;
+            const resume = document.getElementById('cl-resume').value;
+            if (!jobDesc || !resume) return alert('Please fill in both fields.');
+
+            const resultEl = document.getElementById('cl-result');
+            resultEl.innerHTML = 'Generating...';
+            resultEl.style.display = 'block';
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'cover_letter', jobDesc, resume })
+                });
+                const result = await response.json();
+                if (result.data) resultEl.innerHTML = marked.parse(result.data);
+            } catch (e) { resultEl.innerHTML = "Error"; }
+        });
+
+        // Tab 6: Resume Builder (Skeleton Logic for Demo)
+        document.getElementById('rb-sample-btn').addEventListener('click', () => {
+            document.getElementById('rb-name').value = "Sample Admin";
+            document.getElementById('rb-summary').value = "Experienced Admin testing restored features.";
+        });
+    }
 
 } // End of init function
 

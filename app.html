@@ -78,6 +78,137 @@
                 </div>
             </section>
         </main>
+
+        <!-- ADMIN ONLY TOOLS (Hidden by default) -->
+        <div id="admin-tools-container"
+            style="display:none; border-top: 2px solid #ddd; margin-top: 30px; padding-top: 20px;">
+            <h2 style="text-align:center; color: #dc3545;">⚠️ Admin Only Features ⚠️</h2>
+
+            <!-- Tab 3: Career Planner -->
+            <section id="career-plan" class="tab-pane active" style="margin-bottom: 40px;">
+                <div class="card">
+                    <h2>30-60-90 Day Plan</h2>
+                    <p>Generate a strategic plan for your new role.</p>
+                    <div class="form-group">
+                        <label>Job Title</label>
+                        <input type="text" id="job-title" placeholder="e.g. Senior Product Manager">
+                    </div>
+                    <div class="form-group">
+                        <label>Company Name</label>
+                        <input type="text" id="company" placeholder="e.g. Acme Corp">
+                    </div>
+                    <div class="form-group">
+                        <label>Job Description</label>
+                        <textarea id="job-posting" placeholder="Paste the full job description here..."></textarea>
+                    </div>
+                    <button id="generate-plan-btn" class="action-btn">Generate Plan</button>
+                    <div id="planner-result" class="result-area"></div>
+                </div>
+            </section>
+
+            <!-- Tab 4: LinkedIn Optimizer -->
+            <section id="linkedin" class="tab-pane active" style="margin-bottom: 40px;">
+                <div class="card">
+                    <h2>LinkedIn Profile Optimizer</h2>
+                    <p>Rewrite your 'About' section to be more engaging.</p>
+                    <textarea id="linkedin-input" placeholder="Paste your current LinkedIn About section..."></textarea>
+                    <button id="optimize-linkedin-btn" class="action-btn">Optimize Profile</button>
+
+                    <div id="linkedin-results-area" style="display:none;">
+                        <h3>Recommendations</h3>
+                        <div id="linkedin-recommendations" class="result-area"></div>
+                        <h3>Refined Version</h3>
+                        <div id="linkedin-refined-sample" class="result-area"></div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- Tab 5: Cover Letter -->
+            <section id="cover-letter" class="tab-pane active" style="margin-bottom: 40px;">
+                <div class="card">
+                    <h2>Cover Letter Generator</h2>
+                    <p>Create a tailored cover letter in seconds.</p>
+                    <div class="form-group">
+                        <label>Job Description</label>
+                        <textarea id="cl-job-desc" placeholder="Paste job description..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Your Resume Content</label>
+                        <textarea id="cl-resume" placeholder="Paste your resume text..."></textarea>
+                    </div>
+                    <button id="generate-cl-btn" class="action-btn">Generate Cover Letter</button>
+                    <div id="cl-result" class="result-area" style="display:none;"></div>
+                </div>
+            </section>
+
+            <!-- Tab 6: Resume Builder -->
+            <section id="resume-builder" class="tab-pane active" style="margin-bottom: 40px;">
+                <div class="card">
+                    <h2>AI Resume Builder</h2>
+                    <p>Build and optimize your resume from scratch.</p>
+
+                    <div class="rb-controls">
+                        <button id="rb-sample-btn" class="secondary-btn">Load Sample Data</button>
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Personal Info</h3>
+                        <input type="text" id="rb-name" placeholder="Full Name">
+                        <input type="email" id="rb-email" placeholder="Email">
+                        <input type="text" id="rb-phone" placeholder="Phone">
+                        <input type="text" id="rb-linkedin" placeholder="LinkedIn URL">
+                        <input type="text" id="rb-location" placeholder="Location">
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Target Job</h3>
+                        <textarea id="rb-job-desc"
+                            placeholder="Paste the job description you are targeting..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Professional Summary</h3>
+                        <textarea id="rb-summary" placeholder="Brief summary of your career..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Experience</h3>
+                        <div id="rb-experience-list"></div>
+                        <button id="rb-add-exp-btn" class="secondary-btn">+ Add Experience</button>
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Education</h3>
+                        <div id="rb-education-list"></div>
+                        <button id="rb-add-edu-btn" class="secondary-btn">+ Add Education</button>
+                    </div>
+
+                    <div class="form-group">
+                        <h3>Skills</h3>
+                        <textarea id="rb-skills" placeholder="List your key skills (comma separated)..."></textarea>
+                    </div>
+
+                    <div class="template-selector">
+                        <h3>Choose Template</h3>
+                        <div class="templates">
+                            <button class="template-btn active" data-template="modern">Modern</button>
+                            <button class="template-btn" data-template="classic">Classic</button>
+                            <button class="template-btn" data-template="minimal">Minimal</button>
+                        </div>
+                    </div>
+
+                    <button id="rb-generate-btn" class="action-btn">Generate & Optimize Resume</button>
+                </div>
+
+                <div id="resume-preview-container" class="resume-preview modern"></div>
+
+                <div class="resume-actions">
+                    <button id="rb-print-btn" class="secondary-btn">Print / Save PDF</button>
+                    <button id="rb-gdocs-btn" class="secondary-btn">Copy for Google Docs</button>
+                </div>
+            </section>
+        </div>
     </div>
     <div id="print-area"></div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
