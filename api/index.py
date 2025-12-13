@@ -318,6 +318,10 @@ def api():
         RESUME CONTENT:
         {resume}
         
+        INSTRUCTION:
+        First, read the resume and identify the "Target Job Title" if explicitly stated or inferred.
+        Return it in the JSON as "job_title".
+        
         CRITICAL RULES FOR ANALYSIS (VIOLATIONS = FAILURE):
         1. **NO INVENTED METRICS**: Never invent a number. If a metric is missing, use a placeholder like "[X]%" or "$[X]k".
         2. **EXACT QUOTES ONLY**: When referencing "Current Bullet", "Found", or "Example", you MUST quote the resume word-for-word. Do not summarize.
@@ -329,6 +333,7 @@ def api():
         
         Return valid JSON with this EXACT structure:
         {{
+            "job_title": "Senior Product Manager",
             "overall_score": 85,
             "summary": "Brief 1-sentence summary of where they stand.",
             "benchmark": {{
@@ -461,6 +466,13 @@ def api():
             welcome_msg = "Welcome to the interview! ... This interview consists of 5 questions. ... When answering each question, please think of a specific time when you experienced the situation or task, the specific actions that you took, and the result of your actions. ... The first question that I have for you is: [Your Question]"
             
             user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"Welcome to the interview! ... This interview consists of 5 questions. ... When answering each question, please think of a specific time when you experienced the situation or task, the specific actions that you took, and the result of your actions. ... The first question that I have for you is: ...\"}}"
+            
+            # EXTRACT JOB TITLE (Simple Heuristic or Ask AI)
+            # Since we are starting, we can ask AI to identify the role in the 'feedback' or invisible field?
+            # Better: Just log what we have. If job_posting is long, maybe truncate?
+            # Best: Add a "job_title" field to the Return JSON instruction above for the AI to fill.
+            
+            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nLook at the Job Context provided. Identify the 'Job Title' being interviewed for.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"job_title\": \"[Extracted Job Title]\", \"next_question\": \"Welcome to the interview! ...\"}}"
         
         else:
             # CONTINUATION: Evaluate previous answer, Ask next question
@@ -546,6 +558,11 @@ def api():
     """}
         ]
         response_text = call_openai(messages, json_mode=True)
+        
+        # LOG ACTIVITY
+        # Career Plan has explicit specific job title
+        log_db_activity(data.get('email', 'unknown'), 'career_plan', {"job_title": job_title})
+        
         return jsonify({"data": response_text})
 
     elif action == 'linkedin_optimize':
@@ -584,6 +601,7 @@ def api():
         job_desc = data.get('jobDesc', '')
         resume_text = data.get('resume', '')
         
+        # CHANGED: Use JSON mode to extract title + letter
         messages = [
             {"role": "system", "content": "You are an expert cover letter writer."},
             {"role": "user", "content": f"""
@@ -595,12 +613,27 @@ def api():
     My Resume:
     {resume_text}
     
-    Output only the body of the cover letter.
+    Return JSON:
+    {{
+        "job_title": "Inferred Job Title from Description",
+        "letter_body": "The full text of the cover letter..."
+    }}
     """}
         ]
-        response_text = call_openai(messages)
-        log_db_activity(data.get('email', 'unknown'), 'cover_letter')
-        return jsonify({"data": response_text})
+        try:
+            response_text = call_openai(messages, json_mode=True)
+            res_json = json.loads(response_text)
+            
+            job_title = res_json.get('job_title', '')
+            letter_content = res_json.get('letter_body', '')
+            
+            log_db_activity(data.get('email', 'unknown'), 'cover_letter', {"job_title": job_title})
+            
+            return jsonify({"data": letter_content})
+        except Exception as e:
+            # Fallback
+            print(f"Cover Letter Error: {e}")
+            return jsonify({"error": "Failed to generate cover letter"}), 500
         
     elif action == 'optimize':
         # Legacy action name for Resume Builder Optimization
@@ -622,7 +655,9 @@ def api():
         {json.dumps(user_data)}
 
         Return ONLY valid JSON matching the input structure. 
-        Do not add new fields. only update summary, experience descriptions, and skills.
+        Return ONLY valid JSON matching the input structure. 
+        Do not add new fields (except 'job_title'). only update summary, experience descriptions, and skills.
+        Add a top-level field "job_title" with the inferred target role.
         """
         
         try:
@@ -630,8 +665,12 @@ def api():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ], json_mode=True)
-            log_db_activity(user_data.get('personal', {}).get('email', 'unknown'), 'resume_analysis')
-            return jsonify(json.loads(optimized_text))
+            
+            opt_json = json.loads(optimized_text)
+            jt = opt_json.get('job_title')
+            
+            log_db_activity(user_data.get('personal', {}).get('email', 'unknown'), 'resume_analysis', {"job_title": jt})
+            return jsonify(opt_json)
         except Exception as e:
             print(f"Error in optimize: {e}")
             return jsonify({"error": str(e)}), 500
@@ -740,7 +779,12 @@ def api():
                         supabase.table('chat_logs').insert(entry).execute()
                         
                         # LOG ACTIVITY (New)
-                        log_db_activity(user_email, 'interview_coach')
+                        # Extract job title if available (from AI response or input)
+                        meta = {}
+                        if response_data.get('job_title'):
+                            meta['job_title'] = response_data.get('job_title')
+                        
+                        log_db_activity(user_email, 'interview_coach', meta)
                         
                 except Exception as log_err:
                     print(f"Logging Failed: {log_err}")
@@ -787,7 +831,16 @@ def api():
                 return jsonify({"data": text})
 
         if action == 'analyze_resume':
-            log_db_activity(data.get('email', 'unknown'), 'resume_analysis')
+            # Extract job title
+            meta = {}
+            try:
+                # We expect JSON here
+                res_json = json.loads(text)
+                if res_json.get('job_title'):
+                    meta['job_title'] = res_json.get('job_title')
+            except:
+                pass
+            log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
             
         return jsonify({"data": text})
 
@@ -842,14 +895,40 @@ def admin_stats():
         # REAL DATA FETCHING
         # -----------------------------------------------
         
-        # Placeholder for Job Stats (since we don't have job types in DB yet)
-        mock_job_stats = {
-            'Product Manager': 45,
-            'Software Engineer': 32,
-            'Marketing Director': 18,
-            'Data Scientist': 12,
-            'Sales Manager': 24
-        }
+        # -----------------------------------------------
+        # REAL DATA FETCHING
+        # -----------------------------------------------
+        
+        # 3. Job Stats (from Activity Logs metadata)
+        # We fetch all logs with metadata to aggregate titles
+        # Optimization: In production, use an RPC or separate table for stats.
+        job_stats_map = {}
+        try:
+            # Fetch last 1000 logs to analyze trends
+            j_logs = supabase.table('activity_logs').select('metadata').order('created_at', desc=True).limit(500).execute()
+            if j_logs.data:
+                for log in j_logs.data:
+                    meta = log.get('metadata', {})
+                    # Check keys: 'job_title' (new) or 'jobTitle' (legacy/other)
+                    title = meta.get('job_title') or meta.get('jobTitle')
+                    if title and isinstance(title, str):
+                        # Normalize: Title Case, remove extra whitespace
+                        clean_title = title.strip().title()
+                        job_stats_map[clean_title] = job_stats_map.get(clean_title, 0) + 1
+        except Exception as e:
+            print(f"Job Stats Aggregation Failed: {e}")
+            pass
+
+        # Sort and take top 5
+        sorted_jobs = sorted(job_stats_map.items(), key=lambda x: x[1], reverse=True)[:5]
+        # Convert to dict for frontend
+        job_stats = {k: v for k, v in sorted_jobs}
+        
+        # Fallback if empty (to avoid empty chart)
+        if not job_stats:
+            job_stats = {
+                'No Data Yet': 1
+            }
         
         # 1. Fetch Recent Errors (Real DB)
         err_res = supabase.table('error_logs').select('*').order('created_at', desc=True).limit(5).execute()
@@ -932,7 +1011,7 @@ def admin_stats():
             "active_interviews": 0, # Placeholder
             "avg_duration": 14, # Placeholder
             "total_revenue": 0, # Placeholder
-            "job_types": mock_job_stats,
+            "job_types": job_stats,
             "recent_users": recent_users,
             "recent_errors": recent_errors,
             "feature_usage": feature_usage,
