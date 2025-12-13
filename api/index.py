@@ -769,6 +769,14 @@ def admin_stats():
             'Data Scientist': 12,
             'Sales Manager': 24
         }
+
+        # Mock Recent Errors (Requested Feature)
+        recent_errors = [
+            {"timestamp": "2025-12-13T10:45:00", "email": "jason.m@example.com", "type": "Stripe_Declined"},
+            {"timestamp": "2025-12-13T09:12:00", "email": "sarah.k@example.com", "type": "Upload_Failed"},
+            {"timestamp": "2025-12-12T16:30:00", "email": "guest_user", "type": "500_Server_Error"},
+            {"timestamp": "2025-12-12T14:20:00", "email": "alex.r@example.com", "type": "Stripe_Declined"}
+        ]
         
         return jsonify({
             "total_users": total_users,
@@ -776,7 +784,8 @@ def admin_stats():
             "avg_duration": 14, # Placeholder
             "total_revenue": 0, # Placeholder
             "job_types": mock_job_stats,
-            "recent_users": recent_users
+            "recent_users": recent_users,
+            "recent_errors": recent_errors
         })
 
     except Exception as e:

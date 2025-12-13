@@ -336,6 +336,25 @@
             </div>
         </div>
 
+        <!-- Recent Errors Widget -->
+        <h3 style="margin-top: 30px; color: #dc3545;">Recent Errors</h3>
+        <div class="table-container" style="margin-bottom: 30px; border-left: 5px solid #dc3545;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User Email</th>
+                        <th>Error Type</th>
+                    </tr>
+                </thead>
+                <tbody id="errors-table-body">
+                    <tr>
+                        <td colspan="3" style="text-align:center">Loading errors...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
         <!-- Recent Users Table -->
         <h3>Recent Signups</h3>
         <div class="table-container">
@@ -427,6 +446,25 @@
                 });
             } else {
                 tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No users found</td></tr>';
+            }
+
+            // Render Error Table
+            const errorBody = document.getElementById('errors-table-body');
+            errorBody.innerHTML = '';
+
+            if (data.recent_errors && data.recent_errors.length > 0) {
+                data.recent_errors.forEach(err => {
+                    const row = `
+                        <tr>
+                            <td>${new Date(err.timestamp).toLocaleString()}</td>
+                            <td>${err.email || 'N/A'}</td>
+                            <td><span class="status-badge" style="background:#fee2e2; color:#991b1b; border: 1px solid #fecaca;">${err.type}</span></td>
+                        </tr>
+                    `;
+                    errorBody.innerHTML += row;
+                });
+            } else {
+                errorBody.innerHTML = '<tr><td colspan="3" style="text-align:center">No recent errors</td></tr>';
             }
 
             // Render Job Chart
