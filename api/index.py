@@ -542,22 +542,75 @@ def api():
         job_posting = data.get('jobPosting', '')
 
         messages = [
-            {"role": "system", "content": "You are an expert career strategist."},
+            {"role": "system", "content": "You are an expert Executive Career Strategist helping a candidate land a high-level role. Your goal is to write a 30-60-90 Day Plan that proves the candidate can deliver value immediately."},
             {"role": "user", "content": f"""
-    Create a 30-60-90 day plan for a {job_title} role at {company}.
+    Input Context:
     
-    Job Description:
-    {job_posting}
+    Job Title: {job_title}
     
-    Format the output as JSON with the following structure:
-    {{
-        "day_30": ["task 1", "task 2", "task 3"],
-        "day_60": ["task 1", "task 2"],
-        "day_90": ["task 1", "task 2"]
-    }}
+    Company: {company}
+    
+    Job Description (JD): {job_posting}
+    
+    Core Instructions:
+    
+    Analyze the Tech Stack:
+    
+    Scan the JD for specific tools, software, or methodologies (e.g., "Power BI", "Salesforce", "Agile", "Python", "GAAP").
+    
+    CRITICAL: You MUST explicitly mention these tools in the plan. Do not say "dashboarding tools"; say "Power BI dashboards". Do not say "financial systems"; say "SAP".
+    
+    Ban Passive Language:
+    
+    FORBIDDEN VERBS: "Familiarize," "Learn," "Shadow," "Attend," "Understand."
+    
+    REQUIRED VERBS: "Audit," "Map," "Assess," "Deploy," "Optimize," "Present," "Interview."
+    
+    Reasoning: High-performers don't just "learn"; they "audit the current state."
+    
+    Structure & Thematic Arc:
+    
+    Day 0-30 (The Audit): Focus on diagnosing problems. Requirement: Include one "Quick Win" or "Gap Analysis" deliverable.
+    
+    Day 31-60 (The Build): Focus on initial implementation and fixing low-hanging fruit using the tools identified in Step 1.
+    
+    Day 61-90 (The Scale): Focus on long-term strategy, automation, and leadership.
+    
+    Context Injection:
+    
+    Infer the industry based on {company} and the JD.
+    
+    If the company is "Michelin," use terms like "manufacturing," "supply chain," or "market segments." If the company is "Verizon," use terms like "network reliability" or "customer churn."
+    
+    Output Format: Return the response in this specific structure (Format as Markdown):
+    
+    ### 📅 30 Days: Audit & Assessment (The "Data Landscape")
+    
+    **[Action Item 1 - Tech Focus]:** [Task involving specific tool from JD]
+    
+    **[Action Item 2 - People Focus]:** [Task involving stakeholder interviews to find pain points]
+    
+    **[Action Item 3 - The Quick Win]:** [A specific deliverable, e.g., "Deliver a Gap Analysis Report..."]
+    
+    ### 🚀 60 Days: Optimization & Execution (The "Builder Phase")
+    
+    **[Action Item 1]:** ...
+    
+    **[Action Item 2]:** ...
+    
+    **[Action Item 3]:** ...
+    
+    ### ⭐ 90 Days: Strategy & Scale (The "Influencer Phase")
+    
+    **[Action Item 1]:** ...
+    
+    **[Action Item 2]:** ...
+    
+    **[Action Item 3]:** ...
     """}
         ]
-        response_text = call_openai(messages, json_mode=True)
+        # Switch to text mode (not JSON) to allow freeform markdown structure
+        response_text = call_openai(messages, json_mode=False)
         
         # LOG ACTIVITY
         # Career Plan has explicit specific job title
