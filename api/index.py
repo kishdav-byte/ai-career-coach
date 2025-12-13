@@ -19,6 +19,33 @@ app = Flask(__name__)
 # API Key from Environment Variable
 API_KEY = os.environ.get('OPENAI_API_KEY_')
 
+# ==========================================
+# LOGGING HELPERS
+# ==========================================
+def log_db_activity(email, feature, metadata=None):
+    """Log user activity to Supabase."""
+    if not supabase: return
+    try:
+        supabase.table('activity_logs').insert({
+            "user_email": email,
+            "feature": feature,
+            "metadata": metadata or {}
+        }).execute()
+    except Exception as e:
+        print(f"Activity Log Failed: {e}")
+
+def log_db_error(email, error_type, details):
+    """Log system error to Supabase."""
+    if not supabase: return
+    try:
+        supabase.table('error_logs').insert({
+            "user_email": email, # Can be 'system' or None
+            "error_type": error_type,
+            "details": str(details)
+        }).execute()
+    except Exception as e:
+        print(f"Error Log Failed: {e}")
+
 # Initialize Stripe
 stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
 stripe_price_id = os.environ.get('STRIPE_PRICE_ID')
@@ -566,6 +593,7 @@ def api():
     """}
         ]
         response_text = call_openai(messages)
+        log_db_activity(data.get('email', 'unknown'), 'cover_letter')
         return jsonify({"data": response_text})
         
     elif action == 'optimize':
@@ -596,6 +624,7 @@ def api():
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ], json_mode=True)
+            log_db_activity(user_data.get('personal', {}).get('email', 'unknown'), 'resume_analysis')
             return jsonify(json.loads(optimized_text))
         except Exception as e:
             print(f"Error in optimize: {e}")
@@ -703,8 +732,13 @@ def api():
                             "feature": "interview_coach"
                         }
                         supabase.table('chat_logs').insert(entry).execute()
+                        
+                        # LOG ACTIVITY (New)
+                        log_db_activity(user_email, 'interview_coach')
+                        
                 except Exception as log_err:
                     print(f"Logging Failed: {log_err}")
+                    log_db_error(data.get('email', 'unknown'), 'logging_error', log_err)
                 
                 return jsonify({"data": response_data})
                 
@@ -789,49 +823,84 @@ def admin_stats():
         # Ideally, we'd query an 'activity_log' or 'interviews' table.
         # For the prototype, we return placeholder values or calculate from users if possible.
         
-        mock_job_stats = {
-            'Product Manager': 45,
-            'Software Engineer': 32,
-            'Marketing Director': 18,
-            'Data Scientist': 12,
-            'Sales Manager': 24
-        }
+        # -----------------------------------------------
+        # REAL DATA FETCHING
+        # -----------------------------------------------
+        
+        # 1. Fetch Recent Errors (Real DB)
+        err_res = supabase.table('error_logs').select('*').order('created_at', desc=True).limit(5).execute()
+        recent_errors = []
+        if err_res.data:
+            for e in err_res.data:
+                recent_errors.append({
+                    'timestamp': e['created_at'],
+                    'email': e['user_email'] or 'System',
+                    'type': e['error_type']
+                })
 
-        # Mock Feature Usage (Keeping for reference or other widgets)
-        feature_usage = {
-            "Resume Analysis": 120,
-            "Interview Coach": 200,
-            "Chat Bot": 85
-        }
-
-        # Mock Recent Errors (Detailed list)
-        recent_errors = [
-            {"timestamp": "2025-12-13T10:45:00", "email": "jason.m@example.com", "type": "Stripe_Declined"},
-            {"timestamp": "2025-12-13T09:12:00", "email": "sarah.k@example.com", "type": "Upload_Failed"},
-            {"timestamp": "2025-12-12T16:30:00", "email": "guest_user", "type": "500_Server_Error"},
-            {"timestamp": "2025-12-12T14:20:00", "email": "alex.r@example.com", "type": "Stripe_Declined"}
-        ]
-
-        # Generate DoD Time Series Data (Last 7 Days)
+        # 2. Activity Time Series (Last 7 Days)
         dates = []
+        resume_counts = [0]*7
+        interview_counts = [0]*7
+        error_counts = [0]*7
+        
         base = datetime.now()
-        # Mock data points for the last 7 days
-        # We start from 6 days ago up to today
-        resume_data = [12, 19, 15, 22, 18, 25, 30] # Trending up
-        interview_data = [8, 12, 20, 15, 24, 28, 35] # Trending up
-        error_data = [1, 0, 2, 1, 0, 3, 1] # Sporadic
-
+        start_dt = base - timedelta(days=6)
+        
+        # Calculate Dates & Map
+        date_map = {} # "Dec 13" -> index
         for i in range(7):
             d = base - timedelta(days=6-i)
-            dates.append(d.strftime("%b %d"))
+            d_str = d.strftime("%b %d")
+            dates.append(d_str)
+            date_map[d_str] = i
+
+        # Fetch raw logs for the week
+        try:
+            act_logs = supabase.table('activity_logs').select('feature, created_at').gte('created_at', start_dt.isoformat()).execute()
+            if act_logs.data:
+                for log in act_logs.data:
+                    try:
+                        # Parse ISO timestamp
+                        ts = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00'))
+                        key = ts.strftime("%b %d")
+                        if key in date_map:
+                            idx = date_map[key]
+                            if log['feature'] == 'resume_analysis':
+                                resume_counts[idx] += 1
+                            elif log['feature'] == 'interview_coach':
+                                interview_counts[idx] += 1
+                    except: pass
+        except Exception as e:
+            print(f"Activity query failed: {e}")
+
+        try:
+            err_logs = supabase.table('error_logs').select('created_at').gte('created_at', start_dt.isoformat()).execute()
+            if err_logs.data:
+                for log in err_logs.data:
+                    try:
+                        ts = datetime.fromisoformat(log['created_at'].replace('Z', '+00:00'))
+                        key = ts.strftime("%b %d")
+                        if key in date_map:
+                            error_counts[date_map[key]] += 1
+                    except: pass
+        except Exception as e:
+             print(f"Error query failed: {e}")
 
         daily_activity = {
             "dates": dates,
             "datasets": {
-                "Resume Analysis": resume_data,
-                "Interview Coach": interview_data,
-                "System Errors": error_data
+                "Resume Analysis": resume_counts,
+                "Interview Coach": interview_counts,
+                "System Errors": error_counts
             }
+        }
+        
+        # Feature usage total (from the week window)
+        feature_usage = {
+            "Resume Analysis": sum(resume_counts),
+            "Interview Coach": sum(interview_counts),
+            "System Errors": sum(error_counts)
         }
         
         return jsonify({
