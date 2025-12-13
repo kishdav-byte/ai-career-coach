@@ -1230,6 +1230,46 @@ function init() {
             container.innerHTML = html;
         }
 
+        // Career Plan Print/Copy Logic
+        if (document.getElementById('cp-print-btn')) {
+            document.getElementById('cp-print-btn').addEventListener('click', () => {
+                const content = document.getElementById('planner-result').innerHTML;
+                if (!content || content.includes('Generating')) return alert('Please generate a plan first.');
+
+                const printArea = document.getElementById('print-area');
+                printArea.innerHTML = content;
+
+                // Fix Title
+                const originalTitle = document.title;
+                const jobTitle = document.getElementById('job-title').value || 'New Role';
+                document.title = `30-60-90 Day Plan - ${jobTitle}`;
+
+                window.print();
+                document.title = originalTitle;
+            });
+
+            document.getElementById('cp-copy-btn').addEventListener('click', async () => {
+                const content = document.getElementById('planner-result').innerHTML;
+                if (!content || content.includes('Generating')) return alert('Please generate a plan first.');
+
+                try {
+                    const blob = new Blob([content], { type: 'text/html' });
+                    const data = [new ClipboardItem({ 'text/html': blob })];
+                    await navigator.clipboard.write(data);
+                    alert('Plan copied to clipboard!');
+                } catch (err) {
+                    // Fallback
+                    const textArea = document.createElement("textarea");
+                    textArea.value = document.getElementById('planner-result').innerText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand("Copy");
+                    textArea.remove();
+                    alert('Copied as text.');
+                }
+            });
+        }
+
 
         // Tab 4: LinkedIn Optimizer
         document.getElementById('optimize-linkedin-btn').addEventListener('click', async () => {
