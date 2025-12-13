@@ -827,6 +827,19 @@ def admin_stats():
         # REAL DATA FETCHING
         # -----------------------------------------------
         
+        # -----------------------------------------------
+        # REAL DATA FETCHING
+        # -----------------------------------------------
+        
+        # Placeholder for Job Stats (since we don't have job types in DB yet)
+        mock_job_stats = {
+            'Product Manager': 45,
+            'Software Engineer': 32,
+            'Marketing Director': 18,
+            'Data Scientist': 12,
+            'Sales Manager': 24
+        }
+        
         # 1. Fetch Recent Errors (Real DB)
         err_res = supabase.table('error_logs').select('*').order('created_at', desc=True).limit(5).execute()
         recent_errors = []
@@ -917,7 +930,7 @@ def admin_stats():
 
     except Exception as e:
         print(f"Admin Stats Error: {e}")
-        return jsonify({"error": "Internal Server Error"}), 500
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/api/admin/action', methods=['POST'])
 def admin_action():
