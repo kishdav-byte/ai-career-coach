@@ -1463,7 +1463,16 @@ function init() {
 
             const printArea = document.getElementById('print-area');
             printArea.innerHTML = content;
+
+            // Fix Title for Print Header
+            const originalTitle = document.title;
+            const name = document.getElementById('rb-name').value || 'Candidate';
+            document.title = `${name} - Resume`;
+
             window.print();
+
+            // Restore Title
+            document.title = originalTitle;
             // Optional: Clear after print to avoid it showing up at bottom of page? 
             // Usually print-area is hidden in screen media.
         });
