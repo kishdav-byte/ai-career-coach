@@ -1180,92 +1180,133 @@ function init() {
         });
 
         function renderCareerPlan(data, container) {
+            // Attempt to parse if string
             if (typeof data === 'string') {
-                container.innerHTML = marked.parse(data);
-                return;
+                try {
+                    // Clean up potential markdown code blocks
+                    let clean = data.trim();
+                    if (clean.startsWith('```json')) clean = clean.slice(7);
+                    if (clean.startsWith('```')) clean = clean.slice(3);
+                    if (clean.endsWith('```')) clean = clean.slice(0, -3);
+
+                    if (clean.startsWith('{')) {
+                        data = JSON.parse(clean);
+                    } else {
+                        // Not JSON, render as markdown
+                        container.innerHTML = marked.parse(data);
+                        return;
+                    }
+                } catch (e) {
+                    // Parsing failed, render as markdown
+                    container.innerHTML = marked.parse(data);
+                    return;
+                }
             }
+
             let html = '<div class="career-plan-container">';
             const phases = [
-                { key: 'day_30', title: '30 Days: Learn & Connect' },
-                { key: 'day_60', title: '60 Days: Contribute & Build' },
-                { key: 'day_90', title: '90 Days: Lead & Innovate' }
+                { key: 'day_30', title: '📅 30 Days: Learn & Connect' },
+                { key: 'day_60', title: '🚀 60 Days: Contribute & Build' },
+                { key: 'day_90', title: '⭐ 90 Days: Lead & Innovate' }
             ];
+
             phases.forEach(phase => {
-                const items = data[phase.key] || [];
-                html += `<div class="plan-card"><h3>${phase.title}</h3><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul></div>`;
+                if (data[phase.key]) {
+                    html += `<div class="plan-phase card" style="margin-bottom:15px; padding:15px; border-left: 5px solid #4a90e2;">
+                        <h3>${phase.title}</h3>
+                        <ul style="padding-left:20px;">`;
+
+                    // Handle array or string content
+                    if (Array.isArray(data[phase.key])) {
+                        data[phase.key].forEach(item => html += `<li>${item}</li>`);
+                    } else {
+                        html += `<li>${data[phase.key]}</li>`;
+                    }
+
+                    html += `</ul></div>`;
+                }
             });
             html += '</div>';
             container.innerHTML = html;
         }
+        { key: 'day_90', title: '90 Days: Lead & Innovate' }
+            ];
+        phases.forEach(phase => {
+            const items = data[phase.key] || [];
+            html += `<div class="plan-card"><h3>${phase.title}</h3><ul>${items.map(item => `<li>${item}</li>`).join('')}</ul></div>`;
+        });
+        html += '</div>';
+        container.innerHTML = html;
+    }
 
-        // Tab 4: LinkedIn Optimizer
-        document.getElementById('optimize-linkedin-btn').addEventListener('click', async () => {
-            const aboutMe = document.getElementById('linkedin-input').value;
-            if (!aboutMe) return alert('Please paste your About Me section.');
+    // Tab 4: LinkedIn Optimizer
+    document.getElementById('optimize-linkedin-btn').addEventListener('click', async () => {
+        const aboutMe = document.getElementById('linkedin-input').value;
+        if (!aboutMe) return alert('Please paste your About Me section.');
 
-            const resultsArea = document.getElementById('linkedin-results-area');
-            const recsDiv = document.getElementById('linkedin-recommendations');
-            const sampleDiv = document.getElementById('linkedin-refined-sample');
+        const resultsArea = document.getElementById('linkedin-results-area');
+        const recsDiv = document.getElementById('linkedin-recommendations');
+        const sampleDiv = document.getElementById('linkedin-refined-sample');
 
-            resultsArea.style.display = 'block';
-            recsDiv.innerHTML = 'Loading...';
-            sampleDiv.innerHTML = 'Loading...';
+        resultsArea.style.display = 'block';
+        recsDiv.innerHTML = 'Loading...';
+        sampleDiv.innerHTML = 'Loading...';
 
-            try {
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'linkedin_optimize', aboutMe })
-                });
-                const result = await response.json();
+        try {
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'linkedin_optimize', aboutMe })
+            });
+            const result = await response.json();
 
-                if (result.data) {
-                    let data = result.data;
-                    if (typeof data === 'string') {
-                        try { data = JSON.parse(data); } catch (e) {
-                            recsDiv.innerHTML = "Could not parse recommendations.";
-                            sampleDiv.innerHTML = marked.parse(data);
-                            return;
-                        }
+            if (result.data) {
+                let data = result.data;
+                if (typeof data === 'string') {
+                    try { data = JSON.parse(data); } catch (e) {
+                        recsDiv.innerHTML = "Could not parse recommendations.";
+                        sampleDiv.innerHTML = marked.parse(data);
+                        return;
                     }
-                    if (data.recommendations) recsDiv.innerHTML = `<ul>${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>`;
-                    if (data.refined_sample) sampleDiv.innerHTML = marked.parse(data.refined_sample);
                 }
-            } catch (e) { console.error(e); alert("Error"); }
-        });
+                if (data.recommendations) recsDiv.innerHTML = `<ul>${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>`;
+                if (data.refined_sample) sampleDiv.innerHTML = marked.parse(data.refined_sample);
+            }
+        } catch (e) { console.error(e); alert("Error"); }
+    });
 
-        // Tab 5: Cover Letter (Simplified for restoration)
-        document.getElementById('generate-cl-btn').addEventListener('click', async () => {
-            const jobDesc = document.getElementById('cl-job-desc').value;
-            const resume = document.getElementById('cl-resume').value;
-            if (!jobDesc || !resume) return alert('Please fill in both fields.');
+    // Tab 5: Cover Letter (Simplified for restoration)
+    document.getElementById('generate-cl-btn').addEventListener('click', async () => {
+        const jobDesc = document.getElementById('cl-job-desc').value;
+        const resume = document.getElementById('cl-resume').value;
+        if (!jobDesc || !resume) return alert('Please fill in both fields.');
 
-            const resultEl = document.getElementById('cl-result');
-            resultEl.innerHTML = 'Generating...';
-            resultEl.style.display = 'block';
+        const resultEl = document.getElementById('cl-result');
+        resultEl.innerHTML = 'Generating...';
+        resultEl.style.display = 'block';
 
-            try {
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'cover_letter', jobDesc, resume })
-                });
-                const result = await response.json();
-                if (result.data) resultEl.innerHTML = marked.parse(result.data);
-            } catch (e) { resultEl.innerHTML = "Error"; }
-        });
+        try {
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'cover_letter', jobDesc, resume })
+            });
+            const result = await response.json();
+            if (result.data) resultEl.innerHTML = marked.parse(result.data);
+        } catch (e) { resultEl.innerHTML = "Error"; }
+    });
 
-        // Tab 6: Resume Builder (Full Logic)
+    // Tab 6: Resume Builder (Full Logic)
 
-        // Helper: Render Experience Item
-        function renderExperienceItem(data = {}) {
-            const container = document.getElementById('rb-experience-list');
-            const id = Date.now();
-            const div = document.createElement('div');
-            div.className = 'rb-item card';
-            div.style.padding = '15px';
-            div.style.marginBottom = '10px';
-            div.innerHTML = `
+    // Helper: Render Experience Item
+    function renderExperienceItem(data = {}) {
+        const container = document.getElementById('rb-experience-list');
+        const id = Date.now();
+        const div = document.createElement('div');
+        div.className = 'rb-item card';
+        div.style.padding = '15px';
+        div.style.marginBottom = '10px';
+        div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <strong>Experience</strong>
                     <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
@@ -1275,17 +1316,17 @@ function init() {
                 <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${data.dates || ''}" style="margin-bottom:5px;">
                 <textarea class="rb-exp-desc" placeholder="Description of responsibilities..." rows="3">${data.description || ''}</textarea>
             `;
-            container.appendChild(div);
-        }
+        container.appendChild(div);
+    }
 
-        // Helper: Render Education Item
-        function renderEducationItem(data = {}) {
-            const container = document.getElementById('rb-education-list');
-            const div = document.createElement('div');
-            div.className = 'rb-item card';
-            div.style.padding = '15px';
-            div.style.marginBottom = '10px';
-            div.innerHTML = `
+    // Helper: Render Education Item
+    function renderEducationItem(data = {}) {
+        const container = document.getElementById('rb-education-list');
+        const div = document.createElement('div');
+        div.className = 'rb-item card';
+        div.style.padding = '15px';
+        div.style.marginBottom = '10px';
+        div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                     <strong>Education</strong>
                     <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
@@ -1294,112 +1335,112 @@ function init() {
                 <input type="text" class="rb-edu-school" placeholder="School / University" value="${data.school || ''}" style="margin-bottom:5px;">
                 <input type="text" class="rb-edu-dates" placeholder="Dates (e.g. 2016 - 2020)" value="${data.dates || ''}">
             `;
-            container.appendChild(div);
-        }
+        container.appendChild(div);
+    }
 
-        // Add Buttons
-        document.getElementById('rb-add-exp-btn').addEventListener('click', () => renderExperienceItem());
-        document.getElementById('rb-add-edu-btn').addEventListener('click', () => renderEducationItem());
+    // Add Buttons
+    document.getElementById('rb-add-exp-btn').addEventListener('click', () => renderExperienceItem());
+    document.getElementById('rb-add-edu-btn').addEventListener('click', () => renderEducationItem());
 
-        // Sample Data
-        document.getElementById('rb-sample-btn').addEventListener('click', () => {
-            document.getElementById('rb-name').value = "Jordan Taylor";
-            document.getElementById('rb-email').value = "jordan.taylor@example.com";
-            document.getElementById('rb-phone').value = "(555) 123-4567";
-            document.getElementById('rb-linkedin').value = "linkedin.com/in/jordantaylor";
-            document.getElementById('rb-location').value = "New York, NY";
-            document.getElementById('rb-summary').value = "Results-oriented Product Manager with 5+ years of experience in SaaS specifically in the EdTech sector. Proven track record of leading cross-functional teams to deliver high-impact products.";
-            document.getElementById('rb-skills').value = "Product Management, Agile, Jira, SQL, User Research, A/B Testing, Strategic Planning";
-            document.getElementById('rb-job-desc').value = "We are looking for a Senior Product Manager to lead our Core Platform team. Experience in B2B SaaS and API-first products is required.";
+    // Sample Data
+    document.getElementById('rb-sample-btn').addEventListener('click', () => {
+        document.getElementById('rb-name').value = "Jordan Taylor";
+        document.getElementById('rb-email').value = "jordan.taylor@example.com";
+        document.getElementById('rb-phone').value = "(555) 123-4567";
+        document.getElementById('rb-linkedin').value = "linkedin.com/in/jordantaylor";
+        document.getElementById('rb-location').value = "New York, NY";
+        document.getElementById('rb-summary').value = "Results-oriented Product Manager with 5+ years of experience in SaaS specifically in the EdTech sector. Proven track record of leading cross-functional teams to deliver high-impact products.";
+        document.getElementById('rb-skills').value = "Product Management, Agile, Jira, SQL, User Research, A/B Testing, Strategic Planning";
+        document.getElementById('rb-job-desc').value = "We are looking for a Senior Product Manager to lead our Core Platform team. Experience in B2B SaaS and API-first products is required.";
 
-            // Clear and Add Sample Items
-            document.getElementById('rb-experience-list').innerHTML = '';
-            document.getElementById('rb-education-list').innerHTML = '';
+        // Clear and Add Sample Items
+        document.getElementById('rb-experience-list').innerHTML = '';
+        document.getElementById('rb-education-list').innerHTML = '';
 
-            renderExperienceItem({
-                role: "Senior Product Manager",
-                company: "TechFlow Solutions",
-                dates: "2021 - Present",
-                description: "Led the launch of the new analytics dashboard, increasing user engagement by 40%. Managed a team of 4 PMs."
-            });
-            renderExperienceItem({
-                role: "Product Manager",
-                company: "EduTech Inc.",
-                dates: "2018 - 2021",
-                description: "Spearheaded the mobile app redesign. Collaborated with engineering and design to improve onboarding flow."
-            });
+        renderExperienceItem({
+            role: "Senior Product Manager",
+            company: "TechFlow Solutions",
+            dates: "2021 - Present",
+            description: "Led the launch of the new analytics dashboard, increasing user engagement by 40%. Managed a team of 4 PMs."
+        });
+        renderExperienceItem({
+            role: "Product Manager",
+            company: "EduTech Inc.",
+            dates: "2018 - 2021",
+            description: "Spearheaded the mobile app redesign. Collaborated with engineering and design to improve onboarding flow."
+        });
 
-            renderEducationItem({
-                degree: "MBA",
-                school: "Stern School of Business",
-                dates: "2016 - 2018"
+        renderEducationItem({
+            degree: "MBA",
+            school: "Stern School of Business",
+            dates: "2016 - 2018"
+        });
+    });
+
+    // GENERATE BUTTON
+    document.getElementById('rb-generate-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('rb-generate-btn');
+        const originalText = btn.textContent;
+        btn.textContent = "Optimizing & Generating...";
+        btn.disabled = true;
+
+        // Gather Data
+        const userData = {
+            personal: {
+                name: document.getElementById('rb-name').value,
+                email: document.getElementById('rb-email').value,
+                phone: document.getElementById('rb-phone').value,
+                linkedin: document.getElementById('rb-linkedin').value,
+                location: document.getElementById('rb-location').value,
+                summary: document.getElementById('rb-summary').value
+            },
+            experience: [],
+            education: [],
+            skills: document.getElementById('rb-skills').value.split(',').map(s => s.trim()).filter(s => s),
+        };
+
+        // Gather Experience
+        document.querySelectorAll('#rb-experience-list .rb-item').forEach(item => {
+            userData.experience.push({
+                role: item.querySelector('.rb-exp-role').value,
+                company: item.querySelector('.rb-exp-company').value,
+                dates: item.querySelector('.rb-exp-dates').value,
+                description: item.querySelector('.rb-exp-desc').value
             });
         });
 
-        // GENERATE BUTTON
-        document.getElementById('rb-generate-btn').addEventListener('click', async () => {
-            const btn = document.getElementById('rb-generate-btn');
-            const originalText = btn.textContent;
-            btn.textContent = "Optimizing & Generating...";
-            btn.disabled = true;
-
-            // Gather Data
-            const userData = {
-                personal: {
-                    name: document.getElementById('rb-name').value,
-                    email: document.getElementById('rb-email').value,
-                    phone: document.getElementById('rb-phone').value,
-                    linkedin: document.getElementById('rb-linkedin').value,
-                    location: document.getElementById('rb-location').value,
-                    summary: document.getElementById('rb-summary').value
-                },
-                experience: [],
-                education: [],
-                skills: document.getElementById('rb-skills').value.split(',').map(s => s.trim()).filter(s => s),
-            };
-
-            // Gather Experience
-            document.querySelectorAll('#rb-experience-list .rb-item').forEach(item => {
-                userData.experience.push({
-                    role: item.querySelector('.rb-exp-role').value,
-                    company: item.querySelector('.rb-exp-company').value,
-                    dates: item.querySelector('.rb-exp-dates').value,
-                    description: item.querySelector('.rb-exp-desc').value
-                });
+        // Gather Education
+        document.querySelectorAll('#rb-education-list .rb-item').forEach(item => {
+            userData.education.push({
+                degree: item.querySelector('.rb-edu-degree').value,
+                school: item.querySelector('.rb-edu-school').value,
+                dates: item.querySelector('.rb-edu-dates').value
             });
+        });
 
-            // Gather Education
-            document.querySelectorAll('#rb-education-list .rb-item').forEach(item => {
-                userData.education.push({
-                    degree: item.querySelector('.rb-edu-degree').value,
-                    school: item.querySelector('.rb-edu-school').value,
-                    dates: item.querySelector('.rb-edu-dates').value
-                });
+        const jobDesc = document.getElementById('rb-job-desc').value;
+        const template = document.querySelector('.template-btn.active') ? document.querySelector('.template-btn.active').getAttribute('data-template') : 'modern';
+
+        try {
+            // Call API
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'optimize',
+                    user_data: userData,
+                    job_description: jobDesc,
+                    template_name: template
+                })
             });
+            const result = await response.json();
 
-            const jobDesc = document.getElementById('rb-job-desc').value;
-            const template = document.querySelector('.template-btn.active') ? document.querySelector('.template-btn.active').getAttribute('data-template') : 'modern';
-
-            try {
-                // Call API
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'optimize',
-                        user_data: userData,
-                        job_description: jobDesc,
-                        template_name: template
-                    })
-                });
-                const result = await response.json();
-
-                if (result.error) {
-                    alert("Error: " + result.error);
-                } else {
-                    // Render Result (Simple Preview for now)
-                    const preview = document.getElementById('resume-preview-container');
-                    let html = `<div class="resume-sheet ${template}">
+            if (result.error) {
+                alert("Error: " + result.error);
+            } else {
+                // Render Result (Simple Preview for now)
+                const preview = document.getElementById('resume-preview-container');
+                let html = `<div class="resume-sheet ${template}">
                         <h1>${result.personal?.name || userData.personal.name}</h1>
                         <p class="contact-info">${userData.personal.email} | ${userData.personal.phone} | ${userData.personal.location}</p>
                         <hr>
@@ -1409,9 +1450,9 @@ function init() {
                         <h3>Experience</h3>
                     `;
 
-                    const exps = result.experience || userData.experience; // Use Optimized Exp if available
-                    exps.forEach(exp => {
-                        html += `<div class="exp-item">
+                const exps = result.experience || userData.experience; // Use Optimized Exp if available
+                exps.forEach(exp => {
+                    html += `<div class="exp-item">
                             <div style="display:flex; justify-content:space-between;">
                                 <strong>${exp.role}</strong>
                                 <span>${exp.dates}</span>
@@ -1419,88 +1460,88 @@ function init() {
                             <div style="font-style:italic;">${exp.company}</div>
                             <p>${exp.description}</p>
                         </div>`;
-                    });
+                });
 
-                    html += `<h3>Education</h3>`;
-                    userData.education.forEach(edu => {
-                        html += `<div class="edu-item">
+                html += `<h3>Education</h3>`;
+                userData.education.forEach(edu => {
+                    html += `<div class="edu-item">
                             <div style="display:flex; justify-content:space-between;">
                                 <strong>${edu.school}</strong>
                                 <span>${edu.dates}</span>
                             </div>
                             <div>${edu.degree}</div>
                         </div>`;
-                    });
+                });
 
-                    html += `<h3>Skills</h3><p>${result.skills ? result.skills.join(', ') : userData.skills.join(', ')}</p>`;
-                    html += `</div>`;
+                html += `<h3>Skills</h3><p>${result.skills ? result.skills.join(', ') : userData.skills.join(', ')}</p>`;
+                html += `</div>`;
 
-                    preview.innerHTML = html;
-                    preview.scrollIntoView({ behavior: 'smooth' });
-                }
-
-            } catch (e) {
-                console.error(e);
-                alert("An error occurred during generation.");
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+                preview.innerHTML = html;
+                preview.scrollIntoView({ behavior: 'smooth' });
             }
+
+        } catch (e) {
+            console.error(e);
+            alert("An error occurred during generation.");
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Template Selection Logic
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
         });
+    });
 
-        // Template Selection Logic
-        document.querySelectorAll('.template-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
+    // Print / Save PDF
+    document.getElementById('rb-print-btn').addEventListener('click', () => {
+        const content = document.getElementById('resume-preview-container').innerHTML;
+        if (!content) return alert('Please generate a resume first.');
 
-        // Print / Save PDF
-        document.getElementById('rb-print-btn').addEventListener('click', () => {
-            const content = document.getElementById('resume-preview-container').innerHTML;
-            if (!content) return alert('Please generate a resume first.');
+        const printArea = document.getElementById('print-area');
+        printArea.innerHTML = content;
 
-            const printArea = document.getElementById('print-area');
-            printArea.innerHTML = content;
+        // Fix Title for Print Header (Empty to clear top-left)
+        const originalTitle = document.title;
+        // Space is safer than empty string to ensure override
+        document.title = " ";
 
-            // Fix Title for Print Header (Empty to clear top-left)
-            const originalTitle = document.title;
-            // Space is safer than empty string to ensure override
-            document.title = " ";
+        window.print();
 
-            window.print();
+        // Restore Title
+        document.title = originalTitle;
+        // Optional: Clear after print to avoid it showing up at bottom of page? 
+        // Usually print-area is hidden in screen media.
+    });
 
-            // Restore Title
-            document.title = originalTitle;
-            // Optional: Clear after print to avoid it showing up at bottom of page? 
-            // Usually print-area is hidden in screen media.
-        });
+    // Copy for Google Docs
+    document.getElementById('rb-gdocs-btn').addEventListener('click', async () => {
+        const content = document.getElementById('resume-preview-container').innerHTML;
+        if (!content) return alert('Please generate a resume first.');
 
-        // Copy for Google Docs
-        document.getElementById('rb-gdocs-btn').addEventListener('click', async () => {
-            const content = document.getElementById('resume-preview-container').innerHTML;
-            if (!content) return alert('Please generate a resume first.');
+        try {
+            const blob = new Blob([content], { type: 'text/html' });
+            const data = [new ClipboardItem({ 'text/html': blob })];
+            await navigator.clipboard.write(data);
+            alert('Resume copied! You can now paste it into Google Docs.');
+        } catch (err) {
+            console.error('Clipboard API failed', err);
+            // Fallback
+            const textArea = document.createElement("textarea");
+            textArea.value = document.getElementById('resume-preview-container').innerText; // Text only fallback
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand("Copy");
+            textArea.remove();
+            alert('Copied as text (Formatting might be lost due to browser restrictions).');
+        }
+    });
 
-            try {
-                const blob = new Blob([content], { type: 'text/html' });
-                const data = [new ClipboardItem({ 'text/html': blob })];
-                await navigator.clipboard.write(data);
-                alert('Resume copied! You can now paste it into Google Docs.');
-            } catch (err) {
-                console.error('Clipboard API failed', err);
-                // Fallback
-                const textArea = document.createElement("textarea");
-                textArea.value = document.getElementById('resume-preview-container').innerText; // Text only fallback
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("Copy");
-                textArea.remove();
-                alert('Copied as text (Formatting might be lost due to browser restrictions).');
-            }
-        });
-
-    }
+}
 
 } // End of init function
 
