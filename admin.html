@@ -503,13 +503,23 @@
 
             // Render Job Chart
             const ctx = document.getElementById('jobTypeChart').getContext('2d');
+
+            // Dynamic Colors (Non-repeating palette)
+            const palette = [
+                '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444',
+                '#ec4899', '#06b6d4', '#6366f1', '#14b8a6', '#f97316'
+            ];
+            const dataValues = data.job_types ? Object.values(data.job_types) : [1];
+            const bgColors = dataValues.map((_, i) => palette[i % palette.length]);
+
             new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: data.job_types ? Object.keys(data.job_types) : ['PM', 'Sales', 'Eng'],
+                    labels: data.job_types ? Object.keys(data.job_types) : ['No Data'],
                     datasets: [{
-                        data: data.job_types ? Object.values(data.job_types) : [12, 19, 3],
-                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b']
+                        data: dataValues,
+                        backgroundColor: bgColors,
+                        borderWidth: 1
                     }]
                 },
                 options: {

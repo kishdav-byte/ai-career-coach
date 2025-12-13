@@ -907,14 +907,32 @@ def admin_stats():
             # Fetch last 1000 logs to analyze trends
             j_logs = supabase.table('activity_logs').select('metadata').order('created_at', desc=True).limit(500).execute()
             if j_logs.data:
+                import re
                 for log in j_logs.data:
                     meta = log.get('metadata', {})
                     # Check keys: 'job_title' (new) or 'jobTitle' (legacy/other)
                     title = meta.get('job_title') or meta.get('jobTitle')
                     if title and isinstance(title, str):
-                        # Normalize: Title Case, remove extra whitespace
-                        clean_title = title.strip().title()
-                        job_stats_map[clean_title] = job_stats_map.get(clean_title, 0) + 1
+                        # NORMALIZE JOB TITLE
+                        # 1. Lowercase + Strip
+                        clean = title.lower().strip()
+                        
+                        # 2. Remove Prefixes (Senior, Junior, Lead, etc.)
+                        # Regex to remove common prefixes followed by space
+                        # prefixes: senior, junior, sr., jr., lead, principal, chief, head of, intern, vp, vice president
+                        # We replace them with empty string
+                        clean = re.sub(r'\b(senior|junior|sr\.?|jr\.?|lead|principal|chief|intern|vp|vice president|head of)\b', '', clean).strip()
+                        
+                        # 3. Clean extra spaces
+                        clean = re.sub(r'\s+', ' ', clean).strip()
+                        
+                        # 4. Filter empty results (if title was just "Senior")
+                        if not clean: continue
+                        
+                        # 5. Title Case for Display
+                        display_title = clean.title()
+
+                        job_stats_map[display_title] = job_stats_map.get(display_title, 0) + 1
         except Exception as e:
             print(f"Job Stats Aggregation Failed: {e}")
             pass
@@ -1046,7 +1064,10 @@ def admin_action():
                 curr_int = user_res.data[0].get('interview_credits', 0)
                 curr_res = user_res.data[0].get('resume_credits', 0)
                 # Add +1 to both
-                supabase.table('users').update({
+                # USE ADMIN CLIENT to bypass RLS
+                db = supabase_admin if supabase_admin else supabase
+                
+                db.table('users').update({
                     'interview_credits': curr_int + 1,
                     'resume_credits': curr_res + 1
                 }).eq('email', target_email).execute()
@@ -1058,10 +1079,11 @@ def admin_action():
              # Reset credits to at least 1 if they are 0
              user_res = supabase.table('users').select('interview_credits').eq('email', target_email).execute()
              if user_res.data:
-                 curr = user_res.data[0].get('interview_credits', 0)
-                 if curr == 0:
-                     supabase.table('users').update({'interview_credits': 1}).eq('email', target_email).execute()
-                 return jsonify({"success": True, "message": "Session reset (credits restored to 1)"})
+                  curr = user_res.data[0].get('interview_credits', 0)
+                  if curr == 0:
+                      db = supabase_admin if supabase_admin else supabase
+                      db.table('users').update({'interview_credits': 1}).eq('email', target_email).execute()
+                  return jsonify({"success": True, "message": "Session reset (credits restored to 1)"})
              else:
                 return jsonify({"error": "Target user not found"}), 404
 
