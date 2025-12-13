@@ -1255,10 +1255,205 @@ function init() {
             } catch (e) { resultEl.innerHTML = "Error"; }
         });
 
-        // Tab 6: Resume Builder (Skeleton Logic for Demo)
+        // Tab 6: Resume Builder (Full Logic)
+
+        // Helper: Render Experience Item
+        function renderExperienceItem(data = {}) {
+            const container = document.getElementById('rb-experience-list');
+            const id = Date.now();
+            const div = document.createElement('div');
+            div.className = 'rb-item card';
+            div.style.padding = '15px';
+            div.style.marginBottom = '10px';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong>Experience</strong>
+                    <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
+                </div>
+                <input type="text" class="rb-exp-role" placeholder="Role / Job Title" value="${data.role || ''}" style="margin-bottom:5px;">
+                <input type="text" class="rb-exp-company" placeholder="Company" value="${data.company || ''}" style="margin-bottom:5px;">
+                <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${data.dates || ''}" style="margin-bottom:5px;">
+                <textarea class="rb-exp-desc" placeholder="Description of responsibilities..." rows="3">${data.description || ''}</textarea>
+            `;
+            container.appendChild(div);
+        }
+
+        // Helper: Render Education Item
+        function renderEducationItem(data = {}) {
+            const container = document.getElementById('rb-education-list');
+            const div = document.createElement('div');
+            div.className = 'rb-item card';
+            div.style.padding = '15px';
+            div.style.marginBottom = '10px';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                    <strong>Education</strong>
+                    <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
+                </div>
+                <input type="text" class="rb-edu-degree" placeholder="Degree / Certificate" value="${data.degree || ''}" style="margin-bottom:5px;">
+                <input type="text" class="rb-edu-school" placeholder="School / University" value="${data.school || ''}" style="margin-bottom:5px;">
+                <input type="text" class="rb-edu-dates" placeholder="Dates (e.g. 2016 - 2020)" value="${data.dates || ''}">
+            `;
+            container.appendChild(div);
+        }
+
+        // Add Buttons
+        document.getElementById('rb-add-exp-btn').addEventListener('click', () => renderExperienceItem());
+        document.getElementById('rb-add-edu-btn').addEventListener('click', () => renderEducationItem());
+
+        // Sample Data
         document.getElementById('rb-sample-btn').addEventListener('click', () => {
-            document.getElementById('rb-name').value = "Sample Admin";
-            document.getElementById('rb-summary').value = "Experienced Admin testing restored features.";
+            document.getElementById('rb-name').value = "Jordan Taylor";
+            document.getElementById('rb-email').value = "jordan.taylor@example.com";
+            document.getElementById('rb-phone').value = "(555) 123-4567";
+            document.getElementById('rb-linkedin').value = "linkedin.com/in/jordantaylor";
+            document.getElementById('rb-location').value = "New York, NY";
+            document.getElementById('rb-summary').value = "Results-oriented Product Manager with 5+ years of experience in SaaS specifically in the EdTech sector. Proven track record of leading cross-functional teams to deliver high-impact products.";
+            document.getElementById('rb-skills').value = "Product Management, Agile, Jira, SQL, User Research, A/B Testing, Strategic Planning";
+            document.getElementById('rb-job-desc').value = "We are looking for a Senior Product Manager to lead our Core Platform team. Experience in B2B SaaS and API-first products is required.";
+
+            // Clear and Add Sample Items
+            document.getElementById('rb-experience-list').innerHTML = '';
+            document.getElementById('rb-education-list').innerHTML = '';
+
+            renderExperienceItem({
+                role: "Senior Product Manager",
+                company: "TechFlow Solutions",
+                dates: "2021 - Present",
+                description: "Led the launch of the new analytics dashboard, increasing user engagement by 40%. Managed a team of 4 PMs."
+            });
+            renderExperienceItem({
+                role: "Product Manager",
+                company: "EduTech Inc.",
+                dates: "2018 - 2021",
+                description: "Spearheaded the mobile app redesign. Collaborated with engineering and design to improve onboarding flow."
+            });
+
+            renderEducationItem({
+                degree: "MBA",
+                school: "Stern School of Business",
+                dates: "2016 - 2018"
+            });
+        });
+
+        // GENERATE BUTTON
+        document.getElementById('rb-generate-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('rb-generate-btn');
+            const originalText = btn.textContent;
+            btn.textContent = "Optimizing & Generating...";
+            btn.disabled = true;
+
+            // Gather Data
+            const userData = {
+                personal: {
+                    name: document.getElementById('rb-name').value,
+                    email: document.getElementById('rb-email').value,
+                    phone: document.getElementById('rb-phone').value,
+                    linkedin: document.getElementById('rb-linkedin').value,
+                    location: document.getElementById('rb-location').value,
+                    summary: document.getElementById('rb-summary').value
+                },
+                experience: [],
+                education: [],
+                skills: document.getElementById('rb-skills').value.split(',').map(s => s.trim()).filter(s => s),
+            };
+
+            // Gather Experience
+            document.querySelectorAll('#rb-experience-list .rb-item').forEach(item => {
+                userData.experience.push({
+                    role: item.querySelector('.rb-exp-role').value,
+                    company: item.querySelector('.rb-exp-company').value,
+                    dates: item.querySelector('.rb-exp-dates').value,
+                    description: item.querySelector('.rb-exp-desc').value
+                });
+            });
+
+            // Gather Education
+            document.querySelectorAll('#rb-education-list .rb-item').forEach(item => {
+                userData.education.push({
+                    degree: item.querySelector('.rb-edu-degree').value,
+                    school: item.querySelector('.rb-edu-school').value,
+                    dates: item.querySelector('.rb-edu-dates').value
+                });
+            });
+
+            const jobDesc = document.getElementById('rb-job-desc').value;
+            const template = document.querySelector('.template-btn.active') ? document.querySelector('.template-btn.active').getAttribute('data-template') : 'modern';
+
+            try {
+                // Call API
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'optimize',
+                        user_data: userData,
+                        job_description: jobDesc,
+                        template_name: template
+                    })
+                });
+                const result = await response.json();
+
+                if (result.error) {
+                    alert("Error: " + result.error);
+                } else {
+                    // Render Result (Simple Preview for now)
+                    const preview = document.getElementById('resume-preview-container');
+                    let html = `<div class="resume-sheet ${template}">
+                        <h1>${result.personal?.name || userData.personal.name}</h1>
+                        <p class="contact-info">${userData.personal.email} | ${userData.personal.phone} | ${userData.personal.location}</p>
+                        <hr>
+                        <h3>Professional Summary</h3>
+                        <p>${result.personal?.summary || userData.personal.summary}</p> <!-- Use Optimized Summary -->
+                        
+                        <h3>Experience</h3>
+                    `;
+
+                    const exps = result.experience || userData.experience; // Use Optimized Exp if available
+                    exps.forEach(exp => {
+                        html += `<div class="exp-item">
+                            <div style="display:flex; justify-content:space-between;">
+                                <strong>${exp.role}</strong>
+                                <span>${exp.dates}</span>
+                            </div>
+                            <div style="font-style:italic;">${exp.company}</div>
+                            <p>${exp.description}</p>
+                        </div>`;
+                    });
+
+                    html += `<h3>Education</h3>`;
+                    userData.education.forEach(edu => {
+                        html += `<div class="edu-item">
+                            <div style="display:flex; justify-content:space-between;">
+                                <strong>${edu.school}</strong>
+                                <span>${edu.dates}</span>
+                            </div>
+                            <div>${edu.degree}</div>
+                        </div>`;
+                    });
+
+                    html += `<h3>Skills</h3><p>${result.skills ? result.skills.join(', ') : userData.skills.join(', ')}</p>`;
+                    html += `</div>`;
+
+                    preview.innerHTML = html;
+                    preview.scrollIntoView({ behavior: 'smooth' });
+                }
+
+            } catch (e) {
+                console.error(e);
+                alert("An error occurred during generation.");
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        // Template Selection Logic
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
         });
     }
 
