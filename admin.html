@@ -518,27 +518,62 @@
                 }
             });
 
-            // Render Activity Chart (Bar Chart by Feature)
+            // Render Activity Chart (DoD Stacked Bar)
             const actCtx = document.getElementById('activityChart').getContext('2d');
-            const featureData = data.feature_usage || { 'Resume Analysis': 0, 'Interview Coach': 0, 'Chat': 0 };
+            const daily = data.daily_activity || { dates: [], datasets: {} };
+
+            // Safe fallback if datasets missing
+            const resumeData = daily.datasets['Resume Analysis'] || [];
+            const interviewData = daily.datasets['Interview Coach'] || [];
+            const errorData = daily.datasets['System Errors'] || [];
 
             new Chart(actCtx, {
                 type: 'bar',
                 data: {
-                    labels: Object.keys(featureData),
-                    datasets: [{
-                        label: 'Usage Count',
-                        data: Object.values(featureData),
-                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899'],
-                        borderRadius: 6
-                    }]
+                    labels: daily.dates,
+                    datasets: [
+                        {
+                            label: 'Resume Analysis',
+                            data: resumeData,
+                            backgroundColor: '#3b82f6',
+                            stack: 'Stack 0',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'Interview Coach',
+                            data: interviewData,
+                            backgroundColor: '#8b5cf6',
+                            stack: 'Stack 0',
+                            borderRadius: 4
+                        },
+                        {
+                            label: 'System Errors',
+                            data: errorData,
+                            backgroundColor: '#ef4444',
+                            stack: 'Stack 0',
+                            borderRadius: 4
+                        }
+                    ]
                 },
                 options: {
                     responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
                     },
-                    plugins: { legend: { display: false } }
+                    scales: {
+                        x: {
+                            stacked: true,
+                            grid: { display: false }
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
                 }
             });
         }

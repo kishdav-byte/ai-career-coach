@@ -8,6 +8,7 @@ import time
 import base64
 import io
 import ast
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import stripe
 
@@ -796,20 +797,42 @@ def admin_stats():
             'Sales Manager': 24
         }
 
-        # Mock Feature Usage (Requested Feature)
+        # Mock Feature Usage (Keeping for reference or other widgets)
         feature_usage = {
             "Resume Analysis": 120,
             "Interview Coach": 200,
             "Chat Bot": 85
         }
 
-        # Mock Recent Errors (Requested Feature)
+        # Mock Recent Errors (Detailed list)
         recent_errors = [
             {"timestamp": "2025-12-13T10:45:00", "email": "jason.m@example.com", "type": "Stripe_Declined"},
             {"timestamp": "2025-12-13T09:12:00", "email": "sarah.k@example.com", "type": "Upload_Failed"},
             {"timestamp": "2025-12-12T16:30:00", "email": "guest_user", "type": "500_Server_Error"},
             {"timestamp": "2025-12-12T14:20:00", "email": "alex.r@example.com", "type": "Stripe_Declined"}
         ]
+
+        # Generate DoD Time Series Data (Last 7 Days)
+        dates = []
+        base = datetime.now()
+        # Mock data points for the last 7 days
+        # We start from 6 days ago up to today
+        resume_data = [12, 19, 15, 22, 18, 25, 30] # Trending up
+        interview_data = [8, 12, 20, 15, 24, 28, 35] # Trending up
+        error_data = [1, 0, 2, 1, 0, 3, 1] # Sporadic
+
+        for i in range(7):
+            d = base - timedelta(days=6-i)
+            dates.append(d.strftime("%b %d"))
+
+        daily_activity = {
+            "dates": dates,
+            "datasets": {
+                "Resume Analysis": resume_data,
+                "Interview Coach": interview_data,
+                "System Errors": error_data
+            }
+        }
         
         return jsonify({
             "total_users": total_users,
@@ -819,7 +842,8 @@ def admin_stats():
             "job_types": mock_job_stats,
             "recent_users": recent_users,
             "recent_errors": recent_errors,
-            "feature_usage": feature_usage
+            "feature_usage": feature_usage,
+            "daily_activity": daily_activity
         })
 
     except Exception as e:
