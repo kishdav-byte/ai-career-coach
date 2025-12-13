@@ -1083,7 +1083,8 @@ def get_user_data_route():
                     "resume_credits": user.get('resume_credits', 0),
                     "interview_credits": user.get('interview_credits', 0),
                     "is_unlimited": user.get('is_unlimited', False),
-                    "subscription_status": user.get('subscription_status', 'free')
+                    "subscription_status": user.get('subscription_status', 'free'),
+                    "role": user.get('role', 'user')
                 }
             })
         else:
