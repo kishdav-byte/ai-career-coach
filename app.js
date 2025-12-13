@@ -1455,6 +1455,42 @@ function init() {
                 btn.classList.add('active');
             });
         });
+
+        // Print / Save PDF
+        document.getElementById('rb-print-btn').addEventListener('click', () => {
+            const content = document.getElementById('resume-preview-container').innerHTML;
+            if (!content) return alert('Please generate a resume first.');
+
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = content;
+            window.print();
+            // Optional: Clear after print to avoid it showing up at bottom of page? 
+            // Usually print-area is hidden in screen media.
+        });
+
+        // Copy for Google Docs
+        document.getElementById('rb-gdocs-btn').addEventListener('click', async () => {
+            const content = document.getElementById('resume-preview-container').innerHTML;
+            if (!content) return alert('Please generate a resume first.');
+
+            try {
+                const blob = new Blob([content], { type: 'text/html' });
+                const data = [new ClipboardItem({ 'text/html': blob })];
+                await navigator.clipboard.write(data);
+                alert('Resume copied! You can now paste it into Google Docs.');
+            } catch (err) {
+                console.error('Clipboard API failed', err);
+                // Fallback
+                const textArea = document.createElement("textarea");
+                textArea.value = document.getElementById('resume-preview-container').innerText; // Text only fallback
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand("Copy");
+                textArea.remove();
+                alert('Copied as text (Formatting might be lost due to browser restrictions).');
+            }
+        });
+
     }
 
 } // End of init function
