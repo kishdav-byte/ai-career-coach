@@ -487,8 +487,8 @@ def api():
         Return JSON: {{ "report": "<html>...</html>" }}
         """
         messages = [{"role": "user", "content": prompt}]
-    else:
-        elif action == 'career_plan':
+    
+    elif action == 'career_plan':
         job_title = data.get('jobTitle', '')
         company = data.get('company', '')
         job_posting = data.get('jobPosting', '')
@@ -586,6 +586,9 @@ def api():
         except Exception as e:
             print(f"Error in optimize: {e}")
             return jsonify({"error": str(e)}), 500
+
+    else:
+        return jsonify({"error": "Invalid action"}), 400
 
 
     try:
