@@ -582,6 +582,14 @@ def api():
     
     If the company is "Michelin," use terms like "manufacturing," "supply chain," or "market segments." If the company is "Verizon," use terms like "network reliability" or "customer churn."
     
+    Hierarchy Logic:
+
+    IF the Job Title contains "Manager" or "Analyst" THEN focus on Execution, Process, and Reporting.
+
+    IF the Job Title contains "Director," "VP," or "C-Level" (CEO, CTO, CMO) THEN focus on Strategy, Financials, Hiring/Culture, and Revenue.
+
+    Example: A Manager "updates the budget." A CEO "secures the capital."
+    
     Output Format: Return the response in this specific structure (Format as Markdown). Do NOT use bracketed labels like [Action Item 1].
     
     ### 📅 30 Days: Audit & Assessment
