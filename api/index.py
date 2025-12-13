@@ -582,31 +582,31 @@ def api():
     
     If the company is "Michelin," use terms like "manufacturing," "supply chain," or "market segments." If the company is "Verizon," use terms like "network reliability" or "customer churn."
     
-    Output Format: Return the response in this specific structure (Format as Markdown):
+    Output Format: Return the response in this specific structure (Format as Markdown). Do NOT use bracketed labels like [Action Item 1].
     
-    ### 📅 30 Days: Audit & Assessment (The "Data Landscape")
+    ### 📅 30 Days: Audit & Assessment
     
-    **[Action Item 1 - Tech Focus]:** [Task involving specific tool from JD]
+    **Tech Audit:** [Task involving specific tool from JD]
     
-    **[Action Item 2 - People Focus]:** [Task involving stakeholder interviews to find pain points]
+    **Stakeholder Alignment:** [Task involving stakeholder interviews]
     
-    **[Action Item 3 - The Quick Win]:** [A specific deliverable, e.g., "Deliver a Gap Analysis Report..."]
+    **Quick Win:** [A specific deliverable, e.g., "Deliver gap analysis..."]
     
-    ### 🚀 60 Days: Optimization & Execution (The "Builder Phase")
+    ### 🚀 60 Days: Optimization & Execution
     
-    **[Action Item 1]:** ...
+    **Implementation:** ...
     
-    **[Action Item 2]:** ...
+    **Process Optimization:** ...
     
-    **[Action Item 3]:** ...
+    **Key Deliverable:** ...
     
-    ### ⭐ 90 Days: Strategy & Scale (The "Influencer Phase")
+    ### ⭐ 90 Days: Strategy & Scale
     
-    **[Action Item 1]:** ...
+    **Strategic Initiative:** ...
     
-    **[Action Item 2]:** ...
+    **Team Leadership:** ...
     
-    **[Action Item 3]:** ...
+    **Long-term Impact:** ...
     """}
         ]
         # Switch to text mode (not JSON) to allow freeform markdown structure
