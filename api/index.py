@@ -150,6 +150,12 @@ def optimize_resume_content():
         if text.endswith('```'):
             text = text[:-3]
         
+        
+        # LOG ACTIVITY
+        email = user_data.get('personal', {}).get('email')
+        if email:
+            log_db_activity(email, 'resume_analysis')
+            
         return jsonify(json.loads(text))
             
     except Exception as e:
@@ -774,10 +780,15 @@ def api():
                         print(f"Error deducting credit after report: {credit_err}")
                         # Do NOT block the report return
                         
+                # LOG ACTIVITY
+                log_db_activity(email, 'career_plan')
                 return jsonify({"data": report_data})
             except Exception as e:
                 return jsonify({"data": text})
 
+        if action == 'analyze_resume':
+            log_db_activity(data.get('email', 'unknown'), 'resume_analysis')
+            
         return jsonify({"data": text})
 
     except Exception as e:
