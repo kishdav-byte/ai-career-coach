@@ -279,6 +279,9 @@
             <a href="#" class="nav-link" onclick="alert('Feature archived. Ask dev to restore.')">
                 <span class="nav-icon">📅</span> 30-60-90 Plan
             </a>
+            <a href="#" class="nav-link" onclick="adminLogout()">
+                <span class="nav-icon">🚪</span> Logout
+            </a>
         </nav>
     </div>
 
@@ -504,8 +507,18 @@
         } 
         */
 
-        // Trigger Real Check
+        // Check Admin Access on Load
         window.onload = checkAdminAuth;
+
+        // Admin Logout Function
+        function adminLogout() {
+            if (confirm("Are you sure you want to log out?")) {
+                localStorage.removeItem('aceinterview_session');
+                localStorage.removeItem('supabase.auth.token');
+                localStorage.removeItem('admin_ghost_mode');
+                window.location.href = '/login.html';
+            }
+        }
 
     </script>
 </body>
