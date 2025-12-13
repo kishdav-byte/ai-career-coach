@@ -252,24 +252,7 @@ def api():
                                     # Subsequent messages checks (simplified: if they started, they can finish)
                                     has_access = True
 
-                        elif action == 'parse_resume':
-                            # Utility feature: Free to use (improves UX)
-                            has_access = True
 
-                    if has_access:
-                         # ------------------------------------------------
-                         # GENERATE RESPONSE
-                         # ------------------------------------------------
-                         
-                         if action == 'parse_resume':
-                             resume_text = data.get('resume_text', '')
-                             system_msg = "You are a data extraction assistant. Parse the provided resume text and return a JSON object with these keys: personal (name, email, phone, location, linkedin, summary), skills (array of strings), experience (array of objects with role, company, dates, description), education (array of objects with degree, school, dates). Return ONLY valid JSON."
-                             user_msg = f"Resume Text:\n{resume_text}"
-                             messages = [
-                                 {"role": "system", "content": system_msg},
-                                 {"role": "user", "content": user_msg}
-                             ]
-                             json_mode = True
 
 
                     
@@ -548,6 +531,17 @@ def api():
         "refined_sample": "full text of the rewritten section"
     }}
     """}
+        ]
+        response_text = call_openai(messages, json_mode=True)
+        return jsonify({"data": response_text})
+
+    elif action == 'parse_resume':
+        resume_text = data.get('resume_text', '')
+        system_msg = "You are a data extraction assistant. Parse the provided resume text and return a JSON object with these keys: personal (name, email, phone, location, linkedin, summary), skills (array of strings), experience (array of objects with role, company, dates, description), education (array of objects with degree, school, dates). Return ONLY valid JSON."
+        user_msg = f"Resume Text:\n{resume_text}"
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
         ]
         response_text = call_openai(messages, json_mode=True)
         return jsonify({"data": response_text})
