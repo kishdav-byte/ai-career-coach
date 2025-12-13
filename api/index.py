@@ -679,6 +679,32 @@ def api():
                 if audio_base64:
                     response_data['audio'] = audio_base64
                 
+                if audio_base64:
+                    response_data['audio'] = audio_base64
+                
+                # LOGGING: Save to DB
+                try:
+                    user_email = data.get('email')
+                    
+                    # If email missing (dev mode), try to find it
+                    if not user_email and 'user_data' in data:
+                         user_email = data.get('user_data', {}).get('personal', {}).get('email')
+
+                    if user_email and supabase:
+                        # Construct log entry
+                        # We combine feedback + next question for the full context
+                        ai_text = (response_data.get('feedback', '') + " " + response_data.get('next_question', '')).strip()
+                        
+                        entry = {
+                            "user_email": user_email,
+                            "message": message,
+                            "response": ai_text,
+                            "feature": "interview_coach"
+                        }
+                        supabase.table('chat_logs').insert(entry).execute()
+                except Exception as log_err:
+                    print(f"Logging Failed: {log_err}")
+                
                 return jsonify({"data": response_data})
                 
             except Exception as e:
@@ -770,6 +796,13 @@ def admin_stats():
             'Sales Manager': 24
         }
 
+        # Mock Feature Usage (Requested Feature)
+        feature_usage = {
+            "Resume Analysis": 120,
+            "Interview Coach": 200,
+            "Chat Bot": 85
+        }
+
         # Mock Recent Errors (Requested Feature)
         recent_errors = [
             {"timestamp": "2025-12-13T10:45:00", "email": "jason.m@example.com", "type": "Stripe_Declined"},
@@ -785,12 +818,80 @@ def admin_stats():
             "total_revenue": 0, # Placeholder
             "job_types": mock_job_stats,
             "recent_users": recent_users,
-            "recent_errors": recent_errors
+            "recent_errors": recent_errors,
+            "feature_usage": feature_usage
         })
 
     except Exception as e:
         print(f"Admin Stats Error: {e}")
         return jsonify({"error": "Internal Server Error"}), 500
+
+@app.route('/api/admin/action', methods=['POST'])
+def admin_action():
+    """Execute quick actions on users (Add Credit, Reset)."""
+    try:
+        data = request.json
+        admin_email = data.get('admin_email', '').strip().lower()
+        target_email = data.get('target_email', '').strip().lower() # The user to modify
+        action_type = data.get('action_type')
+
+        if not admin_email or not target_email or not supabase:
+             return jsonify({"error": "Missing parameters"}), 400
+
+        # Verify Admin (Simplified)
+        admin_res = supabase.table('users').select('role').eq('email', admin_email).execute()
+        if not admin_res.data or admin_res.data[0].get('role') != 'admin':
+             return jsonify({"error": "Access Denied"}), 403
+
+        if action_type == 'add_credit':
+            # Retrieve current
+            user_res = supabase.table('users').select('interview_credits, resume_credits').eq('email', target_email).execute()
+            if user_res.data:
+                curr_int = user_res.data[0].get('interview_credits', 0)
+                curr_res = user_res.data[0].get('resume_credits', 0)
+                # Add +1 to both
+                supabase.table('users').update({
+                    'interview_credits': curr_int + 1,
+                    'resume_credits': curr_res + 1
+                }).eq('email', target_email).execute()
+                return jsonify({"success": True, "message": "Credits added (+1)"})
+            else:
+                return jsonify({"error": "Target user not found"}), 404
+
+        elif action_type == 'reset_session':
+             # Reset credits to at least 1 if they are 0
+             user_res = supabase.table('users').select('interview_credits').eq('email', target_email).execute()
+             if user_res.data:
+                 curr = user_res.data[0].get('interview_credits', 0)
+                 if curr == 0:
+                     supabase.table('users').update({'interview_credits': 1}).eq('email', target_email).execute()
+                 return jsonify({"success": True, "message": "Session reset (credits restored to 1)"})
+             else:
+                return jsonify({"error": "Target user not found"}), 404
+
+        return jsonify({"error": "Unknown action"}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/transcript', methods=['POST'])
+def admin_transcript():
+    """Fetch chat logs for a user."""
+    try:
+        data = request.json
+        target_email = data.get('target_email')
+        
+        if not target_email or not supabase:
+            return jsonify({"error": "Missing email"}), 400
+
+        # Fetch last 20 logs
+        res = supabase.table('chat_logs').select('*').eq('user_email', target_email).order('created_at', desc=True).limit(20).execute()
+        
+        logs = res.data if res.data else []
+        return jsonify({"success": True, "logs": logs})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 # ========================================
 # USER AUTHENTICATION ENDPOINTS

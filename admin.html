@@ -366,14 +366,40 @@
                         <th>Plan</th>
                         <th>Joined</th>
                         <th>Credits</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="users-table-body">
                     <tr>
-                        <td colspan="5" style="text-align:center">Loading...</td>
+                        <td colspan="6" style="text-align:center">Loading...</td>
                     </tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Transcript Modal -->
+    <div id="transcript-modal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div
+            style="background: white; width: 600px; max-width: 90%; height: 80vh; border-radius: 12px; display: flex; flex-direction: column; overflow: hidden;">
+            <div
+                style="padding: 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0;">Transcript Viewer</h3>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="transcript-header"
+                style="padding: 10px 20px; background: #f8f9fa; font-size: 0.9rem; color: #666;">
+                Viewing logs for: ...
+            </div>
+            <div id="transcript-content" style="flex: 1; overflow-y: auto; padding: 20px;">
+                <!-- Chat logs go here -->
+                <p>Loading...</p>
+            </div>
+            <div style="padding: 15px; border-top: 1px solid #eee; text-align: right;">
+                <button onclick="closeModal()" class="secondary-btn">Close</button>
+            </div>
         </div>
     </div>
 
@@ -440,12 +466,20 @@
                             <td><span class="status-badge ${statusClass}">${user.subscription_status || 'Free'}</span></td>
                             <td>${new Date(user.created_at).toLocaleDateString()}</td>
                             <td>${user.interview_credits || 0} Int / ${user.resume_credits || 0} Res</td>
+                            <td>
+                                <select onchange="handleAction(this, '${user.email}')" style="padding:6px; border-radius:6px; border:1px solid #cbd5e1; font-size:0.85rem; cursor:pointer;">
+                                   <option value="">Manage...</option>
+                                   <option value="add_credit">⚡ Add +1 Credit</option>
+                                   <option value="reset_session">🔄 Reset Session</option>
+                                   <option value="view_transcript">📄 View Transcript</option>
+                                </select>
+                            </td>
                         </tr>
                     `;
                     tbody.innerHTML += row;
                 });
             } else {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center">No users found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No users found</td></tr>';
             }
 
             // Render Error Table
@@ -484,27 +518,115 @@
                 }
             });
 
-            // Render Activity Chart (Dummy Data for now as we don't have historical logs table yet)
+            // Render Activity Chart (Bar Chart by Feature)
             const actCtx = document.getElementById('activityChart').getContext('2d');
+            const featureData = data.feature_usage || { 'Resume Analysis': 0, 'Interview Coach': 0, 'Chat': 0 };
+
             new Chart(actCtx, {
-                type: 'line',
+                type: 'bar',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: Object.keys(featureData),
                     datasets: [{
-                        label: 'Interviews Conducted',
-                        data: [5, 9, 7, 12, 15, 8, 4],
-                        borderColor: '#2563eb',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(37, 99, 235, 0.05)'
+                        label: 'Usage Count',
+                        data: Object.values(featureData),
+                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899'],
+                        borderRadius: 6
                     }]
                 },
                 options: {
                     responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: { legend: { display: false } }
                 }
             });
+        }
+
+        // Action Handler
+        function handleAction(select, email) {
+            const action = select.value;
+            if (!action) return;
+
+            // Reset select
+            select.value = "";
+
+            if (action === 'view_transcript') {
+                viewTranscript(email);
+            } else {
+                executeAction(email, action);
+            }
+        }
+
+        async function executeAction(targetEmail, actionType) {
+            if (!confirm(`Are you sure you want to perform: ${actionType}?`)) return;
+
+            const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+            try {
+                const res = await fetch('/api/admin/action', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        admin_email: session.email,
+                        target_email: targetEmail,
+                        action_type: actionType
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('Success: ' + result.message);
+                    location.reload(); // Refresh to see stats update
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (e) {
+                alert('Action failed: ' + e);
+            }
+        }
+
+        async function viewTranscript(email) {
+            const modal = document.getElementById('transcript-modal');
+            const content = document.getElementById('transcript-content');
+            const header = document.getElementById('transcript-header');
+
+            modal.style.display = 'flex';
+            header.textContent = `Viewing logs for: ${email}`;
+            content.innerHTML = '<p>Loading logs...</p>';
+
+            try {
+                const res = await fetch('/api/admin/transcript', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ target_email: email })
+                });
+                const result = await res.json();
+
+                content.innerHTML = '';
+                if (result.success && result.logs.length > 0) {
+                    result.logs.forEach(log => {
+                        const div = document.createElement('div');
+                        div.style.marginBottom = "20px";
+                        div.style.borderBottom = "1px solid #eee";
+                        div.style.paddingBottom = "10px";
+                        div.innerHTML = `
+                            <div style="font-weight:bold; color:#2563eb; margin-bottom:5px;">User:</div>
+                            <div style="margin-bottom:10px; background:#f1f5f9; padding:10px; border-radius:8px;">${log.message || '(No text)'}</div>
+                            <div style="font-weight:bold; color:#16a34a; margin-bottom:5px;">AI:</div>
+                            <div style="background:#dcfce7; padding:10px; border-radius:8px;">${log.response || '(No response)'}</div>
+                            <div style="font-size:0.75rem; color:#999; margin-top:5px;">${new Date(log.created_at).toLocaleString()}</div>
+                        `;
+                        content.appendChild(div);
+                    });
+                } else {
+                    content.innerHTML = '<p>No transcript history found for this user.</p>';
+                }
+            } catch (e) {
+                content.innerHTML = '<p style="color:red">Failed to load transcript.</p>';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('transcript-modal').style.display = 'none';
         }
 
         // Ghost Mode Toggle
