@@ -1,7 +1,15 @@
 {
     "rewrites": [
         {
+            "source": "/api/auth/user",
+            "destination": "/api/index.py"
+        },
+        {
             "source": "/api/(.*)",
+            "destination": "/api/index.py"
+        },
+        {
+            "source": "/api",
             "destination": "/api/index.py"
         },
         {
@@ -39,6 +47,14 @@
         {
             "source": "/pricing",
             "destination": "/pricing.html"
+        },
+        {
+            "source": "/forgot-password",
+            "destination": "/forgot-password.html"
+        },
+        {
+            "source": "/update-password",
+            "destination": "/update-password.html"
         }
     ]
 }

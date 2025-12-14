@@ -1,15 +1,32 @@
 :root {
-    --primary-color: #007bff;
-    --primary-light: #e6f2ff;
-    --text-color: #333;
-    --bg-color: #f4f7f6;
-    --card-bg: #ffffff;
-    --border-color: #ddd;
-    --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Interview Lab Palette */
+    --primary-color: #0A2540;
+    /* Deep Royal Navy */
+    --primary-light: #E3F2FD;
+    /* Soft Blue for backgrounds/highlights */
+    --accent-color: #20C997;
+    /* Mint Teal */
+    --alert-color: #FF6B6B;
+    /* Warm Coral */
+
+    --bg-color: #F8F9FA;
+    /* Soft Lab White */
+    --card-bg: #FFFFFF;
+    /* Pure White */
+
+    --text-main: #111827;
+    /* Near Black - Headings */
+    --text-color: #4B5563;
+    /* Cool Gray - Body */
+
+    --border-color: #E5E7EB;
+    /* Light Gray */
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    /* Softer shadow */
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background-color: var(--bg-color);
     color: var(--text-color);
     margin: 0;
@@ -34,6 +51,7 @@ header {
 header h1 {
     color: var(--primary-color);
     margin-bottom: 5px;
+    font-weight: 800;
 }
 
 header p {
@@ -163,6 +181,26 @@ textarea {
     transition: background 0.3s;
     display: block;
     width: 100%;
+    font-weight: 600;
+}
+
+.success-btn {
+    background-color: var(--success);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.3s;
+    display: block;
+    width: 100%;
+    font-weight: 600;
+}
+
+.success-btn:hover {
+    background-color: #1aa179;
+    /* Darker Teal */
 }
 
 .action-btn:hover {
@@ -543,12 +581,18 @@ textarea {
 }
 
 .secondary-btn {
-    background-color: #6c757d;
-    color: white;
-    border: none;
+    background-color: var(--card-bg);
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
     padding: 8px 16px;
     border-radius: 5px;
     cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.secondary-btn:hover {
+    background-color: var(--primary-light);
 }
 
 /* Cover Letter Styling */
@@ -1311,6 +1355,7 @@ textarea {
         min-width: 44px;
     }
 }
+
 /* ========================================
    RESUME ANALYSIS REPORT UI
    ======================================== */
@@ -1328,7 +1373,7 @@ textarea {
     padding: 30px;
     background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     border: 1px solid #eee;
 }
 
@@ -1346,7 +1391,7 @@ textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,123,255,0.2);
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
 }
 
 .score-circle span {
@@ -1390,7 +1435,7 @@ textarea {
     padding: 25px;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     border: 1px solid #eee;
 }
 
@@ -1455,7 +1500,7 @@ textarea {
 
 .list-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 .badge {
@@ -1563,7 +1608,7 @@ textarea {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s;
 }
 
@@ -1574,20 +1619,33 @@ textarea {
 
 .premium-btn.outline {
     background: transparent;
-    border: 2px solid rgba(255,255,255,0.8);
+    border: 2px solid rgba(255, 255, 255, 0.8);
     color: white;
     box-shadow: none;
 }
 
 .premium-btn.outline:hover {
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 @media print {
-    body { background: white; }
-    .upsell-container, .action-btn { display: none !important; }
-    .resume-report { box-shadow: none; border: none; }
-    .score-circle { border: 4px solid #007bff; }
+    body {
+        background: white;
+    }
+
+    .upsell-container,
+    .action-btn {
+        display: none !important;
+    }
+
+    .resume-report {
+        box-shadow: none;
+        border: none;
+    }
+
+    .score-circle {
+        border: 4px solid #007bff;
+    }
 }
 
 /* ========================================
@@ -1615,7 +1673,7 @@ textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,123,255,0.25);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.25);
 }
 
 .score-circle-large span {
@@ -1660,21 +1718,27 @@ textarea {
     border-radius: 6px;
 }
 
-.progress-bar .fill.avg { background: #6c757d; }
-.progress-bar .fill.top { background: #28a745; }
+.progress-bar .fill.avg {
+    background: #6c757d;
+}
+
+.progress-bar .fill.top {
+    background: #28a745;
+}
 
 .benchmark-text {
     margin-top: 15px;
     font-size: 0.95rem;
     padding: 10px;
-    background: rgba(255,255,255,0.6);
+    background: rgba(255, 255, 255, 0.6);
     border-radius: 6px;
     border: 1px solid #e0e0e0;
 }
 
 /* Detailed Improvements */
 .list-item.detailed {
-    display: block; /* Override flex */
+    display: block;
+    /* Override flex */
     padding: 20px;
 }
 
@@ -1730,7 +1794,7 @@ textarea {
 .rewrite-card {
     background: #fff;
     border: 1px solid #e0e0e0;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
@@ -1809,11 +1873,20 @@ textarea {
     border-bottom: 1px solid #f8f8f8;
 }
 
-.k-list.good li { color: #28a745; }
-.k-list.missing li { color: #dc3545; }
-.k-list.overused li { color: #856404; }
+.k-list.good li {
+    color: #28a745;
+}
 
-.k-list .tip, .k-list .alts {
+.k-list.missing li {
+    color: #dc3545;
+}
+
+.k-list.overused li {
+    color: #856404;
+}
+
+.k-list .tip,
+.k-list .alts {
     display: block;
     font-size: 0.8rem;
     color: #999;
@@ -1839,12 +1912,26 @@ textarea {
     border: 1px solid #ffeeba;
 }
 
-.interview-tip h4 { color: #856404; border-bottom-color: #ffeeba; }
-.interview-tip a { color: #856404; font-weight: bold; text-decoration: underline; }
+.interview-tip h4 {
+    color: #856404;
+    border-bottom-color: #ffeeba;
+}
+
+.interview-tip a {
+    color: #856404;
+    font-weight: bold;
+    text-decoration: underline;
+}
 
 @media (max-width: 768px) {
-    .rewrite-grid { grid-template-columns: 1fr; }
-    .benchmark-grid { flex-direction: column; align-items: flex-start; }
+    .rewrite-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .benchmark-grid {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }
 
 
@@ -1986,8 +2073,15 @@ textarea {
     font-size: 0.9rem;
 }
 
-.gap-row.old { color: #666; font-style: italic; }
-.gap-row.new { color: #155724; font-weight: 500; }
+.gap-row.old {
+    color: #666;
+    font-style: italic;
+}
+
+.gap-row.new {
+    color: #155724;
+    font-weight: 500;
+}
 
 .gap-reason {
     margin-top: 8px;
@@ -2014,14 +2108,39 @@ textarea {
     }
 
     /* Hide Navigation & non-essentials */
-    header, .nav-tabs, .upsell-container, .action-btn, .chat-input-area, .sidebar, #record-btn, .version-display, .upsell-buttons {
+    header,
+    .nav-tabs,
+    .upsell-container,
+    .action-btn,
+    .chat-input-area,
+    .sidebar,
+    #record-btn,
+    .version-display,
+    .upsell-buttons {
         display: none !important;
     }
-    
+
     /* Ensure Report is nice and wide */
-    main { width: 100%; max-width: 100%; margin: 0; padding: 0; }
-    .container { width: 100%; max-width: 100%; padding: 0; margin: 0; }
-    .resume-report { width: 100%; border: none; box-shadow: none; padding: 0; }
+    main {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    .resume-report {
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+    }
 
     /* --- PAGE 1: OVERVIEW (Score + Flags + Strengths) --- */
     /* Force break after strengths to ensure Page 1 is Overview */
@@ -2046,8 +2165,10 @@ textarea {
     .report-section {
         margin-bottom: 20px;
         padding: 10px;
-        border: 1px solid #eee; /* Light border for separation */
-        page-break-inside: avoid; /* Try to keep headers with content */
+        border: 1px solid #eee;
+        /* Light border for separation */
+        page-break-inside: avoid;
+        /* Try to keep headers with content */
     }
 
     h4 {
@@ -2057,39 +2178,87 @@ textarea {
     }
 
     /* Remove heavy backgrounds for ink saving */
-    .benchmark-section, .score-circle-large, .rewrite-card, .list-item, .flag-item {
+    .benchmark-section,
+    .score-circle-large,
+    .rewrite-card,
+    .list-item,
+    .flag-item {
         background: white !important;
         box-shadow: none !important;
         border: 1px solid #ddd !important;
     }
-    
-    .score-circle-large { border: 6px solid #000; color: #000; }
-    .score-circle-large span { color: #000; }
+
+    .score-circle-large {
+        border: 6px solid #000;
+        color: #000;
+    }
+
+    .score-circle-large span {
+        color: #000;
+    }
 
     /* Prevent breaking inside cards */
-    .card-item, .list-item, .rewrite-card, .flag-item, .gap-item {
+    .card-item,
+    .list-item,
+    .rewrite-card,
+    .flag-item,
+    .gap-item {
         page-break-inside: avoid;
         break-inside: avoid;
     }
-    
+
     /* Adjust Grid Layouts for Print */
-    .grid-3, .grid-2 {
-        display: block; /* Stack grids to prevent weird width issues */
+    .grid-3,
+    .grid-2 {
+        display: block;
+        /* Stack grids to prevent weird width issues */
     }
-    .card-item { margin-bottom: 10px; }
-    
+
+    .card-item {
+        margin-bottom: 10px;
+    }
+
     /* Benchmarks */
-    .benchmark-grid { flex-direction: row; flex-wrap: nowrap; gap: 20px; }
-    .progress-bar { border: 1px solid #999; }
-    .progress-bar .fill { -webkit-print-color-adjust: exact; print-color-adjust: exact; } /* Force color print for bars */
+    .benchmark-grid {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 20px;
+    }
+
+    .progress-bar {
+        border: 1px solid #999;
+    }
+
+    .progress-bar .fill {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    /* Force color print for bars */
 
     /* Typography adjustments */
-    p, li { line-height: 1.4; }
-    
+    p,
+    li {
+        line-height: 1.4;
+    }
+
     /* Links */
-    a { text-decoration: none; color: black; }
-    a::after { content: " (" attr(href) ")"; font-size: 0.8em; color: #666; }
-    a[href^="#"]::after { content: ""; } /* Don't show links for internal tab jumps */
+    a {
+        text-decoration: none;
+        color: black;
+    }
+
+    a::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        color: #666;
+    }
+
+    a[href^="#"]::after {
+        content: "";
+    }
+
+    /* Don't show links for internal tab jumps */
 }
 
 /* ========================================
@@ -2220,8 +2389,10 @@ textarea {
    ======================================== */
 
 .report-section {
-    padding: 15px !important; /* Reduce from 20px */
-    margin-bottom: 20px !important; /* Reduce gap between sections */
+    padding: 15px !important;
+    /* Reduce from 20px */
+    margin-bottom: 20px !important;
+    /* Reduce gap between sections */
 }
 
 h4 {
@@ -2229,23 +2400,35 @@ h4 {
 }
 
 /* Tighter Lists */
-.k-list li, .action-group li {
+.k-list li,
+.action-group li {
     padding: 4px 0 !important;
 }
 
 /* Tighter Cards */
-.card-item, .rewrite-card, .flag-item, .gap-item, .list-item.detailed {
+.card-item,
+.rewrite-card,
+.flag-item,
+.gap-item,
+.list-item.detailed {
     padding: 15px !important;
     margin-bottom: 15px !important;
 }
 
 /* Minimize open space in example boxes */
-.example-box, .gap-fix-box {
+.example-box,
+.gap-fix-box {
     margin: 10px 0 !important;
     padding: 10px !important;
 }
-.ex-arrow { margin: 2px 0 !important; }
-.ex-row { margin-bottom: 2px !important; }
+
+.ex-arrow {
+    margin: 2px 0 !important;
+}
+
+.ex-row {
+    margin-bottom: 2px !important;
+}
 
 /* Score Circle Adjustment */
 .score-circle-large {
@@ -2253,7 +2436,10 @@ h4 {
     height: 100px !important;
     border-width: 6px !important;
 }
-.score-circle-large span { font-size: 2rem !important; }
+
+.score-circle-large span {
+    font-size: 2rem !important;
+}
 
 /* Disclaimer Top Styling */
 .upsell-disclaimer-box {
@@ -2268,13 +2454,17 @@ h4 {
         break-before: page;
         display: block;
     }
-    
+
     /* Ensure ATS/Formatting stay side-by-side or stacked cleanly */
-    .grid-2 { gap: 10px; margin-bottom: 10px; }
+    .grid-2 {
+        gap: 10px;
+        margin-bottom: 10px;
+    }
 }
 
 /* Further Grid Condensing */
-.grid-2, .grid-3 {
+.grid-2,
+.grid-3 {
     gap: 10px !important;
 }
 
@@ -2283,7 +2473,9 @@ h4 {
 }
 
 /* Tighter headers */
-h3, h4, h5 {
+h3,
+h4,
+h5 {
     margin-top: 0 !important;
 }
 
@@ -2293,8 +2485,9 @@ h3, h4, h5 {
    ======================================== */
 
 @media print {
+
     /* Force sections to stay together */
-    .report-section, 
+    .report-section,
     .upsell-section-new,
     .benchmark-section,
     .red-flags,
@@ -2308,21 +2501,27 @@ h3, h4, h5 {
     .interview-tip {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
-        display: block; /* Ensure block formatting context */
+        display: block;
+        /* Ensure block formatting context */
         position: relative;
     }
 
     /* Prevent headers from being stranded at bottom of page */
-    h1, h2, h3, h4, h5, h6 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
         page-break-after: avoid !important;
         break-after: avoid !important;
     }
 
     /* Ensure specific grid items don't split weirdly */
-    .card-item, 
-    .list-item, 
-    .rewrite-card, 
-    .flag-item, 
+    .card-item,
+    .list-item,
+    .rewrite-card,
+    .flag-item,
     .gap-item,
     .gap-fix-box,
     .example-box {
@@ -2331,9 +2530,11 @@ h3, h4, h5 {
     }
 
     /* Allow lists to break between items, but not inside items */
-    ul, ol {
+    ul,
+    ol {
         page-break-inside: auto;
     }
+
     li {
         page-break-inside: avoid;
         break-inside: avoid;
@@ -2341,6 +2542,6 @@ h3, h4, h5 {
 
     /* Ensure the wrapper for ATS/Formatting respects page breaks */
     .final-steps-wrapper {
-        page-break-inside: auto; 
+        page-break-inside: auto;
     }
 }

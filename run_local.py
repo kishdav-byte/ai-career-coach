@@ -1,0 +1,45 @@
+from flask import send_from_directory, request
+from api.index import app
+import os
+
+# Get absolute path of the folder containing this script (project root)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+print(f"DEBUG: BASE_DIR: {BASE_DIR}")
+print(f"DEBUG: App Root Path (before): {app.root_path}")
+
+# Patch app root path to match current directory (optional, but good practice)
+app.root_path = BASE_DIR
+
+print(f"DEBUG: App Root Path (after): {app.root_path}")
+
+@app.route('/app')
+def serve_app():
+    print(f"DEBUG: Serving {BASE_DIR}/app.html")
+    try:
+        return send_from_directory(BASE_DIR, 'app.html')
+    except Exception as e:
+        print(f"ERROR: {e}")
+        return str(e), 500
+
+@app.route('/')
+def serve_index():
+    print(f"DEBUG: Serving {BASE_DIR}/index.html")
+    return send_from_directory(BASE_DIR, 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    # Try serving exact file from BASE_DIR
+    if os.path.exists(os.path.join(BASE_DIR, path)):
+        return send_from_directory(BASE_DIR, path)
+    
+    # Try serving HTML file (e.g. /login -> login.html)
+    if os.path.exists(os.path.join(BASE_DIR, path + '.html')):
+        return send_from_directory(BASE_DIR, path + '.html')
+
+    print(f"DEBUG: 404 for {path}")
+    return "File not found", 404
+
+if __name__ == '__main__':
+    print(f"🚀 Starting AI Career Coach locally at http://localhost:3000")
+    app.run(port=3000, debug=True)

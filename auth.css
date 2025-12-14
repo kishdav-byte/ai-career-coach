@@ -1,15 +1,22 @@
-/* content from login.html */
 :root {
-    --primary: #2563eb;
-    --primary-dark: #1d4ed8;
-    --dark: #0f172a;
-    --gray-600: #475569;
-    --gray-200: #e2e8f0;
-    --gray-100: #f1f5f9;
+    --primary: #0A2540;
+    /* Navy */
+    --primary-dark: #051b30;
+    /* Darker Navy */
+    --dark: #111827;
+    /* Near Black */
+    --gray-600: #4B5563;
+    /* Cool Gray */
+    --gray-200: #E5E7EB;
+    --gray-100: #F8F9FA;
+    /* Lab White */
     --white: #ffffff;
-    --error: #dc2626;
-    --success: #16a34a;
-    --gradient-primary: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+    --error: #FF6B6B;
+    /* Coral */
+    --success: #20C997;
+    /* Teal */
+    --gradient-primary: linear-gradient(135deg, #0A2540 0%, #051b30 100%);
+    /* Navy Gradient */
 }
 
 body {

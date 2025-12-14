@@ -70,7 +70,7 @@
                     </div>
                     <div class="chat-input-area">
                         <input type="text" id="chat-input" placeholder="Type your answer...">
-                        <button id="record-btn" class="action-btn" style="width: auto; background: #dc3545;"
+                        <button id="record-btn" class="action-btn" style="width: auto; background: var(--alert-color);"
                             onclick="toggleRecording()">🎤</button>
                         <button id="send-chat-btn" class="action-btn">Send</button>
                     </div>
@@ -82,7 +82,7 @@
         <!-- ADMIN ONLY TOOLS (Hidden by default) -->
         <div id="admin-tools-container"
             style="display:none; border-top: 2px solid #ddd; margin-top: 30px; padding-top: 20px;">
-            <h2 style="text-align:center; color: #dc3545;">⚠️ Admin Only Features ⚠️</h2>
+            <h2 style="text-align:center; color: var(--alert-color);">⚠️ Admin Only Features ⚠️</h2>
 
             <!-- Tab 3: Career Planner -->
             <section id="career-plan" class="tab-pane active" style="margin-bottom: 40px;">
@@ -159,8 +159,8 @@
                             below.</p>
                         <textarea id="rb-paste-input" placeholder="Paste your full resume text here..."
                             style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
-                        <button id="rb-parse-btn" class="action-btn"
-                            style="background: #6c757d; font-size: 0.9rem;">Import & Auto-Fill</button>
+                        <button id="rb-parse-btn" class="secondary-btn" style="font-size: 0.9rem;">Import &
+                            Auto-Fill</button>
                         <hr style="margin: 20px 0;">
                         <h3>Option 2: Manual Entry / Sample Data</h3>
                         <button id="rb-sample-btn" class="secondary-btn">Load Sample Data</button>
