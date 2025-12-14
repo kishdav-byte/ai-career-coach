@@ -162,7 +162,7 @@ async function checkAccess() {
             localStorage.setItem(SESSION_KEY, JSON.stringify(session));
             updateCreditDisplay(session); // UI Update
 
-            console.log(`Session refreshed. Status=${status}, Res=${resume_credits}, Int=${interview_credits}`);
+            console.log(`Session refreshed. Status=${status}, Res=${resume_credits}, Int=${interview_credits}, Rew=${rewrite_credits}`);
 
         }
     } catch (e) {
