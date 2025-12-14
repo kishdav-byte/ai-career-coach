@@ -118,27 +118,25 @@
         /* REFACTORED LAYOUT */
         .app-shell {
             display: flex;
-            min-height: 100vh;
+            height: 100vh;
+            /* Force full height, no window scroll */
+            overflow: hidden;
         }
 
         /* SIDEBAR */
         .sidebar {
-            width: 260px;
+            width: 240px;
+            /* Slightly narrower */
             background-color: var(--primary);
             color: white;
             flex-shrink: 0;
             display: flex;
             flex-direction: column;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            z-index: 100;
-            transition: transform 0.3s ease;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .sidebar-header {
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             display: flex;
             justify-content: space-between;
@@ -146,7 +144,7 @@
         }
 
         .logo {
-            font-size: 1.5rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: white;
             background: none;
@@ -169,8 +167,8 @@
         }
 
         .nav-group-title {
-            padding: 1rem 1.5rem 0.5rem;
-            font-size: 0.75rem;
+            padding: 1rem 1.25rem 0.5rem;
+            font-size: 0.7rem;
             text-transform: uppercase;
             letter-spacing: 1px;
             color: rgba(255, 255, 255, 0.5);
@@ -180,50 +178,50 @@
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 0.8rem 1.5rem;
+            padding: 0.65rem 1.25rem;
+            /* Compact Items */
             color: rgba(255, 255, 255, 0.8);
             text-decoration: none;
             transition: all 0.2s;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .nav-item:hover,
         .nav-item.active {
             background-color: rgba(255, 255, 255, 0.1);
             color: var(--success);
-            padding-left: 1.7rem;
-            /* Slight shift */
+            padding-left: 1.5rem;
         }
 
         .nav-item .icon {
-            margin-right: 12px;
-            width: 20px;
+            margin-right: 10px;
+            width: 18px;
             text-align: center;
+            font-size: 1rem;
         }
 
         /* MAIN WRAPPER */
         .main-wrapper {
             flex-grow: 1;
-            margin-left: 260px;
-            /* Offset for fixed sidebar */
             display: flex;
             flex-direction: column;
             background-color: var(--gray-100);
-            min-height: 100vh;
+            height: 100vh;
+            overflow-y: auto;
+            /* Scroll ONLY the main content if needed */
         }
 
         /* TOP NAVBAR */
         .top-navbar {
             background: var(--white);
-            height: 70px;
+            height: 60px;
+            /* Reduced Height */
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            position: sticky;
-            top: 0;
-            z-index: 90;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            flex-shrink: 0;
         }
 
         .hamburger-btn {
@@ -235,234 +233,210 @@
             color: var(--dark);
         }
 
+        /* DASHBOARD CONTENT AREA - COMPACT */
         .dashboard-content-area {
             flex-grow: 1;
-            padding-bottom: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Center vertically roughly */
         }
 
-        /* RESPONSIVE */
-        @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-wrapper {
-                margin-left: 0;
-            }
-
-            .hamburger-btn {
-                display: block;
-            }
-
-            .close-sidebar-btn {
-                display: block;
-            }
-
-            .hero-section {
-                padding-top: 2rem;
-            }
+        .dashboard-container-inner {
+            width: 100%;
+            max-width: 1024px;
+            /* max-w-5xl */
+            margin: 0 auto;
         }
 
-        /* ADJUST HERO PADDING for new layout */
+        /* 1. HERO SECTION - COMPACT */
         .hero-section {
-            /* Fix overflow with main wrapper */
             width: 100%;
             background-color: var(--primary);
             color: white;
-            padding: 4rem 2rem 6rem;
-            /* Extra bottom padding for overlap */
+            padding: 2rem 1.5rem 4rem;
+            /* Reduced padding */
             text-align: center;
         }
 
         .hero-content h1 {
             font-family: 'DM Serif Display', 'Inter', serif;
-            /* Fallback to Inter if needed */
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
+            font-size: 2rem;
+            /* Smaller Font */
+            margin-bottom: 0.25rem;
         }
 
         .hero-subtext {
             color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 2rem;
-            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
         }
 
         .drop-zone {
             background: white;
             border: 2px dashed #0A2540;
             border-radius: 12px;
-            padding: 3rem;
-            max-width: 600px;
+            /* Fixed Compact Height (~190px) */
+            height: 190px;
+            max-width: 500px;
             margin: 0 auto;
             color: var(--dark);
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            /* Flex center content */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 1rem;
         }
 
         .drop-zone:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
             border-color: var(--success);
         }
 
         .drop-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
+            font-size: 2rem;
+            /* Smaller Icon */
+            margin-bottom: 0.5rem;
+            line-height: 1;
         }
 
         .drop-content h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .drop-content p {
+            font-size: 0.9rem;
+            margin-bottom: 0;
         }
 
         .file-types {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #999;
-            margin-top: 1rem;
+            margin-top: 0.5rem;
         }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--success);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* 2. PROGRESS TRACKER */
+        /* 2. PROGRESS TRACKER - TIGHT */
         .progress-section {
-            margin-top: -30px;
+            margin-top: -25px;
             /* Overlap Hero */
-            margin-bottom: 3rem;
+            margin-bottom: 1.5rem;
+            /* Reduced Gap to Grid */
             display: flex;
             justify-content: center;
+            position: relative;
+            z-index: 10;
         }
 
         .progress-container {
             background: white;
-            padding: 1rem 3rem;
+            padding: 0.75rem 2rem;
+            /* Slimmer Pill */
             border-radius: 50px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             display: flex;
             align-items: center;
-            gap: 1.5rem;
-        }
-
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 1;
-        }
-
-        .step.locked {
-            opacity: 0.5;
+            gap: 1rem;
         }
 
         .step-circle {
-            width: 30px;
-            height: 30px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .step.active .step-circle {
-            background: var(--success);
+            width: 24px;
+            height: 24px;
+            font-size: 0.8rem;
         }
 
         .step-label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--dark);
+            font-size: 0.75rem;
         }
 
         .step-line {
-            width: 40px;
-            height: 2px;
-            background: #e5e7eb;
+            width: 30px;
         }
 
-        /* 3. SECONDARY GRID */
+        /* 3. SECONDARY GRID - COMPACT ROW */
         .secondary-access .container {
-            max-width: 900px;
+            max-width: 1024px;
+            padding: 0 2rem;
         }
 
         .section-title {
-            margin-bottom: 1.5rem;
+            margin-bottom: 0.75rem;
             color: var(--gray-600);
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 1px;
+            font-weight: 600;
         }
 
         .feature-cards.show {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1.5rem;
+            gap: 1rem;
+            /* Tighter Gap */
         }
 
+        /* Horizontal "Button" Style Cards */
         .feature-card.small-card {
-            padding: 1.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             display: flex;
-            flex-direction: column;
-            align-items: flex-start;
+            flex-direction: row;
+            /* Horizontal Layout */
+            align-items: center;
+            gap: 1rem;
             text-align: left;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .feature-card.small-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .icon-small {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            margin-bottom: 0;
             background: var(--gray-100);
-            padding: 10px;
+            padding: 8px;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .card-text {
+            flex-grow: 1;
         }
 
         .card-text h3 {
-            font-size: 1rem;
-            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+            margin-bottom: 0;
+            /* No subtext needed for compact */
+            color: var(--dark);
         }
 
         .card-text p {
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
+            display: none;
+            /* Hide Description for Compact Mode */
         }
 
         .btn-small {
-            width: 100%;
-            text-align: center;
-            padding: 0.5rem;
-            background: var(--white);
+            width: auto;
+            padding: 0.4rem 1rem;
+            font-size: 0.8rem;
+            background: transparent;
             border: 1px solid var(--gray-200);
-            color: var(--dark);
             border-radius: 6px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            transition: all 0.2s;
+            white-space: nowrap;
         }
 
         .btn-small:hover {
@@ -471,8 +445,42 @@
         }
 
         @media (max-width: 768px) {
+            .app-shell {
+                flex-direction: column;
+                height: auto;
+                overflow: auto;
+            }
+
+            .sidebar {
+                position: fixed;
+                height: 100%;
+                z-index: 1000;
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-wrapper {
+                height: auto;
+                margin-left: 0;
+            }
+
             .feature-cards.show {
                 grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                padding: 3rem 1rem 5rem;
+            }
+
+            .hamburger-btn {
+                display: block;
+            }
+
+            .close-sidebar-btn {
+                display: block;
             }
         }
     </style>
@@ -541,101 +549,100 @@
                 </div>
             </header>
 
-            <!-- DASHBOARD CONTENT (Existing) -->
+            <!-- DASHBOARD CONTENT (Compact) -->
             <main class="dashboard-content-area">
-                <div class="loading" id="loading">
-                    Loading your workspace...
-                </div>
 
-                <div id="dashboard-content" style="display: none;">
+                <div class="dashboard-container-inner">
+                    <div class="loading" id="loading">
+                        Loading your workspace...
+                    </div>
 
-                    <!-- 1. HERO SECTION (Diagnosis) -->
-                    <section class="hero-section">
-                        <div class="hero-content">
-                            <h1>Resume Health Check</h1>
-                            <p class="hero-subtext">Upload your PDF to get an instant impact score and detect red flags.
-                            </p>
+                    <div id="dashboard-content" style="display: none;">
 
-                            <div class="drop-zone" id="resume-drop-zone">
-                                <div class="drop-content">
-                                    <div class="drop-icon">📄</div>
-                                    <h3>Drag & Drop your resume here</h3>
-                                    <p>or <span
-                                            style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
-                                            files</span></p>
-                                    <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
-                                        style="display: none;">
-                                    <p class="file-types">Supports PDF, TXT</p>
-                                </div>
-                                <div class="cleaning-loader" id="parsing-loader" style="display: none;">
-                                    <div class="spinner"></div>
-                                    <p>Analyzing document structure...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </section>
+                        <!-- 1. HERO SECTION (Diagnosis) -->
+                        <section class="hero-section">
+                            <div class="hero-content">
+                                <h1>Resume Health Check</h1>
+                                <p class="hero-subtext">Upload your PDF to get an instant impact score.</p>
 
-                    <!-- 2. PROGRESS TRACKER (The Journey) -->
-                    <section class="progress-section">
-                        <div class="progress-container">
-                            <div class="step active">
-                                <div class="step-circle">1</div>
-                                <div class="step-label">Diagnosis</div>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step locked">
-                                <div class="step-circle">🔒</div>
-                                <div class="step-label">The Cure</div>
-                            </div>
-                            <div class="step-line"></div>
-                            <div class="step locked">
-                                <div class="step-circle">🔒</div>
-                                <div class="step-label">Interview Lab</div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <!-- 3. FEATURE GRID (Secondary Access) -->
-                    <section class="secondary-access">
-                        <div class="container">
-                            <h3 class="section-title">Lab Quick Access</h3>
-                            <div class="feature-cards show" id="feature-cards">
-
-                                <!-- Card 1: Interview Sim -->
-                                <div class="feature-card small-card">
-                                    <div class="icon-small">🎤</div>
-                                    <div class="card-text">
-                                        <h3>Interview Lab</h3>
-                                        <p>Launch simulator.</p>
+                                <div class="drop-zone" id="resume-drop-zone">
+                                    <div class="drop-content">
+                                        <div class="drop-icon">📄</div>
+                                        <h3>Drag & Drop your resume</h3>
+                                        <p>or <span
+                                                style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
+                                                files</span></p>
+                                        <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
+                                            style="display: none;">
+                                        <p class="file-types">Supports PDF, TXT</p>
                                     </div>
-                                    <a href="/app.html#interview" class="btn-small">Launch</a>
-                                </div>
-
-                                <!-- Card 2: Saved Documents -->
-                                <div class="feature-card small-card">
-                                    <div class="icon-small">📂</div>
-                                    <div class="card-text">
-                                        <h3>Saved Documents</h3>
-                                        <p>View your history.</p>
+                                    <div class="cleaning-loader" id="parsing-loader" style="display: none;">
+                                        <div class="spinner"></div>
+                                        <p>Analyzing...</p>
                                     </div>
-                                    <a href="#" class="btn-small secondary"
-                                        onclick="alert('Document Library coming in Phase 3!'); return false;">View</a>
                                 </div>
-
-                                <!-- Card 3: 30-60-90 Plan -->
-                                <div class="feature-card small-card">
-                                    <div class="icon-small">🗺️</div>
-                                    <div class="card-text">
-                                        <h3>30-60-90 Plan</h3>
-                                        <p>Create strategy.</p>
-                                    </div>
-                                    <a href="/app.html#career-plan" class="btn-small">Create</a>
-                                </div>
-
                             </div>
-                        </div>
-                    </section>
+                        </section>
 
+                        <!-- 2. PROGRESS TRACKER (The Journey) -->
+                        <section class="progress-section">
+                            <div class="progress-container">
+                                <div class="step active">
+                                    <div class="step-circle">1</div>
+                                    <div class="step-label">Diagnosis</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step locked">
+                                    <div class="step-circle">🔒</div>
+                                    <div class="step-label">The Cure</div>
+                                </div>
+                                <div class="step-line"></div>
+                                <div class="step locked">
+                                    <div class="step-circle">🔒</div>
+                                    <div class="step-label">Simulate</div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- 3. FEATURE GRID (Secondary Access) -->
+                        <section class="secondary-access">
+                            <div class="container" style="padding: 0 2rem;">
+                                <h3 class="section-title">Lab Quick Access</h3>
+                                <div class="feature-cards show" id="feature-cards">
+
+                                    <!-- Card 1: Interview Sim -->
+                                    <div class="feature-card small-card">
+                                        <div class="icon-small">🎤</div>
+                                        <div class="card-text">
+                                            <h3>Interview Lab</h3>
+                                        </div>
+                                        <a href="/app.html#interview" class="btn-small">Launch</a>
+                                    </div>
+
+                                    <!-- Card 2: Saved Documents -->
+                                    <div class="feature-card small-card">
+                                        <div class="icon-small">📂</div>
+                                        <div class="card-text">
+                                            <h3>Documents</h3>
+                                        </div>
+                                        <a href="#" class="btn-small secondary"
+                                            onclick="alert('Coming soon!'); return false;">View</a>
+                                    </div>
+
+                                    <!-- Card 3: 30-60-90 Plan -->
+                                    <div class="feature-card small-card">
+                                        <div class="icon-small">🗺️</div>
+                                        <div class="card-text">
+                                            <h3>30-60-90 Plan</h3>
+                                        </div>
+                                        <a href="/app.html#career-plan" class="btn-small">Create</a>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </section>
+
+                    </div>
                 </div>
             </main>
         </div>
