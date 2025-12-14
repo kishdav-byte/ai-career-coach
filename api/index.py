@@ -1444,7 +1444,7 @@ def login():
              
         # 2. Fetch Profile from 'users' table
         # Explicitly select columns to ensure we don't accidentally get ghost columns or issues
-        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits, role').eq('id', user.id).execute()
+        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, role').eq('id', user.id).execute()
         
         print(f"DEBUG: Login query for ID {user.id} returned: {len(profile_res.data) if profile_res.data else 0} rows")
 
@@ -1661,8 +1661,9 @@ def update_user_status():
         if not email:
             return jsonify({"error": "Email is required"}), 400
         
-        # Check if user exists
-        existing = supabase.table('users').select('email').eq('email', email).execute()
+        # Check if user exists (Use Admin Client if available to bypass RLS)
+        db_client = supabase_admin if supabase_admin else supabase
+        existing = db_client.table('users').select('email').eq('email', email).execute()
         if not existing.data or len(existing.data) == 0:
             return jsonify({"error": "User not found"}), 404
         
@@ -1679,7 +1680,7 @@ def update_user_status():
              update_data['resume_credits'] = int(set_resume)
         
         if update_data:
-            supabase.table('users').update(update_data).eq('email', email).execute()
+            db_client.table('users').update(update_data).eq('email', email).execute()
         
         return jsonify({"success": True, "message": f"User {email} updated successfully"})
     
