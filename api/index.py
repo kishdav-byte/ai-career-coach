@@ -1788,7 +1788,9 @@ def stripe_webhook():
                 metadata = session.get('metadata', {})
                 plan_type = metadata.get('plan_type', 'basic')
 
-                print(f"Processing Checkout: Email={customer_email}, Plan={plan_type}, RefID={client_reference_id}")
+                print(f"WEBHOOK DEBUG: Email={customer_email}, Plan={plan_type}, RefID={client_reference_id}")
+                print(f"WEBHOOK DEBUG: Full Metadata: {metadata}")
+                print(f"WEBHOOK DEBUG: Supabase Admin Active? {'YES' if supabase_admin else 'NO - Using Anon Client'}")
 
                 user_id = None
                 user_data = None
@@ -1842,7 +1844,8 @@ def stripe_webhook():
                         print(f"Granting +1 Interview Credit. New Total: {update_data['interview_credits']}")
 
                     # EXECUTE UPDATE
-                    db_client.table('users').update(update_data).eq('id', user_id).execute()
+                    response = db_client.table('users').update(update_data).eq('id', user_id).execute()
+                    print(f"WEBHOOK DEBUG: Update Response: {response.data if hasattr(response, 'data') else 'No Data'}")
                     print(f"Successfully updated user {user_id}")
 
                 else:
