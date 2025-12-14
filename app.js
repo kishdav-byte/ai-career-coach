@@ -464,8 +464,9 @@ function init() {
                 <div class="resume-report">
                 
                 <!-- 0. DISCLAIMER (Moved to Top) -->
-                <div class="upsell-disclaimer-box" style="margin-bottom: 20px; background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px;">
-                     ⚠️ <strong>IMPORTANT:</strong> AI-generated content should always be reviewed and customized to ensure it accurately represents your experience and authentic voice. This is a tool to help implement improvements, not a replacement for your personal review and final approval.
+                <div class="upsell-disclaimer-box" style="margin-bottom: 20px; background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; position:relative;">
+                     ⚠️ <strong>IMPORTANT:</strong> AI-generated content should always be reviewed and customized to ensure it accurately represents your experience and authentic voice.
+                     <button onclick="location.reload()" style="position:absolute; top:10px; right:10px; background:white; border:1px solid #ccc; padding:5px 10px; cursor:pointer; font-size:0.8rem; border-radius:4px;">🔄 Start Over</button>
                 </div>
 
                 <!-- 1. COMPARISON & SCORE -->
@@ -484,7 +485,7 @@ function init() {
                         <div class="benchmark-bars" style="width:100%">
                             <div class="bar-group">
                                 <div class="bar-label">
-                                    <span>Avg. Candidate</span>
+                                    <span>Industry Benchmark</span>
                                     <span>${data.benchmark.avg_score}/100</span>
                                 </div>
                                 <div class="progress-bar"><div class="fill avg" style="width: ${data.benchmark.avg_score}%"></div></div>
@@ -497,7 +498,7 @@ function init() {
                                 <div class="progress-bar"><div class="fill top" style="width: ${data.benchmark.top_10_score}%"></div></div>
                             </div>
                             <div class="benchmark-text">
-                                <strong>Status:</strong> ${data.benchmark.text}<br>
+                                <strong>Status:</strong> ${data.benchmark.text.replace(/^Status:\s*/i, '')}<br>
                                     <span style="font-size:0.9em; color:#666">
                                         ✅ ${data.benchmark.ahead_reasons[0]}<br>
                                             ⚠️ Gap: ${data.benchmark.gap_reasons[0]}
@@ -507,7 +508,7 @@ function init() {
                     </div>
                 </div>
 
-                <!-- 1.5 RED FLAGS (Detailed) -->
+                <!-- [OMITTED SECTIONS KEPT SAME] -->
                 ${data.red_flags && data.red_flags.length > 0 ? `
                         <div class="report-section red-flags">
                             <h4>🚩 Critical Issues (Fix Before Applying)</h4>
@@ -682,27 +683,19 @@ function init() {
 
                 </div>
 
-                <!-- 9. UPSELL (Coming Soon) -->
+                <!-- 9. UPSELL (Checkout Activated) -->
                 <div class="upsell-section-new">
                     <h3 class="upsell-header-large">💡 NEED HELP IMPLEMENTING THESE CHANGES?</h3>
                     <p class="upsell-subheader">See what needs fixing but don't have time to rewrite yourself?</p>
 
-                    <div class="upsell-blue-box">
-                        <span class="blue-box-title">✨ AI-ASSISTED RESUME REWRITE - COMING SOON</span>
-                        <p class="blue-box-desc">We'll rewrite your resume implementing all the recommendations above:</p>
+                    <div class="upsell-blue-box" style="text-align:center;">
+                        <span class="blue-box-title">✨ AI-ASSISTED RESUME REWRITE</span>
+                        <p class="blue-box-desc">We'll rewrite your resume implementing all the recommendations above.</p>
                         
-                        <ul class="blue-box-list">
-                            <li><span class="check-icon">✓</span> Add missing metrics (with placeholders to fill)</li>
-                            <li><span class="check-icon">✓</span> Strengthen weak verbs and bullet points</li>
-                            <li><span class="check-icon">✓</span> Integrate missing keywords naturally</li>
-                            <li><span class="check-icon">✓</span> Fix formatting and consistency issues</li>
-                            <li><span class="check-icon">✓</span> Optimize for ATS scanning</li>
-                            <li><span class="check-icon">✓</span> Remove duplicate/redundant content</li>
-                        </ul>
+                        <!-- List kept concise or removed to focus on button -->
 
-                        <span class="blue-box-footer">Delivered as editable text for you to review, customize, and approve before using.</span>
-
-                        <button class="upsell-action-btn" disabled style="background:#ccc; cursor:not-allowed;">Get AI Resume Rewrite - Coming Soon</button>
+                        <button id="unlock-rewrite-btn" class="action-btn" style="background-color: var(--success); font-size:1.2rem; padding: 1rem 2rem; margin-top:1rem; width:100%;">Unlock One-Click Rewrite ($9.99)</button>
+                        <p style="font-size:0.8rem; color:#666; margin-top:10px;">Secure payment via Stripe. Instant access.</p>
                     </div>
                 </div>
 
@@ -711,9 +704,58 @@ function init() {
                     <h4>💡 Interview Readiness</h4>
                     <p>${data.interview_tip || "Practice your STAR method answers."}</p>
                 </div>
+            `;
+            container.innerHTML = html;
+
+            // Activate Checkout Button
+            setTimeout(() => {
+                const checkoutBtn = document.getElementById('unlock-rewrite-btn');
+                if (checkoutBtn) {
+                    checkoutBtn.addEventListener('click', async () => {
+                        checkoutBtn.disabled = true;
+                        checkoutBtn.textContent = "Processing...";
+                        try {
+                            const session = getSession();
+                            const response = await fetch('/api/create-checkout-session', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    email: session ? session.email : null,
+                                    priceId: 'price_1QTiJ2Axi5Xgy9HwW0yF8KkK', // Placeholder - Using variable in backend is better but this works for MVP if static
+                                    successUrl: window.location.origin + '/app.html#resume-builder?mode=rewrite',
+                                    cancelUrl: window.location.href
+                                })
+                            });
+                            const result = await response.json();
+                            if (result.url) {
+                                window.location.href = result.url;
+                            } else {
+                                alert("Checkout Error: " + (result.error || "Unknown"));
+                            }
+                        } catch (e) {
+                            console.error(e);
+                            alert("Checkout failed.");
+                        } finally {
+                            checkoutBtn.disabled = false;
+                            checkoutBtn.textContent = "Unlock One-Click Rewrite ($9.99)";
+                        }
+                    });
+                }
+            }, 500);
+
+            // Hide Input Form
+            const inputContainer = document.getElementById('resume-input');
+            const analyzeBtn = document.getElementById('analyze-resume-btn');
+            // Actually, we want to hide the whole inputs, maybe just style display none on them
+            if (inputContainer) inputContainer.style.display = 'none';
+            if (analyzeBtn) analyzeBtn.style.display = 'none';
+            // Also the placeholder text p tag
+            // A bit hacky to find it via DOM traversal, but okay for now or selecting specifically
+            // The Start Over button in disclaimer handles the reset via reload.
+        }
 
 
-            </div>
+            </div >
             `;
             container.innerHTML = html;
         }
@@ -726,71 +768,71 @@ function init() {
             const printWindow = window.open('', '_blank', 'width=800,height=600');
             if (printWindow) {
                 printWindow.document.write(`
-                < !DOCTYPE html >
-                    <html>
-                        <head>
-                            <title>Resume Analysis Report</title>
-                            <style>
-                                body {
-                                    font - family: Arial, sans-serif;
-                                padding: 40px;
-                                max-width: 800px;
-                                margin: 0 auto;
-                                line-height: 1.6;
+            < !DOCTYPE html >
+                <html>
+                    <head>
+                        <title>Resume Analysis Report</title>
+                        <style>
+                            body {
+                                font - family: Arial, sans-serif;
+                            padding: 40px;
+                            max-width: 800px;
+                            margin: 0 auto;
+                            line-height: 1.6;
                         }
-                                h2 {
-                                    text - align: center;
-                                margin-bottom: 30px;
-                                color: #333;
+                            h2 {
+                                text - align: center;
+                            margin-bottom: 30px;
+                            color: #333;
                         }
-                                .analysis-section {
-                                    padding: 20px;
-                                margin: 20px 0;
-                                border-radius: 8px; 
+                            .analysis-section {
+                                padding: 20px;
+                            margin: 20px 0;
+                            border-radius: 8px; 
                         }
-                                .analysis-section.strengths {
-                                    border - left: 5px solid #28a745;
-                                background: #e8f5e9; 
+                            .analysis-section.strengths {
+                                border - left: 5px solid #28a745;
+                            background: #e8f5e9; 
                         }
-                                .analysis-section.strengths h3 {
-                                    color: #28a745; 
+                            .analysis-section.strengths h3 {
+                                color: #28a745; 
                         }
-                                .analysis-section.improvements {
-                                    border - left: 5px solid #007bff;
-                                background: #e3f2fd; 
+                            .analysis-section.improvements {
+                                border - left: 5px solid #007bff;
+                            background: #e3f2fd; 
                         }
-                                .analysis-section.improvements h3 {
-                                    color: #007bff; 
+                            .analysis-section.improvements h3 {
+                                color: #007bff; 
                         }
-                                h3 {
-                                    margin - top: 0;
-                                margin-bottom: 15px;
+                            h3 {
+                                margin - top: 0;
+                            margin-bottom: 15px;
                         }
-                                @media print {
-                                    body {padding: 20px; }
-                                .analysis-section {
-                                    -webkit - print - color - adjust: exact !important;
-                                print-color-adjust: exact !important;
+                            @media print {
+                                body {padding: 20px; }
+                            .analysis-section {
+                                -webkit - print - color - adjust: exact !important;
+                            print-color-adjust: exact !important;
                             }
-                                .analysis-section.improvements {
-                                    page -break-before: always;
+                            .analysis-section.improvements {
+                                page -break-before: always;
                             }
                         }
-                            </style>
-                        </head>
-                        <body>
-                            <h2>Resume Analysis Report</h2>
-                            ${content}
-                            <script>
-                                window.onload = function() {
-                                    window.print();
-                                // Close the window after a short delay (allows print dialog to open)
-                                setTimeout(function() {window.close(); }, 500);
+                        </style>
+                    </head>
+                    <body>
+                        <h2>Resume Analysis Report</h2>
+                        ${content}
+                        <script>
+                            window.onload = function() {
+                                window.print();
+                            // Close the window after a short delay (allows print dialog to open)
+                            setTimeout(function() {window.close(); }, 500);
                         };
-                            </script>
-                        </body>
-                    </html>
-            `);
+                        </script>
+                    </body>
+                </html>
+        `);
                 printWindow.document.close();
             } else {
                 alert('Pop-up blocked. Please allow pop-ups for this site to use the print feature.');
@@ -949,231 +991,231 @@ function init() {
                         // Standardized UI rendering (same as sendVoiceMessage)
                         let systemMsg = '';
                         if (result.data.score !== undefined && result.data.score !== null) {
-                            systemMsg += `<div style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;">
-                Score: ${result.data.score}/5
-                        </div><br>`;
+                            systemMsg += `< div style = "background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;" >
+            Score: ${ result.data.score }/5
+                        </div > <br>`;
                         }
-                        if (result.data.feedback) {
-                            systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
+            if (result.data.feedback) {
+                systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
                         }
 
-                        if (result.data.improved_sample) {
-                            systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
+            if (result.data.improved_sample) {
+                systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
                             <strong>✨ Better Answer:</strong><br>
                             ${result.data.improved_sample}
                         </div>`;
                         }
 
-                        // Store History only when we receive actual feedback with a score
-                        // (not for confirmations like "yes I'm ready")
-                        if (result.data.score !== undefined && result.data.score !== null && result.data.feedback) {
-                            console.log('Storing answer with score:', result.data.score);
-                            interviewHistory.push({
-                                question: currentQuestionText,
-                                answer: message,
-                                score: result.data.score,
-                                feedback: result.data.feedback
+            // Store History only when we receive actual feedback with a score
+            // (not for confirmations like "yes I'm ready")
+            if (result.data.score !== undefined && result.data.score !== null && result.data.feedback) {
+                console.log('Storing answer with score:', result.data.score);
+            interviewHistory.push({
+                question: currentQuestionText,
+            answer: message,
+            score: result.data.score,
+            feedback: result.data.feedback
                             });
-                            console.log('Interview history now has', interviewHistory.length, 'items');
+            console.log('Interview history now has', interviewHistory.length, 'items');
                         }
 
-                        // Update current question text for next turn
-                        currentQuestionText = result.data.next_question || result.data.text || '';
+            // Update current question text for next turn
+            currentQuestionText = result.data.next_question || result.data.text || '';
 
-                        if (!isStart) {
-                            questionCount++;
+            if (!isStart) {
+                questionCount++;
                         }
 
-                        if (isStart) {
-                            systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
+            if (isStart) {
+                systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
                         } else if (questionCount >= 5) {
-                            systemMsg += `<br><br><strong>Conclusion:</strong> ${result.data.next_question || result.data.text || ''}`;
-                            // Trigger Report Generation
-                            setTimeout(generateInterviewReport, 2000);
+                systemMsg += `<br><br><strong>Conclusion:</strong> ${result.data.next_question || result.data.text || ''}`;
+            // Trigger Report Generation
+            setTimeout(generateInterviewReport, 2000);
                         } else {
-                            systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
+                systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
                         }
 
-                        // If we only got text back (fallback), just show it
-                        if (!result.data.feedback && !result.data.next_question) {
-                            systemMsg = result.data.text || JSON.stringify(result.data);
+            // If we only got text back (fallback), just show it
+            if (!result.data.feedback && !result.data.next_question) {
+                systemMsg = result.data.text || JSON.stringify(result.data);
                         }
 
-                        addMessage(systemMsg, 'system', true);
+            addMessage(systemMsg, 'system', true);
 
-                        // Play Audio if present
-                        if (result.data.audio) {
-                            console.log("Audio data received, attempting to play...");
-                            const audioPlayer = document.getElementById('ai-audio-player');
-                            audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
-                            audioPlayer.style.display = 'block';
+            // Play Audio if present
+            if (result.data.audio) {
+                console.log("Audio data received, attempting to play...");
+            const audioPlayer = document.getElementById('ai-audio-player');
+            audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
+            audioPlayer.style.display = 'block';
                             audioPlayer.play().catch(e => {
-                                console.error("Audio playback error:", e);
-                                alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
+                console.error("Audio playback error:", e);
+            alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
                             });
                         } else {
-                            console.warn("No audio data in response");
+                console.warn("No audio data in response");
                         }
                     } else {
-                        addMessage(result.data, 'system');
+                addMessage(result.data, 'system');
                     }
                 } else {
-                    addMessage('Error: ' + (result.error || 'Unknown error'), 'system');
+                addMessage('Error: ' + (result.error || 'Unknown error'), 'system');
                 }
             } catch (e) {
                 document.getElementById(loadingId).remove();
-                addMessage('Error: ' + e.message, 'system');
+            addMessage('Error: ' + e.message, 'system');
             }
         }
 
-        async function generateInterviewReport() {
+            async function generateInterviewReport() {
             const loadingId = addMessage('Generating Final Interview Report...', 'system');
 
             try {
                 const session = getSession();
-                const email = session ? session.email : null;
+            const email = session ? session.email : null;
 
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'generate_report', email: email, history: interviewHistory })
+            const response = await fetch('/api', {
+                method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+            body: JSON.stringify({action: 'generate_report', email: email, history: interviewHistory })
                 });
-                document.getElementById(loadingId).remove();
+            document.getElementById(loadingId).remove();
 
-                // Disable input to prevent further messages
-                document.getElementById('chat-input').disabled = true;
-                document.getElementById('chat-input').placeholder = "Interview Complete";
-                document.getElementById('send-btn').disabled = true;
-                document.getElementById('record-btn').disabled = true;
+            // Disable input to prevent further messages
+            document.getElementById('chat-input').disabled = true;
+            document.getElementById('chat-input').placeholder = "Interview Complete";
+            document.getElementById('send-btn').disabled = true;
+            document.getElementById('record-btn').disabled = true;
 
-                // Calculate overall score
-                let totalScore = 0;
-                let scoreCount = 0;
+            // Calculate overall score
+            let totalScore = 0;
+            let scoreCount = 0;
                 interviewHistory.forEach(item => {
                     if (item.score !== undefined && item.score !== null) {
-                        totalScore += item.score;
-                        scoreCount++;
+                totalScore += item.score;
+            scoreCount++;
                     }
                 });
                 const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : 'N/A';
 
-                // Determine conditional message based on score
-                let motivationMessage = '';
+            // Determine conditional message based on score
+            let motivationMessage = '';
                 if (avgScore >= 4.5) {
-                    motivationMessage = 'Great score! One more session will make you interview-ready.';
+                motivationMessage = 'Great score! One more session will make you interview-ready.';
                 } else if (avgScore < 3.0) {
-                    motivationMessage = 'Practice makes perfect. Most users improve significantly with each session.';
+                motivationMessage = 'Practice makes perfect. Most users improve significantly with each session.';
                 } else {
-                    motivationMessage = 'Most users need 2-3 practice sessions to consistently score 4+ and feel confident for their real interview.';
+                motivationMessage = 'Most users need 2-3 practice sessions to consistently score 4+ and feel confident for their real interview.';
                 }
 
-                // Build question breakdown HTML
-                let questionBreakdown = '';
+            // Build question breakdown HTML
+            let questionBreakdown = '';
                 interviewHistory.forEach((item, idx) => {
                     const score = item.score !== undefined ? item.score : 'N/A';
-                    // Get first sentence of feedback
-                    const briefFeedback = item.feedback ? item.feedback.split('.')[0] + '.' : 'Feedback not available.';
-                    questionBreakdown += `<div class="result-question-item">✓ Question ${idx + 1}: <strong>${score}/5</strong> - ${briefFeedback}</div>`;
+            // Get first sentence of feedback
+            const briefFeedback = item.feedback ? item.feedback.split('.')[0] + '.' : 'Feedback not available.';
+            questionBreakdown += `<div class="result-question-item">✓ Question ${idx + 1}: <strong>${score}/5</strong> - ${briefFeedback}</div>`;
                 });
 
-                console.log('Building results with', interviewHistory.length, 'scored answers');
-                console.log('Average score calculated:', avgScore);
+            console.log('Building results with', interviewHistory.length, 'scored answers');
+            console.log('Average score calculated:', avgScore);
 
-                // Only include strengths/improvements sections if we have meaningful data
-                // For now, we'll skip these sections since we don't have reliable data
-                let strengthsSection = '';
-                let improvementsSection = '';
+            // Only include strengths/improvements sections if we have meaningful data
+            // For now, we'll skip these sections since we don't have reliable data
+            let strengthsSection = '';
+            let improvementsSection = '';
 
-                // If AI report contains structured data, we could parse it here
-                // For now, these sections are hidden to avoid showing placeholder content
+            // If AI report contains structured data, we could parse it here
+            // For now, these sections are hidden to avoid showing placeholder content
 
-                // Build the full results + upsell HTML
-                const resultsHtml = `
-                <div class="interview-results-container">
-                    <div class="results-section">
-                        <div class="results-header">
-                            <span class="results-icon">🎯</span>
-                            <h3>INTERVIEW COMPLETE - YOUR RESULTS</h3>
-                        </div>
-
-                        <div class="overall-score">
-                            <span class="score-label">Overall Score:</span>
-                            <span class="score-value">${avgScore}/5</span>
-                        </div>
-
-                        <div class="question-breakdown">
-                            <h4>Question Breakdown:</h4>
-                            ${questionBreakdown || '<p>No question data available.</p>'}
-                        </div>
-                        ${strengthsSection}
-                        ${improvementsSection}
+            // Build the full results + upsell HTML
+            const resultsHtml = `
+            <div class="interview-results-container">
+                <div class="results-section">
+                    <div class="results-header">
+                        <span class="results-icon">🎯</span>
+                        <h3>INTERVIEW COMPLETE - YOUR RESULTS</h3>
                     </div>
 
-                    <div class="upsell-section">
-                        <div class="upsell-header">
-                            <span class="upsell-icon">💡</span>
-                            <h3>READY TO IMPROVE YOUR SCORE?</h3>
-                        </div>
-
-                        <p class="upsell-motivation">${motivationMessage}</p>
-
-                        <div class="score-comparison">
-                            <span>Your current score: <strong>${avgScore}/5</strong></span>
-                            <span>Target score: <strong>4.5+/5</strong></span>
-                        </div>
-
-                        <p class="upsell-cta-text">Keep practicing to master your interview answers.</p>
-
-                        <div class="upsell-cards">
-                            <div class="upsell-card">
-                                <div class="card-icon">🔁</div>
-                                <h4>PRACTICE 5 MORE QUESTIONS</h4>
-                                <div class="price">$9.99 - Additional Session</div>
-                                <ul class="features">
-                                    <li>5 new interview questions</li>
-                                    <li>Same voice-based scoring</li>
-                                    <li>STAR format feedback</li>
-                                    <li>Track your improvement</li>
-                                </ul>
-                                <button class="upsell-btn" onclick="showPaymentAlert()">Practice Again - $9.99</button>
-                            </div>
-
-                            <div class="upsell-card featured">
-                                <div class="best-value-badge">BEST VALUE</div>
-                                <div class="card-icon">♾️</div>
-                                <h4>UNLIMITED PRACTICE</h4>
-                                <div class="price">$49/month</div>
-                                <ul class="features">
-                                    <li>Unlimited interview sessions</li>
-                                    <li>Practice until you're ready</li>
-                                    <li>Track improvement over time</li>
-                                    <li>All question types included</li>
-                                    <li>Cancel anytime</li>
-                                </ul>
-                                <button class="upsell-btn featured" onclick="showPaymentAlert()">Get Unlimited Access - $49/mo</button>
-                            </div>
-                        </div>
-
-                        <a href="/app" class="return-link">← Return to Dashboard</a>
+                    <div class="overall-score">
+                        <span class="score-label">Overall Score:</span>
+                        <span class="score-value">${avgScore}/5</span>
                     </div>
+
+                    <div class="question-breakdown">
+                        <h4>Question Breakdown:</h4>
+                        ${questionBreakdown || '<p>No question data available.</p>'}
+                    </div>
+                    ${strengthsSection}
+                    ${improvementsSection}
                 </div>
-                `;
 
-                addMessage(resultsHtml, 'system', true);
+                <div class="upsell-section">
+                    <div class="upsell-header">
+                        <span class="upsell-icon">💡</span>
+                        <h3>READY TO IMPROVE YOUR SCORE?</h3>
+                    </div>
+
+                    <p class="upsell-motivation">${motivationMessage}</p>
+
+                    <div class="score-comparison">
+                        <span>Your current score: <strong>${avgScore}/5</strong></span>
+                        <span>Target score: <strong>4.5+/5</strong></span>
+                    </div>
+
+                    <p class="upsell-cta-text">Keep practicing to master your interview answers.</p>
+
+                    <div class="upsell-cards">
+                        <div class="upsell-card">
+                            <div class="card-icon">🔁</div>
+                            <h4>PRACTICE 5 MORE QUESTIONS</h4>
+                            <div class="price">$9.99 - Additional Session</div>
+                            <ul class="features">
+                                <li>5 new interview questions</li>
+                                <li>Same voice-based scoring</li>
+                                <li>STAR format feedback</li>
+                                <li>Track your improvement</li>
+                            </ul>
+                            <button class="upsell-btn" onclick="showPaymentAlert()">Practice Again - $9.99</button>
+                        </div>
+
+                        <div class="upsell-card featured">
+                            <div class="best-value-badge">BEST VALUE</div>
+                            <div class="card-icon">♾️</div>
+                            <h4>UNLIMITED PRACTICE</h4>
+                            <div class="price">$49/month</div>
+                            <ul class="features">
+                                <li>Unlimited interview sessions</li>
+                                <li>Practice until you're ready</li>
+                                <li>Track improvement over time</li>
+                                <li>All question types included</li>
+                                <li>Cancel anytime</li>
+                            </ul>
+                            <button class="upsell-btn featured" onclick="showPaymentAlert()">Get Unlimited Access - $49/mo</button>
+                        </div>
+                    </div>
+
+                    <a href="/app" class="return-link">← Return to Dashboard</a>
+                </div>
+            </div>
+            `;
+
+            addMessage(resultsHtml, 'system', true);
 
             } catch (e) {
                 document.getElementById(loadingId).remove();
-                addMessage("Error generating report: " + e.message, 'system');
+            addMessage("Error generating report: " + e.message, 'system');
             }
         }
 
-        // Payment alert function for upsell buttons
-        window.showPaymentAlert = function () {
-            // Redirect to pricing page
-            window.location.href = '/pricing.html';
+            // Payment alert function for upsell buttons
+            window.showPaymentAlert = function () {
+                // Redirect to pricing page
+                window.location.href = '/pricing.html';
         };
 
-        function addMessage(text, sender, isHtml = false) {
+            function addMessage(text, sender, isHtml = false) {
             const div = document.createElement('div');
             div.classList.add('message', sender);
             div.id = 'msg-' + Date.now();
@@ -1186,15 +1228,15 @@ function init() {
             chatWindow.scrollTop = chatWindow.scrollHeight;
             return div.id;
         }
-        // Expose addMessage to global scope for sendVoiceMessage
-        window.addMessage = addMessage;
+            // Expose addMessage to global scope for sendVoiceMessage
+            window.addMessage = addMessage;
     } // End of Interview Page (Resume Analysis + Interview Coach)
 
 
-    // ADMIN TOOLS LOGIC (Restored)
-    // Only init listeners if elements exist (which they do now in app.html)
-    if (document.getElementById('generate-plan-btn')) {
-        console.log("Initializing Admin Tools...");
+            // ADMIN TOOLS LOGIC (Restored)
+            // Only init listeners if elements exist (which they do now in app.html)
+            if (document.getElementById('generate-plan-btn')) {
+                console.log("Initializing Admin Tools...");
 
         // Tab 3: Career Planner
         document.getElementById('generate-plan-btn').addEventListener('click', async () => {
@@ -1203,58 +1245,58 @@ function init() {
             const jobPosting = document.getElementById('job-posting').value;
             if (jobTitle && company) {
                 const outputDiv = document.getElementById('planner-result');
-                outputDiv.innerHTML = '<div class="loading-spinner">Generating plan...</div>';
+            outputDiv.innerHTML = '<div class="loading-spinner">Generating plan...</div>';
 
-                try {
+            try {
                     const response = await fetch('/api', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'career_plan', jobTitle, company, jobPosting })
+                method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+            body: JSON.stringify({action: 'career_plan', jobTitle, company, jobPosting })
                     });
-                    const result = await response.json();
+            const result = await response.json();
 
-                    if (result.data) {
-                        renderCareerPlan(result.data, outputDiv);
+            if (result.data) {
+                renderCareerPlan(result.data, outputDiv);
                     } else {
-                        outputDiv.innerHTML = 'Error generating plan.';
+                outputDiv.innerHTML = 'Error generating plan.';
                     }
                 } catch (e) {
-                    console.error(e);
-                    outputDiv.innerHTML = 'Error generating plan.';
+                console.error(e);
+            outputDiv.innerHTML = 'Error generating plan.';
                 }
             }
         });
 
-        function renderCareerPlan(data, container) {
+            function renderCareerPlan(data, container) {
             // Attempt to parse if string
             if (typeof data === 'string') {
                 try {
-                    // Clean up potential markdown code blocks
-                    let clean = data.trim();
-                    if (clean.startsWith('```json')) clean = clean.slice(7);
-                    if (clean.startsWith('```')) clean = clean.slice(3);
-                    if (clean.endsWith('```')) clean = clean.slice(0, -3);
+                // Clean up potential markdown code blocks
+                let clean = data.trim();
+            if (clean.startsWith('```json')) clean = clean.slice(7);
+            if (clean.startsWith('```')) clean = clean.slice(3);
+            if (clean.endsWith('```')) clean = clean.slice(0, -3);
 
-                    if (clean.startsWith('{')) {
+            if (clean.startsWith('{')) {
                         data = JSON.parse(clean);
                     } else {
-                        // Not JSON, render as markdown
-                        container.innerHTML = marked.parse(data);
-                        return;
+                // Not JSON, render as markdown
+                container.innerHTML = marked.parse(data);
+            return;
                     }
                 } catch (e) {
-                    // Parsing failed, render as markdown
-                    container.innerHTML = marked.parse(data);
-                    return;
+                // Parsing failed, render as markdown
+                container.innerHTML = marked.parse(data);
+            return;
                 }
             }
 
             let html = '<div class="career-plan-container">';
-            const phases = [
-                { key: 'day_30', title: '📅 30 Days: Learn & Connect' },
-                { key: 'day_60', title: '🚀 60 Days: Contribute & Build' },
-                { key: 'day_90', title: '⭐ 90 Days: Lead & Innovate' }
-            ];
+                const phases = [
+                {key: 'day_30', title: '📅 30 Days: Learn & Connect' },
+                {key: 'day_60', title: '🚀 60 Days: Contribute & Build' },
+                {key: 'day_90', title: '⭐ 90 Days: Lead & Innovate' }
+                ];
 
             phases.forEach(phase => {
                 if (data[phase.key]) {
@@ -1262,14 +1304,14 @@ function init() {
                         <h3>${phase.title}</h3>
                         <ul style="padding-left:20px;">`;
 
-                    // Handle array or string content
-                    if (Array.isArray(data[phase.key])) {
-                        data[phase.key].forEach(item => html += `<li>${item}</li>`);
+                // Handle array or string content
+                if (Array.isArray(data[phase.key])) {
+                    data[phase.key].forEach(item => html += `<li>${item}</li>`);
                     } else {
-                        html += `<li>${data[phase.key]}</li>`;
+                    html += `<li>${data[phase.key]}</li>`;
                     }
 
-                    html += `</ul></div>`;
+                html += `</ul></div>`;
                 }
             });
             html += '</div>';
@@ -1288,7 +1330,7 @@ function init() {
                 // Fix Title
                 const originalTitle = document.title;
                 const jobTitle = document.getElementById('job-title').value || 'New Role';
-                document.title = `30-60-90 Day Plan - ${jobTitle}`;
+                document.title = `30 - 60 - 90 Day Plan - ${ jobTitle } `;
 
                 window.print();
                 document.title = originalTitle;
@@ -1347,7 +1389,7 @@ function init() {
                             return;
                         }
                     }
-                    if (data.recommendations) recsDiv.innerHTML = `<ul>${data.recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>`;
+                    if (data.recommendations) recsDiv.innerHTML = `< ul > ${ data.recommendations.map(rec => `<li>${rec}</li>`).join('') }</ul > `;
                     if (data.refined_sample) sampleDiv.innerHTML = marked.parse(data.refined_sample);
                 }
             } catch (e) { console.error(e); alert("Error"); }
@@ -1385,35 +1427,35 @@ function init() {
             div.style.padding = '15px';
             div.style.marginBottom = '10px';
             div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+            < div style = "display:flex; justify-content:space-between; margin-bottom:10px;" >
                     <strong>Experience</strong>
                     <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
-                </div>
-                <input type="text" class="rb-exp-role" placeholder="Role / Job Title" value="${data.role || ''}" style="margin-bottom:5px;">
+                </div >
+            <input type="text" class="rb-exp-role" placeholder="Role / Job Title" value="${data.role || ''}" style="margin-bottom:5px;">
                 <input type="text" class="rb-exp-company" placeholder="Company" value="${data.company || ''}" style="margin-bottom:5px;">
-                <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${data.dates || ''}" style="margin-bottom:5px;">
-                <textarea class="rb-exp-desc" placeholder="Description of responsibilities..." rows="3">${data.description || ''}</textarea>
-            `;
-            container.appendChild(div);
+                    <input type="text" class="rb-exp-dates" placeholder="Dates (e.g. 2020 - Present)" value="${data.dates || ''}" style="margin-bottom:5px;">
+                        <textarea class="rb-exp-desc" placeholder="Description of responsibilities..." rows="3">${data.description || ''}</textarea>
+                        `;
+                        container.appendChild(div);
         }
 
-        // Helper: Render Education Item
-        function renderEducationItem(data = {}) {
+                        // Helper: Render Education Item
+                        function renderEducationItem(data = { }) {
             const container = document.getElementById('rb-education-list');
-            const div = document.createElement('div');
-            div.className = 'rb-item card';
-            div.style.padding = '15px';
-            div.style.marginBottom = '10px';
-            div.innerHTML = `
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <strong>Education</strong>
-                    <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
-                </div>
-                <input type="text" class="rb-edu-degree" placeholder="Degree / Certificate" value="${data.degree || ''}" style="margin-bottom:5px;">
-                <input type="text" class="rb-edu-school" placeholder="School / University" value="${data.school || ''}" style="margin-bottom:5px;">
-                <input type="text" class="rb-edu-dates" placeholder="Dates (e.g. 2016 - 2020)" value="${data.dates || ''}">
-            `;
-            container.appendChild(div);
+                        const div = document.createElement('div');
+                        div.className = 'rb-item card';
+                        div.style.padding = '15px';
+                        div.style.marginBottom = '10px';
+                        div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                            <strong>Education</strong>
+                            <button class="secondary-btn" onclick="this.parentElement.parentElement.remove()" style="padding:2px 8px; font-size:12px; color:red;">Delete</button>
+                        </div>
+                        <input type="text" class="rb-edu-degree" placeholder="Degree / Certificate" value="${data.degree || ''}" style="margin-bottom:5px;">
+                            <input type="text" class="rb-edu-school" placeholder="School / University" value="${data.school || ''}" style="margin-bottom:5px;">
+                                <input type="text" class="rb-edu-dates" placeholder="Dates (e.g. 2016 - 2020)" value="${data.dates || ''}">
+                                    `;
+                                    container.appendChild(div);
         }
 
         // Add Buttons
@@ -1422,196 +1464,196 @@ function init() {
 
         // Sample Data
         document.getElementById('rb-sample-btn').addEventListener('click', () => {
-            document.getElementById('rb-name').value = "Jordan Taylor";
-            document.getElementById('rb-email').value = "jordan.taylor@example.com";
-            document.getElementById('rb-phone').value = "(555) 123-4567";
-            document.getElementById('rb-linkedin').value = "linkedin.com/in/jordantaylor";
-            document.getElementById('rb-location').value = "New York, NY";
-            document.getElementById('rb-summary').value = "Results-oriented Product Manager with 5+ years of experience in SaaS specifically in the EdTech sector. Proven track record of leading cross-functional teams to deliver high-impact products.";
-            document.getElementById('rb-skills').value = "Product Management, Agile, Jira, SQL, User Research, A/B Testing, Strategic Planning";
-            document.getElementById('rb-job-desc').value = "We are looking for a Senior Product Manager to lead our Core Platform team. Experience in B2B SaaS and API-first products is required.";
+                                        document.getElementById('rb-name').value = "Jordan Taylor";
+                                    document.getElementById('rb-email').value = "jordan.taylor@example.com";
+                                    document.getElementById('rb-phone').value = "(555) 123-4567";
+                                    document.getElementById('rb-linkedin').value = "linkedin.com/in/jordantaylor";
+                                    document.getElementById('rb-location').value = "New York, NY";
+                                    document.getElementById('rb-summary').value = "Results-oriented Product Manager with 5+ years of experience in SaaS specifically in the EdTech sector. Proven track record of leading cross-functional teams to deliver high-impact products.";
+                                    document.getElementById('rb-skills').value = "Product Management, Agile, Jira, SQL, User Research, A/B Testing, Strategic Planning";
+                                    document.getElementById('rb-job-desc').value = "We are looking for a Senior Product Manager to lead our Core Platform team. Experience in B2B SaaS and API-first products is required.";
 
-            // Clear and Add Sample Items
-            document.getElementById('rb-experience-list').innerHTML = '';
-            document.getElementById('rb-education-list').innerHTML = '';
+                                    // Clear and Add Sample Items
+                                    document.getElementById('rb-experience-list').innerHTML = '';
+                                    document.getElementById('rb-education-list').innerHTML = '';
 
-            renderExperienceItem({
-                role: "Senior Product Manager",
-                company: "TechFlow Solutions",
-                dates: "2021 - Present",
-                description: "Led the launch of the new analytics dashboard, increasing user engagement by 40%. Managed a team of 4 PMs."
+                                    renderExperienceItem({
+                                        role: "Senior Product Manager",
+                                    company: "TechFlow Solutions",
+                                    dates: "2021 - Present",
+                                    description: "Led the launch of the new analytics dashboard, increasing user engagement by 40%. Managed a team of 4 PMs."
             });
-            renderExperienceItem({
-                role: "Product Manager",
-                company: "EduTech Inc.",
-                dates: "2018 - 2021",
-                description: "Spearheaded the mobile app redesign. Collaborated with engineering and design to improve onboarding flow."
+                                    renderExperienceItem({
+                                        role: "Product Manager",
+                                    company: "EduTech Inc.",
+                                    dates: "2018 - 2021",
+                                    description: "Spearheaded the mobile app redesign. Collaborated with engineering and design to improve onboarding flow."
             });
 
-            renderEducationItem({
-                degree: "MBA",
-                school: "Stern School of Business",
-                dates: "2016 - 2018"
+                                    renderEducationItem({
+                                        degree: "MBA",
+                                    school: "Stern School of Business",
+                                    dates: "2016 - 2018"
             });
         });
 
-        // IMPORT / PARSE RESUME LOGIC
-        if (document.getElementById('rb-parse-btn')) {
-            document.getElementById('rb-parse-btn').addEventListener('click', async () => {
-                const text = document.getElementById('rb-paste-input').value;
-                if (!text) return alert("Please paste your resume text first.");
+                                    // IMPORT / PARSE RESUME LOGIC
+                                    if (document.getElementById('rb-parse-btn')) {
+                                        document.getElementById('rb-parse-btn').addEventListener('click', async () => {
+                                            const text = document.getElementById('rb-paste-input').value;
+                                            if (!text) return alert("Please paste your resume text first.");
 
-                const btn = document.getElementById('rb-parse-btn');
-                const originalText = btn.textContent;
-                btn.textContent = "Analyzing & Extracting...";
-                btn.disabled = true;
+                                            const btn = document.getElementById('rb-parse-btn');
+                                            const originalText = btn.textContent;
+                                            btn.textContent = "Analyzing & Extracting...";
+                                            btn.disabled = true;
 
-                try {
-                    const response = await fetch('/api', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'parse_resume', resume_text: text })
-                    });
-                    const result = await response.json();
+                                            try {
+                                                const response = await fetch('/api', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({ action: 'parse_resume', resume_text: text })
+                                                });
+                                                const result = await response.json();
 
-                    if (result.data) {
-                        let data = result.data;
-                        // Handle string response
-                        if (typeof data === 'string') {
-                            try {
-                                // Clean markdown
-                                let clean = data.trim();
-                                if (clean.startsWith('```json')) clean = clean.slice(7);
-                                if (clean.startsWith('```')) clean = clean.slice(3);
-                                if (clean.endsWith('```')) clean = clean.slice(0, -3);
-                                data = JSON.parse(clean);
-                            } catch (e) {
-                                console.error("Parse error", e);
-                                alert("AI extraction failed to return valid data pattern. Please fill manually.");
-                                return;
-                            }
-                        }
+                                                if (result.data) {
+                                                    let data = result.data;
+                                                    // Handle string response
+                                                    if (typeof data === 'string') {
+                                                        try {
+                                                            // Clean markdown
+                                                            let clean = data.trim();
+                                                            if (clean.startsWith('```json')) clean = clean.slice(7);
+                                                            if (clean.startsWith('```')) clean = clean.slice(3);
+                                                            if (clean.endsWith('```')) clean = clean.slice(0, -3);
+                                                            data = JSON.parse(clean);
+                                                        } catch (e) {
+                                                            console.error("Parse error", e);
+                                                            alert("AI extraction failed to return valid data pattern. Please fill manually.");
+                                                            return;
+                                                        }
+                                                    }
 
-                        // Auto-Fill Fields
-                        if (data.personal) {
-                            document.getElementById('rb-name').value = data.personal.name || '';
-                            document.getElementById('rb-email').value = data.personal.email || '';
-                            document.getElementById('rb-phone').value = data.personal.phone || '';
-                            document.getElementById('rb-linkedin').value = data.personal.linkedin || '';
-                            document.getElementById('rb-location').value = data.personal.location || '';
-                            document.getElementById('rb-summary').value = data.personal.summary || '';
-                        }
+                                                    // Auto-Fill Fields
+                                                    if (data.personal) {
+                                                        document.getElementById('rb-name').value = data.personal.name || '';
+                                                        document.getElementById('rb-email').value = data.personal.email || '';
+                                                        document.getElementById('rb-phone').value = data.personal.phone || '';
+                                                        document.getElementById('rb-linkedin').value = data.personal.linkedin || '';
+                                                        document.getElementById('rb-location').value = data.personal.location || '';
+                                                        document.getElementById('rb-summary').value = data.personal.summary || '';
+                                                    }
 
-                        if (data.skills && Array.isArray(data.skills)) {
-                            document.getElementById('rb-skills').value = data.skills.join(', ');
-                        }
+                                                    if (data.skills && Array.isArray(data.skills)) {
+                                                        document.getElementById('rb-skills').value = data.skills.join(', ');
+                                                    }
 
-                        // Experience
-                        const expList = document.getElementById('rb-experience-list');
-                        expList.innerHTML = '';
-                        if (data.experience && Array.isArray(data.experience)) {
-                            data.experience.forEach(exp => renderExperienceItem(exp));
-                        }
+                                                    // Experience
+                                                    const expList = document.getElementById('rb-experience-list');
+                                                    expList.innerHTML = '';
+                                                    if (data.experience && Array.isArray(data.experience)) {
+                                                        data.experience.forEach(exp => renderExperienceItem(exp));
+                                                    }
 
-                        // Education
-                        const eduList = document.getElementById('rb-education-list');
-                        eduList.innerHTML = '';
-                        if (data.education && Array.isArray(data.education)) {
-                            data.education.forEach(edu => renderEducationItem(edu));
-                        }
+                                                    // Education
+                                                    const eduList = document.getElementById('rb-education-list');
+                                                    eduList.innerHTML = '';
+                                                    if (data.education && Array.isArray(data.education)) {
+                                                        data.education.forEach(edu => renderEducationItem(edu));
+                                                    }
 
-                        alert("Resume imported successfully! Please review the fields below.");
-                    } else {
-                        alert("Could not extract data. Please try again or fill manually.");
-                    }
+                                                    alert("Resume imported successfully! Please review the fields below.");
+                                                } else {
+                                                    alert("Could not extract data. Please try again or fill manually.");
+                                                }
 
-                } catch (e) {
-                    console.error(e);
-                    alert("Error during import.");
-                } finally {
-                    btn.textContent = originalText;
-                    btn.disabled = false;
-                }
-            });
+                                            } catch (e) {
+                                                console.error(e);
+                                                alert("Error during import.");
+                                            } finally {
+                                                btn.textContent = originalText;
+                                                btn.disabled = false;
+                                            }
+                                        });
         }
 
 
         // GENERATE BUTTON
         document.getElementById('rb-generate-btn').addEventListener('click', async () => {
             const btn = document.getElementById('rb-generate-btn');
-            const originalText = btn.textContent;
-            btn.textContent = "Optimizing & Generating...";
-            btn.disabled = true;
+                                    const originalText = btn.textContent;
+                                    btn.textContent = "Optimizing & Generating...";
+                                    btn.disabled = true;
 
-            // Gather Data
-            const userData = {
-                personal: {
-                    name: document.getElementById('rb-name').value,
-                    email: document.getElementById('rb-email').value,
-                    phone: document.getElementById('rb-phone').value,
-                    linkedin: document.getElementById('rb-linkedin').value,
-                    location: document.getElementById('rb-location').value,
-                    summary: document.getElementById('rb-summary').value
+                                    // Gather Data
+                                    const userData = {
+                                        personal: {
+                                        name: document.getElementById('rb-name').value,
+                                    email: document.getElementById('rb-email').value,
+                                    phone: document.getElementById('rb-phone').value,
+                                    linkedin: document.getElementById('rb-linkedin').value,
+                                    location: document.getElementById('rb-location').value,
+                                    summary: document.getElementById('rb-summary').value
                 },
-                experience: [],
-                education: [],
+                                    experience: [],
+                                    education: [],
                 skills: document.getElementById('rb-skills').value.split(',').map(s => s.trim()).filter(s => s),
             };
 
             // Gather Experience
             document.querySelectorAll('#rb-experience-list .rb-item').forEach(item => {
-                userData.experience.push({
-                    role: item.querySelector('.rb-exp-role').value,
-                    company: item.querySelector('.rb-exp-company').value,
-                    dates: item.querySelector('.rb-exp-dates').value,
-                    description: item.querySelector('.rb-exp-desc').value
-                });
+                                        userData.experience.push({
+                                            role: item.querySelector('.rb-exp-role').value,
+                                            company: item.querySelector('.rb-exp-company').value,
+                                            dates: item.querySelector('.rb-exp-dates').value,
+                                            description: item.querySelector('.rb-exp-desc').value
+                                        });
             });
 
             // Gather Education
             document.querySelectorAll('#rb-education-list .rb-item').forEach(item => {
-                userData.education.push({
-                    degree: item.querySelector('.rb-edu-degree').value,
-                    school: item.querySelector('.rb-edu-school').value,
-                    dates: item.querySelector('.rb-edu-dates').value
-                });
+                                        userData.education.push({
+                                            degree: item.querySelector('.rb-edu-degree').value,
+                                            school: item.querySelector('.rb-edu-school').value,
+                                            dates: item.querySelector('.rb-edu-dates').value
+                                        });
             });
 
-            const jobDesc = document.getElementById('rb-job-desc').value;
-            const template = document.querySelector('.template-btn.active') ? document.querySelector('.template-btn.active').getAttribute('data-template') : 'modern';
+                                    const jobDesc = document.getElementById('rb-job-desc').value;
+                                    const template = document.querySelector('.template-btn.active') ? document.querySelector('.template-btn.active').getAttribute('data-template') : 'modern';
 
-            try {
+                                    try {
                 // Call API
                 const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'optimize',
-                        user_data: userData,
-                        job_description: jobDesc,
-                        template_name: template
+                                        method: 'POST',
+                                    headers: {'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        action: 'optimize',
+                                    user_data: userData,
+                                    job_description: jobDesc,
+                                    template_name: template
                     })
                 });
-                const result = await response.json();
+                                    const result = await response.json();
 
-                if (result.error) {
-                    alert("Error: " + result.error);
+                                    if (result.error) {
+                                        alert("Error: " + result.error);
                 } else {
                     // Render Result (Simple Preview for now)
                     const preview = document.getElementById('resume-preview-container');
-                    let html = `<div class="resume-sheet ${template}">
-                        <h1>${result.personal?.name || userData.personal.name}</h1>
-                        <p class="contact-info">${userData.personal.email} | ${userData.personal.phone} | ${userData.personal.location}</p>
-                        <hr>
-                        <h3>Professional Summary</h3>
-                        <p>${result.personal?.summary || userData.personal.summary}</p> <!-- Use Optimized Summary -->
-                        
-                        <h3>Experience</h3>
-                    `;
+                                    let html = `<div class="resume-sheet ${template}">
+                                        <h1>${result.personal?.name || userData.personal.name}</h1>
+                                        <p class="contact-info">${userData.personal.email} | ${userData.personal.phone} | ${userData.personal.location}</p>
+                                        <hr>
+                                            <h3>Professional Summary</h3>
+                                            <p>${result.personal?.summary || userData.personal.summary}</p> <!-- Use Optimized Summary -->
 
-                    const exps = result.experience || userData.experience; // Use Optimized Exp if available
+                                            <h3>Experience</h3>
+                                            `;
+
+                                            const exps = result.experience || userData.experience; // Use Optimized Exp if available
                     exps.forEach(exp => {
-                        html += `<div class="exp-item">
+                                                html += `<div class="exp-item">
                             <div style="display:flex; justify-content:space-between;">
                                 <strong>${exp.role}</strong>
                                 <span>${exp.dates}</span>
@@ -1621,9 +1663,9 @@ function init() {
                         </div>`;
                     });
 
-                    html += `<h3>Education</h3>`;
+                                            html += `<h3>Education</h3>`;
                     userData.education.forEach(edu => {
-                        html += `<div class="edu-item">
+                                                html += `<div class="edu-item">
                             <div style="display:flex; justify-content:space-between;">
                                 <strong>${edu.school}</strong>
                                 <span>${edu.dates}</span>
@@ -1632,47 +1674,47 @@ function init() {
                         </div>`;
                     });
 
-                    html += `<h3>Skills</h3><p>${result.skills ? result.skills.join(', ') : userData.skills.join(', ')}</p>`;
-                    html += `</div>`;
+                                            html += `<h3>Skills</h3><p>${result.skills ? result.skills.join(', ') : userData.skills.join(', ')}</p>`;
+                                            html += `</div>`;
 
-                    preview.innerHTML = html;
-                    preview.scrollIntoView({ behavior: 'smooth' });
+                                    preview.innerHTML = html;
+                                    preview.scrollIntoView({behavior: 'smooth' });
                 }
 
             } catch (e) {
-                console.error(e);
-                alert("An error occurred during generation.");
+                                        console.error(e);
+                                    alert("An error occurred during generation.");
             } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
+                                        btn.textContent = originalText;
+                                    btn.disabled = false;
             }
         });
 
         // Template Selection Logic
         document.querySelectorAll('.template-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
+                                        btn.addEventListener('click', () => {
+                                            document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('active'));
+                                            btn.classList.add('active');
+                                        });
         });
 
         // Print / Save PDF
         document.getElementById('rb-print-btn').addEventListener('click', () => {
             const content = document.getElementById('resume-preview-container').innerHTML;
-            if (!content) return alert('Please generate a resume first.');
+                                    if (!content) return alert('Please generate a resume first.');
 
-            const printArea = document.getElementById('print-area');
-            printArea.innerHTML = content;
+                                    const printArea = document.getElementById('print-area');
+                                    printArea.innerHTML = content;
 
-            // Fix Title for Print Header (Empty to clear top-left)
-            const originalTitle = document.title;
-            // Space is safer than empty string to ensure override
-            document.title = " ";
+                                    // Fix Title for Print Header (Empty to clear top-left)
+                                    const originalTitle = document.title;
+                                    // Space is safer than empty string to ensure override
+                                    document.title = " ";
 
-            window.print();
+                                    window.print();
 
-            // Restore Title
-            document.title = originalTitle;
+                                    // Restore Title
+                                    document.title = originalTitle;
             // Optional: Clear after print to avoid it showing up at bottom of page? 
             // Usually print-area is hidden in screen media.
         });
@@ -1680,131 +1722,131 @@ function init() {
         // Copy for Google Docs
         document.getElementById('rb-gdocs-btn').addEventListener('click', async () => {
             const content = document.getElementById('resume-preview-container').innerHTML;
-            if (!content) return alert('Please generate a resume first.');
+                                    if (!content) return alert('Please generate a resume first.');
 
-            try {
-                const blob = new Blob([content], { type: 'text/html' });
-                const data = [new ClipboardItem({ 'text/html': blob })];
-                await navigator.clipboard.write(data);
-                alert('Resume copied! You can now paste it into Google Docs.');
+                                    try {
+                const blob = new Blob([content], {type: 'text/html' });
+                                    const data = [new ClipboardItem({'text/html': blob })];
+                                    await navigator.clipboard.write(data);
+                                    alert('Resume copied! You can now paste it into Google Docs.');
             } catch (err) {
-                console.error('Clipboard API failed', err);
-                // Fallback
-                const textArea = document.createElement("textarea");
-                textArea.value = document.getElementById('resume-preview-container').innerText; // Text only fallback
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand("Copy");
-                textArea.remove();
-                alert('Copied as text (Formatting might be lost due to browser restrictions).');
+                                        console.error('Clipboard API failed', err);
+                                    // Fallback
+                                    const textArea = document.createElement("textarea");
+                                    textArea.value = document.getElementById('resume-preview-container').innerText; // Text only fallback
+                                    document.body.appendChild(textArea);
+                                    textArea.select();
+                                    document.execCommand("Copy");
+                                    textArea.remove();
+                                    alert('Copied as text (Formatting might be lost due to browser restrictions).');
             }
         });
 
     }
 
-    // ---------------------------------------------------------
-    // STRATEGY SUITE TOOLS (Logic)
-    // ---------------------------------------------------------
+                                    // ---------------------------------------------------------
+                                    // STRATEGY SUITE TOOLS (Logic)
+                                    // ---------------------------------------------------------
 
-    // 1. The Inquisitor (Strategic Questions)
-    if (document.getElementById('generate-questions-btn')) {
-        document.getElementById('generate-questions-btn').addEventListener('click', async () => {
-            const jobDesc = document.getElementById('inq-job-desc').value;
-            const level = document.getElementById('inq-interviewer-level').value;
-            if (!jobDesc) return alert('Please enter a job description or title.');
+                                    // 1. The Inquisitor (Strategic Questions)
+                                    if (document.getElementById('generate-questions-btn')) {
+                                        document.getElementById('generate-questions-btn').addEventListener('click', async () => {
+                                            const jobDesc = document.getElementById('inq-job-desc').value;
+                                            const level = document.getElementById('inq-interviewer-level').value;
+                                            if (!jobDesc) return alert('Please enter a job description or title.');
 
-            await callApi('strategic_questions', { jobDesc, interviewerLevel: level }, 'inq-result');
-        });
+                                            await callApi('strategic_questions', { jobDesc, interviewerLevel: level }, 'inq-result');
+                                        });
     }
 
-    // 2. The Closer (Negotiation Script)
-    if (document.getElementById('generate-negotiation-btn')) {
-        document.getElementById('generate-negotiation-btn').addEventListener('click', async () => {
-            const currentOffer = document.getElementById('neg-current-offer').value;
-            const targetSalary = document.getElementById('neg-target-salary').value;
-            const leverage = document.getElementById('neg-leverage').value;
+                                    // 2. The Closer (Negotiation Script)
+                                    if (document.getElementById('generate-negotiation-btn')) {
+                                        document.getElementById('generate-negotiation-btn').addEventListener('click', async () => {
+                                            const currentOffer = document.getElementById('neg-current-offer').value;
+                                            const targetSalary = document.getElementById('neg-target-salary').value;
+                                            const leverage = document.getElementById('neg-leverage').value;
 
-            if (!currentOffer || !targetSalary) return alert('Please enter offer details.');
+                                            if (!currentOffer || !targetSalary) return alert('Please enter offer details.');
 
-            const resultContainer = document.getElementById('neg-result-container');
-            const emailEl = document.getElementById('neg-result-email');
-            const phoneEl = document.getElementById('neg-result-phone');
+                                            const resultContainer = document.getElementById('neg-result-container');
+                                            const emailEl = document.getElementById('neg-result-email');
+                                            const phoneEl = document.getElementById('neg-result-phone');
 
-            resultContainer.style.display = 'block';
-            emailEl.innerHTML = '<em>Generating strategy...</em>';
-            emailEl.style.display = 'block';
-            phoneEl.style.display = 'none';
+                                            resultContainer.style.display = 'block';
+                                            emailEl.innerHTML = '<em>Generating strategy...</em>';
+                                            emailEl.style.display = 'block';
+                                            phoneEl.style.display = 'none';
 
-            try {
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'negotiation_script',
-                        currentOffer,
-                        targetSalary,
-                        leverage
-                    })
-                });
-                const result = await response.json();
+                                            try {
+                                                const response = await fetch('/api', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        action: 'negotiation_script',
+                                                        currentOffer,
+                                                        targetSalary,
+                                                        leverage
+                                                    })
+                                                });
+                                                const result = await response.json();
 
-                if (result.error) {
-                    emailEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
-                } else {
-                    // Store results globally for tab switching
-                    window.negEmailContent = result.email_draft.replace(/\n/g, '<br>');
-                    window.negPhoneContent = result.phone_script.replace(/\n/g, '<br>');
+                                                if (result.error) {
+                                                    emailEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+                                                } else {
+                                                    // Store results globally for tab switching
+                                                    window.negEmailContent = result.email_draft.replace(/\n/g, '<br>');
+                                                    window.negPhoneContent = result.phone_script.replace(/\n/g, '<br>');
 
-                    emailEl.innerHTML = window.negEmailContent;
-                    phoneEl.innerHTML = window.negPhoneContent;
+                                                    emailEl.innerHTML = window.negEmailContent;
+                                                    phoneEl.innerHTML = window.negPhoneContent;
 
-                    // Reset Tabs
-                    showNegTab('email');
-                }
-            } catch (e) {
-                emailEl.innerHTML = `<strong style="color:red">Connection Error: ${e.message}</strong>`;
-            }
-        });
+                                                    // Reset Tabs
+                                                    showNegTab('email');
+                                                }
+                                            } catch (e) {
+                                                emailEl.innerHTML = `<strong style="color:red">Connection Error: ${e.message}</strong>`;
+                                            }
+                                        });
     }
 
-    // 3. Value-Add Follow Up
-    if (document.getElementById('generate-followup-btn')) {
-        document.getElementById('generate-followup-btn').addEventListener('click', async () => {
-            const name = document.getElementById('fu-name').value;
-            const topic = document.getElementById('fu-topic').value;
+                                    // 3. Value-Add Follow Up
+                                    if (document.getElementById('generate-followup-btn')) {
+                                        document.getElementById('generate-followup-btn').addEventListener('click', async () => {
+                                            const name = document.getElementById('fu-name').value;
+                                            const topic = document.getElementById('fu-topic').value;
 
-            if (!name || !topic) return alert('Please fill in all fields.');
+                                            if (!name || !topic) return alert('Please fill in all fields.');
 
-            await callApi('value_followup', { interviewerName: name, topic }, 'fu-result');
-        });
+                                            await callApi('value_followup', { interviewerName: name, topic }, 'fu-result');
+                                        });
     }
 
 } // End of init function
 
-// Global Helper for Negotiation Tabs
-window.showNegTab = function (type) {
+                                    // Global Helper for Negotiation Tabs
+                                    window.showNegTab = function (type) {
     const emailEl = document.getElementById('neg-result-email');
-    const phoneEl = document.getElementById('neg-result-phone');
-    const btns = document.querySelectorAll('.tabs-nav .secondary-btn');
+                                    const phoneEl = document.getElementById('neg-result-phone');
+                                    const btns = document.querySelectorAll('.tabs-nav .secondary-btn');
 
-    if (type === 'email') {
-        emailEl.style.display = 'block';
-        phoneEl.style.display = 'none';
-        btns[0].classList.add('active');
-        btns[1].classList.remove('active');
+                                    if (type === 'email') {
+                                        emailEl.style.display = 'block';
+                                    phoneEl.style.display = 'none';
+                                    btns[0].classList.add('active');
+                                    btns[1].classList.remove('active');
     } else {
-        emailEl.style.display = 'none';
-        phoneEl.style.display = 'block';
-        btns[0].classList.remove('active');
-        btns[1].classList.add('active');
+                                        emailEl.style.display = 'none';
+                                    phoneEl.style.display = 'block';
+                                    btns[0].classList.remove('active');
+                                    btns[1].classList.add('active');
     }
 };
 
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+                                    // Initialize when DOM is ready
+                                    if (document.readyState === 'loading') {
+                                        document.addEventListener('DOMContentLoaded', init);
 } else {
-    init();
+                                        init();
 }
 
-window.init = init;
+                                    window.init = init;

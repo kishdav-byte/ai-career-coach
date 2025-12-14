@@ -162,6 +162,33 @@ def optimize_resume_content():
         print(f"Error calling OpenAI: {e}")
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    data = request.json
+    try:
+        price_id = data.get('priceId')
+        success_url = data.get('successUrl')
+        cancel_url = data.get('cancelUrl')
+        email = data.get('email')
+
+        if not price_id or not success_url or not cancel_url:
+             return jsonify({'error': 'Missing required parameters'}), 400
+
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            customer_email=email,
+        )
+        return jsonify({'url': checkout_session.url})
+    except Exception as e:
+        print(f"Stripe Error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/api', methods=['POST'])
 def api():
     if not API_KEY:
