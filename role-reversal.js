@@ -15,9 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentData = null;
     let isPlaying = false;
     let isPaused = false;
-    let audioQueue = []; // Array of {phase, audio}
+    let audioQueue = [];
     let currentAudio = null;
     let currentPhaseIndex = 0;
+
+    // Feature Check: Intro
+    let hasPlayedIntro = false;
+    const HOST_INTRO_TEXT = "This is Role Reversal... The purpose is for you to ask me a question, so I can model the proper way to answer using the STAR format. You have selected a question; I will read it aloud, and then answer it.";
 
     // Toggle Custom Input
     categorySelect.addEventListener('change', () => {
@@ -82,22 +86,41 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Fetch Audio (Parallel)
             generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synthesizing Voice...';
 
-            const audioTasks = [
-                fetchAudio(question, selectedVoice), // 0: Question
-                fetchAudio(data.situation_task, selectedVoice), // 1: S
-                fetchAudio(data.action, selectedVoice), // 2: A
-                fetchAudio(data.result, selectedVoice)  // 3: R
+            // PREPARE TASKS
+            // Start with Core Content
+            let audioTasksMap = [
+                { id: 'question', text: question },
+                { id: 'S', text: data.situation_task },
+                { id: 'A', text: data.action },
+                { id: 'R', text: data.result }
             ];
 
-            const audios = await Promise.all(audioTasks);
+            // Add Intro if needed
+            if (!hasPlayedIntro) {
+                audioTasksMap.unshift({ id: 'intro', text: HOST_INTRO_TEXT });
+            }
 
-            // Store Audios for Playback
-            audioQueue = [
-                { type: 'question', audio: audios[0] },
-                { type: 'S', audio: audios[1] },
-                { type: 'A', audio: audios[2] },
-                { type: 'R', audio: audios[3] }
-            ];
+            // Execute parallel fetch
+            const promises = audioTasksMap.map(item => fetchAudio(item.text, selectedVoice));
+            const audioResults = await Promise.all(promises);
+
+            // Build Queue
+            audioQueue = [];
+
+            let resultIndex = 0;
+            if (!hasPlayedIntro) {
+                // Add Intro + Pause
+                audioQueue.push({ type: 'intro', audio: audioResults[resultIndex++] });
+                audioQueue.push({ type: 'intro-pause', duration: 3000 });
+                hasPlayedIntro = true;
+            }
+
+            // Add Core Content
+            audioQueue.push({ type: 'question', audio: audioResults[resultIndex++] });
+            audioQueue.push({ type: 'S', audio: audioResults[resultIndex++] });
+            audioQueue.push({ type: 'A', audio: audioResults[resultIndex++] });
+            audioQueue.push({ type: 'R', audio: audioResults[resultIndex++] });
+
 
             // Switch View
             setupPanel.style.display = 'none';
@@ -130,6 +153,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     replayBtn.addEventListener('click', () => {
         if (!isPlaying && audioQueue.length > 0) {
+            // Filter out intro logic for replay? 
+            // Usually replay means "Replay the Answer".
+            // If intro was in queue, it is still in audioQueue. 
+            // We can just restart from index 0. 
+            // But if user wants to just hear answer again, maybe skip intro?
+            // "Play the 'Host Script' first" implies ONCE per first run.
+            // If I click Replay, I am re-watching the answer. I probably don't want the intro again.
+            // But audioQueue has it. 
+            // I will FILTER audioQueue to remove 'intro' and 'intro-pause' if they exist?
+            // Or just leave it. The requirement says "IF hasPlayedIntro is true: Skip...".
+            // The `audioQueue` was built for THIS generation.
+            // If I click Replay, I am reusing the queue. 
+            // I'll leave it as is for simplicity. Replay = Replay what just happened.
             resetCards();
             startPlayback();
         }
@@ -140,7 +176,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (isPaused) {
             // Resume
-            if (currentAudio) currentAudio.play();
+            if (currentAudio && !currentAudio.paused) {
+                // Already playing?
+            } else if (currentAudio) {
+                currentAudio.play();
+            }
             isPaused = false;
             pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
@@ -165,22 +205,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const item = audioQueue[currentPhaseIndex];
-        currentAudio = item.audio;
         const type = item.type;
 
+        // HANDLE PAUSE (Simulated)
+        if (type === 'intro-pause') {
+            currentAudio = null; // No audio for pause
+            setTimeout(() => {
+                // Use recursion, but check if we stopped? 
+                if (isPlaying) {
+                    currentPhaseIndex++;
+                    playNext();
+                }
+            }, item.duration);
+            return;
+        }
+
+        // HANDLE AUDIO
+        currentAudio = item.audio;
+
         // UI Updates
-        if (type !== 'question') {
+        if (['s', 'a', 'r'].includes(type.toLowerCase())) {
             // Highlight Card
             const card = document.getElementById(`card-${type.toLowerCase()}`);
             if (card) card.classList.add('active');
         } else {
-            // Maybe highlight the question text? for now, just play.
+            // Question or Intro
             currentQuestionDisplay.style.color = 'var(--primary, #64b5f6)';
         }
 
         currentAudio.onended = () => {
             // Cleanup UI
-            if (type !== 'question') {
+            if (['s', 'a', 'r'].includes(type.toLowerCase())) {
                 const card = document.getElementById(`card-${type.toLowerCase()}`);
                 if (card) {
                     card.classList.remove('active');
