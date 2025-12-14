@@ -183,6 +183,7 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=email,
+            metadata={'user_email': email, 'plan_type': 'resume'}
         )
         return jsonify({'url': checkout_session.url})
     except Exception as e:
@@ -1666,54 +1667,7 @@ PRICE_IDS = {
 
 
 
-@app.route('/api/create-checkout-session', methods=['POST'])
-def create_checkout_session():
-    try:
-        data = request.json
-        email = data.get('email')
-        plan_type = data.get('plan', 'pro') # Default to pro
-        
-        if not email:
-            return jsonify({'error': 'Email is required'}), 400
 
-        # Select Price ID
-        price_id = PRICE_IDS.get(plan_type)
-        if not price_id:
-            return jsonify({'error': f'Price ID not configured for plan: {plan_type}'}), 500
-
-        # Determine Mode (Subscription vs One-Time)
-        mode = 'subscription' if plan_type == 'pro' else 'payment'
-
-        # Lookup User ID from Supabase
-        user_id = None
-        if supabase:
-            user_res = supabase.table('users').select('id').eq('email', email).execute()
-            if user_res.data and len(user_res.data) > 0:
-                user_id = user_res.data[0]['id']
-                print(f"Found User ID for Stripe: {user_id}")
-
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=email,
-            client_reference_id=user_id, # Link Stripe session to Supabase User ID
-            line_items=[
-                {
-                    'price': price_id,
-                    'quantity': 1,
-                },
-            ],
-            mode=mode,
-            success_url=app_domain + '/dashboard.html?payment=success&plan=' + plan_type,
-            cancel_url=app_domain + '/pricing.html?payment=cancelled',
-            metadata={
-                'user_email': email,
-                'userId': user_id, 
-                'plan_type': plan_type
-            }
-        )
-        return jsonify({'url': checkout_session.url})
-    except Exception as e:
-        print(f"Stripe Checkout Error: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/create-portal-session', methods=['POST'])
 def create_portal_session():
