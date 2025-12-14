@@ -166,13 +166,22 @@ def optimize_resume_content():
 def create_checkout_session():
     data = request.json
     try:
+        # Allow frontend to pass priceId, OR use Env Var for specific features
         price_id = data.get('priceId')
         success_url = data.get('successUrl')
         cancel_url = data.get('cancelUrl')
         email = data.get('email')
+        feature = data.get('feature') # 'rewrite', etc.
 
-        if not price_id or not success_url or not cancel_url:
-             return jsonify({'error': 'Missing required parameters'}), 400
+        if feature == 'rewrite':
+            price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
+        
+        # Fallback if still no price_id
+        if not price_id:
+             return jsonify({'error': 'Missing Price ID configuration'}), 400
+
+        if not success_url or not cancel_url:
+             return jsonify({'error': 'Missing required URL parameters'}), 400
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[{
@@ -183,9 +192,12 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=email,
-            metadata={'user_email': email, 'plan_type': 'resume'}
+            metadata={'user_email': email, 'feature': feature or 'resume'}
         )
         return jsonify({'url': checkout_session.url})
+    except Exception as e:
+        print(f"Stripe Error: {e}")
+        return jsonify({'error': str(e)}), 500
     except Exception as e:
         print(f"Stripe Error: {e}")
         return jsonify({'error': str(e)}), 500

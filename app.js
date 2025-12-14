@@ -683,7 +683,7 @@ function init() {
                         
                         <!-- List kept concise or removed to focus on button -->
 
-                        <button id="unlock-rewrite-btn" class="action-btn" style="background-color: var(--success); font-size:1.2rem; padding: 1rem 2rem; margin-top:1rem; width:100%;">Unlock One-Click Rewrite ($9.99)</button>
+                        <button id="unlock-rewrite-btn" class="action-btn" style="background-color: #20C997; font-size:1.2rem; padding: 1rem 2rem; margin-top:1rem; width:100%;">Unlock One-Click Rewrite ($9.99)</button>
                         <p style="font-size:0.8rem; color:#666; margin-top:10px;">Secure payment via Stripe. Instant access.</p>
                     </div>
                 </div>
@@ -710,8 +710,8 @@ function init() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     email: session ? session.email : null,
-                                    priceId: 'price_1QTiJ2Axi5Xgy9HwW0yF8KkK', // Placeholder - Using variable in backend is better but this works for MVP if static
-                                    successUrl: window.location.origin + '/app.html#resume-builder?mode=rewrite',
+                                    feature: 'rewrite', // Use backend env var
+                                    successUrl: window.location.origin + '/app.html?status=success#resume-builder',
                                     cancelUrl: window.location.href
                                 })
                             });
@@ -1805,6 +1805,37 @@ if (document.getElementById('generate-followup-btn')) {
 
         await callApi('value_followup', { interviewerName: name, topic }, 'fu-result');
     });
+
+}
+
+// -------------------------------------------------------------
+// CHECK PAYMENT SUCCESS (Resume Rewrite)
+// -------------------------------------------------------------
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('status') === 'success') {
+    console.log("Payment Successful! Unlocking Rewrite...");
+    // 1. Show Success Message
+    alert("Payment Successful! Resume Rewrite Unlocked. 🚀");
+
+    // 2. Unlock Feature (Visual)
+    // We can set a global flag or localStorage to persist this state
+    localStorage.setItem('has_unlocked_rewrite', 'true');
+
+    // 3. Switch to Resume Builder Tab (if not already there by hash)
+    // The hash #resume-builder handles structure, but we ensure active class
+    // We might want to remove the query param so a refresh doesn't trigger again
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+}
+
+// Unlock Check on Load (Persistent)
+if (localStorage.getItem('has_unlocked_rewrite') === 'true') {
+    // If we had a mechanism to hide/show the 'Upsell' vs 'Editor', do it here.
+    // For now, we assume the user can just access the tab. 
+    // We might want to hide the "Unlock" button if it was on the Resume Analysis page?
+    // The Unlock button is injected in renderResumeReport (lines 686).
+    // We can't easily hide it here because renderResumeReport hasn't run yet.
+    // But we can add a global style or class to body?
+    document.body.classList.add('rewrite-unlocked');
 }
 
 // -------------------------------------------------------------
