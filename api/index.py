@@ -1647,6 +1647,11 @@ def update_user_status():
         email = data.get('email', '').strip().lower()
         account_status = data.get('account_status')
         payment_tier = data.get('payment_tier')
+        
+        # New: Manual Credit Adjustments
+        set_rewrite = data.get('set_rewrite_credits')
+        set_resume = data.get('set_resume_credits')
+        
         admin_key = data.get('admin_key')
         
         # Simple admin key check (should use proper admin auth in production)
@@ -1667,6 +1672,11 @@ def update_user_status():
             update_data['account_status'] = account_status
         if payment_tier:
             update_data['payment_tier'] = payment_tier
+        
+        if set_rewrite is not None:
+             update_data['rewrite_credits'] = int(set_rewrite)
+        if set_resume is not None:
+             update_data['resume_credits'] = int(set_resume)
         
         if update_data:
             supabase.table('users').update(update_data).eq('email', email).execute()
@@ -1804,6 +1814,12 @@ def stripe_webhook():
                         update_data['is_unlimited'] = True
                         update_data['subscription_status'] = 'active'
                         print("Granting UNLIMITED access.")
+
+                    # GLOBAL CHECK: Feature = Rewrite (Prioritize over Plan Type)
+                    elif metadata.get('feature') == 'rewrite':
+                         current_rewrite = user_data.get('rewrite_credits', 0)
+                         update_data['rewrite_credits'] = current_rewrite + 1
+                         print(f"Granting +1 V2 REWRITE Credit. New Total: {update_data['rewrite_credits']}")
                     
                     elif plan_type == 'complete':
                         update_data['resume_credits'] = current_resume + 1
@@ -1811,17 +1827,9 @@ def stripe_webhook():
                         print(f"Granting Complete Package (+1 each). New Targets: R={update_data['resume_credits']}, I={update_data['interview_credits']}")
 
                     elif plan_type == 'resume':
-                        # CHECK FOR REWRITE FEATURE OVERRIDE
-                        feature_flag = metadata.get('feature')
-                        if feature_flag == 'rewrite':
-                             # Increment NEW separate column for V2
-                             current_rewrite = user_data.get('rewrite_credits', 0)
-                             update_data['rewrite_credits'] = current_rewrite + 1
-                             print(f"Granting +1 V2 REWRITE Credit. New Total: {update_data['rewrite_credits']}")
-                        else:
-                             # Increment LEGACY column for V1 Analysis
-                             update_data['resume_credits'] = current_resume + 1
-                             print(f"Granting +1 V1 Resume Analysis Credit. New Total: {update_data['resume_credits']}")
+                         # Legacy Resume Credit (fallback if feature != rewrite)
+                         update_data['resume_credits'] = current_resume + 1
+                         print(f"Granting +1 V1 Resume Analysis Credit. New Total: {update_data['resume_credits']}")
 
                     elif plan_type == 'interview':
                         update_data['interview_credits'] = current_interview + 1
