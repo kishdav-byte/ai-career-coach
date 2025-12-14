@@ -736,6 +736,91 @@ def api():
             print(f"Error in optimize: {e}")
             return jsonify({"error": str(e)}), 500
 
+    elif action == 'strategic_questions':
+        job_desc = data.get('jobDesc', '')
+        interviewer_level = data.get('interviewerLevel', 'Hiring Manager')
+        
+        system_msg = "You are an expert Executive Career Coach."
+        user_msg = f"""
+        Generate 5 high-impact, strategic interview questions for a candidate to ask a {interviewer_level}.
+        
+        Target Job Context:
+        {job_desc}
+        
+        Logic:
+        - If Recruiter: Focus on culture, timeline, and company vision.
+        - If Hiring Manager: Focus on immediate challenges, team dynamics, and success metrics.
+        - If Executive: Focus on market strategy, long-term vision, and ROI.
+        
+        Output Format: Markdown.
+        For each question, provide:
+        **Question:** [The Question]
+        *Why it works:* [Brief explanation]
+        """
+        
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
+        ]
+        response_text = call_openai(messages, json_mode=False)
+        return jsonify({"data": response_text})
+
+    elif action == 'negotiation_script':
+        current_offer = data.get('currentOffer', '')
+        target_salary = data.get('targetSalary', '')
+        leverage = data.get('leverage', '')
+        
+        system_msg = "You are an expert Salary Negotiation Coach."
+        user_msg = f"""
+        Write a salary negotiation script.
+        
+        Current Offer: {current_offer}
+        Target Salary: {target_salary}
+        Leverage/Context: {leverage}
+        
+        Output MUST be Valid JSON:
+        {{
+            "email_draft": "Subject: ... Body ...",
+            "phone_script": "Start by saying... then say..."
+        }}
+        """
+        
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
+        ]
+        
+        try:
+            response_text = call_openai(messages, json_mode=True)
+            res_json = json.loads(response_text)
+            return jsonify(res_json)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    elif action == 'value_followup':
+        interviewer_name = data.get('interviewerName', '')
+        topic = data.get('topic', '')
+        
+        system_msg = "You are an expert Career Coach."
+        user_msg = f"""
+        Write a 'Value-Add' Thank You Email.
+        
+        Interviewer: {interviewer_name}
+        Key Topic Discussed: {topic}
+        
+        Instruction:
+        Do not just say 'thank you'. Reference the topic and offer a brief insight, article suggestion, or solution to demonstrate value/expertise. Keep it professional and concise.
+        
+        Output: Markdown text of the email body.
+        """
+        
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
+        ]
+        response_text = call_openai(messages, json_mode=False)
+        return jsonify({"data": response_text})
+
     else:
         return jsonify({"error": "Invalid action"}), 400
 

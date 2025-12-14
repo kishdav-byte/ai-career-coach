@@ -1702,7 +1702,103 @@ function init() {
 
     }
 
+    // ---------------------------------------------------------
+    // STRATEGY SUITE TOOLS (Logic)
+    // ---------------------------------------------------------
+
+    // 1. The Inquisitor (Strategic Questions)
+    if (document.getElementById('generate-questions-btn')) {
+        document.getElementById('generate-questions-btn').addEventListener('click', async () => {
+            const jobDesc = document.getElementById('inq-job-desc').value;
+            const level = document.getElementById('inq-interviewer-level').value;
+            if (!jobDesc) return alert('Please enter a job description or title.');
+
+            await callApi('strategic_questions', { jobDesc, interviewerLevel: level }, 'inq-result');
+        });
+    }
+
+    // 2. The Closer (Negotiation Script)
+    if (document.getElementById('generate-negotiation-btn')) {
+        document.getElementById('generate-negotiation-btn').addEventListener('click', async () => {
+            const currentOffer = document.getElementById('neg-current-offer').value;
+            const targetSalary = document.getElementById('neg-target-salary').value;
+            const leverage = document.getElementById('neg-leverage').value;
+
+            if (!currentOffer || !targetSalary) return alert('Please enter offer details.');
+
+            const resultContainer = document.getElementById('neg-result-container');
+            const emailEl = document.getElementById('neg-result-email');
+            const phoneEl = document.getElementById('neg-result-phone');
+
+            resultContainer.style.display = 'block';
+            emailEl.innerHTML = '<em>Generating strategy...</em>';
+            emailEl.style.display = 'block';
+            phoneEl.style.display = 'none';
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'negotiation_script',
+                        currentOffer,
+                        targetSalary,
+                        leverage
+                    })
+                });
+                const result = await response.json();
+
+                if (result.error) {
+                    emailEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+                } else {
+                    // Store results globally for tab switching
+                    window.negEmailContent = result.email_draft.replace(/\n/g, '<br>');
+                    window.negPhoneContent = result.phone_script.replace(/\n/g, '<br>');
+
+                    emailEl.innerHTML = window.negEmailContent;
+                    phoneEl.innerHTML = window.negPhoneContent;
+
+                    // Reset Tabs
+                    showNegTab('email');
+                }
+            } catch (e) {
+                emailEl.innerHTML = `<strong style="color:red">Connection Error: ${e.message}</strong>`;
+            }
+        });
+    }
+
+    // 3. Value-Add Follow Up
+    if (document.getElementById('generate-followup-btn')) {
+        document.getElementById('generate-followup-btn').addEventListener('click', async () => {
+            const name = document.getElementById('fu-name').value;
+            const topic = document.getElementById('fu-topic').value;
+
+            if (!name || !topic) return alert('Please fill in all fields.');
+
+            await callApi('value_followup', { interviewerName: name, topic }, 'fu-result');
+        });
+    }
+
 } // End of init function
+
+// Global Helper for Negotiation Tabs
+window.showNegTab = function (type) {
+    const emailEl = document.getElementById('neg-result-email');
+    const phoneEl = document.getElementById('neg-result-phone');
+    const btns = document.querySelectorAll('.tabs-nav .secondary-btn');
+
+    if (type === 'email') {
+        emailEl.style.display = 'block';
+        phoneEl.style.display = 'none';
+        btns[0].classList.add('active');
+        btns[1].classList.remove('active');
+    } else {
+        emailEl.style.display = 'none';
+        phoneEl.style.display = 'block';
+        btns[0].classList.remove('active');
+        btns[1].classList.add('active');
+    }
+};
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
