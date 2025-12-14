@@ -1848,7 +1848,7 @@ if (pendingText) {
     }
 }
 
-} // End of init function
+// End of init function block (Cleaned up)
 
 // Global Helper for Negotiation Tabs
 window.showNegTab = function (type) {
