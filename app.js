@@ -260,28 +260,7 @@ function init() {
         if (el) el.addEventListener('click', handler);
     }
 
-    // -------------------------------------------------------------
-    // AUTO-ACTION: CHECK FOR KEY (Dashboard Import)
-    // -------------------------------------------------------------
-    const pendingText = localStorage.getItem('pending_resume_text');
-    if (pendingText) {
-        console.log("Found pending resume text. Auto-filling...");
-        const resumeInput = document.getElementById('resume-input');
-        if (resumeInput) {
-            resumeInput.value = pendingText;
-
-            // Optional: Trigger click automatically? Yes, for "Instant" feel.
-            // But lets wait a split second for UI to settle/visible
-            setTimeout(() => {
-                const btn = document.getElementById('analyze-resume-btn');
-                if (btn) btn.click();
-            }, 500);
-
-            // Clear it
-            localStorage.removeItem('pending_resume_text');
-            localStorage.removeItem('pending_resume_filename');
-        }
-    }
+    // Auto-analysis logic moved to end of init function
 
     // ---------------------------------------------------------
     // VIEW CONTROLLER (Phase 21: Cross-Nav Removal)
@@ -1829,6 +1808,40 @@ function init() {
 
                                             await callApi('value_followup', { interviewerName: name, topic }, 'fu-result');
                                         });
+    }
+
+                                    // -------------------------------------------------------------
+                                    // AUTO-ACTION: CHECK FOR KEY (Dashboard Import) - Moved to End
+                                    // -------------------------------------------------------------
+                                    const pendingText = localStorage.getItem('pending_resume_text');
+                                    if (pendingText) {
+                                        console.log("Found pending resume text. Auto-filling...");
+                                    const resumeInput = document.getElementById('resume-input');
+                                    if (resumeInput) {
+            // Ensure tab is active
+            const resumeSection = document.getElementById('resume');
+                                    if (resumeSection && !resumeSection.classList.contains('active')) {
+                                        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+                                    resumeSection.classList.add('active');
+            }
+
+                                    resumeInput.value = pendingText;
+
+            // Trigger click automatically
+            setTimeout(() => {
+                const btn = document.getElementById('analyze-resume-btn');
+                                    if (btn) {
+                                        console.log("Auto-clicking analyze button...");
+                                    btn.click();
+                } else {
+                                        console.error("Analyze button not found for auto-click");
+                }
+            }, 600);
+
+                                    // Clear it
+                                    localStorage.removeItem('pending_resume_text');
+                                    localStorage.removeItem('pending_resume_filename');
+        }
     }
 
 } // End of init function
