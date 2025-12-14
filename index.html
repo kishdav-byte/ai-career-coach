@@ -199,6 +199,39 @@
             box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
         }
 
+        /* NEW ANIMATIONS */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4);
+                transform: scale(1);
+            }
+
+            50% {
+                box-shadow: 0 0 35px rgba(37, 99, 235, 0.7);
+                transform: scale(1.02);
+            }
+        }
+
+        .animate-pulse {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        .ambient-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 140%;
+            height: 140%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, rgba(168, 85, 247, 0.2) 40%, transparent 70%);
+            filter: blur(80px);
+            z-index: -1;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 30px rgba(37, 99, 235, 0.5);
@@ -717,6 +750,7 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content">
+            <div class="ambient-glow"></div>
             <div class="hero-badge">🎯 AI-Powered Interview Prep</div>
             <h1>Ace Your Next Interview <span>With AI</span></h1>
             <p class="hero-subtitle">Practice with voice-based AI interviewer. Get real-time scoring and see the perfect
@@ -724,12 +758,13 @@
             <div class="hero-buttons">
                 <!-- Guest State -->
                 <div id="guest-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                    <a href="/signup.html" class="btn btn-primary">Get Started - $29.99</a>
+                    <a href="/signup.html" class="btn btn-primary animate-pulse">Get Started - $29.99</a>
                     <a href="/login.html" class="btn btn-secondary">Log In</a>
                 </div>
                 <!-- Auth State (Hidden by default) -->
                 <div id="auth-buttons" style="display: none;">
-                    <a href="/dashboard.html" class="btn btn-primary" style="padding: 1rem 3rem;">Go to Dashboard</a>
+                    <a href="/dashboard.html" class="btn btn-primary animate-pulse" style="padding: 1rem 3rem;">Go to
+                        Dashboard</a>
                 </div>
             </div>
         </div>
