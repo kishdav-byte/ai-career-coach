@@ -254,10 +254,33 @@ function init() {
     // Run Access Check
     checkAccess();
 
-    // Helper: Safely add event listener (only if element exists)
+    // Helper: Safely add event listener (only if el exists)
     function addClickListener(id, handler) {
         const el = document.getElementById(id);
         if (el) el.addEventListener('click', handler);
+    }
+
+    // -------------------------------------------------------------
+    // AUTO-ACTION: CHECK FOR KEY (Dashboard Import)
+    // -------------------------------------------------------------
+    const pendingText = localStorage.getItem('pending_resume_text');
+    if (pendingText) {
+        console.log("Found pending resume text. Auto-filling...");
+        const resumeInput = document.getElementById('resume-input');
+        if (resumeInput) {
+            resumeInput.value = pendingText;
+
+            // Optional: Trigger click automatically? Yes, for "Instant" feel.
+            // But lets wait a split second for UI to settle/visible
+            setTimeout(() => {
+                const btn = document.getElementById('analyze-resume-btn');
+                if (btn) btn.click();
+            }, 500);
+
+            // Clear it
+            localStorage.removeItem('pending_resume_text');
+            localStorage.removeItem('pending_resume_filename');
+        }
     }
 
     // ---------------------------------------------------------
