@@ -12,6 +12,12 @@ SET role = 'admin'
 WHERE email = 'your_email@example.com';
 
 -- ==========================================
+-- NEW: Parallel Rewrite Credits (V2 App)
+-- ==========================================
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS rewrite_credits INTEGER DEFAULT 0;
+
+-- ==========================================
 -- NEW: Chat Logs for Transcript Viewer
 -- ==========================================
 

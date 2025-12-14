@@ -207,7 +207,17 @@
             <section id="resume-builder" class="tab-pane" style="margin-bottom: 40px;">
                 <div class="card">
                     <h2>AI Resume Builder</h2>
-                    <p>Build and optimize your resume from scratch.</p>
+                    <div id="rb-actions-bar"
+                        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+                        <p style="margin:0;">Build and optimize your resume from scratch.</p>
+
+                        <div id="rb-credit-display" style="display:none; align-items:center; gap:10px;">
+                            <span style="font-weight:bold; color:var(--primary);">Credits: <span
+                                    id="rb-credit-count">0</span></span>
+                            <button id="rb-buy-credits-btn" class="secondary-btn"
+                                style="padding: 5px 10px; font-size: 0.8rem;">Buy More</button>
+                        </div>
+                    </div>
 
                     <div class="rb-controls"
                         style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">

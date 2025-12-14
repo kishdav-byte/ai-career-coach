@@ -61,7 +61,8 @@ async function checkAccess() {
                             logged_in_at: Date.now(),
                             account_status: 'active', // Default to active to allow entry, verify later
                             resume_credits: 3,
-                            interview_credits: 3
+                            interview_credits: 3,
+                            rewrite_credits: 3 // Default for recovered session
                         };
                         localStorage.setItem(SESSION_KEY, JSON.stringify(session));
                         console.log("Session Recovered in App!");
@@ -107,6 +108,12 @@ async function checkAccess() {
             // Only update local session
             session.subscription_status = status;
             session.is_unlimited = unlimited;
+            session.resume_credits = result.user.resume_credits;
+            session.interview_credits = result.user.interview_credits;
+            session.rewrite_credits = result.user.rewrite_credits; // Store new credit type
+
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            updateCreditDisplay(session); // Update UI immediately
 
             // ADMIN CHECK: Reveal Hidden Tools
             if (result.user.role === 'admin') {
@@ -141,15 +148,19 @@ async function checkAccess() {
             // Phase 20: Split Credits
             let resume_credits = result.user.resume_credits;
             let interview_credits = result.user.interview_credits;
+            let rewrite_credits = result.user.rewrite_credits; // New V2 Credit
 
             // Safe Parse
             if (resume_credits === null || resume_credits === undefined) resume_credits = 0;
             if (interview_credits === null || interview_credits === undefined) interview_credits = 0;
+            if (rewrite_credits === null || rewrite_credits === undefined) rewrite_credits = 0;
 
             session.resume_credits = resume_credits;
             session.interview_credits = interview_credits;
+            session.rewrite_credits = rewrite_credits;
 
             localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+            updateCreditDisplay(session); // UI Update
 
             console.log(`Session refreshed. Status=${status}, Res=${resume_credits}, Int=${interview_credits}`);
 
@@ -158,6 +169,30 @@ async function checkAccess() {
         console.log("Error checking access", e);
     }
 }
+
+
+function updateCreditDisplay(session) {
+    if (!session) return;
+    const countEl = document.getElementById('rb-credit-count');
+    const displayEl = document.getElementById('rb-credit-display');
+    const generateBtn = document.getElementById('rb-generate-btn');
+
+    if (countEl && session.rewrite_credits !== undefined) {
+        countEl.textContent = session.rewrite_credits;
+        if (displayEl) displayEl.style.display = 'flex';
+
+        // Gate "Generate" Button
+        if (generateBtn) {
+            if (session.rewrite_credits > 0) {
+                generateBtn.innerHTML = `Generate Rewrite <small>(1 Credit)</small>`;
+                generateBtn.disabled = false;
+            } else {
+                generateBtn.innerHTML = `Generate Rewrite <small>(1 Credit Needed)</small>`;
+            }
+        }
+    }
+}
+
 // Global state variables for interview tracking
 let questionCount = 0;
 let interviewHistory = [];
@@ -1566,6 +1601,34 @@ if (document.getElementById('generate-plan-btn')) {
 
     // GENERATE BUTTON
     document.getElementById('rb-generate-btn').addEventListener('click', async () => {
+        // CREDIT CHECK
+        const session = getSession();
+        if (!session || (session.rewrite_credits || 0) < 1) {
+            if (confirm("You need 1 Rewrite Credit to generate. Unlock Executive Rewrite for $9.99?")) {
+                // Trigger Checkout
+                const btn = document.getElementById('unlock-rewrite-btn');
+                if (btn) btn.click(); // Reuse existing button logic if possible, or call API directly
+                else {
+                    // Fallback if button hidden
+                    try {
+                        const response = await fetch('/api/create-checkout-session', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                email: session ? session.email : null,
+                                feature: 'rewrite',
+                                successUrl: window.location.origin + '/app.html?status=success#resume-builder',
+                                cancelUrl: window.location.href
+                            })
+                        });
+                        const res = await response.json();
+                        if (res.url) window.location.href = res.url;
+                    } catch (err) { alert("Checkout Error"); }
+                }
+            }
+            return;
+        }
+
         const btn = document.getElementById('rb-generate-btn');
         const originalText = btn.textContent;
         btn.textContent = "Optimizing & Generating...";
@@ -1820,6 +1883,11 @@ if (urlParams.get('status') === 'success') {
     // 2. Unlock Feature (Visual)
     // We can set a global flag or localStorage to persist this state
     localStorage.setItem('has_unlocked_rewrite', 'true');
+
+    // Refresh User Data (Credits)
+    checkAccess().then(() => {
+        console.log("Credits refreshed.");
+    });
 
     // 3. Switch to Resume Builder Tab (if not already there by hash)
     // The hash #resume-builder handles structure, but we ensure active class

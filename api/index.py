@@ -224,7 +224,7 @@ def api():
     # ---------------------------------------------------------
     # ACCESS CONTROL & MONETIZATION CHECK (Phase 13)
     # ---------------------------------------------------------
-    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume']
+    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize']
     
     if action in PAID_ACTIONS:
         # Get email from request data OR try to infer it if possible
@@ -265,6 +265,7 @@ def api():
                     # Get Specific Credits (Phase 19)
                     resume_credits = user.get('resume_credits', 0)
                     interview_credits = user.get('interview_credits', 0)
+                    rewrite_credits = user.get('rewrite_credits', 0)
                     
                     # Log Check
                     print(f"Auth Check for {email}: Unlimited={is_unlimited}, R_Cred={resume_credits}, I_Cred={interview_credits}, Action={action}")
@@ -279,7 +280,7 @@ def api():
                         has_access = True
                     else:
                         # Check specific credit based on action
-                        if action in ['analyze_resume', 'optimize_resume']:
+                        elif action in ['analyze_resume', 'optimize_resume']:
                             if resume_credits > 0:
                                 has_access = True
                                 # Deduct immediately (unless unlimited, which is handled above)
@@ -288,6 +289,19 @@ def api():
                                     supabase_upd = supabase_admin if supabase_admin else supabase
                                     supabase_upd.table('users').update({'resume_credits': new_credits}).eq('email', email).execute()
                                     print(f"Deducted 1 RESUME credit. Remaining: {new_credits}")
+
+                        elif action == 'optimize':
+                            # V2 REWRITE CREDIT CHECK
+                            if rewrite_credits > 0:
+                                has_access = True
+                                if should_deduct:
+                                    new_credits = rewrite_credits - 1
+                                    supabase_upd = supabase_admin if supabase_admin else supabase
+                                    supabase_upd.table('users').update({'rewrite_credits': new_credits}).eq('email', email).execute()
+                                    print(f"Deducted 1 REWRITE credit. Remaining: {new_credits}")
+                            else:
+                                 print(f"Blocked: Insufficient Rewrite Credits ({rewrite_credits})")
+                                 has_access = False
                         
                         elif action in ['interview_chat', 'generate_report']:
                             if action == 'generate_report':
@@ -1609,6 +1623,7 @@ def get_user_data_route():
                     "email": user.get('email'),
                     "resume_credits": user.get('resume_credits', 0),
                     "interview_credits": user.get('interview_credits', 0),
+                    "rewrite_credits": user.get('rewrite_credits', 0),
                     "is_unlimited": user.get('is_unlimited', False),
                     "subscription_status": user.get('subscription_status', 'free'),
                     "role": user.get('role', 'user')
@@ -1793,14 +1808,20 @@ def stripe_webhook():
                     elif plan_type == 'complete':
                         update_data['resume_credits'] = current_resume + 1
                         update_data['interview_credits'] = current_interview + 1
-                        # If previously unlimited, we might want to keep it? 
-                        # Usually one-off purchase doesn't cancel subscription, so we leave is_unlimited alone unless we want to force it?
-                        # Let's just add credits.
                         print(f"Granting Complete Package (+1 each). New Targets: R={update_data['resume_credits']}, I={update_data['interview_credits']}")
 
                     elif plan_type == 'resume':
-                        update_data['resume_credits'] = current_resume + 1
-                        print(f"Granting +1 Resume Credit. New Total: {update_data['resume_credits']}")
+                        # CHECK FOR REWRITE FEATURE OVERRIDE
+                        feature_flag = metadata.get('feature')
+                        if feature_flag == 'rewrite':
+                             # Increment NEW separate column for V2
+                             current_rewrite = user_data.get('rewrite_credits', 0)
+                             update_data['rewrite_credits'] = current_rewrite + 1
+                             print(f"Granting +1 V2 REWRITE Credit. New Total: {update_data['rewrite_credits']}")
+                        else:
+                             # Increment LEGACY column for V1 Analysis
+                             update_data['resume_credits'] = current_resume + 1
+                             print(f"Granting +1 V1 Resume Analysis Credit. New Total: {update_data['resume_credits']}")
 
                     elif plan_type == 'interview':
                         update_data['interview_credits'] = current_interview + 1
