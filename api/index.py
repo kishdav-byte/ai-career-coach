@@ -133,6 +133,43 @@ def call_openai(messages, json_mode=False):
     result = response.json()
     return result['choices'][0]['message']['content']
 
+@app.route('/api/generate-model-answer', methods=['POST'])
+def generate_model_answer():
+    if not API_KEY:
+        return jsonify({"error": "Server API Key missing"}), 500
+
+    data = request.json
+    question = data.get('question')
+    resume_context = data.get('resume_context', '')
+
+    if not question:
+        return jsonify({"error": "Question is required"}), 400
+
+    # Strict JSON formatting instruction
+    system_prompt = (
+        "You are an expert executive candidate. Answer the interview question using the STAR method. "
+        "Be specific, use metrics, and be concise. "
+        "Return ONLY a JSON object with this exact schema: "
+        "{'situation_task': '...', 'action': '...', 'result': '...'}. "
+        "Do not include markdown or extra text."
+    )
+    
+    user_message = f"Question: {question}\n\nResume Context: {resume_context}\n\nProvide a perfect STAR answer."
+
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_message}
+    ]
+
+    try:
+        content = call_openai(messages, json_mode=True)
+        # Parse JSON to ensure validity before returning
+        parsed_content = json.loads(content)
+        return jsonify(parsed_content)
+    except Exception as e:
+        print(f"Model Answer Gen Error: {e}")
+        return jsonify({"error": "Failed to generate answer"}), 500
+
 @app.route('/api/optimize', methods=['POST'])
 def optimize_resume_content():
     if not API_KEY:
