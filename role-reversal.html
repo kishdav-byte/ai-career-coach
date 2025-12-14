@@ -248,6 +248,20 @@
                 </select>
             </div>
 
+            <div class="input-group">
+                <label>AI Voice</label>
+                <select id="voice-select">
+                    <option value="alloy">Alloy (Neutral)</option>
+                    <option value="echo">Echo (Male)</option>
+                    <option value="shimmer">Shimmer (Female)</option>
+                    <option value="ash">Ash (Deep)</option>
+                    <option value="ballad">Ballad (Warm)</option>
+                    <option value="coral">Coral (Bright)</option>
+                    <option value="sage">Sage (Calm)</option>
+                    <option value="verse">Verse (Crisp)</option>
+                </select>
+            </div>
+
             <div class="input-group" id="custom-question-group" style="display: none;">
                 <label>Enter Question</label>
                 <input type="text" id="custom-question-input"
@@ -286,6 +300,7 @@
 
             <div class="voice-controls">
                 <button class="control-btn" id="replay-btn" title="Replay"><i class="fas fa-redo"></i></button>
+                <button class="control-btn" id="pause-btn" title="Pause/Resume"><i class="fas fa-pause"></i></button>
                 <button class="action-btn" onclick="window.location.href='app.html#interview'"
                     style="background: var(--surface-card); border: 1px solid var(--primary);">
                     <i class="fas fa-microphone"></i> Try It Myself

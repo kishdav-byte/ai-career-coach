@@ -2,16 +2,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const categorySelect = document.getElementById('category-select');
     const customQuestionGroup = document.getElementById('custom-question-group');
     const customQuestionInput = document.getElementById('custom-question-input');
+    const voiceSelect = document.getElementById('voice-select');
     const generateBtn = document.getElementById('generate-btn');
 
     const setupPanel = document.getElementById('setup-panel');
     const playerArea = document.getElementById('player-area');
     const currentQuestionDisplay = document.getElementById('current-question-display');
     const replayBtn = document.getElementById('replay-btn');
+    const pauseBtn = document.getElementById('pause-btn');
 
     // State
     let currentData = null;
     let isPlaying = false;
+    let isPaused = false;
+    let audioQueue = []; // Array of {phase, audio}
+    let currentAudio = null;
+    let currentPhaseIndex = 0;
 
     // Toggle Custom Input
     categorySelect.addEventListener('change', () => {
@@ -28,7 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categorySelect.value === 'Custom') {
             question = customQuestionInput.value.trim();
         } else {
-            // Preset questions based on category
             const presets = {
                 'Leadership': "Tell me about a time you led a team through a difficult challenge.",
                 'Conflict Resolution': "Describe a situation where you had a conflict with a colleague and how you resolved it.",
@@ -44,11 +49,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        const selectedVoice = voiceSelect.value;
+        const buttonOriginalText = generateBtn.innerHTML;
+
         // UI Loading State
         generateBtn.disabled = true;
-        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating Answer & Audio...';
 
         try {
+            // 1. Get Text Content
             const response = await fetch('/api/generate-model-answer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -56,92 +65,144 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json();
-
             if (data.error) throw new Error(data.error);
 
-            // Success
             currentData = data;
             currentQuestionDisplay.textContent = question;
 
-            // Populate Cards
+            // Populate Text Cards
             document.getElementById('text-s').textContent = data.situation_task;
             document.getElementById('text-a').textContent = data.action;
             document.getElementById('text-r').textContent = data.result;
+
+            // 2. Fetch Audio (Parallel)
+            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Synthesizing Voice...';
+
+            const audioTasks = [
+                fetchAudio(question, selectedVoice), // 0: Question
+                fetchAudio(data.situation_task, selectedVoice), // 1: S
+                fetchAudio(data.action, selectedVoice), // 2: A
+                fetchAudio(data.result, selectedVoice)  // 3: R
+            ];
+
+            const audios = await Promise.all(audioTasks);
+
+            // Store Audios for Playback
+            audioQueue = [
+                { type: 'question', audio: audios[0] },
+                { type: 'S', audio: audios[1] },
+                { type: 'A', audio: audios[2] },
+                { type: 'R', audio: audios[3] }
+            ];
 
             // Switch View
             setupPanel.style.display = 'none';
             playerArea.style.display = 'block';
 
             // Auto Play
-            playSequence();
+            startPlayback();
 
         } catch (e) {
             alert("Error: " + e.message);
-        } finally {
             generateBtn.disabled = false;
-            generateBtn.innerHTML = '<i class="fas fa-magic"></i> Generate Model Answer';
+            generateBtn.innerHTML = buttonOriginalText;
         }
     });
+
+    // Helper to fetch audio
+    async function fetchAudio(text, voice) {
+        const res = await fetch('/api/speak', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voice })
+        });
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+
+        // Convert Base64 to Audio Object
+        const audio = new Audio("data:audio/mp3;base64," + json.audio);
+        return audio;
+    }
 
     replayBtn.addEventListener('click', () => {
-        if (!isPlaying && currentData) {
-            playSequence();
+        if (!isPlaying && audioQueue.length > 0) {
+            resetCards();
+            startPlayback();
         }
     });
 
-    function playSequence() {
-        if (isPlaying) return;
-        isPlaying = true;
-        resetCards();
+    pauseBtn.addEventListener('click', () => {
+        if (!isPlaying) return;
 
-        // Sequence: S -> A -> R
-        speakPhase('S', currentData.situation_task, () => {
-            markDone('S');
-            speakPhase('A', currentData.action, () => {
-                markDone('A');
-                speakPhase('R', currentData.result, () => {
-                    markDone('R');
-                    isPlaying = false;
-                });
-            });
-        });
-    }
-
-    function speakPhase(phase, text, onComplete) {
-        const card = document.getElementById(`card-${phase.toLowerCase()}`);
-        card.classList.add('active');
-
-        if ('speechSynthesis' in window) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
-            utterance.pitch = 1.0;
-
-            utterance.onend = () => {
-                card.classList.remove('active');
-                if (onComplete) onComplete();
-            };
-
-            window.speechSynthesis.speak(utterance);
+        if (isPaused) {
+            // Resume
+            if (currentAudio) currentAudio.play();
+            isPaused = false;
+            pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
-            console.warn("Browser does not support TTS");
-            // Fallback for no TTS: just wait based on text length
-            setTimeout(() => {
-                card.classList.remove('active');
-                if (onComplete) onComplete();
-            }, text.length * 50);
+            // Pause
+            if (currentAudio) currentAudio.pause();
+            isPaused = true;
+            pauseBtn.innerHTML = '<i class="fas fa-play"></i>';
         }
+    });
+
+    function startPlayback() {
+        isPlaying = true;
+        isPaused = false;
+        currentPhaseIndex = 0;
+        playNext();
     }
 
-    function markDone(phase) {
-        const card = document.getElementById(`card-${phase.toLowerCase()}`);
-        card.classList.add('done');
+    function playNext() {
+        if (currentPhaseIndex >= audioQueue.length) {
+            isPlaying = false;
+            return;
+        }
+
+        const item = audioQueue[currentPhaseIndex];
+        currentAudio = item.audio;
+        const type = item.type;
+
+        // UI Updates
+        if (type !== 'question') {
+            // Highlight Card
+            const card = document.getElementById(`card-${type.toLowerCase()}`);
+            if (card) card.classList.add('active');
+        } else {
+            // Maybe highlight the question text? for now, just play.
+            currentQuestionDisplay.style.color = 'var(--primary, #64b5f6)';
+        }
+
+        currentAudio.onended = () => {
+            // Cleanup UI
+            if (type !== 'question') {
+                const card = document.getElementById(`card-${type.toLowerCase()}`);
+                if (card) {
+                    card.classList.remove('active');
+                    card.classList.add('done');
+                }
+            } else {
+                currentQuestionDisplay.style.color = ''; // Reset
+            }
+
+            // Next
+            currentPhaseIndex++;
+            playNext();
+        };
+
+        currentAudio.play().catch(e => console.error("Play error:", e));
     }
 
     function resetCards() {
-        window.speechSynthesis.cancel();
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
         ['s', 'a', 'r'].forEach(p => {
             const card = document.getElementById(`card-${p}`);
             card.className = 'phase-card'; // Reset classes
         });
+        currentQuestionDisplay.style.color = '';
     }
 });

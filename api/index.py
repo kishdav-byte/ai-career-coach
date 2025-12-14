@@ -169,7 +169,32 @@ def generate_model_answer():
     except Exception as e:
         print(f"Model Answer Gen Error: {e}")
         return jsonify({"error": "Failed to generate answer"}), 500
+    except Exception as e:
+        print(f"Model Answer Gen Error: {e}")
+        return jsonify({"error": "Failed to generate answer"}), 500
 
+@app.route('/api/speak', methods=['POST'])
+def speak_text():
+    if not API_KEY:
+        return jsonify({"error": "Server API Key missing"}), 500
+
+    data = request.json
+    text = data.get('text')
+    voice = data.get('voice', 'alloy')
+
+    if not text:
+        return jsonify({"error": "Text is required"}), 400
+
+    try:
+        # Re-use existing helper
+        audio_base64 = generate_audio_openai(text, voice)
+        if not audio_base64:
+             return jsonify({"error": "Audio generation failed"}), 500
+             
+        return jsonify({"audio": audio_base64})
+    except Exception as e:
+        print(f"TTS Error: {e}")
+        return jsonify({"error": str(e)}), 500
 @app.route('/api/optimize', methods=['POST'])
 def optimize_resume_content():
     if not API_KEY:
