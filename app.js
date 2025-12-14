@@ -287,12 +287,13 @@ function init() {
     // VIEW CONTROLLER (Phase 21: Cross-Nav Removal)
     // ---------------------------------------------------------
     const hash = window.location.hash;
+
+    // Clear ALL active tabs first to prevent overlap
+    const allPanes = document.querySelectorAll('.tab-pane');
+    allPanes.forEach(pane => pane.classList.remove('active'));
+
     const resumeSection = document.getElementById('resume');
     const interviewSection = document.getElementById('interview');
-
-    // Hide all first
-    if (resumeSection) resumeSection.classList.remove('active');
-    if (interviewSection) interviewSection.classList.remove('active');
 
     // Show based on Hash
     const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
@@ -304,6 +305,15 @@ function init() {
         // Do not activate Resume section. Wait for Admin Check to reveal specific tool.
         // We can set title here though
         document.title = "Admin Tool - AI Career Coach";
+
+        // Temporarily activate it so we can see it if we are already logged in as admin?
+        // Admin check later will unhide the *container* or specific elements, 
+        // but we need the 'active' class on the pane for it to be visible in the layout.
+        // The checkAccess function (lines 119-136) handles adding 'active', 
+        // BUT it runs async. We might want to add 'active' here if we assume it's valid, 
+        // or let the async check handle it. 
+        // Given the bug, let's let checkAccess handle the specific admin tool activation 
+        // to avoid showing it to non-admins.
     } else {
         // Default to Resume (or if hash is #resume)
         if (resumeSection) resumeSection.classList.add('active');
