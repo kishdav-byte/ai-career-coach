@@ -636,10 +636,14 @@
                     localStorage.setItem('pending_resume_text', text);
                     localStorage.setItem('pending_resume_filename', file.name);
 
+                    // Debug Alert (Temporary)
+                    // alert("Success! Extracted " + text.length + " characters. Redirecting to Analysis...");
+
                     // Redirect
                     window.location.href = '/app.html#resume';
                 } else {
-                    throw new Error("Could not extract text or file empty.");
+                    console.error("Text length: " + (text ? text.length : 0));
+                    throw new Error("Could not extract meaningful text (len < 50).");
                 }
 
             } catch (err) {
