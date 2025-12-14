@@ -14,6 +14,36 @@ import stripe
 
 load_dotenv()
 
+# ==========================================
+# INITIALIZATION (MOVED TO TOP)
+# ==========================================
+from supabase import create_client, Client
+
+SUPABASE_URL = os.environ.get('SUPABASE_URL')
+SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+# Support both standard naming conventions
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_SERVICE_KEY')
+
+supabase: Client = None
+supabase_admin: Client = None
+
+if SUPABASE_URL:
+    if SUPABASE_KEY:
+        try:
+            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+            print("Supabase client initialized successfully")
+        except Exception as e:
+            print(f"Error initializing Supabase: {e}")
+    
+    if SUPABASE_SERVICE_KEY:
+        try:
+            supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+            print("Supabase ADMIN client initialized successfully")
+        except Exception as e:
+            print(f"Error initializing Supabase Admin: {e}")
+    else:
+        print("WARNING: SUPABASE_SERVICE_ROLE_KEY not found. Webhooks may fail RLS.")
+
 app = Flask(__name__)
 
 # API Key from Environment Variable
@@ -1318,34 +1348,9 @@ def admin_transcript():
 import bcrypt
 import uuid
 from datetime import datetime
-from supabase import create_client, Client
+from datetime import datetime
+# Supabase init moved to top
 
-# Initialize Supabase client
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_KEY') # Added for Webhook Admin Access
-
-supabase: Client = None
-supabase_admin: Client = None
-
-if SUPABASE_URL:
-    if SUPABASE_KEY:
-        try:
-            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-            print("Supabase client initialized successfully")
-        except Exception as e:
-            print(f"Error initializing Supabase: {e}")
-    
-    SUPABASE_SERVICE_KEY_ENV = os.environ.get('SUPABASE_SERVICE_KEY')
-    if SUPABASE_SERVICE_KEY_ENV:
-        try:
-            # Initialize exactly as requested
-            supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY_ENV)
-            print("Supabase ADMIN client initialized successfully")
-        except Exception as e:
-            print(f"Error initializing Supabase Admin: {e}")
-    else:
-        print("WARNING: SUPABASE_SERVICE_KEY not found. Webhooks may fail RLS.")
 
 def hash_password(password):
     """Hash password using bcrypt."""
