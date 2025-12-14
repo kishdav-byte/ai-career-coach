@@ -192,7 +192,7 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=email,
-            metadata={'user_email': email, 'feature': feature or 'resume'}
+            metadata={'user_email': email, 'feature': feature or 'resume', 'plan_type': 'resume'}
         )
         return jsonify({'url': checkout_session.url})
     except Exception as e:
