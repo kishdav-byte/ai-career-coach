@@ -299,23 +299,46 @@ function init() {
     // Tab Switching Logic (This logic is now replaced by hash routing for main sections)
     // The tab-btn elements might still exist for sub-sections if any, but the main
     // 'resume' and 'interview' tabs are handled by the hash.
-    const tabs = document.querySelectorAll('.tab-btn');
+    // Navigation Logic for Sidebar
+    const navItems = document.querySelectorAll('.nav-item');
     const panes = document.querySelectorAll('.tab-pane');
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
+    navItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            // Check if it's a real link (back to dash)
+            if (!item.getAttribute('data-tab')) return;
+
+            e.preventDefault();
+
             // Remove active class from all
-            tabs.forEach(t => t.classList.remove('active'));
+            navItems.forEach(t => t.classList.remove('active'));
             panes.forEach(p => p.classList.remove('active'));
 
-            // Add active class to clicked tab and corresponding pane
-            tab.classList.add('active');
-            const tabId = tab.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            // Add active class to clicked nav item and corresponding pane
+            item.classList.add('active');
+            const tabId = item.getAttribute('data-tab');
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) targetPane.classList.add('active');
 
+            // Allow hash update for bookmarking (optional, but good for refresh)
+            window.location.hash = tabId;
 
+            // Scroll to top
+            window.scrollTo(0, 0);
         });
     });
+
+    // Handle Deep Linking on Load
+    function handleDeepLink() {
+        const hash = window.location.hash.substring(1); // remove #
+        if (hash) {
+            const targetNav = document.querySelector(`.nav-item[data-tab="${hash}"]`);
+            if (targetNav) {
+                targetNav.click();
+            }
+        }
+    }
+    handleDeepLink();
 
     // Helper function for API calls
     async function callApi(action, data, resultElementId) {

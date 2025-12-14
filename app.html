@@ -12,16 +12,55 @@
 </head>
 
 <body>
-    <div class="app-container">
-        <header>
-            <h1>AI Career Coach</h1>
-            <p>Your personal AI-powered career assistant</p>
-        </header>
+    <div class="app-layout">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h1>AI Career Coach</h1>
+                <div style="font-size: 0.8rem; opacity: 0.7;">Interview Lab</div>
+                <a href="/dashboard.html"
+                    style="font-size: 0.8rem; color: #64b5f6; text-decoration: none; display: block; margin-top: 5px;">&larr;
+                    Back to Dashboard</a>
+            </div>
 
-        <!-- Tabs Removed (Phase 21) - Managed by Dashboard Link -->
-        <div class="tabs" style="display: none;"></div>
+            <!-- SECTION: THE CLINIC -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">The Clinic</div>
+                <a href="#resume" class="nav-item active" data-tab="resume">
+                    <span class="nav-icon">📄</span> Resume Analysis
+                </a>
+                <a href="#resume-builder" class="nav-item" data-tab="resume-builder">
+                    <span class="nav-icon">⚡</span> Resume Writer
+                </a>
+                <a href="#cover-letter" class="nav-item" data-tab="cover-letter">
+                    <span class="nav-icon">📝</span> Cover Letter
+                </a>
+                <a href="#linkedin" class="nav-item" data-tab="linkedin">
+                    <span class="nav-icon">💼</span> LinkedIn Profile
+                </a>
+            </div>
 
-        <main class="tab-content">
+            <!-- SECTION: SIMULATOR -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Simulator</div>
+                <a href="#interview" class="nav-item" data-tab="interview">
+                    <span class="nav-icon">🎤</span> Interview Prep
+                </a>
+                <!-- Lab Assistant / Chat is part of Interview for now, but if separate requested: -->
+                <!-- <a href="#" class="nav-item"><span class="nav-icon">🤖</span> Lab Assistant</a> -->
+            </div>
+
+            <!-- SECTION: STRATEGY -->
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Strategy</div>
+                <a href="#career-plan" class="nav-item" data-tab="career-plan">
+                    <span class="nav-icon">📅</span> 30-60-90 Plan
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
             <!-- Tab 1: Resume Analysis -->
             <section id="resume" class="tab-pane active">
                 <div class="card">
@@ -77,15 +116,9 @@
                     <audio id="ai-audio-player" controls style="display:none; width: 100%; margin-top: 10px;"></audio>
                 </div>
             </section>
-        </main>
-
-        <!-- ADMIN ONLY TOOLS (Hidden by default) -->
-        <div id="admin-tools-container"
-            style="display:none; border-top: 2px solid #ddd; margin-top: 30px; padding-top: 20px;">
-            <h2 style="text-align:center; color: var(--alert-color);">⚠️ Admin Only Features ⚠️</h2>
 
             <!-- Tab 3: Career Planner -->
-            <section id="career-plan" class="tab-pane active" style="margin-bottom: 40px;">
+            <section id="career-plan" class="tab-pane">
                 <div class="card">
                     <h2>30-60-90 Day Plan</h2>
                     <p>Generate a strategic plan for your new role.</p>
@@ -111,7 +144,7 @@
             </section>
 
             <!-- Tab 4: LinkedIn Optimizer -->
-            <section id="linkedin" class="tab-pane active" style="margin-bottom: 40px;">
+            <section id="linkedin" class="tab-pane">
                 <div class="card">
                     <h2>LinkedIn Profile Optimizer</h2>
                     <p>Rewrite your 'About' section to be more engaging.</p>
@@ -124,7 +157,6 @@
                         <h3>Refined Version</h3>
                         <div id="linkedin-refined-sample" class="result-area"></div>
                     </div>
-
                 </div>
             </section>
 
@@ -155,7 +187,8 @@
                     <div class="rb-controls"
                         style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
                         <h3>Option 1: Import from Existing Resume</h3>
-                        <p style="font-size: 0.9em; color: #666;">Paste your current resume here to auto-fill the form
+                        <p style="font-size: 0.9em; color: #666;">Paste your current resume here to auto-fill the
+                            form
                             below.</p>
                         <textarea id="rb-paste-input" placeholder="Paste your full resume text here..."
                             style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
@@ -222,8 +255,8 @@
                     <button id="rb-gdocs-btn" class="secondary-btn">Copy for Google Docs</button>
                 </div>
             </section>
-        </div>
-    </div>
+        </main>
+    </div> <!-- End App Layout -->
     <div id="print-area"></div>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <!-- Access Control Removed (Phase 18) - Managed by API -->
