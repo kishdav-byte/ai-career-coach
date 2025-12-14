@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const categorySelect = document.getElementById('category-select');
     const customQuestionGroup = document.getElementById('custom-question-group');
     const customQuestionInput = document.getElementById('custom-question-input');
-    const voiceSelect = document.getElementById('voice-select');
+
     const generateBtn = document.getElementById('generate-btn');
 
     const setupPanel = document.getElementById('setup-panel');
@@ -49,7 +49,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const selectedVoice = voiceSelect.value;
+        // Randomize Voice
+        const voices = ['alloy', 'echo', 'shimmer', 'ash', 'ballad', 'coral', 'sage', 'verse'];
+        const selectedVoice = voices[Math.floor(Math.random() * voices.length)];
+        console.log("Selected Random Voice:", selectedVoice);
+
         const buttonOriginalText = generateBtn.innerHTML;
 
         // UI Loading State
