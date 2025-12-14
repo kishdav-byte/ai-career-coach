@@ -239,209 +239,151 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            /* Center vertically roughly */
+            padding: 2rem 1rem;
         }
 
         .dashboard-container-inner {
             width: 100%;
-            max-width: 1024px;
-            /* max-w-5xl */
+            max-width: 900px;
+            /* Tighter width for focus */
             margin: 0 auto;
         }
 
-        /* 1. HERO SECTION - COMPACT */
-        .hero-section {
-            width: 100%;
-            background-color: var(--primary);
-            color: white;
-            padding: 2rem 1.5rem 4rem;
-            /* Reduced padding */
+        /* 1. RESUME WIDGET (Was Hero) */
+        .resume-widget-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
             text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+            position: relative;
+            /* Navy Top Border */
+            border-top: 5px solid var(--primary);
         }
 
-        .hero-content h1 {
+        .resume-widget-header h1 {
             font-family: 'DM Serif Display', 'Inter', serif;
-            font-size: 2rem;
-            /* Smaller Font */
-            margin-bottom: 0.25rem;
+            font-size: 1.75rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
         }
 
-        .hero-subtext {
-            color: rgba(255, 255, 255, 0.8);
+        .resume-widget-header p {
+            color: var(--gray-600);
+            font-size: 0.95rem;
             margin-bottom: 1.5rem;
-            font-size: 1rem;
         }
 
         .drop-zone {
-            background: white;
-            border: 2px dashed #0A2540;
+            background: var(--gray-100);
+            /* Highlight against white card */
+            border: 2px dashed #CBD5E1;
             border-radius: 12px;
-            /* Fixed Compact Height (~190px) */
-            height: 190px;
-            max-width: 500px;
+            height: 160px;
+            /* Reduced Height */
+            max-width: 100%;
             margin: 0 auto;
             color: var(--dark);
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            /* Flex center content */
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 1rem;
         }
 
         .drop-zone:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.25);
-            border-color: var(--success);
+            border-color: var(--primary);
+            background: #F0F4F8;
         }
 
         .drop-icon {
-            font-size: 2rem;
-            /* Smaller Icon */
+            font-size: 1.75rem;
             margin-bottom: 0.5rem;
-            line-height: 1;
+            color: var(--primary);
         }
 
-        .drop-content h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.25rem;
-        }
-
-        .drop-content p {
-            font-size: 0.9rem;
-            margin-bottom: 0;
-        }
-
-        .file-types {
-            font-size: 0.75rem;
-            color: #999;
-            margin-top: 0.5rem;
-        }
-
-        /* 2. PROGRESS TRACKER - TIGHT */
+        /* 2. PROGRESS PILL */
         .progress-section {
-            margin-top: -25px;
-            /* Overlap Hero */
-            margin-bottom: 1.5rem;
-            /* Reduced Gap to Grid */
             display: flex;
             justify-content: center;
-            position: relative;
-            z-index: 10;
+            margin-bottom: 2rem;
         }
 
         .progress-container {
             background: white;
-            padding: 0.75rem 2rem;
-            /* Slimmer Pill */
+            padding: 0.6rem 2rem;
             border-radius: 50px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            border: 1px solid rgba(0, 0, 0, 0.05);
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
+        /* 3. RECENT ACTIVITY (Was Grid) */
+        .recent-activity-section {
+            text-align: center;
+            color: var(--gray-600);
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .activity-placeholder h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--primary);
+            /* Navy Header */
+            margin-bottom: 1rem;
+        }
+
+        .welcome-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            display: inline-block;
+            text-align: left;
+            max-width: 500px;
+        }
+
         .step-circle {
+            background: var(--gray-200);
+            color: var(--gray-600);
             width: 24px;
             height: 24px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
             font-size: 0.8rem;
         }
 
+        .step.active .step-circle {
+            background: var(--success);
+            color: white;
+        }
+
         .step-label {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
         }
 
         .step-line {
             width: 30px;
-        }
-
-        /* 3. SECONDARY GRID - COMPACT ROW */
-        .secondary-access .container {
-            max-width: 1024px;
-            padding: 0 2rem;
-        }
-
-        .section-title {
-            margin-bottom: 0.75rem;
-            color: var(--gray-600);
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 600;
-        }
-
-        .feature-cards.show {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
-            /* Tighter Gap */
-        }
-
-        /* Horizontal "Button" Style Cards */
-        .feature-card.small-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: row;
-            /* Horizontal Layout */
-            align-items: center;
-            gap: 1rem;
-            text-align: left;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .feature-card.small-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .icon-small {
-            font-size: 1.25rem;
-            margin-bottom: 0;
-            background: var(--gray-100);
-            padding: 8px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .card-text {
-            flex-grow: 1;
-        }
-
-        .card-text h3 {
-            font-size: 0.95rem;
-            margin-bottom: 0;
-            /* No subtext needed for compact */
-            color: var(--dark);
-        }
-
-        .card-text p {
-            display: none;
-            /* Hide Description for Compact Mode */
-        }
-
-        .btn-small {
-            width: auto;
-            padding: 0.4rem 1rem;
-            font-size: 0.8rem;
-            background: transparent;
-            border: 1px solid var(--gray-200);
-            border-radius: 6px;
-            white-space: nowrap;
-        }
-
-        .btn-small:hover {
-            border-color: var(--primary);
-            color: var(--primary);
+            height: 2px;
+            background: var(--gray-200);
         }
 
         @media (max-width: 768px) {
@@ -568,32 +510,32 @@
 
                     <div id="dashboard-content" style="display: none;">
 
-                        <!-- 1. HERO SECTION (Diagnosis) -->
-                        <section class="hero-section">
-                            <div class="hero-content">
+                        <!-- 1. RESUME WIDGET (White Card) -->
+                        <section class="resume-widget-section">
+                            <div class="resume-widget-header">
                                 <h1>Resume Health Check</h1>
-                                <p class="hero-subtext">Upload your PDF to get an instant impact score.</p>
+                                <p>Upload your PDF to get an instant impact score.</p>
+                            </div>
 
-                                <div class="drop-zone" id="resume-drop-zone">
-                                    <div class="drop-content">
-                                        <div class="drop-icon">📄</div>
-                                        <h3>Drag & Drop your resume</h3>
-                                        <p>or <span
-                                                style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
-                                                files</span></p>
-                                        <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
-                                            style="display: none;">
-                                        <p class="file-types">Supports PDF, TXT</p>
-                                    </div>
-                                    <div class="cleaning-loader" id="parsing-loader" style="display: none;">
-                                        <div class="spinner"></div>
-                                        <p>Analyzing...</p>
-                                    </div>
+                            <div class="drop-zone" id="resume-drop-zone">
+                                <div class="drop-content">
+                                    <div class="drop-icon">📄</div>
+                                    <h3>Drag & Drop your resume</h3>
+                                    <p>or <span
+                                            style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
+                                            files</span></p>
+                                    <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
+                                        style="display: none;">
+                                    <div style="font-size:0.7rem; color:#999; margin-top:5px">Supports PDF, TXT</div>
+                                </div>
+                                <div class="cleaning-loader" id="parsing-loader" style="display: none;">
+                                    <div class="spinner"></div>
+                                    <p>Analyzing...</p>
                                 </div>
                             </div>
                         </section>
 
-                        <!-- 2. PROGRESS TRACKER (The Journey) -->
+                        <!-- 2. PROGRESS TRACKER (Pill) -->
                         <section class="progress-section">
                             <div class="progress-container">
                                 <div class="step active">
@@ -613,40 +555,21 @@
                             </div>
                         </section>
 
-                        <!-- 3. FEATURE GRID (Secondary Access) -->
-                        <section class="secondary-access">
-                            <div class="container" style="padding: 0 2rem;">
-                                <h3 class="section-title">Lab Quick Access</h3>
-                                <div class="feature-cards show" id="feature-cards">
-
-                                    <!-- Card 1: Interview Sim -->
-                                    <div class="feature-card small-card">
-                                        <div class="icon-small">🎤</div>
-                                        <div class="card-text">
-                                            <h3>Interview Lab</h3>
+                        <!-- 3. RECENT ACTIVITY (Placeholder) -->
+                        <section class="recent-activity-section">
+                            <div class="activity-placeholder">
+                                <h3>Recent Activity</h3>
+                                <div class="welcome-card">
+                                    <div style="display:flex; gap:15px; align-items:flex-start;">
+                                        <div style="font-size:1.5rem;">👋</div>
+                                        <div>
+                                            <h4 style="margin-bottom:0.5rem; color:var(--primary);">Welcome to the Lab!
+                                            </h4>
+                                            <p style="font-size:0.9rem; margin-bottom:0;">Start by uploading your resume
+                                                above. We'll diagnose gaps, help you rewrite it, and then simulate
+                                                interviews.</p>
                                         </div>
-                                        <a href="/app.html#interview" class="btn-small">Launch</a>
                                     </div>
-
-                                    <!-- Card 2: Saved Documents -->
-                                    <div class="feature-card small-card">
-                                        <div class="icon-small">📂</div>
-                                        <div class="card-text">
-                                            <h3>Documents</h3>
-                                        </div>
-                                        <a href="#" class="btn-small secondary"
-                                            onclick="alert('Coming soon!'); return false;">View</a>
-                                    </div>
-
-                                    <!-- Card 3: 30-60-90 Plan -->
-                                    <div class="feature-card small-card">
-                                        <div class="icon-small">🗺️</div>
-                                        <div class="card-text">
-                                            <h3>30-60-90 Plan</h3>
-                                        </div>
-                                        <a href="/app.html#career-plan" class="btn-small">Create</a>
-                                    </div>
-
                                 </div>
                             </div>
                         </section>
