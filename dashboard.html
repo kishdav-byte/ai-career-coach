@@ -115,71 +115,162 @@
             padding: 2rem;
         }
 
-        .welcome {
-            margin-bottom: 2rem;
+        /* REFACTORED LAYOUT */
+        .app-shell {
+            display: flex;
+            min-height: 100vh;
         }
 
-        .welcome h1 {
-            font-size: 1.75rem;
-            color: var(--dark);
-            margin-bottom: 0.5rem;
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background-color: var(--primary);
+            color: white;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
         }
 
-        .welcome p {
-            color: var(--gray-600);
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        /* Unpaid State */
-        .purchase-required {
-            background: linear-gradient(135deg, #fef3c7, #fef9c3);
-            border: 2px solid #fbbf24;
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            margin-bottom: 2rem;
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: white;
+            background: none;
+            -webkit-text-fill-color: white;
         }
 
-        .purchase-required .icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        .purchase-required h2 {
-            color: var(--dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .purchase-required p {
-            color: var(--gray-600);
-            margin-bottom: 1.5rem;
-        }
-
-        .purchase-required .btn {
-            display: inline-block;
-            padding: 1rem 2rem;
-            background: var(--gradient-primary);
-            color: var(--white);
+        .close-sidebar-btn {
+            display: none;
+            background: none;
             border: none;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
+            color: white;
+            font-size: 1.5rem;
             cursor: pointer;
-            transition: transform 0.3s;
         }
 
-        .purchase-required .btn:hover {
-            transform: translateY(-2px);
+        .sidebar-nav {
+            padding: 1rem 0;
+            flex-grow: 1;
+            overflow-y: auto;
         }
 
-        /* New Dashboard Styles */
-        .dashboard-wrapper {
+        .nav-group-title {
+            padding: 1rem 1.5rem 0.5rem;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 700;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--success);
+            padding-left: 1.7rem;
+            /* Slight shift */
+        }
+
+        .nav-item .icon {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* MAIN WRAPPER */
+        .main-wrapper {
+            flex-grow: 1;
+            margin-left: 260px;
+            /* Offset for fixed sidebar */
+            display: flex;
+            flex-direction: column;
             background-color: var(--gray-100);
-            min-height: calc(100vh - 70px);
+            min-height: 100vh;
         }
 
-        /* 1. HERO SECTION */
+        /* TOP NAVBAR */
+        .top-navbar {
+            background: var(--white);
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: sticky;
+            top: 0;
+            z-index: 90;
+        }
+
+        .hamburger-btn {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .dashboard-content-area {
+            flex-grow: 1;
+            padding-bottom: 2rem;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+            }
+
+            .hamburger-btn {
+                display: block;
+            }
+
+            .close-sidebar-btn {
+                display: block;
+            }
+
+            .hero-section {
+                padding-top: 2rem;
+            }
+        }
+
+        /* ADJUST HERO PADDING for new layout */
         .hero-section {
+            /* Fix overflow with main wrapper */
+            width: 100%;
             background-color: var(--primary);
             color: white;
             padding: 4rem 2rem 6rem;
@@ -392,108 +483,163 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 
-    <header class="header">
-        <div class="logo">AceInterview</div>
-        <div class="header-right">
-            <span class="user-name" id="user-display"></span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
-    </header>
+    <div class="app-shell">
+        <!-- SIDEBAR NAVIGATION -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">AceInterview</div>
+                <button class="close-sidebar-btn" id="close-sidebar" onclick="toggleSidebar()">×</button>
+            </div>
 
-    <main class="dashboard-wrapper">
-        <div class="loading" id="loading">
-            Loading your workspace...
-        </div>
-
-        <div id="dashboard-content" style="display: none;">
-
-            <!-- 1. HERO SECTION (Diagnosis) -->
-            <section class="hero-section">
-                <div class="hero-content">
-                    <h1>Resume Health Check</h1>
-                    <p class="hero-subtext">Upload your PDF to get an instant impact score and detect red flags.</p>
-
-                    <div class="drop-zone" id="resume-drop-zone">
-                        <div class="drop-content">
-                            <div class="drop-icon">📄</div>
-                            <h3>Drag & Drop your resume here</h3>
-                            <p>or <span
-                                    style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
-                                    files</span></p>
-                            <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx" style="display: none;">
-                            <p class="file-types">Supports PDF, TXT</p>
-                        </div>
-                        <div class="cleaning-loader" id="parsing-loader" style="display: none;">
-                            <div class="spinner"></div>
-                            <p>Analyzing document structure...</p>
-                        </div>
-                    </div>
+            <nav class="sidebar-nav">
+                <!-- Group 1: THE CLINIC -->
+                <div class="nav-group">
+                    <div class="nav-group-title">THE CLINIC</div>
+                    <a href="/app.html#resume" class="nav-item">
+                        <span class="icon">📄</span> Resume Diagnosis
+                    </a>
+                    <a href="/app.html#resume-builder" class="nav-item">
+                        <span class="icon">⚡</span> Resume Rewriter
+                    </a>
+                    <a href="/app.html#cover-letter" class="nav-item">
+                        <span class="icon">📝</span> Cover Letter
+                    </a>
+                    <a href="/app.html#linkedin" class="nav-item">
+                        <span class="icon">💼</span> LinkedIn Opt
+                    </a>
                 </div>
-            </section>
 
-            <!-- 2. PROGRESS TRACKER (The Journey) -->
-            <section class="progress-section">
-                <div class="progress-container">
-                    <div class="step active">
-                        <div class="step-circle">1</div>
-                        <div class="step-label">Diagnosis</div>
-                    </div>
-                    <div class="step-line"></div>
-                    <div class="step locked">
-                        <div class="step-circle">🔒</div>
-                        <div class="step-label">The Cure</div>
-                    </div>
-                    <div class="step-line"></div>
-                    <div class="step locked">
-                        <div class="step-circle">🔒</div>
-                        <div class="step-label">Interview Lab</div>
-                    </div>
+                <!-- Group 2: THE SIMULATOR -->
+                <div class="nav-group">
+                    <div class="nav-group-title">THE SIMULATOR</div>
+                    <a href="/app.html#interview" class="nav-item">
+                        <span class="icon">🎤</span> Interview Lab
+                    </a>
+                    <a href="/app.html#lab-assistant" class="nav-item">
+                        <span class="icon">🤖</span> Lab Assistant
+                    </a>
                 </div>
-            </section>
 
-            <!-- 3. FEATURE GRID (Secondary Access) -->
-            <section class="secondary-access">
-                <div class="container">
-                    <h3 class="section-title">Lab Quick Access</h3>
-                    <div class="feature-cards show" id="feature-cards">
-
-                        <!-- Card 1: Interview Sim -->
-                        <div class="feature-card small-card">
-                            <div class="icon-small">🎤</div>
-                            <div class="card-text">
-                                <h3>Interview Lab</h3>
-                                <p>Launch simulator.</p>
-                            </div>
-                            <a href="/app.html#interview" class="btn-small">Launch</a>
-                        </div>
-
-                        <!-- Card 2: Saved Documents -->
-                        <div class="feature-card small-card">
-                            <div class="icon-small">📂</div>
-                            <div class="card-text">
-                                <h3>Saved Documents</h3>
-                                <p>View your history.</p>
-                            </div>
-                            <a href="#" class="btn-small secondary"
-                                onclick="alert('Document Library coming in Phase 3!'); return false;">View</a>
-                        </div>
-
-                        <!-- Card 3: 30-60-90 Plan -->
-                        <div class="feature-card small-card">
-                            <div class="icon-small">🗺️</div>
-                            <div class="card-text">
-                                <h3>30-60-90 Plan</h3>
-                                <p>Create strategy.</p>
-                            </div>
-                            <a href="/app.html#career-plan" class="btn-small">Create</a>
-                        </div>
-
-                    </div>
+                <!-- Group 3: STRATEGY -->
+                <div class="nav-group">
+                    <div class="nav-group-title">STRATEGY</div>
+                    <a href="/app.html#career-plan" class="nav-item">
+                        <span class="icon">🗺️</span> 30-60-90 Plan
+                    </a>
                 </div>
-            </section>
+            </nav>
+        </aside>
 
+        <!-- MAIN CONTENT WRAPPER -->
+        <div class="main-wrapper">
+            <!-- TOP NAVBAR -->
+            <header class="top-navbar">
+                <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
+                <div class="header-right">
+                    <span class="user-name" id="user-display"></span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </header>
+
+            <!-- DASHBOARD CONTENT (Existing) -->
+            <main class="dashboard-content-area">
+                <div class="loading" id="loading">
+                    Loading your workspace...
+                </div>
+
+                <div id="dashboard-content" style="display: none;">
+
+                    <!-- 1. HERO SECTION (Diagnosis) -->
+                    <section class="hero-section">
+                        <div class="hero-content">
+                            <h1>Resume Health Check</h1>
+                            <p class="hero-subtext">Upload your PDF to get an instant impact score and detect red flags.
+                            </p>
+
+                            <div class="drop-zone" id="resume-drop-zone">
+                                <div class="drop-content">
+                                    <div class="drop-icon">📄</div>
+                                    <h3>Drag & Drop your resume here</h3>
+                                    <p>or <span
+                                            style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
+                                            files</span></p>
+                                    <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
+                                        style="display: none;">
+                                    <p class="file-types">Supports PDF, TXT</p>
+                                </div>
+                                <div class="cleaning-loader" id="parsing-loader" style="display: none;">
+                                    <div class="spinner"></div>
+                                    <p>Analyzing document structure...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 2. PROGRESS TRACKER (The Journey) -->
+                    <section class="progress-section">
+                        <div class="progress-container">
+                            <div class="step active">
+                                <div class="step-circle">1</div>
+                                <div class="step-label">Diagnosis</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step locked">
+                                <div class="step-circle">🔒</div>
+                                <div class="step-label">The Cure</div>
+                            </div>
+                            <div class="step-line"></div>
+                            <div class="step locked">
+                                <div class="step-circle">🔒</div>
+                                <div class="step-label">Interview Lab</div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 3. FEATURE GRID (Secondary Access) -->
+                    <section class="secondary-access">
+                        <div class="container">
+                            <h3 class="section-title">Lab Quick Access</h3>
+                            <div class="feature-cards show" id="feature-cards">
+
+                                <!-- Card 1: Interview Sim -->
+                                <div class="feature-card small-card">
+                                    <div class="icon-small">🎤</div>
+                                    <div class="card-text">
+                                        <h3>Interview Lab</h3>
+                                        <p>Launch simulator.</p>
+                                    </div>
+                                    <a href="/app.html#interview" class="btn-small">Launch</a>
+                                </div>
+
+                                <!-- Card 2: Saved Documents -->
+                                <div class="feature-card small-card">
+                                    <div class="icon-small">📂</div>
+                                    <div class="card-text">
+                                        <h3>Saved Documents</h3>
+                                        <p>View your history.</p>
+                                    </div>
+                                    <a href="#" class="btn-small secondary"
+                                        onclick="alert('Document Library coming in Phase 3!'); return false;">View</a>
+                                </div>
+
+                                <!-- Card 3: 30-60-90 Plan -->
+                                <div class="feature-card small-card">
+                                    <div class="icon-small">🗺️</div>
+                                    <div class="card-text">
+                                        <h3>30-60-90 Plan</h3>
+                                        <p>Create strategy.</p>
+                                    </div>
+                                    <a href="/app.html#career-plan" class="btn-small">Create</a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </section>
+
+                </div>
+            </main>
         </div>
-    </main>
+    </div>
 
     <script>
         // PDF Parsing Logic
@@ -702,6 +848,24 @@
                 };
             }
         }
+
+        // Sidebar Toggle for Mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        // Close sidebar when clicking outside (optional but good UX)
+        document.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            const hamburger = document.querySelector('.hamburger-btn');
+            if (window.innerWidth <= 768 &&
+                sidebar.classList.contains('open') &&
+                !sidebar.contains(e.target) &&
+                e.target !== hamburger) {
+                sidebar.classList.remove('open');
+            }
+        });
 
         // Initialize on load
         initDashboard();
