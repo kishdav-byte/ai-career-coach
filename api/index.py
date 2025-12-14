@@ -245,7 +245,7 @@ def api():
             
             if db_client:
                 # Check User Status (Updated Phase 34)
-                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits').eq('email', email).execute()
+                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits').eq('email', email).execute()
                 
                 if user_res.data:
                     user = user_res.data[0]
@@ -280,7 +280,7 @@ def api():
                         has_access = True
                     else:
                         # Check specific credit based on action
-                        elif action in ['analyze_resume', 'optimize_resume']:
+                        if action in ['analyze_resume', 'optimize_resume']:
                             if resume_credits > 0:
                                 has_access = True
                                 # Deduct immediately (unless unlimited, which is handled above)
