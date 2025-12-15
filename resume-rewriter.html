@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Resume Rewriter | Strategy Lab</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        slate: { 850: '#151F32', 900: '#0F172A', 950: '#020617' },
+                        blue: { 450: '#60A5FA', 550: '#3B82F6' } // Neon touches
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #020617;
+            color: #f8fafc;
+        }
+
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* A4 Paper Preview */
+        .resume-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.5;
+            position: relative;
+            transform-origin: top center;
+        }
+
+        /* Mobile Scale */
+        @media (max-width: 1024px) {
+            .resume-wrapper {
+                overflow-x: scroll;
+            }
+
+            .resume-paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+        }
+
+        /* Modern Template Styles */
+        .modern h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .modern .contact-info {
+            font-size: 10pt;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .modern h3 {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #3b82f6;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .modern .exp-item {
+            margin-bottom: 15px;
+        }
+
+        .modern .exp-role {
+            font-weight: 700;
+        }
+
+        .modern .exp-company {
+            color: #475569;
+            font-style: italic;
+        }
+
+        .modern .exp-date {
+            float: right;
+            color: #64748b;
+            font-size: 9pt;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #60A5FA;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500/30">
+
+    <!-- NAV -->
+    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="/dashboard.html" class="text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                </a>
+                <span class="text-lg font-bold tracking-tight"><span class="text-blue-400">AI</span> Resume
+                    Rewriter</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 text-xs font-mono text-slate-500">
+                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    SYSTEM ONLINE
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden">
+
+        <!-- LEFT PANEL: CONTROLS & INPUTS -->
+        <div
+            class="w-full lg:w-1/3 border-r border-slate-800 bg-slate-950/50 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+
+            <!-- Header -->
+            <div>
+                <h1 class="text-2xl font-bold text-white mb-2">Build & Optimize</h1>
+                <p class="text-slate-400 text-sm">Import your resume and let our AI rewrite it for specific job
+                    opportunities.</p>
+            </div>
+
+            <!-- SECTION 1: SOURCE -->
+            <div class="space-y-4">
+                <h2 class="text-sm font-semibold text-blue-400 uppercase tracking-wider">1. Source Data</h2>
+
+                <div class="glass-panel p-4 rounded-xl">
+                    <div class="flex justify-between items-center mb-2">
+                        <label class="text-xs text-slate-300 font-medium">Current Resume (Text)</label>
+                        <button onclick="smartParse()"
+                            class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Auto-Fill Form
+                        </button>
+                    </div>
+                    <textarea id="source-resume"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-slate-600"
+                        rows="6" placeholder="Paste your full resume text here..."></textarea>
+                </div>
+
+                <div class="glass-panel p-4 rounded-xl">
+                    <label class="text-xs text-slate-300 font-medium block mb-2">Target Job Description</label>
+                    <textarea id="target-job"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-slate-600"
+                        rows="4" placeholder="Paste the job description..."></textarea>
+                </div>
+            </div>
+
+            <!-- SECTION 2: EDIT FIELDS (Accordion) -->
+            <div class="space-y-4">
+                <h2 class="text-sm font-semibold text-blue-400 uppercase tracking-wider">2. Edit Details</h2>
+
+                <!-- Personal Info -->
+                <details class="glass-panel rounded-xl group" open>
+                    <summary
+                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
+                        <span>Personal Information</span>
+                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </summary>
+                    <div class="p-4 pt-0 space-y-3 border-t border-slate-800/50 mt-2">
+                        <input id="rb-name" type="text" placeholder="Full Name"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                        <input id="rb-email" type="email" placeholder="Email"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                        <input id="rb-phone" type="text" placeholder="Phone"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                        <input id="rb-location" type="text" placeholder="Location"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
+                        <textarea id="rb-summary" placeholder="Professional Summary" rows="3"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none"></textarea>
+                    </div>
+                </details>
+
+                <!-- Experience -->
+                <details class="glass-panel rounded-xl group">
+                    <summary
+                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
+                        <span>Experience</span>
+                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </summary>
+                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
+                        <div id="rb-experience-list" class="space-y-4 mb-4">
+                            <!-- Items go here -->
+                        </div>
+                        <button onclick="addExperience()"
+                            class="w-full py-2 border border-slate-700 border-dashed rounded text-sm text-slate-400 hover:text-white hover:border-slate-500 transition-colors">+
+                            Add Position</button>
+                    </div>
+                </details>
+
+                <!-- Education -->
+                <details class="glass-panel rounded-xl group">
+                    <summary
+                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
+                        <span>Education</span>
+                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </summary>
+                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
+                        <div id="rb-education-list" class="space-y-4 mb-4"></div>
+                        <button onclick="addEducation()"
+                            class="w-full py-2 border border-slate-700 border-dashed rounded text-sm text-slate-400 hover:text-white hover:border-slate-500 transition-colors">+
+                            Add Education</button>
+                    </div>
+                </details>
+
+                <!-- Skills -->
+                <details class="glass-panel rounded-xl group">
+                    <summary
+                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
+                        <span>Skills</span>
+                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                            stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
+                            </path>
+                        </svg>
+                    </summary>
+                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
+                        <textarea id="rb-skills" placeholder="List skills separated by comma..." rows="3"
+                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none"></textarea>
+                    </div>
+                </details>
+            </div>
+
+            <!-- ACTION AREA -->
+            <div class="sticky bottom-0 bg-slate-950 pt-4 pb-2 border-t border-slate-800">
+                <button id="generate-btn" onclick="generateResume()"
+                    class="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                    <span>GENERATE & OPTIMIZE</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: PREVIEW -->
+        <div class="w-full lg:w-2/3 bg-slate-900 h-full overflow-hidden flex flex-col relative">
+
+            <!-- Toolbar -->
+            <div
+                class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur z-20">
+                <h2 class="text-white font-semibold">Live Preview</h2>
+                <div class="flex gap-3">
+                    <button onclick="printResume()"
+                        class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                            </path>
+                        </svg>
+                        Print / PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paper Area -->
+            <div class="flex-1 overflow-auto p-8 bg-slate-900 " id="preview-scroll-area">
+                <div class="resume-wrapper flex justify-center pb-20">
+                    <div id="resume-preview" class="resume-paper modern">
+                        <!-- Placeholder Content -->
+                        <div class="text-center mt-20 text-gray-400">
+                            <h3 class="text-xl font-bold mb-2">Ready to Build</h3>
+                            <p>Fill in your details on the left or import an existing resume to see the magic happen.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- LOGIC -->
+    <script>
+        // --- AUTH ---
+        const SESSION_KEY = 'supabase.auth.token';
+        const APP_SESSION_KEY = 'aceinterview_session';
+        (function checkAuth() {
+            if (!localStorage.getItem(SESSION_KEY)) window.location.href = '/login.html';
+        })();
+
+        // --- GLOBAL DATA STORE ---
+        let userData = {
+            experience: [],
+            education: []
+        };
+
+        // --- DOM REFS ---
+        const expList = document.getElementById('rb-experience-list');
+        const eduList = document.getElementById('rb-education-list');
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Add one empty item to start if needed, or leave empty
+        });
+
+        // --- FUNCTIONS ---
+
+        // 1. SMART PARSE (Mockish, tries to find fields if simple, otherwise alerts)
+        // Note: Real parsing is complex. In app.js it extracted from pasted text via basic regex or passed to API?
+        // Let's implement a basic text scanner or just warn user to fill.
+        // Actually, the user's `app.js` had an "Import" button that seemingly did regex.
+        async function smartParse() {
+            const text = document.getElementById('source-resume').value;
+            if (!text) return alert("Please paste resume text first.");
+
+            const btn = document.querySelector('button[onclick="smartParse()"]');
+            const original = btn.innerHTML;
+            btn.textContent = "Analyzing...";
+            btn.disabled = true;
+
+            try {
+                // We'll mimic the app.js behavior or try a regex scan
+                // Simplest: Regex scan for email, phone
+                const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+                const phoneMatch = text.match(/(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/);
+
+                if (emailMatch) document.getElementById('rb-email').value = emailMatch[0];
+                if (phoneMatch) document.getElementById('rb-phone').value = phoneMatch[0];
+
+                alert("Scanned for basic info. Please review and fill the rest manually.");
+
+            } catch (e) { console.error(e); }
+
+            btn.innerHTML = original;
+            btn.disabled = false;
+        }
+
+        // 2. ADD/REMOVE ITEMS
+        window.addExperience = function (data = {}) {
+            const id = Date.now();
+            const div = document.createElement('div');
+            div.className = "bg-slate-900 border border-slate-700 rounded p-3 relative group";
+            div.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs">Delete</button>
+                <input type="text" class="rb-exp-role w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Role / Job Title" value="${data.role || ''}">
+                <input type="text" class="rb-exp-company w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Company" value="${data.company || ''}">
+                <input type="text" class="rb-exp-dates w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Dates" value="${data.dates || ''}">
+                <textarea class="rb-exp-desc w-full bg-slate-800/50 rounded p-2 text-xs text-slate-300 outline-none" rows="2" placeholder="Description...">${data.description || ''}</textarea>
+            `;
+            expList.appendChild(div);
+        }
+
+        window.addEducation = function (data = {}) {
+            const div = document.createElement('div');
+            div.className = "bg-slate-900 border border-slate-700 rounded p-3 relative group";
+            div.innerHTML = `
+                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs">Delete</button>
+                <input type="text" class="rb-edu-degree w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Degree" value="${data.degree || ''}">
+                <input type="text" class="rb-edu-school w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="School" value="${data.school || ''}">
+                <input type="text" class="rb-edu-dates w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Dates" value="${data.dates || ''}">
+            `;
+            eduList.appendChild(div);
+        }
+
+        // 3. GENERATE (The Core Logic)
+        window.generateResume = async function () {
+            const btn = document.getElementById('generate-btn');
+            const originalHTML = btn.innerHTML;
+
+            // 1. Loading UI
+            btn.disabled = true;
+            btn.innerHTML = `<div class="loader"></div> <span class="ml-2">OPTIMIZING...</span>`;
+
+            try {
+                // 2. Gather Data
+                const payload = {
+                    action: 'optimize', // Matches app.js
+                    user_data: {
+                        personal: {
+                            name: document.getElementById('rb-name').value,
+                            email: document.getElementById('rb-email').value,
+                            phone: document.getElementById('rb-phone').value,
+                            location: document.getElementById('rb-location').value,
+                            summary: document.getElementById('rb-summary').value
+                        },
+                        experience: [],
+                        education: [],
+                        skills: document.getElementById('rb-skills').value.split(',').map(s => s.trim()).filter(s => s)
+                    },
+                    job_description: document.getElementById('target-job').value,
+                    template_name: 'modern'
+                };
+
+                // Gather Exps
+                document.querySelectorAll('#rb-experience-list > div').forEach(el => {
+                    payload.user_data.experience.push({
+                        role: el.querySelector('.rb-exp-role').value,
+                        company: el.querySelector('.rb-exp-company').value,
+                        dates: el.querySelector('.rb-exp-dates').value,
+                        description: el.querySelector('.rb-exp-desc').value
+                    });
+                });
+
+                // Gather Edu
+                document.querySelectorAll('#rb-education-list > div').forEach(el => {
+                    payload.user_data.education.push({
+                        degree: el.querySelector('.rb-edu-degree').value,
+                        school: el.querySelector('.rb-edu-school').value,
+                        dates: el.querySelector('.rb-edu-dates').value
+                    });
+                });
+
+                // 3. API Call
+                let email = null;
+                try {
+                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                    if (sessionStr) email = JSON.parse(sessionStr).email;
+                } catch (e) { }
+                // Inject email for credits
+                // Wait, app.js logic sent data separately? No, it sent user_data inside body.
+                // We'll mimic the exact fetch from app.js line 1771
+
+                // Credit check? We'll skip client side credit check for now and let backend handle or user can check dashboard
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                const result = await response.json();
+
+                if (result.error) throw new Error(result.error);
+
+                // 4. Render
+                renderPreview(result, payload.user_data);
+
+            } catch (e) {
+                console.error(e);
+                alert("Generation Error: " + e.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        }
+
+        function renderPreview(result, originalData) {
+            const container = document.getElementById('resume-preview');
+            const data = result; // API returns optimized data usually in root or data field? 
+            // Checking app.js line 1788, it seems result IS the data object merged?
+            // "if (result.error) ... else ... result.personal.name"
+
+            // Fallbacks to original data if API didn't return specific fields
+            const p = data.personal || originalData.personal;
+            const exps = data.experience || originalData.experience;
+            const edus = data.education || originalData.education;
+
+            let html = `
+                <h1>${p.name || 'Your Name'}</h1>
+                <p class="contact-info">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
+                <hr style="border-top:1px solid #e2e8f0; margin: 15px 0;">
+                
+                <h3>Professional Summary</h3>
+                <p>${p.summary || ''}</p>
+                
+                <h3>Experience</h3>
+            `;
+
+            exps.forEach(exp => {
+                html += `
+                <div class="exp-item">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                        <div class="exp-role" style="font-weight:700;">${exp.role || 'Role'}</div>
+                        <div class="exp-date" style="font-size:0.9em; color:#64748b;">${exp.dates || ''}</div>
+                    </div>
+                    <div class="exp-company" style="font-style:italic; color:#475569; margin-bottom:5px;">${exp.company || 'Company'}</div>
+                    <p>${exp.description || ''}</p>
+                </div>`;
+            });
+
+            if (edus.length > 0) {
+                html += `<h3>Education</h3>`;
+                edus.forEach(edu => {
+                    html += `
+                    <div style="margin-bottom:10px;">
+                        <div style="font-weight:700;">${edu.school}</div>
+                        <div>${edu.degree} <span style="float:right; font-size:0.9em; color:#64748b;">${edu.dates}</span></div>
+                    </div>`;
+                });
+            }
+
+            container.innerHTML = html;
+        }
+
+        function printResume() {
+            window.print();
+        }
+
+    </script>
+</body>
+
+</html>
