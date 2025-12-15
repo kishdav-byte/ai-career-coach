@@ -7,11 +7,13 @@
     <title>The Closer | Negotiation Script</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .split-container {
             display: grid;
             grid-template-columns: 1fr 1fr;
             min-height: calc(100vh - 80px);
+            /* Adjust for Nav */
         }
 
         .form-side {
@@ -47,22 +49,20 @@
             font-family: inherit;
         }
 
+        .markdown-content {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
         .markdown-content h1,
-        .markdown-content h2,
-        .markdown-content h3 {
+        .markdown-content h2 {
             margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--gray-900);
+            color: #111;
         }
 
         .markdown-content p {
-            margin-bottom: 1rem;
-            line-height: 1.6;
-            color: var(--gray-700);
-        }
-
-        .markdown-content li {
-            margin-bottom: 0.5rem;
+            margin-bottom: 1em;
         }
 
         #unlock-overlay {
@@ -71,12 +71,33 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 10;
+            text-align: center;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            z-index: 5;
+            display: none;
+            /* Shown after gen */
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .copy-btn:hover {
+            background: #e2e8f0;
         }
 
         @media (max-width: 768px) {
@@ -99,55 +120,66 @@
         <!-- Input Side -->
         <div class="form-side">
             <h1>The Closer 💰</h1>
-            <p class="mb-8">Generate a ruthless but professional negotiation script.</p>
+            <p class="mb-8 text-gray-600">Generate a ruthless but professional negotiation script.</p>
 
             <form id="tool-form">
                 <div class="form-group">
-                    <label>Base Salary Offer</label>
-                    <input type="text" name="base" placeholder="e.g. $120,000" class="form-control" required>
+                    <label>Base Salary Offer ($)</label>
+                    <input type="number" name="base" placeholder="e.g. 120000" class="form-control" required>
                 </div>
                 <div class="form-group">
-                    <label>Equity / Bonus / Sign-on</label>
-                    <input type="text" name="equity" placeholder="e.g. 10,000 RSUs, $5k Sign-on" class="form-control">
+                    <label>Sign-On / Equity / Bonus</label>
+                    <input type="text" name="equity" placeholder="e.g. $10k Sign-on, 5000 RSUs" class="form-control">
                 </div>
                 <div class="form-group">
-                    <label>Leverage / Counter-Offer</label>
-                    <textarea name="leverage" rows="3"
-                        placeholder="e.g. I have another offer for $135k from a competitor."
+                    <label>Leverage / Counter-Offer Context</label>
+                    <textarea name="leverage" rows="4"
+                        placeholder="e.g. I have a competing offer from Google for $140k. Or: I am walking away from a $20k bonus."
                         class="form-control"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Your Goal / Ask</label>
-                    <input type="text" name="goal" placeholder="e.g. Match the $135k" class="form-control" required>
+                    <input type="text" name="goal" placeholder="e.g. Match the $140k base" class="form-control"
+                        required>
                 </div>
 
-                <button type="submit" class="btn btn-primary" style="width: 100%;">
-                    Generate Script (1 Credit)
+                <button type="submit" id="btn-generate" class="btn btn-primary" style="width: 100%;">
+                    Generate Strategy (1 Credit)
                 </button>
             </form>
         </div>
 
         <!-- Result Side -->
         <div class="result-side">
+            <button id="btn-copy" class="copy-btn"><i class="far fa-copy"></i> Copy to Clipboard</button>
+
+            <!-- Unlock Overlay -->
             <div id="unlock-overlay" style="display: none;">
-                <h2>Unlock The Closer</h2>
-                <p>You need a Negotiation Credit to use this tool.</p>
-                <button onclick="window.location.href='../strategy-lab.html'" class="btn btn-primary animate-pulse">
-                    Get Credits
+                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                <h2 style="margin-bottom: 0.5rem;">Unlock The Closer</h2>
+                <p style="margin-bottom: 1.5rem; color: #64748b;">You need a Negotiation Credit to use this tool.</p>
+                <button id="btn-unlock" class="btn btn-success animate-pulse"
+                    style="background-color: var(--success); color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-weight: 600;">
+                    Unlock Tool ($4.99)
                 </button>
             </div>
 
+            <!-- Loading State -->
             <div id="loading" style="display: none; text-align: center; margin-top: 5rem;">
                 <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary);"></i>
-                <p class="mt-4">Consulting the Negotiation Coach...</p>
+                <p class="mt-4 text-gray-600">Consulting the Negotiation Coach...</p>
             </div>
 
-            <div id="result-content" class="markdown-content"></div>
+            <!-- Content -->
+            <div id="result-content" class="markdown-content">
+                <p class="text-gray-400 italic mt-8 text-center">Your generated strategy will appear here...</p>
+            </div>
         </div>
     </div>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('supabase.auth.token');
@@ -157,34 +189,45 @@
             const resultDiv = document.getElementById('result-content');
             const loadDiv = document.getElementById('loading');
             const unlockOverlay = document.getElementById('unlock-overlay');
+            const btnGenerate = document.getElementById('btn-generate');
+            const btnUnlock = document.getElementById('btn-unlock');
+            const btnCopy = document.getElementById('btn-copy');
 
-            // 1. Check Credits on Load (Using user-profile endpoint)
+            let userEmail = '';
+
+            // 1. Check Credits
             try {
-                const res = await fetch('/api/user-profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                const res = await fetch('/api/user-profile', { headers: { 'Authorization': `Bearer ${token}` } });
                 const user = await res.json();
+                userEmail = user.email;
 
-                // For Closer, we assume 'credits_negotiation' (per user request mapping)
-                const credits = user.credits_negotiation || 0;
-                if (!user.is_unlimited && credits <= 0) {
+                // Credit Check
+                const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0);
+
+                if (!hasCredit) {
                     unlockOverlay.style.display = 'flex';
-                    form.querySelector('button').disabled = true;
+                    btnGenerate.disabled = true;
+                    // Unlock Logic
+                    btnUnlock.onclick = () => initiateCheckout('strategy_negotiation', user.email);
+                } else {
+                    unlockOverlay.style.display = 'none';
+                    btnGenerate.innerHTML = `Generate Strategy (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
                 }
+
             } catch (e) {
-                console.error("Auth check failed", e);
+                console.error("Auth Exception", e);
             }
 
-            // 2. Handle Generation
+            // 2. Generate Logic
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(form);
                 const inputs = Object.fromEntries(formData.entries());
 
-                // UI Loading
                 loadDiv.style.display = 'block';
-                resultDiv.innerHTML = '';
-                form.querySelector('button').disabled = true;
+                resultDiv.style.opacity = '0.5';
+                btnGenerate.disabled = true;
+                btnCopy.style.display = 'none';
 
                 try {
                     const res = await fetch('/api/generate-strategy-tool', {
@@ -194,7 +237,7 @@
                             'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
-                            email: (await getEmail()), // Need helper or fetch profile again
+                            email: userEmail,
                             tool_type: 'closer',
                             inputs: inputs
                         })
@@ -203,23 +246,50 @@
                     const data = await res.json();
                     if (data.error) throw new Error(data.error);
 
-                    // Render Result
                     resultDiv.innerHTML = marked.parse(data.content);
+                    resultDiv.style.opacity = '1';
+                    btnCopy.style.display = 'block';
 
                 } catch (err) {
-                    alert("Error: " + err.message);
+                    alert(err.message);
                 } finally {
                     loadDiv.style.display = 'none';
-                    form.querySelector('button').disabled = false;
+                    if (unlockOverlay.style.display === 'none') btnGenerate.disabled = false;
                 }
             });
 
-            async function getEmail() {
-                // Quick fetch of email from profile
-                const res = await fetch('/api/user-profile', { headers: { 'Authorization': `Bearer ${token}` } });
-                const u = await res.json();
-                return u.email;
+            // 3. Checkout Logic
+            async function initiateCheckout(planType, email) {
+                const btn = event.target;
+                const oldText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                btn.disabled = true;
+
+                try {
+                    const res = await fetch('/api/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                        body: JSON.stringify({ plan_type: planType, email: email, successUrl: window.location.href })
+                    });
+                    const json = await res.json();
+                    if (json.url) window.location.href = json.url;
+                    else throw new Error(json.error);
+                } catch (e) {
+                    alert(e.message);
+                    btn.innerHTML = oldText;
+                    btn.disabled = false;
+                }
             }
+
+            // 4. Copy Logic
+            btnCopy.addEventListener('click', () => {
+                const text = resultDiv.innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const original = btnCopy.innerHTML;
+                    btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => btnCopy.innerHTML = original, 2000);
+                });
+            });
         });
     </script>
 </body>
