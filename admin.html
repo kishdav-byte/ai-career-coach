@@ -8,14 +8,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Tailwind CSS (CDN for admin speed) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
         }
 
-        /* Custom Scrollbar for Table */
         .table-responsive::-webkit-scrollbar {
             height: 8px;
         }
@@ -67,52 +68,41 @@
     </div>
 
     <div class="flex min-h-screen pt-16 md:pt-0">
-
         <!-- Sidebar -->
         <aside id="sidebar"
             class="bg-white border-r border-gray-200 w-64 fixed h-full z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out">
             <div class="h-full flex flex-col p-6">
-                <div class="brand text-xl font-extrabold text-slate-900 mb-8 hidden md:block">
-                    🚀 Operations Lab
-                </div>
-
+                <div class="brand text-xl font-extrabold text-slate-900 mb-8 hidden md:block">🚀 Operations Lab</div>
                 <nav class="space-y-1 flex-1">
-                    <a href="#" class="flex items-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-medium">
-                        <span class="mr-3">📊</span> Overview
-                    </a>
-
+                    <a href="#"
+                        class="flex items-center px-4 py-3 bg-blue-50 text-blue-700 rounded-lg font-medium"><span
+                            class="mr-3">📊</span> Overview</a>
                     <div class="mt-8 mb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Active Tools
                     </div>
                     <a href="/dashboard.html" target="_blank"
-                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <span class="mr-3">↗️</span> Open App
-                    </a>
+                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"><span
+                            class="mr-3">↗️</span> Open App</a>
                     <a href="/app.html#interview" target="_blank"
-                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <span class="mr-3">🎤</span> Interview Sim
-                    </a>
+                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"><span
+                            class="mr-3">🎤</span> Interview Sim</a>
                     <a href="/strategy-lab.html" target="_blank"
-                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                        <span class="mr-3">🧪</span> Strategy Lab
-                    </a>
-
+                        class="flex items-center px-4 py-2 text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"><span
+                            class="mr-3">🧪</span> Strategy Lab</a>
                     <div class="mt-8 mb-2 px-4 text-xs font-bold text-gray-400 uppercase tracking-wider">System</div>
                     <a href="#" onclick="adminLogout()"
-                        class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-                        <span class="mr-3">🚪</span> Logout
-                    </a>
+                        class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"><span
+                            class="mr-3">🚪</span> Logout</a>
                 </nav>
             </div>
         </aside>
 
         <!-- Main Content -->
         <main class="flex-1 md:ml-64 p-4 md:p-8 max-w-7xl mx-auto w-full">
-
             <!-- Header -->
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                 <div>
                     <h1 class="text-2xl md:text-3xl font-bold text-gray-900">Dashboard</h1>
-                    <p class="text-gray-500 mt-1">Live metrics from the frontend.</p>
+                    <p class="text-gray-500 mt-1">Live metrics from Client-Side Fetch.</p>
                 </div>
                 <div class="flex items-center gap-3">
                     <button id="ghost-status-toggle"
@@ -125,34 +115,19 @@
 
             <!-- Stats Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                <!-- Total Users -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="text-sm text-gray-500 font-medium mb-1">Total Users</div>
                     <div class="text-3xl font-bold text-gray-900" id="stat-total-users">-</div>
-                    <div class="text-xs text-green-600 mt-2 font-medium flex items-center">
-                        <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                        </svg>
-                        Growing
-                    </div>
                 </div>
-
-                <!-- Active Strategies -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="text-sm text-gray-500 font-medium mb-1">Active Strategies</div>
                     <div class="text-3xl font-bold text-gray-900" id="stat-active-interviews">-</div>
                     <div class="text-xs text-gray-400 mt-2">Paid users engaging</div>
                 </div>
-
-                <!-- Avg Duration (Placeholder) -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="text-sm text-gray-500 font-medium mb-1">Sessions Run</div>
                     <div class="text-3xl font-bold text-gray-900" id="stat-avg-duration">-</div>
-                    <div class="text-xs text-gray-400 mt-2">All time</div>
                 </div>
-
-                <!-- Revenue -->
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div class="text-sm text-gray-500 font-medium mb-1">Est. Revenue</div>
                     <div class="text-3xl font-bold text-gray-900" id="stat-revenue">$0</div>
@@ -163,37 +138,12 @@
             <!-- Charts Row -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Activity Overview (Last 7 Days)</h3>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Activity Overview (Logs)</h3>
                     <canvas id="activityChart" height="200"></canvas>
                 </div>
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <h3 class="text-lg font-bold text-gray-900 mb-4">Top Job Types</h3>
                     <canvas id="jobTypeChart" height="200"></canvas>
-                </div>
-            </div>
-
-            <!-- Recent Errors -->
-            <div class="mb-8">
-                <h3 class="text-lg font-bold text-red-600 mb-4 flex items-center">
-                    <span class="mr-2">🚨</span> Recent Errors
-                </h3>
-                <div class="bg-white rounded-2xl shadow-sm border border-red-100 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm text-left">
-                            <thead class="bg-red-50 text-red-700 font-semibold border-b border-red-100">
-                                <tr>
-                                    <th class="px-6 py-3">Timestamp</th>
-                                    <th class="px-6 py-3">User</th>
-                                    <th class="px-6 py-3">Error type</th>
-                                </tr>
-                            </thead>
-                            <tbody id="errors-table-body" class="divide-y divide-gray-100">
-                                <tr>
-                                    <td colspan="3" class="px-6 py-4 text-center text-gray-400">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
                 </div>
             </div>
 
@@ -207,20 +157,19 @@
                                 <tr>
                                     <th class="px-6 py-4">User</th>
                                     <th class="px-6 py-4">Plan</th>
-                                    <!-- Strategy Columns -->
-                                    <th class="px-4 py-4 text-center" title="Negotiation">🛡️</th>
-                                    <th class="px-4 py-4 text-center" title="Inquisitor">🕵️</th>
-                                    <th class="px-4 py-4 text-center" title="30-60-90 Plan">🗺️</th>
-                                    <th class="px-4 py-4 text-center" title="Cover Letter">📝</th>
-                                    <th class="px-4 py-4 text-center" title="Interview Sim">🎤</th>
-
+                                    <th class="px-4 py-4 text-center">🛡️</th>
+                                    <th class="px-4 py-4 text-center">🕵️</th>
+                                    <th class="px-4 py-4 text-center">🗺️</th>
+                                    <th class="px-4 py-4 text-center">📝</th>
+                                    <th class="px-4 py-4 text-center">🎤</th>
                                     <th class="px-6 py-4">Status</th>
                                     <th class="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="users-table-body" class="divide-y divide-gray-100">
                                 <tr>
-                                    <td colspan="9" class="px-6 py-8 text-center text-gray-400">Loading data...</td>
+                                    <td colspan="9" class="px-6 py-8 text-center text-gray-400">Loading Client Data...
+                                    </td>
                                 </tr>
                             </tbody>
                         </table>
@@ -228,297 +177,193 @@
                 </div>
             </div>
 
+            <!-- Error Logs -->
+            <div class="mb-8">
+                <h3 class="text-lg font-bold text-red-600 mb-4">🚨 Recent Errors</h3>
+                <div class="bg-white rounded-2xl shadow-sm border border-red-100 overflow-hidden">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-red-50 text-red-700">
+                            <tr>
+                                <th class="px-6 py-3">Time</th>
+                                <th class="px-6 py-3">User</th>
+                                <th class="px-6 py-3">Error</th>
+                            </tr>
+                        </thead>
+                        <tbody id="errors-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- Transcript Modal -->
-    <div id="transcript-modal"
-        class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-        <div
-            class="bg-white rounded-2xl w-full max-w-2xl h-[80vh] flex flex-col overflow-hidden shadow-2xl transform transition-all">
-            <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 class="font-bold text-gray-800">Transcript Viewer</h3>
-                <button onclick="closeModal()"
-                    class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
-            </div>
-            <div id="transcript-content" class="flex-1 overflow-y-auto p-6 space-y-4">
-                <p class="text-center text-gray-400">Loading logs...</p>
-            </div>
-            <div class="p-4 border-t border-gray-100 text-right bg-white">
-                <button onclick="closeModal()"
-                    class="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors font-medium">Close</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        // Mobile Sidebar Toggle
+        // --- SUPABASE CLIENT SETUP ---
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Mobile Sidebar
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const sidebar = document.getElementById('sidebar');
-        mobileBtn.addEventListener('click', () => {
-            if (sidebar.classList.contains('-translate-x-full')) {
-                sidebar.classList.remove('-translate-x-full');
-            } else {
-                sidebar.classList.add('-translate-x-full');
-            }
-        });
-
-        // Click outside to close sidebar on mobile
+        mobileBtn.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
         document.addEventListener('click', (e) => {
-            if (window.innerWidth < 768) {
-                if (!sidebar.contains(e.target) && !mobileBtn.contains(e.target) && !sidebar.classList.contains('-translate-x-full')) {
-                    sidebar.classList.add('-translate-x-full');
-                }
-            }
+            if (window.innerWidth < 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) sidebar.classList.add('-translate-x-full');
         });
 
         // --- AUTH & DATA LOGIC ---
-
-        async function checkAdminAuth() {
+        async function loadAdminData() {
             try {
-                const sessionReq = localStorage.getItem('aceinterview_session');
-                if (!sessionReq) {
+                // 1. Check Auth (Session or Token)
+                const { data: { session }, error } = await supabase.auth.getSession();
+                // If no session, try token from localStorage just in case
+                let currentUser = session?.user;
+
+                if (!currentUser) {
+                    const token = localStorage.getItem('supabase.auth.token');
+                    if (token) {
+                        const { data: u, error: e } = await supabase.auth.getUser(token);
+                        if (u) currentUser = u.user;
+                    }
+                }
+
+                if (!currentUser) {
                     window.location.href = '/login.html';
                     return;
                 }
-                const session = JSON.parse(sessionReq);
 
-                const response = await fetch('/api/admin/stats', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: session.email })
-                });
+                // 2. Refresh Role Check (Client Side)
+                const { data: roleData, error: roleError } = await supabase
+                    .from('users')
+                    .select('role')
+                    .eq('id', currentUser.id)
+                    .single();
 
-                if (response.status === 403 || response.status === 401) {
-                    alert("⛔ Access Denied: Admin privileges required.");
-                    window.location.href = '/app';
+                if (roleError || roleData?.role !== 'admin') {
+                    alert("⛔ Access Denied: Admin role required.");
+                    window.location.href = '/dashboard.html';
                     return;
                 }
-                if (!response.ok) throw new Error('Failed to load stats');
 
-                const data = await response.json();
-                renderDashboard(data);
+                // 3. Parallel Fetch (Users, Logs, Errors) for Speed
+                const [usersRes, logsRes, errRes] = await Promise.all([
+                    supabase.from('users').select('*').order('created_at', { ascending: false }).limit(200),
+                    supabase.from('activity_logs').select('metadata, feature, created_at').order('created_at', { ascending: false }).limit(300),
+                    supabase.from('error_logs').select('*').order('created_at', { ascending: false }).limit(5)
+                ]);
+
+                // 4. Client-Side Aggregation
+                const users = usersRes.data || [];
+                const logs = logsRes.data || [];
+                const errors = errRes.data || [];
+
+                // Stats
+                const totalUsers = users.length; // Approximate if limit > total, but we fetched 200. For real total we'd need count request.
+                // Fetch Exact Count separately for precision
+                const { count: realTotal } = await supabase.from('users').select('*', { count: 'exact', head: true });
+
+                let activeStrategies = 0;
+                let revenue = 0;
+
+                users.forEach(u => {
+                    // Revenue
+                    if (u.is_unlimited) revenue += 29.99;
+                    else if (u.subscription_status === 'active') revenue += 9.99;
+
+                    // Active Strategy
+                    if ((u.credits_negotiation || 0) > 0 || (u.credits_30_60_90 || 0) > 0 || (u.credits_inquisitor || 0) > 0 || (u.credits_interview_sim || 0) > 0) {
+                        activeStrategies++;
+                    }
+                });
+
+                // Render Dashboard
+                const computedData = {
+                    total_users: realTotal || totalUsers,
+                    active_interviews: activeStrategies,
+                    total_revenue: Math.round(revenue * 100) / 100,
+                    avg_duration: logs.length, // Just total recent logs
+                    recent_users: users.slice(0, 50),
+                    recent_errors: errors,
+                    logs: logs
+                };
+
+                renderDashboard(computedData);
 
             } catch (e) {
-                console.error("Admin Auth Error:", e);
+                console.error("Admin Load Error:", e);
+                alert("Failed to load dashboard: " + e.message);
             }
         }
 
         function renderDashboard(data) {
-            // Update Stats
-            document.getElementById('stat-total-users').textContent = data.total_users || 0;
-            document.getElementById('stat-active-interviews').textContent = data.active_interviews || 0;
-            document.getElementById('stat-avg-duration').textContent = (data.feature_usage?.['Interview Coach'] || 0); // Re-purposed to show total sessions
-            document.getElementById('stat-revenue').textContent = '$' + (data.total_revenue || 0);
+            document.getElementById('stat-total-users').textContent = data.total_users;
+            document.getElementById('stat-active-interviews').textContent = data.active_interviews;
+            document.getElementById('stat-avg-duration').textContent = data.avg_duration;
+            document.getElementById('stat-revenue').textContent = '$' + data.total_revenue;
 
-            // Render Users Table
+            // Render Users
             const tbody = document.getElementById('users-table-body');
             tbody.innerHTML = '';
+            data.recent_users.forEach(user => {
+                const planBadge = user.is_unlimited
+                    ? '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">UNLIMITED</span>'
+                    : '<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">BASIC</span>';
 
-            if (data.recent_users && data.recent_users.length > 0) {
-                data.recent_users.forEach(user => {
-                    const isUnlimited = user.is_unlimited;
-                    const planBadge = isUnlimited
-                        ? '<span class="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-bold">UNLIMITED</span>'
-                        : '<span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">BASIC</span>';
+                const renderCredit = (count) => user.is_unlimited ? '<span class="text-green-500 font-bold">∞</span>' : (count > 0 ? `<span class="text-slate-800 font-bold">${count}</span>` : '<span class="text-gray-300">-</span>');
 
-                    // Credit Counts
-                    const cNeg = user.credits_negotiation || 0;
-                    const cInq = user.credits_inquisitor || 0;
-                    const cPlan = user.credits_30_60_90 || 0;
-                    const cLet = user.credits_cover_letter || 0;
-                    const cSim = user.credits_interview_sim || 0;
-
-                    // Helper for Credit Cell
-                    const renderCredit = (count) => {
-                        if (isUnlimited) return '<span class="text-green-500 font-bold">∞</span>';
-                        return count > 0 ? `<span class="text-slate-800 font-bold">${count}</span>` : '<span class="text-gray-300">-</span>';
-                    };
-
-                    const row = `
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4">
-                                <div class="font-medium text-gray-900">${user.name || 'User'}</div>
-                                <div class="text-xs text-gray-500">${user.email}</div>
-                            </td>
-                            <td class="px-6 py-4">${planBadge}</td>
-                            
-                            <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(cNeg)}</td>
-                            <td class="px-4 py-4 text-center">${renderCredit(cInq)}</td>
-                            <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(cPlan)}</td>
-                            <td class="px-4 py-4 text-center">${renderCredit(cLet)}</td>
-                            <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(cSim)}</td>
-
-                            <td class="px-6 py-4">
-                                <span class="px-2 py-1 rounded-full text-xs font-bold ${user.subscription_status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}">
-                                    ${(user.subscription_status || 'free').toUpperCase()}
-                                </span>
-                            </td>
-                            <td class="px-6 py-4 text-right">
-                                <select onchange="handleAction(this, '${user.email}')" class="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm p-1">
-                                    <option value="">Actions...</option>
-                                    <option value="add_credit">⚡ Add Interv/Res Credit</option>
-                                    <option value="add_credit_strategy">🧪 Add Strategy Credit (+1 All)</option>
-                                    <option value="reset_session">🔄 Reset Session</option>
-                                    <option value="view_transcript">📄 Transcript</option>
-                                </select>
-                            </td>
-                        </tr>
-                    `;
-                    tbody.innerHTML += row;
-                });
-            } else {
-                tbody.innerHTML = '<tr><td colspan="9" class="px-6 py-8 text-center text-gray-400">No users found</td></tr>';
-            }
-
-            // Render Errors
-            const errorBody = document.getElementById('errors-table-body');
-            errorBody.innerHTML = '';
-            if (data.recent_errors && data.recent_errors.length > 0) {
-                data.recent_errors.forEach(err => {
-                    errorBody.innerHTML += `
-                        <tr class="hover:bg-red-50/10">
-                            <td class="px-6 py-3 text-gray-600">${new Date(err.timestamp).toLocaleString()}</td>
-                            <td class="px-6 py-3 text-gray-800 font-medium">${err.email || 'N/A'}</td>
-                            <td class="px-6 py-3"><span class="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-bold">${err.type}</span></td>
-                        </tr>
-                    `;
-                });
-            } else {
-                errorBody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 text-center text-gray-400">No recent errors</td></tr>';
-            }
-
-            // Render Charts (Activity)
-            renderCharts(data);
-        }
-
-        function renderCharts(data) {
-            // Chart config reused from previous version but updated for Tailwind container sizing
-            const ctx = document.getElementById('jobTypeChart').getContext('2d');
-            // ... (Same chart logic) ...
-            const palette = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'];
-            const dataValues = data.job_types ? Object.values(data.job_types) : [1];
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: data.job_types ? Object.keys(data.job_types) : ['No Data'],
-                    datasets: [{ data: dataValues, backgroundColor: palette, borderWidth: 0 }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } } }
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-medium text-gray-900">${user.name || 'User'}</div>
+                            <div class="text-xs text-gray-500">${user.email}</div>
+                        </td>
+                        <td class="px-6 py-4">${planBadge}</td>
+                        <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(user.credits_negotiation || 0)}</td>
+                        <td class="px-4 py-4 text-center">${renderCredit(user.credits_inquisitor || 0)}</td>
+                        <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(user.credits_30_60_90 || 0)}</td>
+                        <td class="px-4 py-4 text-center">${renderCredit(user.credits_cover_letter || 0)}</td>
+                        <td class="px-4 py-4 text-center bg-gray-50/50">${renderCredit(user.credits_interview_sim || 0)}</td>
+                        <td class="px-6 py-4"><span class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs font-bold">${(user.subscription_status || 'free').toUpperCase()}</span></td>
+                        <td class="px-6 py-4 text-right">
+                             <select onchange="handleAction(this, '${user.email}')" class="text-sm p-1 border rounded"><option value="">Action...</option><option value="add_credit_strategy">Add All Credits</option></select>
+                        </td>
+                    </tr>
+                `;
             });
 
-            const actCtx = document.getElementById('activityChart').getContext('2d');
-            const daily = data.daily_activity || { dates: [], datasets: {} };
-            new Chart(actCtx, {
-                type: 'bar',
-                data: {
-                    labels: daily.dates,
-                    datasets: [
-                        { label: 'Resume', data: daily.datasets['Resume Analysis'] || [], backgroundColor: '#3b82f6', borderRadius: 4 },
-                        { label: 'Interview', data: daily.datasets['Interview Coach'] || [], backgroundColor: '#8b5cf6', borderRadius: 4 },
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        x: { grid: { display: false } },
-                        y: { beginAtZero: true, grid: { color: '#f3f4f6' } }
-                    },
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
-                }
+            // Errors
+            const errBody = document.getElementById('errors-table-body');
+            errBody.innerHTML = '';
+            data.recent_errors.forEach(e => {
+                errBody.innerHTML += `<tr><td class="px-6 py-3">${new Date(e.created_at).toLocaleString()}</td><td class="px-6 py-3">${e.user_email || '-'}</td><td class="px-6 py-3 text-red-600">${e.error_type}</td></tr>`;
             });
         }
 
-        // Action Handler
-        function handleAction(select, email) {
-            const action = select.value;
-            if (!action) return;
-            select.value = "";
-            if (action === 'view_transcript') viewTranscript(email);
-            else executeAction(email, action);
-        }
-
-        async function executeAction(targetEmail, actionType) {
-            if (!confirm(`Confirm Action: ${actionType}?`)) return;
-            const session = JSON.parse(localStorage.getItem('aceinterview_session'));
-            try {
-                const res = await fetch('/api/admin/action', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ admin_email: session.email, target_email: targetEmail, action_type: actionType })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    alert('Success: ' + result.message);
-                    checkAdminAuth(); // Reload data
-                } else {
-                    alert('Error: ' + result.error);
-                }
-            } catch (e) { alert('Action failed: ' + e); }
-        }
-
-        // Transcript Logic
-        async function viewTranscript(email) {
-            const modal = document.getElementById('transcript-modal');
-            const content = document.getElementById('transcript-content');
-            modal.classList.remove('hidden');
-            content.innerHTML = '<p class="text-center text-gray-500">Loading...</p>';
-
-            // ... (Fetch logic same as before) ...
-            try {
-                const res = await fetch('/api/admin/transcript', {
-                    method: 'POST', body: JSON.stringify({ target_email: email }),
-                    headers: { 'Content-Type': 'application/json' }
-                });
-                const result = await res.json();
-                content.innerHTML = '';
-                if (result.success && result.logs.length) {
-                    result.logs.forEach(log => {
-                        content.innerHTML += `
-                            <div class="border-b border-gray-100 pb-4 last:border-0">
-                                <div class="text-xs font-bold text-blue-600 mb-1">USER</div>
-                                <div class="bg-gray-50 p-3 rounded-lg text-sm text-gray-700 mb-2">${log.message || '-'}</div>
-                                <div class="text-xs font-bold text-green-600 mb-1">AI</div>
-                                <div class="bg-green-50 p-3 rounded-lg text-sm text-gray-800">${log.response || '-'}</div>
-                                <div class="text-right text-xs text-gray-300 mt-1">${new Date(log.created_at).toLocaleString()}</div>
-                            </div>
-                         `;
+        async function handleAction(select, email) {
+            if (!select.value) return;
+            if (confirm("Execute " + select.value + "?")) {
+                try {
+                    const { data: session } = await supabase.auth.getSession();
+                    const res = await fetch('/api/admin/action', {
+                        method: 'POST', body: JSON.stringify({ admin_email: session.session.user.email, target_email: email, action_type: select.value }),
+                        headers: { 'Content-Type': 'application/json' }
                     });
-                } else { content.innerHTML = '<p class="text-center text-gray-500">No history found.</p>'; }
-            } catch (e) { content.innerHTML = '<p class="text-center text-red-500">Error loading transcript.</p>'; }
+                    if (res.ok) { alert("Success"); loadAdminData(); }
+                    else alert("Failed");
+                } catch (e) { alert("Error: " + e); }
+            }
+            select.value = "";
         }
 
-        function closeModal() { document.getElementById('transcript-modal').classList.add('hidden'); }
-
-        // Ghost Mode
-        let ghostMode = false;
-        document.getElementById('ghost-status-toggle').addEventListener('click', () => {
-            ghostMode = !ghostMode;
-            const el = document.getElementById('ghost-status-toggle');
-            const span = el.querySelector('span');
-            if (ghostMode) {
-                el.classList.remove('bg-yellow-100', 'text-yellow-800');
-                el.classList.add('bg-purple-600', 'text-white', 'ghost-badge');
-                span.innerHTML = '👻 Ghost Mode: <strong>ON</strong>';
-                localStorage.setItem('admin_ghost_mode', 'true');
-            } else {
-                el.classList.add('bg-yellow-100', 'text-yellow-800');
-                el.classList.remove('bg-purple-600', 'text-white', 'ghost-badge');
-                span.innerHTML = '👻 Ghost Mode: OFF';
-                localStorage.removeItem('admin_ghost_mode');
-            }
-        });
-
-        // Logout
         function adminLogout() {
-            if (confirm("Log out?")) {
-                localStorage.removeItem('aceinterview_session');
-                localStorage.removeItem('supabase.auth.token');
-                window.location.href = '/login.html';
-            }
+            supabase.auth.signOut();
+            localStorage.clear();
+            window.location.href = '/login.html';
         }
 
-        window.onload = checkAdminAuth;
+        // Init
+        loadAdminData();
+
     </script>
 </body>
 
