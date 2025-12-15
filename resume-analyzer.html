@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Enterprise Audit</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            /* Prevent window scroll */
+        }
+
+        /* Custom Scrollbar for Panels */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .dark-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        /* Step Loader Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-item {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .step-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .step-item:nth-child(2) {
+            animation-delay: 1.5s;
+        }
+
+        .step-item:nth-child(3) {
+            animation-delay: 3.0s;
+        }
+
+        .step-item:nth-child(4) {
+            animation-delay: 4.5s;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 3px solid white;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Drag Zone Active State */
+        .drag-active {
+            border-color: #60a5fa !important;
+            background-color: rgba(30, 41, 59, 0.8) !important;
+        }
+    </style>
+</head>
+
+<body class="flex h-screen bg-white">
+
+    <!-- LEFT PANEL: CONTROL DECK (35%) -->
+    <aside
+        class="w-[35%] h-full bg-[#0f172a] text-white flex flex-col border-r border-slate-800 relative z-20 shadow-2xl">
+
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-800 flex justify-between items-center">
+            <div>
+                <h1 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">Diagnostic Mode</h1>
+                <div class="text-2xl font-black tracking-tight text-white">RESUME<span
+                        class="text-blue-500">AUDIT</span></div>
+            </div>
+            <a href="/dashboard.html" class="text-slate-500 hover:text-white transition-colors text-sm font-medium">Exit
+                &times;</a>
+        </div>
+
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll dark-scroll p-8 space-y-8">
+
+            <!-- Input 1: Resume Upload -->
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">1. Source
+                    Document</label>
+                <div id="dropzone"
+                    class="border-2 border-dashed border-slate-700 bg-slate-800/50 rounded-xl p-8 text-center transition-all cursor-pointer hover:border-slate-500 hover:bg-slate-800 group relative">
+                    <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+
+                    <div id="upload-idle">
+                        <div
+                            class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600 transition-colors">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-medium text-slate-300">Click or Drag Resume PDF</p>
+                        <p class="text-xs text-slate-500 mt-1">Parses structure & keywords</p>
+                    </div>
+
+                    <div id="upload-success" class="hidden">
+                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-medium text-white truncate px-4" id="filename-display">resume.pdf</p>
+                        <button onclick="resetUpload(event)"
+                            class="text-xs text-slate-400 underline mt-2 hover:text-white">Change File</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2: Job Description -->
+            <div>
+                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">2. Target
+                    Calibration</label>
+                <div class="relative">
+                    <textarea id="job-description"
+                        class="w-full h-48 bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none custom-scroll dark-scroll transition-colors"
+                        placeholder="Paste the Job Description here to enable gap analysis..."></textarea>
+                    <div class="absolute bottom-3 right-3 text-xs text-slate-600 font-mono">OPTIONAL</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800 bg-[#0f172a]">
+            <button id="run-btn" onclick="runAnalysis()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/50 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                <span>RUN DIAGNOSTIC</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- RIGHT PANEL: LIVE REPORT (65%) -->
+    <main class="flex-1 h-full bg-slate-50 relative overflow-hidden">
+
+        <!-- DECORATIVE BG -->
+        <div class="absolute inset-0 z-0 opacity-40 pointer-events-none"
+            style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px;"></div>
+
+        <!-- CONTAINER -->
+        <div class="h-full overflow-y-auto custom-scroll relative z-10 p-12 flex flex-col">
+
+            <!-- STATE A: IDLE -->
+            <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center opacity-70">
+                <div
+                    class="w-24 h-24 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 rotate-3 transform transition-transform duration-700 hover:rotate-6">
+                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-slate-800 mb-2">Ready to Analyze</h2>
+                <p class="text-slate-500 max-w-sm">Upload your resume and a target job description to verify ATS
+                    compatibility and content impact.</p>
+            </div>
+
+            <!-- STATE B: LOADING -->
+            <div id="state-loading"
+                class="hidden flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full">
+                <h3 class="text-lg font-bold text-slate-700 mb-8 w-full border-b border-slate-200 pb-4">System
+                    Diagnostic Running...</h3>
+                <div class="w-full space-y-6">
+                    <!-- Steps will be toggled by JS -->
+                    <div class="step-item flex items-center gap-4 text-slate-600">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                            id="step-icon-1">
+                            <div class="spinner text-blue-500 !border-slate-300 !border-t-blue-500 !w-3 !h-3"></div>
+                        </div>
+                        <span class="font-medium">Parsing Document Structure</span>
+                    </div>
+                    <div class="step-item flex items-center gap-4 text-slate-600">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                            id="step-icon-2"></div>
+                        <span class="font-medium">Extracting Core Competencies</span>
+                    </div>
+                    <div class="step-item flex items-center gap-4 text-slate-600">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                            id="step-icon-3"></div>
+                        <span class="font-medium">Performing Gap Analysis</span>
+                    </div>
+                    <div class="step-item flex items-center gap-4 text-slate-600">
+                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
+                            id="step-icon-4"></div>
+                        <span class="font-medium">Generating Impact Score</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE C: RESULTS -->
+            <div id="state-result" class="hidden max-w-4xl mx-auto w-full pb-20 fade-in">
+
+                <!-- Score Header -->
+                <div class="flex items-center gap-8 mb-12">
+                    <div class="relative">
+                        <svg class="w-40 h-40 transform -rotate-90">
+                            <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="12" fill="none" />
+                            <circle cx="80" cy="80" r="70" stroke="#3b82f6" stroke-width="12" fill="none"
+                                stroke-dasharray="440" stroke-dashoffset="100" stroke-linecap="round" />
+                        </svg>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span class="text-4xl font-black text-slate-800">78</span>
+                            <span class="text-xs font-bold text-slate-400 uppercase">SCORE</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold mb-2">
+                            TOP 20% CANDIDATE</div>
+                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Strong Foundation</h2>
+                        <p class="text-slate-600">Your resume parses well, but lacks specific metric-driven outcomes
+                            required for this role level.</p>
+                    </div>
+                </div>
+
+                <!-- Bento Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Card 1: Critical Gaps -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3 class="flex items-center gap-2 text-sm font-bold text-red-600 uppercase tracking-wide mb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                            Critical Missing Keywords
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">Strategic
+                                Planning</span>
+                            <span class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">P&L
+                                Management</span>
+                            <span
+                                class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">Cross-functional
+                                Leadership</span>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-4">These terms appear frequently in the job description but
+                            are missing from your profile.</p>
+                    </div>
+
+                    <!-- Card 2: Formatting -->
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                        <h3
+                            class="flex items-center gap-2 text-sm font-bold text-green-600 uppercase tracking-wide mb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Formatting Check
+                        </h3>
+                        <ul class="space-y-3 text-sm text-slate-600">
+                            <li class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div> PDF Parsability: <span
+                                    class="font-bold text-slate-800">Excellent</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-green-500"></div> Font Legibility: <span
+                                    class="font-bold text-slate-800">Standard (Inter)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Length: <span
+                                    class="font-bold text-slate-800">2.5 Pages (Aim for 2)</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3: Action Plan (Full Width) -->
+                    <div class="md:col-span-2 bg-blue-50/50 rounded-xl shadow-sm border border-blue-100 p-6">
+                        <h3
+                            class="flex items-center gap-2 text-sm font-bold text-blue-700 uppercase tracking-wide mb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Recommended Actions
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-4 items-start">
+                                <div
+                                    class="bg-white p-2 rounded shadow-sm text-blue-600 font-bold border border-blue-100">
+                                    1</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Quantify Leadership Achievements</h4>
+                                    <p class="text-sm text-slate-600 leading-relaxed mt-1">Found 4 instances of "Managed
+                                        team". Rewrite to include team size and revenue impact. Example: "Led 15-person
+                                        sales team to $5M revenue."</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-4 items-start">
+                                <div
+                                    class="bg-white p-2 rounded shadow-sm text-blue-600 font-bold border border-blue-100">
+                                    2</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-slate-800">Integrate Strategy Keywords</h4>
+                                    <p class="text-sm text-slate-600 leading-relaxed mt-1">Add a "Core Competencies"
+                                        section below your summary to explicitly list the missing keywords identified
+                                        above.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- UI INTERACTION LOGIC ---
+
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-upload');
+        const uploadIdle = document.getElementById('upload-idle');
+        const uploadSuccess = document.getElementById('upload-success');
+        const filenameDisplay = document.getElementById('filename-display');
+        const runBtn = document.getElementById('run-btn');
+
+        // Drag & Drop
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { dropzone.classList.add('drag-active'); }
+        function unhighlight() { dropzone.classList.remove('drag-active'); }
+
+        dropzone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                filenameDisplay.textContent = file.name;
+                uploadIdle.classList.add('hidden');
+                uploadSuccess.classList.remove('hidden');
+                dropzone.classList.add('border-green-500/50', 'bg-slate-800');
+                dropzone.classList.remove('border-dashed');
+            }
+        }
+
+        function resetUpload(e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            uploadIdle.classList.remove('hidden');
+            uploadSuccess.classList.add('hidden');
+            dropzone.classList.remove('border-green-500/50', 'bg-slate-800');
+            dropzone.classList.add('border-dashed');
+        }
+
+        // Mock Analysis Run
+        function runAnalysis() {
+            // Check file
+            if (!fileInput.files.length) {
+                alert("Please upload a resume first.");
+                return;
+            }
+
+            const stateIdle = document.getElementById('state-idle');
+            const stateLoading = document.getElementById('state-loading');
+            const stateResult = document.getElementById('state-result');
+            const btn = document.getElementById('run-btn');
+
+            // 1. Switch to Loading
+            stateIdle.classList.add('hidden');
+            stateResult.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+            btn.disabled = true;
+            btn.innerHTML = 'ANALYZING...';
+
+            // 2. Animate Steps
+            const steps = [1, 2, 3, 4];
+            steps.forEach((step, i) => {
+                const delay = (i * 1500) + 500; // 0.5s, 2s, 3.5s...
+                setTimeout(() => {
+                    const icon = document.getElementById(`step-icon-${step}`);
+                    // Mark previous as done
+                    if (i > 0) {
+                        const prev = document.getElementById(`step-icon-${step - 1}`);
+                        prev.innerHTML = `<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
+                        prev.className = "w-6 h-6 rounded-full border-2 border-green-500 flex items-center justify-center bg-green-50";
+                    }
+                    // Activate current (already has spinner via CSS animation delay, but we ensure structure)
+                }, delay);
+            });
+
+            // 3. Finish
+            setTimeout(() => {
+                stateLoading.classList.add('hidden');
+                stateResult.classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = `
+                    <span>RUN DIAGNOSTIC</span>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                `;
+            }, 6500); // 6.5s total duration
+        }
+
+        // --- AUTH CHECK ---
+        (function checkAuth() {
+            const token = localStorage.getItem('supabase.auth.token');
+            // In real app, verify expiry, etc. For UI demo, simple presence check.
+            if (!token) {
+                // console.warn("No token found. Redirecting to login...");
+                // window.location.href = '/login.html'; 
+            }
+        })();
+
+    </script>
+</body>
+
+</html>
