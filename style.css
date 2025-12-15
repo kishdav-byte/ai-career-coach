@@ -2806,3 +2806,112 @@ body.strategy-lab-theme {
     color: #1d4ed8; /* Blue 700 */
     border-left: 4px solid #3b82f6;
 }
+
+/* =========================================
+   STRATEGY LAB PREMIUM UTILITIES
+   ========================================= */
+
+/* Premium Background */
+.bg-premium-gray {
+    background-color: #f9fafb !important;
+}
+
+/* Premium Card Wrapper */
+.strategy-card {
+    background-color: #ffffff;
+    border-radius: 1.5rem !important; /* rounded-2xl */
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* shadow-lg */
+    padding: 2rem !important; /* p-8 */
+    border: 1px solid #f3f4f6; /* border-gray-100 */
+    height: 100%;
+}
+
+/* Premium Container */
+.premium-container {
+    max-width: 72rem; /* max-w-6xl */
+    margin: 0 auto;
+    display: grid;
+    gap: 2rem; /* gap-8 */
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 100px);
+    padding: 1.5rem;
+}
+
+/* Typography Overrides */
+.premium-title {
+    font-size: 1.875rem !important; /* text-3xl */
+    font-weight: 700 !important; /* font-bold */
+    color: #111827; /* gray-900 */
+    line-height: 2.25rem;
+}
+
+.premium-subtitle {
+    margin-top: 0.5rem;
+    color: #6b7280; /* gray-500 */
+    font-size: 1rem;
+}
+
+
+/* Input Styling Upgrade */
+.input-premium {
+    border-radius: 0.75rem !important; /* rounded-xl */
+    border: 1px solid #e5e7eb; /* border-gray-200 */
+    padding: 0.75rem 1rem;
+    width: 100%;
+    transition: all 0.2s;
+}
+
+.input-premium:focus {
+    outline: none;
+    border-color: #3b82f6; /* blue-500 */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* ring-2 */
+}
+
+/* Empty State Premium */
+.empty-state-premium {
+    height: 100%;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 2px dashed #e5e7eb; /* border-gray-200 */
+    border-radius: 0.75rem; /* rounded-xl */
+    background-color: #f9fafb; /* gray-50 */
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    color: #9ca3af; /* gray-400 */
+    margin-bottom: 1rem;
+}
+
+.empty-state-text {
+    font-weight: 500;
+    color: #374151; /* gray-700 */
+    margin-bottom: 0.5rem;
+}
+
+/* Button Upgrades */
+.btn-premium-action {
+    width: 100%;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important; /* py-4 */
+    font-size: 1.125rem !important; /* text-lg */
+    font-weight: 600 !important;
+    border-radius: 0.75rem !important; /* rounded-xl */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); /* shadow-md */
+    transition: transform 0.1s;
+}
+
+.btn-premium-action:active {
+    transform: scale(0.98);
+}
+
+@media (max-width: 1024px) {
+    .premium-container {
+        grid-template-columns: 1fr;
+    }
+}

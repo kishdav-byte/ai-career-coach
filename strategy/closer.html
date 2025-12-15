@@ -116,63 +116,57 @@
         </div>
     </nav>
 
-    <div class="split-container p-6 gap-6" style="max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 80px);">
+    <div class="premium-container">
         <!-- Input Side -->
-        <div class="form-side bg-white rounded-xl shadow-sm p-6 border border-gray-100"
-            style="background: white; overflow-y: auto;">
+        <div class="strategy-card">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-xl">🤝</div>
-                <h1 class="text-2xl font-bold text-gray-800 m-0">The Closer</h1>
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-2xl">🤝</div>
+                <h1 class="premium-title">The Closer</h1>
             </div>
-            <p class="mb-8 text-gray-500 text-sm">Generate a ruthless but professional negotiation script.</p>
+            <p class="premium-subtitle mb-8">Generate a ruthless but professional negotiation script.</p>
 
             <form id="tool-form">
                 <div class="form-group mb-5">
                     <label class="block font-semibold text-gray-700 mb-2">Base Salary Offer ($)</label>
-                    <input type="number" name="current_offer" placeholder="e.g. 120000"
-                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
-                        required>
-                    <p class="helper-text">The base amount in your official offer letter.</p>
+                    <input type="number" name="current_offer" placeholder="e.g. 120000" class="input-premium" required>
+                    <p class="helper-text mt-1 text-sm text-gray-500">The base amount in your official offer letter.</p>
                 </div>
                 <div class="form-group mb-5">
                     <label class="block font-semibold text-gray-700 mb-2">Sign-On Bonus ($)</label>
-                    <input type="number" name="sign_on" placeholder="e.g. 10000"
-                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                    <p class="helper-text">Any one-time cash bonus offered up front.</p>
+                    <input type="number" name="sign_on" placeholder="e.g. 10000" class="input-premium">
+                    <p class="helper-text mt-1 text-sm text-gray-500">Any one-time cash bonus offered up front.</p>
                 </div>
                 <div class="form-group mb-5">
                     <label class="block font-semibold text-gray-700 mb-2">Leverage / Context</label>
                     <textarea name="leverage" rows="4"
                         placeholder="e.g. I have a competing offer from Google for $140k."
-                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"></textarea>
-                    <p class="helper-text">Competing offers, market data, or strong performance reviews.</p>
+                        class="input-premium"></textarea>
+                    <p class="helper-text mt-1 text-sm text-gray-500">Competing offers, market data, or strong
+                        performance reviews.</p>
                 </div>
                 <div class="form-group mb-6">
                     <label class="block font-semibold text-gray-700 mb-2">Your Goal / Ask</label>
-                    <input type="text" name="goal" placeholder="e.g. Match the $140k base"
-                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                    <input type="text" name="goal" placeholder="e.g. Match the $140k base" class="input-premium"
                         required>
                 </div>
 
-                <button type="submit" id="btn-generate"
-                    class="btn btn-primary w-full py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform active:scale-95">
+                <button type="submit" id="btn-generate" class="btn btn-primary btn-premium-action">
                     Generate Strategy (1 Credit)
                 </button>
             </form>
         </div>
 
         <!-- Result Side -->
-        <div class="result-side bg-white rounded-xl shadow-sm p-6 border border-gray-100 relative"
-            style="background: white; overflow-y: auto;">
+        <div class="strategy-card relative overflow-y-auto">
             <button id="btn-copy" class="copy-btn hidden"><i class="far fa-copy"></i> Copy to Clipboard</button>
 
             <!-- Unlock Overlay -->
             <div id="unlock-overlay" style="display: none;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                <h2 style="margin-bottom: 0.5rem;">Unlock The Closer</h2>
+                <h2 style="margin-bottom: 0.5rem;" class="premium-title text-2xl">Unlock The Closer</h2>
                 <p style="margin-bottom: 1.5rem; color: #64748b;">You need a Negotiation Credit to use this tool.</p>
-                <button id="btn-unlock" class="btn btn-success animate-pulse"
-                    style="background-color: var(--success); color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-weight: 600;">
+                <button id="btn-unlock" class="btn btn-success btn-premium-action animate-pulse"
+                    style="background-color: var(--success); color: white; border: none;">
                     Unlock Tool ($4.99)
                 </button>
             </div>
@@ -184,14 +178,14 @@
             </div>
 
             <!-- Empty State (Default) -->
-            <div id="empty-state" class="empty-state-container">
-                <i class="fas fa-chess-pawn empty-state-icon"></i>
-                <p class="empty-state-text">Ready to Strategize.</p>
-                <p class="empty-state-subtext">Fill out the details to generate your negotiation script.</p>
+            <div id="empty-state" class="empty-state-premium">
+                <i class="fas fa-handshake empty-state-icon"></i>
+                <p class="empty-state-text text-lg">Your strategy will appear here.</p>
+                <p class="empty-state-subtext text-gray-500">Fill out the form to begin.</p>
             </div>
 
             <!-- Content -->
-            <div id="result-content" class="markdown-content hidden">
+            <div id="result-content" class="markdown-content hidden p-2">
             </div>
         </div>
     </div>
