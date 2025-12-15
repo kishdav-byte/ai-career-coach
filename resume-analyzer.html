@@ -264,31 +264,33 @@
             <div id="state-result" class="hidden max-w-5xl mx-auto w-full pb-20 fade-in">
 
                 <!-- Score Header -->
+                <!-- Score Header (Compact) -->
                 <div
-                    class="flex flex-col md:flex-row items-center gap-10 mb-14 bg-gradient-to-r from-slate-900/80 to-transparent p-10 rounded-3xl border border-slate-800/60 shadow-2xl">
+                    class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-gradient-to-r from-slate-900/80 to-transparent p-6 rounded-3xl border border-slate-800/60 shadow-2xl">
                     <div class="relative shrink-0">
                         <!-- Glow Behind -->
                         <div class="absolute inset-0 bg-green-500/20 blur-2xl rounded-full"></div>
-                        <svg class="w-40 h-40 transform -rotate-90 relative z-10">
-                            <circle cx="80" cy="80" r="70" stroke="#1e293b" stroke-width="8" fill="none" />
-                            <circle cx="80" cy="80" r="70" stroke="#4ade80" stroke-width="8" fill="none"
-                                stroke-dasharray="440" stroke-dashoffset="100" stroke-linecap="round"
+                        <svg class="w-32 h-32 transform -rotate-90 relative z-10">
+                            <circle cx="64" cy="64" r="56" stroke="#1e293b" stroke-width="6" fill="none" />
+                            <circle cx="64" cy="64" r="56" stroke="#4ade80" stroke-width="6" fill="none"
+                                stroke-dasharray="351" stroke-dashoffset="80" stroke-linecap="round"
                                 class="drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
-                            <span class="text-5xl font-black text-white tracking-tighter drop-shadow-lg">78</span>
+                            <span class="text-4xl font-black text-white tracking-tighter drop-shadow-lg">78</span>
                             <span
-                                class="text-[10px] font-bold text-green-400 uppercase tracking-widest mt-1">Match</span>
+                                class="text-[9px] font-bold text-green-400 uppercase tracking-widest mt-0.5">Match</span>
                         </div>
                     </div>
                     <div>
                         <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-4 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-2 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                             Top 20% Candidate
                         </div>
-                        <h2 class="text-3xl font-bold text-white mb-3">Strong Foundation Detected</h2>
-                        <p class="text-slate-400 leading-relaxed text-sm">Your profile demonstrates senior-level
+                        <h2 class="text-2xl font-bold text-white mb-2">Strong Foundation Detected</h2>
+                        <p class="text-slate-400 leading-relaxed text-sm max-w-2xl">Your profile demonstrates
+                            senior-level
                             capacity, but semantic layering for the "Product Strategy" vector is below threshold.
                             Refinement required for ATS optimization.</p>
                     </div>
@@ -389,6 +391,35 @@
                                         relevance scores.</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- UPSELL MODULE (Executive Rewrite) -->
+                    <div id="upsell-module"
+                        class="mt-8 border border-yellow-500/30 bg-gradient-to-r from-blue-900/10 to-slate-900 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+
+                        <!-- Decorative Glow -->
+                        <div
+                            class="absolute inset-0 bg-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+                        </div>
+
+                        <div class="relative z-10 flex gap-4 items-center">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+                                <span class="text-2xl">✨</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white leading-tight">Ready to fix these gaps?</h3>
+                                <p class="text-sm text-slate-400">Instantly generate a top-tier version of this resume
+                                    using our Executive Rewrite engine.</p>
+                            </div>
+                        </div>
+
+                        <div id="upsell-btn-container" class="relative z-10 shrink-0 w-full md:w-auto">
+                            <!-- Button Will Be Injected By JS -->
+                            <button
+                                class="w-full md:w-auto px-6 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg text-sm border border-slate-700">Loading
+                                Access...</button>
                         </div>
                     </div>
 
@@ -618,12 +649,12 @@
             console.log("Rendering Data:", data);
 
             // 1. SCORE
-            const scoreDisplay = document.querySelector('#state-result .text-5xl');
-            const scoreLabel = document.querySelector('#state-result .text-green-400'); // "Top 20% Candidate" tag
+            const scoreDisplay = document.querySelector('#state-result .text-4xl'); // Updated selector
+            // const scoreLabel = document.querySelector('#state-result .text-green-400'); 
             if (scoreDisplay) scoreDisplay.textContent = data.overall_score || "N/A";
 
             // Score Message
-            const headline = document.querySelector('#state-result h2.text-3xl');
+            const headline = document.querySelector('#state-result h2.text-2xl'); // Updated selector
             const subhead = document.querySelector('#state-result p.text-slate-400');
             // Logic for message
             if (data.overall_score >= 80) {
@@ -641,7 +672,6 @@
             const gapContainer = document.querySelector('.section-card:nth-child(1) .flex-wrap');
             if (gapContainer) {
                 gapContainer.innerHTML = '';
-                // Combine Missing Keywords + Red Flags titles
                 const gaps = [];
                 if (data.keywords && data.keywords.missing) {
                     data.keywords.missing.slice(0, 3).forEach(k => gaps.push(k.word));
@@ -658,10 +688,7 @@
             // 3. FORMATTING (Card 2)
             const fmtList = document.querySelector('.section-card:nth-child(2) ul');
             if (fmtList) {
-                // We'll create list items dynamically
                 let html = '';
-
-                // ATS Score Check
                 const atsScore = data.ats_compatibility ? data.ats_compatibility.score : 'N/A';
                 html += `
                 <li class="flex items-center justify-between">
@@ -669,7 +696,6 @@
                     <span class="text-white font-bold text-xs bg-blue-500/20 px-2 py-0.5 rounded text-blue-400">${atsScore}/10</span>
                 </li>`;
 
-                // Formatting Issues count
                 const fmtIssues = data.formatting ? data.formatting.length : 0;
                 const statusColor = fmtIssues === 0 ? 'text-green-400 bg-green-500/20' : 'text-yellow-400 bg-yellow-500/20';
                 html += `
@@ -678,7 +704,6 @@
                     <span class="text-white font-bold text-xs px-2 py-0.5 rounded ${statusColor}">${fmtIssues === 0 ? 'Optimal' : fmtIssues + ' Alerts'}</span>
                 </li>`;
 
-                // Word Count (Estimate)
                 const wordCount = currentFileText.split(/\s+/).length;
                 html += `
                 <li class="flex items-center justify-between opacity-80">
@@ -693,22 +718,61 @@
             const planContainer = document.querySelector('.md\\:col-span-2 .space-y-4');
             if (planContainer) {
                 planContainer.innerHTML = '';
-
-                // We want "High Impact Improvements"
                 const improvements = data.improvements || [];
-                // Take top 3
                 improvements.slice(0, 3).forEach((imp, idx) => {
-                    const num = String(idx + 1).padStart(2, '0'); // 01, 02
+                    const num = String(idx + 1).padStart(2, '0');
+                    // Rich text formatting: Convert newlines to breaks or ensure bullet points render nicely
+                    // Increased contrast text-slate-200
                     planContainer.innerHTML += `
                     <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
                         <div class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">${num}</div>
-                        <div>
-                            <h4 class="text-sm font-bold text-white mb-1">${imp.title}</h4>
-                            <p class="text-xs text-slate-400 leading-relaxed">${imp.suggestion} <br>
-                            <span class="text-blue-400/80">Example: "${imp.better || 'See full report'}"</span></p>
+                        <div class="w-full">
+                            <h4 class="text-sm font-bold text-white mb-2">${imp.title}</h4>
+                            <div class="text-xs text-slate-300 leading-relaxed font-medium">
+                                ${imp.suggestion.replace(/\n/g, '<br>')}
+                            </div>
+                            ${imp.better ? `<div class="mt-3 text-xs bg-blue-900/20 p-3 rounded border-l-2 border-blue-500 text-blue-300 font-mono">"${imp.better}"</div>` : ''}
                         </div>
                     </div>`;
                 });
+            }
+
+            // 5. UPSELL BUTTON LOGIC
+            const btnContainer = document.getElementById('upsell-btn-container');
+            if (btnContainer) {
+                // Check Session for Credits
+                let credits = 0;
+                try {
+                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                    if (sessionStr) {
+                        const s = JSON.parse(sessionStr);
+                        // Access credits - might be stored flat or in user object depending on app.js version
+                        // Based on app.js: session.rewrite_credits or session.user.rewrite_credits
+                        credits = s.rewrite_credits || (s.user ? s.user.rewrite_credits : 0) || 0;
+                    }
+                } catch (e) { }
+
+                if (credits > 0) {
+                    // STATE A: Has Credits
+                    btnContainer.innerHTML = `
+                        <a href="/resume-rewriter.html" class="inline-block w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-sm shadow-[0_0_15px_rgba(37,99,235,0.5)] animate-pulse transition-all text-center">
+                            AUTO-REWRITE (1 Credit)
+                        </a>`;
+                } else {
+                    // STATE B: Buy
+                    btnContainer.innerHTML = `
+                        <button onclick="triggerUpsell()" class="w-full md:w-auto px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold rounded-lg text-sm shadow-lg transition-colors">
+                            UNLOCK REWRITE ($9.99)
+                        </button>`;
+                }
+            }
+        }
+
+        function triggerUpsell() {
+            // Simple redirect to pricing or trigger checkout modal logic if present
+            // For now, redirect to planner/options
+            if (confirm("Unlock Executive Rewrite for $9.99?")) {
+                window.location.href = '/app.html#resume-builder'; // Or specific pricing flow
             }
         }
 
