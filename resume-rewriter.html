@@ -365,12 +365,15 @@
             const importedJD = localStorage.getItem('rewrite_job_desc');
 
             if (importedResume) {
-                document.getElementById('source-resume').value = importedResume;
-                // Trigger Parse
-                smartParse();
-
-                // Clear to prevent re-loading on refresh (optional, but good UX usually)
-                // localStorage.removeItem('rewrite_source_text');
+                if (importedResume.startsWith('%PDF-')) {
+                    document.getElementById('source-resume').value = "⚠️ Error: Raw PDF data detected.\n\nPlease go back to the Resume Analyzer and re-upload your PDF. We have updated the parser to handle this correctly.";
+                    // Clear bad data so it doesn't persist
+                    localStorage.removeItem('rewrite_source_text');
+                } else {
+                    document.getElementById('source-resume').value = importedResume;
+                    // Auto-trigger smart parse if we have clean text
+                    if (importedResume.length > 50) setTimeout(smartParse, 500);
+                }
             }
 
             if (importedJD) {
