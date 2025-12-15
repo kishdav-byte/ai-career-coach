@@ -1397,7 +1397,6 @@ def admin_action():
                 }).eq('email', target_email).execute()
                 return jsonify({"success": True, "message": "Credits added (+1)"})
             else:
-            else:
                 return jsonify({"error": "Target user not found"}), 404
 
         elif action_type == 'add_credit_strategy':
