@@ -1865,6 +1865,11 @@ def get_user_data_route():
                     "resume_credits": user.get('resume_credits', 0),
                     "interview_credits": user.get('interview_credits', 0),
                     "rewrite_credits": user.get('rewrite_credits', 0),
+                    "credits_negotiation": user.get('credits_negotiation', 0),
+                    "credits_inquisitor": user.get('credits_inquisitor', 0),
+                    "credits_followup": user.get('credits_followup', 0),
+                    "credits_30_60_90": user.get('credits_30_60_90', 0),
+                    "credits_cover_letter": user.get('credits_cover_letter', 0),
                     "is_unlimited": user.get('is_unlimited', False),
                     "subscription_status": user.get('subscription_status', 'free'),
                     "role": user.get('role', 'user')
