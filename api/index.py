@@ -1198,10 +1198,11 @@ def admin_stats():
             elif u.get('subscription_status') == 'active':
                 total_revenue += 9.99
             
-            # Active Strategy Count
-            if (u.get('credits_negotiation', 0) > 0 or 
-                u.get('credits_30_60_90', 0) > 0 or 
-                u.get('credits_inquisitor', 0) > 0):
+            # Active Strategy Count (Safe Access)
+            # Use (val or 0) to handle None values from DB
+            if ((u.get('credits_negotiation') or 0) > 0 or 
+                (u.get('credits_30_60_90') or 0) > 0 or 
+                (u.get('credits_inquisitor') or 0) > 0):
                 active_strategies_count += 1
                 
         # Round revenue
