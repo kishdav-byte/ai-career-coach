@@ -360,7 +360,23 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Add one empty item to start if needed, or leave empty
+            // AUTO-LOAD FROM ANALYZER
+            const importedResume = localStorage.getItem('rewrite_source_text');
+            const importedJD = localStorage.getItem('rewrite_job_desc');
+
+            if (importedResume) {
+                document.getElementById('source-resume').value = importedResume;
+                // Trigger Parse
+                smartParse();
+
+                // Clear to prevent re-loading on refresh (optional, but good UX usually)
+                // localStorage.removeItem('rewrite_source_text');
+            }
+
+            if (importedJD) {
+                document.getElementById('target-job').value = importedJD;
+                // localStorage.removeItem('rewrite_job_desc');
+            }
         });
 
         // --- FUNCTIONS ---
