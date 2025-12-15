@@ -11,6 +11,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <!-- Tailwind CSS -->
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -519,23 +529,28 @@
                 // Read content
                 try {
                     if (file.type === "application/pdf") {
-                        // For PDF, we'd need PDF.js here. 
-                        // If not present, warn user or rely on backend (if backend accepted binary).
-                        // Current backend expects 'resume' as text string.
-                        // We will allow the UI to show success, but analysis might fail if we don't extract text.
-                        // Let's assume user uses TXT for now or we add PDF.js script tag?
-                        // Adding PDF.js dynamically if needed or asking user to paste text if binary.
-                        // For this implementation, we'll try to read text.
-                        alert("PDF Parsing unavailable in this minimal view. Please use .txt or copy-paste text for best results.");
-                        // Fallback: Read as text anyway
-                        currentFileText = await file.text();
+                        // Parse PDF using PDF.js
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            // items.map(item => item.str).join(' ') preserves spaces
+                            const pageText = textContent.items.map(s => s.str).join(' ');
+                            fullText += pageText + "\n";
+                        }
+
+                        currentFileText = fullText;
+                        // console.log("PDF Extracted:", fullText.substring(0, 100) + "...");
                     } else {
                         currentFileText = await file.text();
                     }
                     showFileSuccess();
                 } catch (e) {
-                    console.error(e);
-                    alert("Could not read file.");
+                    console.error("PDF Read Error:", e);
+                    alert("Could not process this PDF. Please try a text file.");
                 }
             }
         }
