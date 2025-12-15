@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Analyzer - Enterprise Audit</title>
+    <title>Resume Analyzer - Strategy Lab</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +12,6 @@
         rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -21,7 +19,7 @@
             /* Prevent window scroll */
         }
 
-        /* Custom Scrollbar for Panels */
+        /* Custom Scrollbar for Dark Theme */
         .custom-scroll::-webkit-scrollbar {
             width: 6px;
         }
@@ -31,15 +29,29 @@
         }
 
         .custom-scroll::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #334155;
             border-radius: 3px;
         }
 
-        .dark-scroll::-webkit-scrollbar-thumb {
-            background: #475569;
+        /* Step Loader Animations */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.6);
+            }
         }
 
-        /* Step Loader Animations */
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -73,106 +85,108 @@
             animation-delay: 4.5s;
         }
 
-        .spinner {
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top: 3px solid white;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
         /* Drag Zone Active State */
         .drag-active {
-            border-color: #60a5fa !important;
-            background-color: rgba(30, 41, 59, 0.8) !important;
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
     </style>
 </head>
 
-<body class="flex h-screen bg-white">
+<body class="flex h-screen bg-slate-950 text-slate-300">
 
-    <!-- LEFT PANEL: CONTROL DECK (35%) -->
+    <!-- LEFT PANEL: INPUTS (35%) -->
     <aside
-        class="w-[35%] h-full bg-[#0f172a] text-white flex flex-col border-r border-slate-800 relative z-20 shadow-2xl">
+        class="w-[35%] h-full flex flex-col relative z-20 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)]">
 
         <!-- Header -->
-        <div class="p-8 border-b border-slate-800 flex justify-between items-center">
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center">
             <div>
-                <h1 class="text-xs font-bold tracking-widest text-slate-400 uppercase mb-1">Diagnostic Mode</h1>
-                <div class="text-2xl font-black tracking-tight text-white">RESUME<span
-                        class="text-blue-500">AUDIT</span></div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
+                    LAB</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">RESUME<span
+                        class="text-blue-500">_AUDIT</span></div>
             </div>
-            <a href="/dashboard.html" class="text-slate-500 hover:text-white transition-colors text-sm font-medium">Exit
-                &times;</a>
+            <a href="/dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
         <!-- Scrollable Controls -->
-        <div class="flex-1 overflow-y-auto custom-scroll dark-scroll p-8 space-y-8">
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
 
             <!-- Input 1: Resume Upload -->
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">1. Source
-                    Document</label>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Source Document
+                </label>
                 <div id="dropzone"
-                    class="border-2 border-dashed border-slate-700 bg-slate-800/50 rounded-xl p-8 text-center transition-all cursor-pointer hover:border-slate-500 hover:bg-slate-800 group relative">
+                    class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-10 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
                     <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
 
                     <div id="upload-idle">
                         <div
-                            class="w-12 h-12 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600 transition-colors">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="w-14 h-14 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
                                 </path>
                             </svg>
                         </div>
-                        <p class="text-sm font-medium text-slate-300">Click or Drag Resume PDF</p>
-                        <p class="text-xs text-slate-500 mt-1">Parses structure & keywords</p>
+                        <p class="text-sm font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[10px] text-slate-500 mt-2 font-mono uppercase">Parses structure & keywords</p>
                     </div>
 
                     <div id="upload-success" class="hidden">
-                        <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div
+                            class="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <p class="text-sm font-medium text-white truncate px-4" id="filename-display">resume.pdf</p>
+                        <p class="text-sm font-semibold text-white truncate px-2" id="filename-display">resume.pdf</p>
                         <button onclick="resetUpload(event)"
-                            class="text-xs text-slate-400 underline mt-2 hover:text-white">Change File</button>
+                            class="text-[10px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-3 font-bold transition-colors">Remove
+                            File</button>
                     </div>
                 </div>
             </div>
 
             <!-- Input 2: Job Description -->
             <div>
-                <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">2. Target
-                    Calibration</label>
-                <div class="relative">
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    2. Target Calibration
+                </label>
+                <div class="relative group">
                     <textarea id="job-description"
-                        class="w-full h-48 bg-slate-800/50 border border-slate-700 rounded-xl p-4 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 resize-none custom-scroll dark-scroll transition-colors"
-                        placeholder="Paste the Job Description here to enable gap analysis..."></textarea>
-                    <div class="absolute bottom-3 right-3 text-xs text-slate-600 font-mono">OPTIONAL</div>
+                        class="w-full h-48 bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                        placeholder="Paste JD here for gap analysis..."></textarea>
+                    <div
+                        class="absolute bottom-3 right-3 text-[10px] text-slate-600 font-mono tracking-wider group-focus-within:text-blue-500/50 transition-colors">
+                        OPTIONAL</div>
                 </div>
             </div>
 
         </div>
 
         <!-- Footer Action -->
-        <div class="p-6 border-t border-slate-800 bg-[#0f172a]">
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
             <button id="run-btn" onclick="runAnalysis()"
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/50 transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
                 <span>RUN DIAGNOSTIC</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -184,86 +198,97 @@
     </aside>
 
 
-    <!-- RIGHT PANEL: LIVE REPORT (65%) -->
-    <main class="flex-1 h-full bg-slate-50 relative overflow-hidden">
+    <!-- RIGHT PANEL: RESULTS (65%) -->
+    <main class="flex-1 h-full bg-slate-950 relative overflow-hidden flex flex-col">
 
-        <!-- DECORATIVE BG -->
-        <div class="absolute inset-0 z-0 opacity-40 pointer-events-none"
-            style="background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 24px 24px;"></div>
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
 
         <!-- CONTAINER -->
         <div class="h-full overflow-y-auto custom-scroll relative z-10 p-12 flex flex-col">
 
             <!-- STATE A: IDLE -->
-            <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center opacity-70">
+            <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center">
                 <div
-                    class="w-24 h-24 bg-white rounded-2xl shadow-sm border border-slate-200 flex items-center justify-center mb-6 rotate-3 transform transition-transform duration-700 hover:rotate-6">
-                    <svg class="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-24 h-24 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-8 rotate-3 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+                    <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                         </path>
                     </svg>
                 </div>
-                <h2 class="text-xl font-bold text-slate-800 mb-2">Ready to Analyze</h2>
-                <p class="text-slate-500 max-w-sm">Upload your resume and a target job description to verify ATS
-                    compatibility and content impact.</p>
+                <h2 class="text-xl font-bold text-white mb-2 tracking-tight">System Ready</h2>
+                <p class="text-slate-500 max-w-sm text-sm">Awaiting source documents to initialize AI analysis logic.
+                </p>
             </div>
 
             <!-- STATE B: LOADING -->
             <div id="state-loading"
                 class="hidden flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full">
-                <h3 class="text-lg font-bold text-slate-700 mb-8 w-full border-b border-slate-200 pb-4">System
-                    Diagnostic Running...</h3>
-                <div class="w-full space-y-6">
-                    <!-- Steps will be toggled by JS -->
-                    <div class="step-item flex items-center gap-4 text-slate-600">
-                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
-                            id="step-icon-1">
-                            <div class="spinner text-blue-500 !border-slate-300 !border-t-blue-500 !w-3 !h-3"></div>
-                        </div>
-                        <span class="font-medium">Parsing Document Structure</span>
+                <div class="w-full flex justify-between items-center border-b border-slate-800 pb-4 mb-8">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-widest animate-pulse">Running
+                        Diagnostics</h3>
+                    <span class="text-xs font-mono text-slate-500">v2.4.0</span>
+                </div>
+
+                <div class="w-full space-y-8">
+                    <!-- Steps -->
+                    <div class="step-item flex items-center gap-5 group">
+                        <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+                            id="step-dot-1"></div>
+                        <span class="text-slate-300 font-medium tracking-wide">Parsing Document Structure...</span>
                     </div>
-                    <div class="step-item flex items-center gap-4 text-slate-600">
-                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
-                            id="step-icon-2"></div>
-                        <span class="font-medium">Extracting Core Competencies</span>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-2"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Extracting Core Competencies...</span>
                     </div>
-                    <div class="step-item flex items-center gap-4 text-slate-600">
-                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
-                            id="step-icon-3"></div>
-                        <span class="font-medium">Performing Gap Analysis</span>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-3"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Performing Gap Analysis...</span>
                     </div>
-                    <div class="step-item flex items-center gap-4 text-slate-600">
-                        <div class="w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center"
-                            id="step-icon-4"></div>
-                        <span class="font-medium">Generating Impact Score</span>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-4"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Generating Impact Models...</span>
                     </div>
                 </div>
             </div>
 
             <!-- STATE C: RESULTS -->
-            <div id="state-result" class="hidden max-w-4xl mx-auto w-full pb-20 fade-in">
+            <div id="state-result" class="hidden max-w-5xl mx-auto w-full pb-20 fade-in">
 
                 <!-- Score Header -->
-                <div class="flex items-center gap-8 mb-12">
-                    <div class="relative">
-                        <svg class="w-40 h-40 transform -rotate-90">
-                            <circle cx="80" cy="80" r="70" stroke="#e2e8f0" stroke-width="12" fill="none" />
-                            <circle cx="80" cy="80" r="70" stroke="#3b82f6" stroke-width="12" fill="none"
-                                stroke-dasharray="440" stroke-dashoffset="100" stroke-linecap="round" />
+                <div
+                    class="flex flex-col md:flex-row items-center gap-10 mb-14 bg-gradient-to-r from-slate-900/80 to-transparent p-10 rounded-3xl border border-slate-800/60 shadow-2xl">
+                    <div class="relative shrink-0">
+                        <!-- Glow Behind -->
+                        <div class="absolute inset-0 bg-green-500/20 blur-2xl rounded-full"></div>
+                        <svg class="w-40 h-40 transform -rotate-90 relative z-10">
+                            <circle cx="80" cy="80" r="70" stroke="#1e293b" stroke-width="8" fill="none" />
+                            <circle cx="80" cy="80" r="70" stroke="#4ade80" stroke-width="8" fill="none"
+                                stroke-dasharray="440" stroke-dashoffset="100" stroke-linecap="round"
+                                class="drop-shadow-[0_0_10px_rgba(74,222,128,0.5)]" />
                         </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span class="text-4xl font-black text-slate-800">78</span>
-                            <span class="text-xs font-bold text-slate-400 uppercase">SCORE</span>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center z-10">
+                            <span class="text-5xl font-black text-white tracking-tighter drop-shadow-lg">78</span>
+                            <span
+                                class="text-[10px] font-bold text-green-400 uppercase tracking-widest mt-1">Match</span>
                         </div>
                     </div>
                     <div>
                         <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold mb-2">
-                            TOP 20% CANDIDATE</div>
-                        <h2 class="text-3xl font-bold text-slate-900 mb-2">Strong Foundation</h2>
-                        <p class="text-slate-600">Your resume parses well, but lacks specific metric-driven outcomes
-                            required for this role level.</p>
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-4 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                            Top 20% Candidate
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-3">Strong Foundation Detected</h2>
+                        <p class="text-slate-400 leading-relaxed text-sm">Your profile demonstrates senior-level
+                            capacity, but semantic layering for the "Product Strategy" vector is below threshold.
+                            Refinement required for ATS optimization.</p>
                     </div>
                 </div>
 
@@ -271,8 +296,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
                     <!-- Card 1: Critical Gaps -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
-                        <h3 class="flex items-center gap-2 text-sm font-bold text-red-600 uppercase tracking-wide mb-4">
+                    <div
+                        class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl border border-slate-700/50 p-8 shadow-lg section-card group hover:border-slate-600 transition-colors">
+                        <h3
+                            class="flex items-center gap-3 text-xs font-bold text-red-400 uppercase tracking-widest mb-6 border-b border-red-500/10 pb-4">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
@@ -282,75 +309,82 @@
                         </h3>
                         <div class="flex flex-wrap gap-2">
                             <span
-                                class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">Strategic
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">Strategic
                                 Planning</span>
-                            <span class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">P&L
+                            <span
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">P&L
                                 Management</span>
                             <span
-                                class="px-3 py-1 bg-red-50 text-red-700 rounded-md text-sm border border-red-100">Cross-functional
-                                Leadership</span>
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">Cross-function</span>
                         </div>
-                        <p class="text-xs text-slate-400 mt-4">These terms appear frequently in the job description but
-                            are missing from your profile.</p>
+                        <p class="text-xs text-slate-500 mt-6 italic">High-frequency terms in JD absent from profile
+                            vector.</p>
                     </div>
 
                     <!-- Card 2: Formatting -->
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+                    <div
+                        class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl border border-slate-700/50 p-8 shadow-lg section-card hover:border-slate-600 transition-colors">
                         <h3
-                            class="flex items-center gap-2 text-sm font-bold text-green-600 uppercase tracking-wide mb-4">
+                            class="flex items-center gap-3 text-xs font-bold text-green-400 uppercase tracking-widest mb-6 border-b border-green-500/10 pb-4">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            Formatting Check
+                            Formatting Integrity
                         </h3>
-                        <ul class="space-y-3 text-sm text-slate-600">
-                            <li class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-green-500"></div> PDF Parsability: <span
-                                    class="font-bold text-slate-800">Excellent</span>
+                        <ul class="space-y-4 text-sm text-slate-400">
+                            <li class="flex items-center justify-between">
+                                <span>PDF Parsability</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-400">100%</span>
                             </li>
-                            <li class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-green-500"></div> Font Legibility: <span
-                                    class="font-bold text-slate-800">Standard (Inter)</span>
+                            <li class="flex items-center justify-between">
+                                <span>Font Legibility</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-400">Inter</span>
                             </li>
-                            <li class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full bg-yellow-500"></div> Length: <span
-                                    class="font-bold text-slate-800">2.5 Pages (Aim for 2)</span>
+                            <li class="flex items-center justify-between opacity-80">
+                                <span>Token Length</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-yellow-500/20 px-2 py-0.5 rounded text-yellow-400">2.5
+                                    Pg</span>
                             </li>
                         </ul>
                     </div>
 
                     <!-- Card 3: Action Plan (Full Width) -->
-                    <div class="md:col-span-2 bg-blue-50/50 rounded-xl shadow-sm border border-blue-100 p-6">
+                    <div
+                        class="md:col-span-2 bg-gradient-to-br from-blue-900/20 to-slate-900 rounded-2xl border border-blue-500/20 p-8 shadow-lg">
                         <h3
-                            class="flex items-center gap-2 text-sm font-bold text-blue-700 uppercase tracking-wide mb-4">
+                            class="flex items-center gap-3 text-xs font-bold text-blue-400 uppercase tracking-widest mb-6">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                             </svg>
-                            Recommended Actions
+                            Optimization Protocol
                         </h3>
                         <div class="space-y-4">
-                            <div class="flex gap-4 items-start">
+                            <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
                                 <div
-                                    class="bg-white p-2 rounded shadow-sm text-blue-600 font-bold border border-blue-100">
-                                    1</div>
+                                    class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">
+                                    01</div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-slate-800">Quantify Leadership Achievements</h4>
-                                    <p class="text-sm text-slate-600 leading-relaxed mt-1">Found 4 instances of "Managed
-                                        team". Rewrite to include team size and revenue impact. Example: "Led 15-person
-                                        sales team to $5M revenue."</p>
+                                    <h4 class="text-sm font-bold text-white mb-1">Quantify Leadership Achievements</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Found 4 instances of "Managed
+                                        team". Rewrite with specific metrics. <br><span
+                                            class="text-blue-400/80">Example: "Led 15-person sales team to $5M
+                                            revenue."</span></p>
                                 </div>
                             </div>
-                            <div class="flex gap-4 items-start">
+                            <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
                                 <div
-                                    class="bg-white p-2 rounded shadow-sm text-blue-600 font-bold border border-blue-100">
-                                    2</div>
+                                    class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">
+                                    02</div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-slate-800">Integrate Strategy Keywords</h4>
-                                    <p class="text-sm text-slate-600 leading-relaxed mt-1">Add a "Core Competencies"
-                                        section below your summary to explicitly list the missing keywords identified
-                                        above.</p>
+                                    <h4 class="text-sm font-bold text-white mb-1">Integrate Strategy Keywords</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Inject "Strategic Planning" and
+                                        "Cross-functional" into the Core Competencies section to boost semantic
+                                        relevance scores.</p>
                                 </div>
                             </div>
                         </div>
@@ -365,7 +399,7 @@
     </main>
 
     <script>
-        // --- UI INTERACTION LOGIC ---
+        // --- UI INTERACTION LOGIC (Glow Mode) ---
 
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('resume-upload');
@@ -408,8 +442,8 @@
                 filenameDisplay.textContent = file.name;
                 uploadIdle.classList.add('hidden');
                 uploadSuccess.classList.remove('hidden');
-                dropzone.classList.add('border-green-500/50', 'bg-slate-800');
                 dropzone.classList.remove('border-dashed');
+                dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
             }
         }
 
@@ -418,15 +452,16 @@
             fileInput.value = '';
             uploadIdle.classList.remove('hidden');
             uploadSuccess.classList.add('hidden');
-            dropzone.classList.remove('border-green-500/50', 'bg-slate-800');
             dropzone.classList.add('border-dashed');
+            dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80');
+            dropzone.classList.remove('drag-active');
         }
 
         // Mock Analysis Run
         function runAnalysis() {
             // Check file
             if (!fileInput.files.length) {
-                alert("Please upload a resume first.");
+                alert("SYSTEM ALERT: Source Document Required.");
                 return;
             }
 
@@ -440,21 +475,27 @@
             stateResult.classList.add('hidden');
             stateLoading.classList.remove('hidden');
             btn.disabled = true;
-            btn.innerHTML = 'ANALYZING...';
+            btn.innerHTML = `<span class="animate-pulse">DIAGNOSTIC RUNNING...</span>`;
 
             // 2. Animate Steps
             const steps = [1, 2, 3, 4];
             steps.forEach((step, i) => {
-                const delay = (i * 1500) + 500; // 0.5s, 2s, 3.5s...
+                const delay = (i * 1500) + 500;
                 setTimeout(() => {
-                    const icon = document.getElementById(`step-icon-${step}`);
-                    // Mark previous as done
-                    if (i > 0) {
-                        const prev = document.getElementById(`step-icon-${step - 1}`);
-                        prev.innerHTML = `<svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>`;
-                        prev.className = "w-6 h-6 rounded-full border-2 border-green-500 flex items-center justify-center bg-green-50";
+                    const dot = document.getElementById(`step-dot-${step}`);
+                    const prevDot = document.getElementById(`step-dot-${step - 1}`);
+                    const nextText = dot.parentElement.querySelector('span');
+
+                    // Update dots
+                    if (prevDot) {
+                        prevDot.className = "w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(74,222,128,0.8)]";
                     }
-                    // Activate current (already has spinner via CSS animation delay, but we ensure structure)
+                    dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,1)]";
+
+                    // Highlight text
+                    nextText.classList.remove('text-slate-500');
+                    nextText.classList.add('text-white', 'drop-shadow-md');
+
                 }, delay);
             });
 
@@ -467,17 +508,13 @@
                     <span>RUN DIAGNOSTIC</span>
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                 `;
-            }, 6500); // 6.5s total duration
+            }, 6500);
         }
 
         // --- AUTH CHECK ---
         (function checkAuth() {
             const token = localStorage.getItem('supabase.auth.token');
-            // In real app, verify expiry, etc. For UI demo, simple presence check.
-            if (!token) {
-                // console.warn("No token found. Redirecting to login...");
-                // window.location.href = '/login.html'; 
-            }
+            if (!token) { }
         })();
 
     </script>
