@@ -53,8 +53,19 @@
             "destination": "/forgot-password.html"
         },
         {
-            "source": "/update-password",
             "destination": "/update-password.html"
+        },
+        {
+            "source": "/strategy/closer",
+            "destination": "/strategy/closer.html"
+        },
+        {
+            "source": "/strategy/inquisitor",
+            "destination": "/strategy/inquisitor.html"
+        },
+        {
+            "source": "/strategy/follow-up",
+            "destination": "/strategy/follow-up.html"
         }
     ]
 }
