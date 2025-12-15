@@ -401,16 +401,57 @@
     </main>
 
     <script>
-        // --- UI INTERACTION LOGIC (Glow Mode) ---
+        // --- AUTH CHECK ---
+        const SESSION_KEY = 'supabase.auth.token';
+        const APP_SESSION_KEY = 'aceinterview_session';
+        const token = localStorage.getItem(SESSION_KEY);
 
+        (function checkAuth() {
+            if (!token) {
+                // Redirect to login if absolutely no token, but allow viewing if we want public demo? 
+                // Strict:
+                window.location.href = '/login.html';
+            }
+        })();
+
+        // --- UI REFS ---
         const dropzone = document.getElementById('dropzone');
         const fileInput = document.getElementById('resume-upload');
         const uploadIdle = document.getElementById('upload-idle');
         const uploadSuccess = document.getElementById('upload-success');
         const filenameDisplay = document.getElementById('filename-display');
         const runBtn = document.getElementById('run-btn');
+        const jobDescInput = document.getElementById('job-description');
 
-        // Drag & Drop
+        const stateIdle = document.getElementById('state-idle');
+        const stateLoading = document.getElementById('state-loading');
+        const stateResult = document.getElementById('state-result');
+
+        // Global State
+        let currentFileText = "";
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkForPendingResume();
+        });
+
+        function checkForPendingResume() {
+            const pendingText = localStorage.getItem('pending_resume_text');
+            const pendingName = localStorage.getItem('pending_resume_filename');
+
+            if (pendingText) {
+                // Auto-load
+                currentFileText = pendingText;
+                filenameDisplay.textContent = pendingName || "Imported Resume";
+                showFileSuccess();
+
+                // Clear
+                localStorage.removeItem('pending_resume_text');
+                localStorage.removeItem('pending_resume_filename');
+            }
+        }
+
+        // --- DRAG & DROP LOGIC ---
         dropzone.addEventListener('click', () => fileInput.click());
 
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -438,20 +479,46 @@
 
         fileInput.addEventListener('change', function () { handleFiles(this.files); });
 
-        function handleFiles(files) {
+        async function handleFiles(files) {
             if (files.length > 0) {
                 const file = files[0];
                 filenameDisplay.textContent = file.name;
-                uploadIdle.classList.add('hidden');
-                uploadSuccess.classList.remove('hidden');
-                dropzone.classList.remove('border-dashed');
-                dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+
+                // Read content
+                try {
+                    if (file.type === "application/pdf") {
+                        // For PDF, we'd need PDF.js here. 
+                        // If not present, warn user or rely on backend (if backend accepted binary).
+                        // Current backend expects 'resume' as text string.
+                        // We will allow the UI to show success, but analysis might fail if we don't extract text.
+                        // Let's assume user uses TXT for now or we add PDF.js script tag?
+                        // Adding PDF.js dynamically if needed or asking user to paste text if binary.
+                        // For this implementation, we'll try to read text.
+                        alert("PDF Parsing unavailable in this minimal view. Please use .txt or copy-paste text for best results.");
+                        // Fallback: Read as text anyway
+                        currentFileText = await file.text();
+                    } else {
+                        currentFileText = await file.text();
+                    }
+                    showFileSuccess();
+                } catch (e) {
+                    console.error(e);
+                    alert("Could not read file.");
+                }
             }
         }
 
-        function resetUpload(e) {
+        function showFileSuccess() {
+            uploadIdle.classList.add('hidden');
+            uploadSuccess.classList.remove('hidden');
+            dropzone.classList.remove('border-dashed');
+            dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+        }
+
+        window.resetUpload = function (e) {
             e.stopPropagation();
             fileInput.value = '';
+            currentFileText = "";
             uploadIdle.classList.remove('hidden');
             uploadSuccess.classList.add('hidden');
             dropzone.classList.add('border-dashed');
@@ -459,65 +526,191 @@
             dropzone.classList.remove('drag-active');
         }
 
-        // Mock Analysis Run
-        function runAnalysis() {
-            // Check file
-            if (!fileInput.files.length) {
-                alert("SYSTEM ALERT: Source Document Required.");
+        // --- ANALYSIS LOGIC ---
+        window.runAnalysis = async function () {
+            // Validate
+            if (!currentFileText) {
+                alert("Please provide a resume file.");
                 return;
             }
 
-            const stateIdle = document.getElementById('state-idle');
-            const stateLoading = document.getElementById('state-loading');
-            const stateResult = document.getElementById('state-result');
-            const btn = document.getElementById('run-btn');
-
-            // 1. Switch to Loading
+            // UI Transition
             stateIdle.classList.add('hidden');
             stateResult.classList.add('hidden');
             stateLoading.classList.remove('hidden');
-            btn.disabled = true;
-            btn.innerHTML = `<span class="animate-pulse">DIAGNOSTIC RUNNING...</span>`;
+            runBtn.disabled = true;
+            runBtn.innerHTML = `<span class="animate-pulse">DIAGNOSTIC RUNNING...</span>`;
 
-            // 2. Animate Steps
-            const steps = [1, 2, 3, 4];
-            steps.forEach((step, i) => {
-                const delay = (i * 1500) + 500;
+            // Animate Steps (Visual)
+            animateSteps();
+
+            // API Call
+            try {
+                // Get Email from session
+                let email = null;
+                try {
+                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                    if (sessionStr) email = JSON.parse(sessionStr).email;
+                } catch (e) { }
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'analyze_resume',
+                        email: email,
+                        resume: currentFileText,
+                        job_description: jobDescInput.value // Pass JD if available
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Data Normalization
+                let data = result.data;
+                if (typeof data === 'string') {
+                    // Clean markdown
+                    let clean = data.trim().replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '');
+                    data = JSON.parse(clean);
+                }
+
+                // Render
+                renderResults(data);
+
+                // Show Results (after min delay for effect)
                 setTimeout(() => {
-                    const dot = document.getElementById(`step-dot-${step}`);
-                    const prevDot = document.getElementById(`step-dot-${step - 1}`);
-                    const nextText = dot.parentElement.querySelector('span');
+                    stateLoading.classList.add('hidden');
+                    stateResult.classList.remove('hidden');
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = `<span>RUN DIAGNOSTIC</span> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
+                }, 2000); // Ensure user sees some animation
 
-                    // Update dots
-                    if (prevDot) {
-                        prevDot.className = "w-2 h-2 rounded-full bg-green-500 shadow-[0_0_10px_rgba(74,222,128,0.8)]";
-                    }
-                    dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,1)]";
-
-                    // Highlight text
-                    nextText.classList.remove('text-slate-500');
-                    nextText.classList.add('text-white', 'drop-shadow-md');
-
-                }, delay);
-            });
-
-            // 3. Finish
-            setTimeout(() => {
+            } catch (e) {
+                console.error(e);
+                alert("Analysis Failed: " + e.message);
                 stateLoading.classList.add('hidden');
-                stateResult.classList.remove('hidden');
-                btn.disabled = false;
-                btn.innerHTML = `
-                    <span>RUN DIAGNOSTIC</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                `;
-            }, 6500);
+                stateIdle.classList.remove('hidden');
+                runBtn.disabled = false;
+                runBtn.innerHTML = `<span>RETRY DIAGNOSTIC</span>`;
+            }
         }
 
-        // --- AUTH CHECK ---
-        (function checkAuth() {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) { }
-        })();
+        function animateSteps() {
+            const steps = [1, 2, 3, 4];
+            steps.forEach((step, i) => {
+                setTimeout(() => {
+                    const dot = document.getElementById(`step-dot-${step}`);
+                    const nextText = dot?.parentElement?.querySelector('span');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,1)]";
+                    if (nextText) {
+                        nextText.classList.remove('text-slate-500');
+                        nextText.classList.add('text-white', 'drop-shadow-md');
+                    }
+                }, i * 800);
+            });
+        }
+
+        function renderResults(data) {
+            console.log("Rendering Data:", data);
+
+            // 1. SCORE
+            const scoreDisplay = document.querySelector('#state-result .text-5xl');
+            const scoreLabel = document.querySelector('#state-result .text-green-400'); // "Top 20% Candidate" tag
+            if (scoreDisplay) scoreDisplay.textContent = data.overall_score || "N/A";
+
+            // Score Message
+            const headline = document.querySelector('#state-result h2.text-3xl');
+            const subhead = document.querySelector('#state-result p.text-slate-400');
+            // Logic for message
+            if (data.overall_score >= 80) {
+                headline.textContent = "Elite Profile Detected";
+                subhead.textContent = "Your profile is performing well against the benchmarks.";
+            } else if (data.overall_score >= 60) {
+                headline.textContent = "Strong Foundation";
+                subhead.textContent = "Good base, but needs strategic refinement for ATS systems.";
+            } else {
+                headline.textContent = "Optimization Required";
+                subhead.textContent = "Critical gaps detected that may block your application.";
+            }
+
+            // 2. CRITICAL GAPS (Card 1)
+            const gapContainer = document.querySelector('.section-card:nth-child(1) .flex-wrap');
+            if (gapContainer) {
+                gapContainer.innerHTML = '';
+                // Combine Missing Keywords + Red Flags titles
+                const gaps = [];
+                if (data.keywords && data.keywords.missing) {
+                    data.keywords.missing.slice(0, 3).forEach(k => gaps.push(k.word));
+                }
+                if (gaps.length === 0 && data.red_flags) {
+                    data.red_flags.slice(0, 3).forEach(f => gaps.push(f.title));
+                }
+
+                gaps.forEach(gap => {
+                    gapContainer.innerHTML += `<span class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">${gap}</span>`;
+                });
+            }
+
+            // 3. FORMATTING (Card 2)
+            const fmtList = document.querySelector('.section-card:nth-child(2) ul');
+            if (fmtList) {
+                // We'll create list items dynamically
+                let html = '';
+
+                // ATS Score Check
+                const atsScore = data.ats_compatibility ? data.ats_compatibility.score : 'N/A';
+                html += `
+                <li class="flex items-center justify-between">
+                    <span>ATS Parse Rate</span>
+                    <span class="text-white font-bold text-xs bg-blue-500/20 px-2 py-0.5 rounded text-blue-400">${atsScore}/10</span>
+                </li>`;
+
+                // Formatting Issues count
+                const fmtIssues = data.formatting ? data.formatting.length : 0;
+                const statusColor = fmtIssues === 0 ? 'text-green-400 bg-green-500/20' : 'text-yellow-400 bg-yellow-500/20';
+                html += `
+                <li class="flex items-center justify-between">
+                    <span>Layout Integrity</span>
+                    <span class="text-white font-bold text-xs px-2 py-0.5 rounded ${statusColor}">${fmtIssues === 0 ? 'Optimal' : fmtIssues + ' Alerts'}</span>
+                </li>`;
+
+                // Word Count (Estimate)
+                const wordCount = currentFileText.split(/\s+/).length;
+                html += `
+                <li class="flex items-center justify-between opacity-80">
+                    <span>Word Count</span>
+                    <span class="text-white font-bold text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${wordCount} words</span>
+                </li>`;
+
+                fmtList.innerHTML = html;
+            }
+
+            // 4. PROTOCOL / ACTION PLAN (Card 3)
+            const planContainer = document.querySelector('.md\\:col-span-2 .space-y-4');
+            if (planContainer) {
+                planContainer.innerHTML = '';
+
+                // We want "High Impact Improvements"
+                const improvements = data.improvements || [];
+                // Take top 3
+                improvements.slice(0, 3).forEach((imp, idx) => {
+                    const num = String(idx + 1).padStart(2, '0'); // 01, 02
+                    planContainer.innerHTML += `
+                    <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+                        <div class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">${num}</div>
+                        <div>
+                            <h4 class="text-sm font-bold text-white mb-1">${imp.title}</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">${imp.suggestion} <br>
+                            <span class="text-blue-400/80">Example: "${imp.better || 'See full report'}"</span></p>
+                        </div>
+                    </div>`;
+                });
+            }
+        }
 
     </script>
 </body>
