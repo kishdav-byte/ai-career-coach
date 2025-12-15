@@ -61,6 +61,14 @@
             "destination": "/strategy/closer.html"
         },
         {
+            "source": "/strategy/30-60-90",
+            "destination": "/strategy/30-60-90.html"
+        },
+        {
+            "source": "/strategy/cover-letter",
+            "destination": "/strategy/cover-letter.html"
+        },
+        {
             "source": "/strategy/inquisitor",
             "destination": "/strategy/inquisitor.html"
         },

@@ -1453,6 +1453,9 @@ def generate_strategy_tool():
         elif tool_type == 'plan':
              credit_col = 'credits_30_60_90'
              has_credit = user.get(credit_col, 0) > 0
+        elif tool_type == 'cover_letter':
+             credit_col = 'credits_cover_letter'
+             has_credit = user.get(credit_col, 0) > 0
         else:
             return jsonify({"error": "Unknown tool type"}), 400
 
@@ -1497,9 +1500,23 @@ def generate_strategy_tool():
             )
             
         elif tool_type == 'plan':
-             # Re-implementing logic if not existing, or just hooking into this new endpoint
-             system_prompt = "You are an executive coach."
-             user_prompt = f"Create a 30-60-90 Day Plan for: {user_inputs.get('role')} at {user_inputs.get('company')}."
+            system_prompt = "You are an executive career coach."
+            user_prompt = (
+                f"Create a structured 30-60-90 day plan for a {user_inputs.get('role_title')} at {user_inputs.get('company_name')}.\n"
+                f"Focus on this key priority: {user_inputs.get('main_priority')}.\n"
+                "Structure it by phases: Learning (0-30), Executing (31-60), Leading (61-90). "
+                "Output Markdown."
+            )
+
+        elif tool_type == 'cover_letter':
+             system_prompt = "You are an expert executive resume writer."
+             manager = user_inputs.get('hiring_manager') or 'Hiring Manager'
+             user_prompt = (
+                 f"Write a powerful executive cover letter for {user_inputs.get('target_role')} at {user_inputs.get('company_name')}.\n"
+                 f"Addressed to: {manager}.\n"
+                 f"Highlight these skills/achievements: {user_inputs.get('key_skills')}.\n\n"
+                 "Tone: Strategic, confident, and brief. Use strong action verbs. Output Markdown."
+             )
 
         # 4. Call OpenAI
         try:
