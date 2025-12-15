@@ -1471,8 +1471,8 @@ def generate_strategy_tool():
             system_prompt = "You are a ruthless but professional negotiation coach. Use the 'Ackerman Bargaining' principles where appropriate but keep it professional."
             user_prompt = (
                 f"Write a negotiation script (Phone Script + Email Draft) for this offer:\n"
-                f"Base Salary: {user_inputs.get('base')}\n"
-                f"Equity/Bonus: {user_inputs.get('equity')}\n"
+                f"Base Salary: {user_inputs.get('current_offer') or user_inputs.get('base')}\n"
+                f"Sign-On/Bonuses: {user_inputs.get('sign_on') or user_inputs.get('equity')}\n"
                 f"Leverage/Counter-offer: {user_inputs.get('leverage')}\n"
                 f"Goal/Ask: {user_inputs.get('goal')}\n\n"
                 "Output Markdown. Be specific. Do not use placeholders like [Insert Name]."
