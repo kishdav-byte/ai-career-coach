@@ -114,34 +114,44 @@
         </div>
     </nav>
 
-    <div class="split-container">
+    <div class="split-container p-6 gap-6" style="max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 80px);">
         <!-- Input Side -->
-        <div class="form-side">
-            <h1>The Inquisitor 🕵️</h1>
-            <p class="mb-8 text-gray-600">Ask high-IQ questions that prove you're the smartest person in the room.</p>
+        <div class="form-side bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+            style="background: white; overflow-y: auto;">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center text-xl">❓</div>
+                <h1 class="text-2xl font-bold text-gray-800 m-0">The Inquisitor</h1>
+            </div>
+            <p class="mb-8 text-gray-500 text-sm">Ask high-IQ questions that prove you're the smartest person in the
+                room.</p>
 
             <form id="tool-form">
-                <div class="form-group">
-                    <label>Job Description Context</label>
+                <div class="form-group mb-5">
+                    <label class="block font-semibold text-gray-700 mb-2">Job Description Context</label>
                     <textarea name="job_description" rows="6"
-                        placeholder="Paste the key responsibilities or challenges from the JD..." class="form-control"
+                        placeholder="Paste the key responsibilities or challenges from the JD..."
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         required></textarea>
+                    <p class="helper-text">We extract hidden pain points from this text.</p>
                 </div>
-                <div class="form-group">
-                    <label>Interviewer's Role / Title</label>
+                <div class="form-group mb-6">
+                    <label class="block font-semibold text-gray-700 mb-2">Interviewer's Role / Title</label>
                     <input type="text" name="interviewer_role" placeholder="e.g. VP of Engineering, Product Manager"
-                        class="form-control" required>
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        required>
                 </div>
 
-                <button type="submit" id="btn-generate" class="btn btn-primary" style="width: 100%;">
+                <button type="submit" id="btn-generate"
+                    class="btn btn-primary w-full py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform active:scale-95">
                     Generate Questions (1 Credit)
                 </button>
             </form>
         </div>
 
         <!-- Result Side -->
-        <div class="result-side">
-            <button id="btn-copy" class="copy-btn"><i class="far fa-copy"></i> Copy to Clipboard</button>
+        <div class="result-side bg-white rounded-xl shadow-sm p-6 border border-gray-100 relative"
+            style="background: white; overflow-y: auto;">
+            <button id="btn-copy" class="copy-btn hidden"><i class="far fa-copy"></i> Copy to Clipboard</button>
 
             <!-- Unlock Overlay -->
             <div id="unlock-overlay" style="display: none;">
@@ -156,12 +166,18 @@
 
             <!-- Loading -->
             <div id="loading" style="display: none; text-align: center; margin-top: 5rem;">
-                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary);"></i>
-                <p class="mt-4 text-gray-600">Analyzing Strategic Angles...</p>
+                <i class="fas fa-spinner fa-spin fa-3x text-indigo-500"></i>
+                <p class="mt-4 text-gray-600 font-medium">Analyzing Strategic Angles...</p>
             </div>
 
-            <div id="result-content" class="markdown-content">
-                <p class="text-gray-400 italic mt-8 text-center">Your strategic questions will appear here...</p>
+            <!-- Empty State (Default) -->
+            <div id="empty-state" class="empty-state-container">
+                <i class="fas fa-search empty-state-icon"></i>
+                <p class="empty-state-text">Ready to Investigate.</p>
+                <p class="empty-state-subtext">Paste the JD to generate killer questions.</p>
+            </div>
+
+            <div id="result-content" class="markdown-content hidden">
             </div>
         </div>
     </div>
@@ -177,6 +193,7 @@
             const form = document.getElementById('tool-form');
             const resultDiv = document.getElementById('result-content');
             const loadDiv = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
             const unlockOverlay = document.getElementById('unlock-overlay');
             const btnGenerate = document.getElementById('btn-generate');
             const btnUnlock = document.getElementById('btn-unlock');
@@ -213,9 +230,10 @@
                 const inputs = Object.fromEntries(formData.entries());
 
                 loadDiv.style.display = 'block';
-                resultDiv.style.opacity = '0.5';
+                emptyState.style.display = 'none'; // toggle
+                resultDiv.classList.add('hidden');
                 btnGenerate.disabled = true;
-                btnCopy.style.display = 'none';
+                btnCopy.classList.add('hidden');
 
                 try {
                     const res = await fetch('/api/generate-strategy-tool', {
@@ -235,11 +253,12 @@
                     if (data.error) throw new Error(data.error);
 
                     resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.style.opacity = '1';
-                    btnCopy.style.display = 'block';
+                    resultDiv.classList.remove('hidden');
+                    btnCopy.classList.remove('hidden');
 
                 } catch (err) {
                     alert("Error: " + err.message);
+                    emptyState.style.display = 'flex';
                 } finally {
                     loadDiv.style.display = 'none';
                     if (unlockOverlay.style.display === 'none') btnGenerate.disabled = false;

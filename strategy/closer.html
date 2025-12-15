@@ -116,42 +116,55 @@
         </div>
     </nav>
 
-    <div class="split-container">
+    <div class="split-container p-6 gap-6" style="max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 80px);">
         <!-- Input Side -->
-        <div class="form-side">
-            <h1>The Closer 💰</h1>
-            <p class="mb-8 text-gray-600">Generate a ruthless but professional negotiation script.</p>
+        <div class="form-side bg-white rounded-xl shadow-sm p-6 border border-gray-100"
+            style="background: white; overflow-y: auto;">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-xl">🤝</div>
+                <h1 class="text-2xl font-bold text-gray-800 m-0">The Closer</h1>
+            </div>
+            <p class="mb-8 text-gray-500 text-sm">Generate a ruthless but professional negotiation script.</p>
 
             <form id="tool-form">
-                <div class="form-group">
-                    <label>Base Salary Offer ($)</label>
-                    <input type="number" name="current_offer" placeholder="e.g. 120000" class="form-control" required>
+                <div class="form-group mb-5">
+                    <label class="block font-semibold text-gray-700 mb-2">Base Salary Offer ($)</label>
+                    <input type="number" name="current_offer" placeholder="e.g. 120000"
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        required>
+                    <p class="helper-text">The base amount in your official offer letter.</p>
                 </div>
-                <div class="form-group">
-                    <label>Sign-On Bonus ($)</label>
-                    <input type="number" name="sign_on" placeholder="e.g. 10000" class="form-control">
+                <div class="form-group mb-5">
+                    <label class="block font-semibold text-gray-700 mb-2">Sign-On Bonus ($)</label>
+                    <input type="number" name="sign_on" placeholder="e.g. 10000"
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                    <p class="helper-text">Any one-time cash bonus offered up front.</p>
                 </div>
-                <div class="form-group">
-                    <label>Leverage / Context (Other offers, market data)</label>
+                <div class="form-group mb-5">
+                    <label class="block font-semibold text-gray-700 mb-2">Leverage / Context</label>
                     <textarea name="leverage" rows="4"
                         placeholder="e.g. I have a competing offer from Google for $140k."
-                        class="form-control"></textarea>
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"></textarea>
+                    <p class="helper-text">Competing offers, market data, or strong performance reviews.</p>
                 </div>
-                <div class="form-group">
-                    <label>Your Goal / Ask</label>
-                    <input type="text" name="goal" placeholder="e.g. Match the $140k base" class="form-control"
+                <div class="form-group mb-6">
+                    <label class="block font-semibold text-gray-700 mb-2">Your Goal / Ask</label>
+                    <input type="text" name="goal" placeholder="e.g. Match the $140k base"
+                        class="form-control w-full p-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         required>
                 </div>
 
-                <button type="submit" id="btn-generate" class="btn btn-primary" style="width: 100%;">
+                <button type="submit" id="btn-generate"
+                    class="btn btn-primary w-full py-3 font-semibold rounded-lg shadow-md hover:shadow-lg transition-all transform active:scale-95">
                     Generate Strategy (1 Credit)
                 </button>
             </form>
         </div>
 
         <!-- Result Side -->
-        <div class="result-side">
-            <button id="btn-copy" class="copy-btn"><i class="far fa-copy"></i> Copy to Clipboard</button>
+        <div class="result-side bg-white rounded-xl shadow-sm p-6 border border-gray-100 relative"
+            style="background: white; overflow-y: auto;">
+            <button id="btn-copy" class="copy-btn hidden"><i class="far fa-copy"></i> Copy to Clipboard</button>
 
             <!-- Unlock Overlay -->
             <div id="unlock-overlay" style="display: none;">
@@ -166,13 +179,19 @@
 
             <!-- Loading State -->
             <div id="loading" style="display: none; text-align: center; margin-top: 5rem;">
-                <i class="fas fa-spinner fa-spin fa-3x" style="color: var(--primary);"></i>
-                <p class="mt-4 text-gray-600">Consulting the Negotiation Coach...</p>
+                <i class="fas fa-spinner fa-spin fa-3x text-blue-500"></i>
+                <p class="mt-4 text-gray-600 font-medium">Consulting the Negotiation Coach...</p>
+            </div>
+
+            <!-- Empty State (Default) -->
+            <div id="empty-state" class="empty-state-container">
+                <i class="fas fa-chess-pawn empty-state-icon"></i>
+                <p class="empty-state-text">Ready to Strategize.</p>
+                <p class="empty-state-subtext">Fill out the details to generate your negotiation script.</p>
             </div>
 
             <!-- Content -->
-            <div id="result-content" class="markdown-content">
-                <p class="text-gray-400 italic mt-8 text-center">Your generated strategy will appear here...</p>
+            <div id="result-content" class="markdown-content hidden">
             </div>
         </div>
     </div>
@@ -188,6 +207,7 @@
             const form = document.getElementById('tool-form');
             const resultDiv = document.getElementById('result-content');
             const loadDiv = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
             const unlockOverlay = document.getElementById('unlock-overlay');
             const btnGenerate = document.getElementById('btn-generate');
             const btnUnlock = document.getElementById('btn-unlock');
@@ -225,9 +245,10 @@
                 const inputs = Object.fromEntries(formData.entries());
 
                 loadDiv.style.display = 'block';
-                resultDiv.style.opacity = '0.5';
+                emptyState.style.display = 'none'; // Hide placeholder
+                resultDiv.classList.add('hidden'); // Ensure content hidden during load
                 btnGenerate.disabled = true;
-                btnCopy.style.display = 'none';
+                btnCopy.classList.add('hidden'); // Use class hidden
 
                 try {
                     const res = await fetch('/api/generate-strategy-tool', {
@@ -247,11 +268,12 @@
                     if (data.error) throw new Error(data.error);
 
                     resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.style.opacity = '1';
-                    btnCopy.style.display = 'block';
+                    resultDiv.classList.remove('hidden'); // Show content
+                    btnCopy.classList.remove('hidden'); // Show copy btn
 
                 } catch (err) {
                     alert(err.message);
+                    emptyState.style.display = 'flex'; // Restore empty state on error
                 } finally {
                     loadDiv.style.display = 'none';
                     if (unlockOverlay.style.display === 'none') btnGenerate.disabled = false;
