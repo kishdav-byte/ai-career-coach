@@ -201,10 +201,10 @@
         // --- SUPABASE CLIENT SETUP ---
         const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-        // Use standard setup with explicit Headers optional
+
+        // Revert to Default Supabase Client directly (Safest)
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
-            auth: { persistSession: true },
-            global: { headers: { 'Accept': 'application/json' } } // Fix for 406 Error
+            auth: { persistSession: true }
         });
 
         // Mobile Sidebar
@@ -217,44 +217,54 @@
 
         // --- AUTH & DATA LOGIC ---
         async function loadAdminData() {
+            console.log("Starting LoadAdminData...");
             try {
                 // 1. Check Auth (Session or Token)
                 const { data: { session }, error } = await supabase.auth.getSession();
-                // If no session, try token from localStorage just in case
                 let currentUser = session?.user;
 
                 if (!currentUser) {
                     const token = localStorage.getItem('supabase.auth.token');
                     if (token) {
-                        const { data: u, error: e } = await supabase.auth.getUser(token);
-                        if (u) currentUser = u.user;
+                        try {
+                            const { data: u, error: e } = await supabase.auth.getUser(token);
+                            if (u) currentUser = u.user;
+                        } catch (e) { console.warn("Token check failed", e); }
                     }
                 }
 
                 if (!currentUser) {
+                    console.warn("No user found, redirecting");
                     window.location.href = '/login.html';
                     return;
                 }
 
-                // 2. Refresh Role Check (Client Side)
+                // 2. Refresh Role Check (Using limit(1) instead of single() to avoid 406 on some headers)
                 const { data: roleData, error: roleError } = await supabase
                     .from('users')
                     .select('role')
                     .eq('id', currentUser.id)
-                    .single();
+                    .limit(1); // FIX: Don't use .single()
 
-                if (roleError || roleData?.role !== 'admin') {
+                if (roleError || !roleData || roleData.length === 0 || roleData[0].role !== 'admin') {
+                    console.error("Auth Fail", roleError, roleData);
                     alert("⛔ Access Denied: Admin role required.");
                     window.location.href = '/dashboard.html';
                     return;
                 }
 
-                // 3. Parallel Fetch (Users, Logs, Errors) for Speed
+                // 3. Parallel Fetch (Users, Logs, Errors)
+                // FIX: Remove 'head:true' from count or use simple fetch
+                console.log("Fetching Data...");
+
                 const [usersRes, logsRes, errRes] = await Promise.all([
                     supabase.from('users').select('*').order('created_at', { ascending: false }).limit(200),
                     supabase.from('activity_logs').select('metadata, feature, created_at').order('created_at', { ascending: false }).limit(300),
                     supabase.from('error_logs').select('*').order('created_at', { ascending: false }).limit(5)
                 ]);
+
+                if (usersRes.error) console.error("Users Fetch Error:", usersRes.error);
+                if (logsRes.error) console.error("Logs Fetch Error:", logsRes.error);
 
                 // 4. Client-Side Aggregation
                 const users = usersRes.data || [];
@@ -262,9 +272,12 @@
                 const errors = errRes.data || [];
 
                 // Stats
-                const totalUsers = users.length; // Approximate if limit > total, but we fetched 200. For real total we'd need count request.
-                // Fetch Exact Count separately for precision
-                const { count: realTotal } = await supabase.from('users').select('*', { count: 'exact', head: true });
+                // For Total Count, try a separate simple count query, but fallback to length if it fails
+                let realTotal = users.length;
+                try {
+                    const cRes = await supabase.from('users').select('id', { count: 'exact', head: true });
+                    if (cRes.count !== null) realTotal = cRes.count;
+                } catch (e) { console.warn("Count failed", e); }
 
                 let activeStrategies = 0;
                 let revenue = 0;
@@ -282,10 +295,10 @@
 
                 // Render Dashboard
                 const computedData = {
-                    total_users: realTotal || totalUsers,
+                    total_users: realTotal,
                     active_interviews: activeStrategies,
                     total_revenue: Math.round(revenue * 100) / 100,
-                    avg_duration: logs.length, // Just total recent logs
+                    avg_duration: logs.length,
                     recent_users: users.slice(0, 50),
                     recent_errors: errors,
                     logs: logs
@@ -294,8 +307,9 @@
                 renderDashboard(computedData);
 
             } catch (e) {
-                console.error("Admin Load Error:", e);
-                alert("Failed to load dashboard: " + e.message);
+                console.error("Admin Load Critical Error:", e);
+                // Try to render what we have or show error on screen
+                document.getElementById('stat-total-users').innerText = "Err";
             }
         }
 
