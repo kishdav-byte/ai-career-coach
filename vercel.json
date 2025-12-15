@@ -53,6 +53,7 @@
             "destination": "/forgot-password.html"
         },
         {
+            "source": "/update-password",
             "destination": "/update-password.html"
         },
         {
