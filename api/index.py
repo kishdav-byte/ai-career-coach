@@ -263,17 +263,23 @@ def create_checkout_session():
         success_url = data.get('successUrl')
         cancel_url = data.get('cancelUrl')
         email = data.get('email')
-        feature = data.get('feature') # 'rewrite', etc.
-
-        if feature == 'rewrite':
+        plan_type = data.get('plan_type') # 'strategy_plan', 'strategy_bundle', etc.
+        
+        # Determine Price ID
+        if plan_type:
+            price_id = PRICE_IDS.get(plan_type)
+        elif feature == 'rewrite':
             price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
         
         # Fallback if still no price_id
         if not price_id:
-             return jsonify({'error': 'Missing Price ID configuration'}), 400
+             return jsonify({'error': f'Missing Price ID for plan: {plan_type} or feature: {feature}'}), 400
 
-        if not success_url or not cancel_url:
-             return jsonify({'error': 'Missing required URL parameters'}), 400
+        # Defaults if not provided (Simplifies frontend)
+        if not success_url:
+            success_url = f"{app_domain}/strategy-lab.html?success=true"
+        if not cancel_url:
+            cancel_url = f"{app_domain}/strategy-lab.html?canceled=true"
 
         checkout_session = stripe.checkout.Session.create(
             line_items=[{
@@ -284,7 +290,11 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=email,
-            metadata={'user_email': email, 'feature': feature or 'resume', 'plan_type': 'resume'}
+            metadata={
+                'user_email': email, 
+                'feature': feature or plan_type, # ensure webhook sees something
+                'plan_type': plan_type or 'custom'
+            }
         )
         return jsonify({'url': checkout_session.url})
     except Exception as e:
