@@ -360,26 +360,8 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            // AUTO-LOAD FROM ANALYZER
-            const importedResume = localStorage.getItem('rewrite_source_text');
-            const importedJD = localStorage.getItem('rewrite_job_desc');
-
-            if (importedResume) {
-                if (importedResume.startsWith('%PDF-')) {
-                    document.getElementById('source-resume').value = "⚠️ Error: Raw PDF data detected.\n\nPlease go back to the Resume Analyzer and re-upload your PDF. We have updated the parser to handle this correctly.";
-                    // Clear bad data so it doesn't persist
-                    localStorage.removeItem('rewrite_source_text');
-                } else {
-                    document.getElementById('source-resume').value = importedResume;
-                    // Auto-trigger smart parse if we have clean text
-                    if (importedResume.length > 50) setTimeout(smartParse, 500);
-                }
-            }
-
-            if (importedJD) {
-                document.getElementById('target-job').value = importedJD;
-                // localStorage.removeItem('rewrite_job_desc');
-            }
+            // AUTO-LOAD DISABLED BY USER REQUEST
+            // User wants to manually enter information each time.
         });
 
         // --- FUNCTIONS ---

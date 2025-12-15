@@ -793,10 +793,10 @@
 
         // --- NAVIGATION LOGIC ---
         window.goToRewriter = function () {
-            // Save data to localStorage
-            if (currentFileText) localStorage.setItem('rewrite_source_text', currentFileText);
-            const jd = document.getElementById('job-description').value;
-            if (jd) localStorage.setItem('rewrite_job_desc', jd);
+            // Save data to localStorage - DISABLED PER USER REQUEST
+            // if (currentFileText) localStorage.setItem('rewrite_source_text', currentFileText);
+            // const jd = document.getElementById('job-description').value;
+            // if (jd) localStorage.setItem('rewrite_job_desc', jd);
 
             // Redirect
             window.location.href = '/resume-rewriter.html';
