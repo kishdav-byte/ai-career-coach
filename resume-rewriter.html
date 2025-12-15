@@ -381,10 +381,7 @@
 
         // --- FUNCTIONS ---
 
-        // 1. SMART PARSE (Mockish, tries to find fields if simple, otherwise alerts)
-        // Note: Real parsing is complex. In app.js it extracted from pasted text via basic regex or passed to API?
-        // Let's implement a basic text scanner or just warn user to fill.
-        // Actually, the user's `app.js` had an "Import" button that seemingly did regex.
+        // 1. SMART PARSE (Heuristic Text Scanner)
         async function smartParse() {
             const text = document.getElementById('source-resume').value;
             if (!text) return alert("Please paste resume text first.");
@@ -395,17 +392,117 @@
             btn.disabled = true;
 
             try {
-                // We'll mimic the app.js behavior or try a regex scan
-                // Simplest: Regex scan for email, phone
+                // 1. Basic Info
                 const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
                 const phoneMatch = text.match(/(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/);
 
                 if (emailMatch) document.getElementById('rb-email').value = emailMatch[0];
                 if (phoneMatch) document.getElementById('rb-phone').value = phoneMatch[0];
 
-                alert("Scanned for basic info. Please review and fill the rest manually.");
+                // 2. Section Splitting
+                // Simple heuristic: look for lines that are ALL CAPS or contain specific keywords followed by newlines
+                const lines = text.split(/\n+/);
+                let currentSection = 'summary'; // default start
+                let sections = { summary: [], experience: [], education: [], skills: [] };
 
-            } catch (e) { console.error(e); }
+                const keywords = {
+                    experience: /experience|work history|employment|history/i,
+                    education: /education|academic|university|degree/i,
+                    skills: /skills|competencies|technologies/i,
+                    projects: /projects/i
+                };
+
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line || line.length < 2) continue;
+
+                    let isHeader = false;
+                    // Check if header
+                    for (const [key, regex] of Object.entries(keywords)) {
+                        if (regex.test(line) && line.length < 50) { // Headers usually short
+                            currentSection = key;
+                            isHeader = true;
+                            break;
+                        }
+                    }
+
+                    if (!isHeader) {
+                        if (sections[currentSection]) sections[currentSection].push(line);
+                    }
+                }
+
+                // 3. Populate Fields
+
+                // Summary (First few lines if not explicit?)
+                // If summary section empty, take first paragraph
+                const summaryText = sections.summary.slice(0, 5).join(' '); // Limit to first few lines if unstructured
+                document.getElementById('rb-summary').value = summaryText;
+
+                // Skills
+                if (sections.skills.length > 0) {
+                    document.getElementById('rb-skills').value = sections.skills.join(', ');
+                }
+
+                // Experience (Hard part: detecting job blocks)
+                // Heuristic: Line with Date -> Start of block
+                const dateRegex = /((19|20)\d{2}|Present|Current|Now)/i;
+                let currentExp = null;
+                const expContainer = document.getElementById('rb-experience-list');
+                expContainer.innerHTML = ''; // clear previous parsing attempt
+
+                sections.experience.forEach(line => {
+                    // If line has a date, assume new job start OR line is very short (Company/Title)
+                    if (dateRegex.test(line) && line.length < 80) {
+                        // Save previous
+                        if (currentExp) addExperience(currentExp);
+
+                        // Start new
+                        currentExp = {
+                            company: '',
+                            role: '',
+                            dates: '',
+                            description: ''
+                        };
+
+                        // Try to split date from rest
+                        currentExp.dates = line.trim(); // simplistic, user can edit
+                    } else if (currentExp) {
+                        // Heuristic: If we don't have role/company yet
+                        if (!currentExp.role) {
+                            currentExp.role = line;
+                        } else if (!currentExp.company) {
+                            currentExp.company = line;
+                        } else {
+                            currentExp.description += line + '\n';
+                        }
+                    }
+                });
+                if (currentExp) addExperience(currentExp);
+
+                // Education
+                const eduContainer = document.getElementById('rb-education-list');
+                eduContainer.innerHTML = '';
+                let currentEdu = null;
+
+                sections.education.forEach(line => {
+                    // Assume new block if line contains Degree keyword or Date
+                    if (/Bachelor|Master|PhD|B\.?S|M\.?S|Associate|Diploma|20\d{2}/i.test(line)) {
+                        if (currentEdu) addEducation(currentEdu);
+                        currentEdu = { school: '', degree: '', dates: '' };
+                        currentEdu.degree = line;
+                    } else if (currentEdu) {
+                        if (!currentEdu.school) currentEdu.school = line;
+                        else currentEdu.dates += line + ' ';
+                    }
+                });
+                if (currentEdu) addEducation(currentEdu);
+
+                alert("Smart Scan Complete. Please review and refine the extracted fields.");
+
+            } catch (e) {
+                console.error(e);
+                alert("Parsing error, please fill manually.");
+            }
 
             btn.innerHTML = original;
             btn.disabled = false;
