@@ -1181,9 +1181,31 @@ def admin_stats():
         count_res = supabase.table('users').select('*', count='exact', head=True).execute()
         total_users = count_res.count if count_res.count is not None else 0
         
-        # Recent Users (Limit 10)
-        recent_res = supabase.table('users').select('name, email, subscription_status, created_at, interview_credits, resume_credits').order('created_at', desc=True).limit(10).execute()
+        # Recent Users (Limit 50 for improved data)
+        recent_res = supabase.table('users').select(
+            'name, email, subscription_status, created_at, interview_credits, resume_credits, credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter, credits_interview_sim, is_unlimited'
+        ).order('created_at', desc=True).limit(50).execute()
         recent_users = recent_res.data if recent_res.data else []
+
+        # Revenue Estimation & Active Strategies
+        total_revenue = 0
+        active_strategies_count = 0
+        
+        for u in recent_users:
+            # Revenue Estimate ($29.99 for unlimited, $9.99 for active with some credits)
+            if u.get('is_unlimited'):
+                total_revenue += 29.99
+            elif u.get('subscription_status') == 'active':
+                total_revenue += 9.99
+            
+            # Active Strategy Count
+            if (u.get('credits_negotiation', 0) > 0 or 
+                u.get('credits_30_60_90', 0) > 0 or 
+                u.get('credits_inquisitor', 0) > 0):
+                active_strategies_count += 1
+                
+        # Round revenue
+        total_revenue = round(total_revenue, 2)
         
         # Aggregations (Mocked for now as we don't have an 'interviews' table with duration/job_type yet)
         # Ideally, we'd query an 'activity_log' or 'interviews' table.
@@ -1328,9 +1350,9 @@ def admin_stats():
         
         return jsonify({
             "total_users": total_users,
-            "active_interviews": 0, # Placeholder
+            "active_interviews": active_strategies_count, # Re-purposed as Active Strategy Users
             "avg_duration": 14, # Placeholder
-            "total_revenue": 0, # Placeholder
+            "total_revenue": total_revenue,
             "job_types": job_stats,
             "recent_users": recent_users,
             "recent_errors": recent_errors,
@@ -1375,7 +1397,25 @@ def admin_action():
                 }).eq('email', target_email).execute()
                 return jsonify({"success": True, "message": "Credits added (+1)"})
             else:
+            else:
                 return jsonify({"error": "Target user not found"}), 404
+
+        elif action_type == 'add_credit_strategy':
+            # Grant 1 credit to ALL strategy tools
+            db = supabase_admin if supabase_admin else supabase
+            user_res = supabase.table('users').select('*').eq('email', target_email).execute()
+            if user_res.data:
+                u = user_res.data[0]
+                db.table('users').update({
+                    'credits_negotiation': u.get('credits_negotiation', 0) + 1,
+                    'credits_inquisitor': u.get('credits_inquisitor', 0) + 1,
+                    'credits_followup': u.get('credits_followup', 0) + 1,
+                    'credits_30_60_90': u.get('credits_30_60_90', 0) + 1,
+                    'credits_cover_letter': u.get('credits_cover_letter', 0) + 1,
+                    'credits_interview_sim': u.get('credits_interview_sim', 0) + 1
+                }).eq('email', target_email).execute()
+                return jsonify({"success": True, "message": "Strategy credits added (+1 all)"})
+            return jsonify({"error": "User not found"}), 404
 
         elif action_type == 'reset_session':
              # Reset credits to at least 1 if they are 0
