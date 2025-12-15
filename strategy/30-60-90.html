@@ -205,25 +205,36 @@
 
             // 1. Check Credits on Load
             try {
+                // Default: Locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
+                btnGenerate.innerHTML = 'Unlock Tool';
+
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
                 const user = await res.json();
                 userEmail = user.email;
 
                 // For Plan, check 'credits_30_60_90'
                 const hasCredit = user.is_unlimited || (user.credits_30_60_90 && user.credits_30_60_90 > 0);
 
-                if (!hasCredit) {
-                    unlockOverlay.style.display = 'flex';
-                    btnGenerate.disabled = true;
-                    btnUnlock.onclick = () => initiateCheckout('strategy_plan', user.email);
-                } else {
+                if (hasCredit) {
                     unlockOverlay.style.display = 'none';
+                    btnGenerate.disabled = false;
                     btnGenerate.innerHTML = `Generate Plan (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                } else {
+                    // Remain Locked
+                    btnUnlock.onclick = () => initiateCheckout('strategy_plan', user.email);
                 }
             } catch (e) {
                 console.error("Auth check failed", e);
+                // Ensure locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
             }
 
             // 2. Handle Generation

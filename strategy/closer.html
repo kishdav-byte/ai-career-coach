@@ -217,25 +217,35 @@
 
             // 1. Check Credits
             try {
+                // Default: Locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
+                btnGenerate.innerHTML = 'Unlock Tool';
+
                 const res = await fetch('/api/user-profile', { headers: { 'Authorization': `Bearer ${token}` } });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
                 const user = await res.json();
                 userEmail = user.email;
 
                 // Credit Check
                 const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0);
 
-                if (!hasCredit) {
-                    unlockOverlay.style.display = 'flex';
-                    btnGenerate.disabled = true;
-                    // Unlock Logic
-                    btnUnlock.onclick = () => initiateCheckout('strategy_negotiation', user.email);
-                } else {
+                if (hasCredit) {
                     unlockOverlay.style.display = 'none';
+                    btnGenerate.disabled = false;
                     btnGenerate.innerHTML = `Generate Strategy (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                } else {
+                    // Remain Locked
+                    btnUnlock.onclick = () => initiateCheckout('strategy_negotiation', user.email);
                 }
 
             } catch (e) {
                 console.error("Auth Exception", e);
+                // Ensure locked on error
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
             }
 
             // 2. Generate Logic

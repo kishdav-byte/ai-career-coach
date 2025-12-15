@@ -203,24 +203,35 @@
 
             // 1. Check Credits
             try {
+                // Default: Locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
+                btnGenerate.innerHTML = 'Unlock Tool';
+
                 const res = await fetch('/api/user-profile', { headers: { 'Authorization': `Bearer ${token}` } });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
                 const user = await res.json();
                 userEmail = user.email;
 
                 // For Inquisitor, check 'credits_inquisitor'
                 const hasCredit = user.is_unlimited || (user.credits_inquisitor && user.credits_inquisitor > 0);
 
-                if (!hasCredit) {
-                    unlockOverlay.style.display = 'flex';
-                    btnGenerate.disabled = true;
-                    btnUnlock.onclick = () => initiateCheckout('strategy_inquisitor', user.email);
-                } else {
+                if (hasCredit) {
                     unlockOverlay.style.display = 'none';
+                    btnGenerate.disabled = false;
                     btnGenerate.innerHTML = `Generate Questions (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                } else {
+                    // Remain Locked
+                    btnUnlock.onclick = () => initiateCheckout('strategy_inquisitor', user.email);
                 }
 
             } catch (e) {
                 console.error("Auth check failed", e);
+                // Ensure locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
             }
 
             // 2. Handle Generation

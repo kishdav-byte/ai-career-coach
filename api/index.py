@@ -1413,6 +1413,44 @@ def admin_transcript():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/user-profile', methods=['GET'])
+def user_profile():
+    """Securely fetch user profile and credits from token."""
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+             return jsonify({"error": "Missing Authorization header"}), 401
+        
+        token = auth_header.split(" ")[1]
+        
+        # 1. Verify User with Supabase Auth
+        user_res = supabase.auth.get_user(token)
+        if not user_res.user:
+             return jsonify({"error": "Invalid token"}), 401
+             
+        user_id = user_res.user.id
+        email = user_res.user.email
+        
+        # 2. Fetch Profile from 'users' table
+        profile_res = supabase.table('users').select(
+            'email, is_unlimited, credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
+        ).eq('id', user_id).execute()
+        
+        if not profile_res.data:
+            # Fallback checks if users table uses email as key or hasn't synced ID yet
+            profile_res = supabase.table('users').select(
+                'email, is_unlimited, credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
+            ).eq('email', email).execute()
+
+            if not profile_res.data:
+                 return jsonify({"error": "User profile not found"}), 404
+
+        return jsonify(profile_res.data[0])
+
+    except Exception as e:
+        print(f"User Profile Fetch Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/generate-strategy-tool', methods=['POST'])
 def generate_strategy_tool():
     """Unified endpoint for Strategy Lab tools with credit deduction."""

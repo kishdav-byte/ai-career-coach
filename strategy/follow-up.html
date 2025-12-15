@@ -207,25 +207,36 @@
 
             // 1. Check Credits on Load
             try {
+                // Default: Locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
+                btnGenerate.innerHTML = 'Unlock Tool';
+
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
                 const user = await res.json();
                 userEmail = user.email;
 
                 // For Follow-Up, check 'credits_followup'
                 const hasCredit = user.is_unlimited || (user.credits_followup && user.credits_followup > 0);
 
-                if (!hasCredit) {
-                    unlockOverlay.style.display = 'flex';
-                    btnGenerate.disabled = true;
-                    btnUnlock.onclick = () => initiateCheckout('strategy_followup', user.email);
-                } else {
+                if (hasCredit) {
                     unlockOverlay.style.display = 'none';
+                    btnGenerate.disabled = false;
                     btnGenerate.innerHTML = `Write Email (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                } else {
+                    // Remain Locked
+                    btnUnlock.onclick = () => initiateCheckout('strategy_followup', user.email);
                 }
             } catch (e) {
                 console.error("Auth check failed", e);
+                // Ensure locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
             }
 
             // 2. Handle Generation

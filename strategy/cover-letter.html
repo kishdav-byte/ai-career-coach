@@ -210,25 +210,36 @@
 
             // 1. Check Credits on Load
             try {
+                // Default: Locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
+                btnGenerate.innerHTML = 'Unlock Tool';
+
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
                 const user = await res.json();
                 userEmail = user.email;
 
                 // For Cover Letter, check 'credits_cover_letter'
                 const hasCredit = user.is_unlimited || (user.credits_cover_letter && user.credits_cover_letter > 0);
 
-                if (!hasCredit) {
-                    unlockOverlay.style.display = 'flex';
-                    btnGenerate.disabled = true;
-                    btnUnlock.onclick = () => initiateCheckout('strategy_cover', user.email);
-                } else {
+                if (hasCredit) {
                     unlockOverlay.style.display = 'none';
+                    btnGenerate.disabled = false;
                     btnGenerate.innerHTML = `Generate Letter (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                } else {
+                    // Remain Locked
+                    btnUnlock.onclick = () => initiateCheckout('strategy_cover', user.email);
                 }
             } catch (e) {
                 console.error("Auth check failed", e);
+                // Ensure locked
+                unlockOverlay.style.display = 'flex';
+                btnGenerate.disabled = true;
             }
 
             // 2. Handle Generation
