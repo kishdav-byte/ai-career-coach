@@ -1870,6 +1870,7 @@ def get_user_data_route():
                     "credits_followup": user.get('credits_followup', 0),
                     "credits_30_60_90": user.get('credits_30_60_90', 0),
                     "credits_cover_letter": user.get('credits_cover_letter', 0),
+                    "credits_interview_sim": user.get('credits_interview_sim', 0),
                     "is_unlimited": user.get('is_unlimited', False),
                     "subscription_status": user.get('subscription_status', 'free'),
                     "role": user.get('role', 'user')
@@ -1954,6 +1955,7 @@ PRICE_IDS = {
     'strategy_negotiation': os.environ.get('STRIPE_NEGOTIATION_PRICE_ID'),
     'strategy_inquisitor': os.environ.get('STRIPE_INQUISITOR_PRICE_ID'), # New
     'strategy_followup': os.environ.get('STRIPE_FOLLOWUP_PRICE_ID'),     # New
+    'strategy_interview_sim': os.environ.get('STRIPE_INTERVIEW_PRICE_ID'), # New (Sim)
     'strategy_bundle': os.environ.get('STRIPE_BUNDLE_PRICE_ID')
 }
 
@@ -2119,6 +2121,11 @@ def stripe_webhook():
                          update_data['credits_negotiation'] = curr + 1
                          print(f"Granting +1 Negotiation Credit.")
                          
+                    elif plan_type == 'strategy_interview_sim':
+                         curr = user_data.get('credits_interview_sim', 0)
+                         update_data['credits_interview_sim'] = curr + 1
+                         print(f"Granting +1 Interview Simulator Credit.")
+                          
                     elif plan_type == 'strategy_bundle':
                          # Grant 1 of EACH feature + 1 Rewrite (Full Suite)
                          # "Unlock the Full Suite" -> usually implies access to everything.
@@ -2129,7 +2136,8 @@ def stripe_webhook():
                          update_data['credits_cover_letter'] = user_data.get('credits_cover_letter', 0) + 1
                          update_data['credits_negotiation'] = user_data.get('credits_negotiation', 0) + 1
                          update_data['credits_linkedin'] = user_data.get('credits_linkedin', 0) + 1
-                         
+                         update_data['credits_interview_sim'] = user_data.get('credits_interview_sim', 0) + 1
+                          
                          print("Granting STRATEGY BUNDLE (1 of each tool).")
 
                     # EXECUTE UPDATE

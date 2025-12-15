@@ -96,41 +96,78 @@
 
             <!-- Tab 2: Interview Coach -->
             <section id="interview" class="tab-pane">
-                <div class="card">
-                    <h2>Interview Coach</h2>
-                    <p>Practice with a strict hiring manager.</p>
-                    <div class="form-group">
-                        <label for="interview-job-posting">Target Job Position</label>
-                        <input type="text" id="interview-job-posting"
-                            placeholder="Enter job title (e.g. Product Manager) - 100 character limit" maxlength="100"
-                            style="width: 100%; padding: 12px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 8px;">
-                        <button id="start-interview-btn" class="secondary-btn" style="margin-top: 5px;">Start
-                            Interview</button>
-                    </div>
-                    <div class="form-group" style="display: flex; gap: 10px; align-items: center; margin-bottom: 15px;">
-                        <div style="flex: 1;">
-                            <label for="voice-select">Voice</label>
-                            <select id="voice-select">
-                                <option value="alloy">Alloy (Neutral)</option>
-                                <option value="echo">Echo (Male)</option>
-                                <option value="fable">Fable (British)</option>
-                                <option value="onyx">Onyx (Deep Male)</option>
-                                <option value="nova">Nova (Female)</option>
-                                <option value="shimmer">Shimmer (Soft Female)</option>
-                            </select>
+                <div class="premium-container" style="max-width: 100%; min-height: auto; padding: 0;">
+                    <div class="strategy-card">
+                        <div class="flex items-center gap-3 mb-6"
+                            style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div
+                                style="width: 3rem; height: 3rem; background: #e0f2fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                                🎤</div>
+                            <h2 class="premium-title" style="margin: 0; font-size: 1.875rem; font-weight: 700;">
+                                Interview Simulator</h2>
+                        </div>
+                        <p class="premium-subtitle mb-8" style="color: #6b7280; margin-bottom: 2rem;">Practice live with
+                            an AI hiring manager. Real-time feedback.</p>
+
+                        <!-- Unlock Overlay / Action Area -->
+                        <div id="interview-locked-state"
+                            style="display: none; text-align: center; padding: 2rem; background: #f9fafb; border-radius: 1rem; border: 2px dashed #e5e7eb;">
+                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Unlock Simulator
+                            </h3>
+                            <p style="color: #6b7280; margin-bottom: 1.5rem;">One credit required per session.</p>
+                            <button id="btn-unlock-interview" class="action-btn"
+                                style="background-color: var(--success); width: 100%; max-width: 300px; padding: 1rem; font-size: 1.1rem;">
+                                Unlock Tool ($9.99)
+                            </button>
+                        </div>
+
+                        <!-- Active Interview Form -->
+                        <div id="interview-active-state" style="display: block;">
+                            <div class="form-group">
+                                <label for="interview-job-posting" style="font-weight: 600;">Target Job Position</label>
+                                <input type="text" id="interview-job-posting"
+                                    placeholder="Enter job title (e.g. Product Manager)" maxlength="100"
+                                    class="input-premium" style="margin-bottom: 1rem;">
+                            </div>
+
+                            <div class="form-group" style="margin-bottom: 1.5rem;">
+                                <label for="voice-select" style="font-weight: 600;">Interviewer Voice</label>
+                                <select id="voice-select" class="input-premium">
+                                    <option value="alloy">Alloy (Neutral)</option>
+                                    <option value="echo">Echo (Male)</option>
+                                    <option value="fable">Fable (British)</option>
+                                    <option value="onyx">Onyx (Deep Male)</option>
+                                    <option value="nova">Nova (Female)</option>
+                                    <option value="shimmer">Shimmer (Soft Female)</option>
+                                </select>
+                            </div>
+
+                            <button id="start-interview-btn" class="action-btn"
+                                style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 0.75rem;">
+                                Start Interview (1 Credit)
+                            </button>
+                        </div>
+
+                        <div id="chat-interface" style="display: none; margin-top: 2rem;">
+                            <div id="chat-window" class="chat-window"
+                                style="min-height: 300px; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; background: #f9fafb;">
+                            </div>
+
+                            <div class="chat-input-area" style="display: flex; gap: 0.5rem;">
+                                <input type="text" id="chat-input" placeholder="Type your answer..."
+                                    class="input-premium" style="flex: 1;">
+                                <button id="record-btn" class="action-btn"
+                                    style="width: auto; padding: 0 1.5rem; background: var(--alert-color);"
+                                    onclick="toggleRecording()">🎤</button>
+                                <button id="send-chat-btn" class="action-btn"
+                                    style="width: auto; padding: 0 1.5rem;">Send</button>
+                            </div>
+                            <audio id="ai-audio-player" controls
+                                style="display:none; width: 100%; margin-top: 10px;"></audio>
                         </div>
 
                     </div>
-                    <div id="chat-window" class="chat-window">
-
-                    </div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chat-input" placeholder="Type your answer...">
-                        <button id="record-btn" class="action-btn" style="width: auto; background: var(--alert-color);"
-                            onclick="toggleRecording()">🎤</button>
-                        <button id="send-chat-btn" class="action-btn">Send</button>
-                    </div>
-                    <audio id="ai-audio-player" controls style="display:none; width: 100%; margin-top: 10px;"></audio>
                 </div>
             </section>
 

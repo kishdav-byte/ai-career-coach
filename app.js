@@ -148,7 +148,8 @@ async function checkAccess() {
             // Phase 20: Split Credits
             let resume_credits = result.user.resume_credits;
             let interview_credits = result.user.interview_credits;
-            let rewrite_credits = result.user.rewrite_credits; // New V2 Credit
+            let rewrite_credits = result.user.rewrite_credits;
+            let sim_credits = result.user.credits_interview_sim || 0; // New
 
             // Safe Parse
             if (resume_credits === null || resume_credits === undefined) resume_credits = 0;
@@ -158,11 +159,13 @@ async function checkAccess() {
             session.resume_credits = resume_credits;
             session.interview_credits = interview_credits;
             session.rewrite_credits = rewrite_credits;
+            session.sim_credits = sim_credits;
 
             localStorage.setItem(SESSION_KEY, JSON.stringify(session));
             updateCreditDisplay(session); // UI Update
+            verifyInterviewAccess(session); // Check Interview Tab Access
 
-            console.log(`Session refreshed. Status=${status}, Res=${resume_credits}, Int=${interview_credits}, Rew=${rewrite_credits}`);
+            console.log(`Session refreshed. Sim Credits=${sim_credits}`);
 
         }
     } catch (e) {
@@ -372,8 +375,91 @@ function init() {
 
             // Scroll to top
             window.scrollTo(0, 0);
+
+            // SPECIAL: Init Interview Tab Logic if clicking on it
+            if (tabId === 'interview') {
+                const session = getSession();
+                verifyInterviewAccess(session);
+            }
         });
     });
+
+    // New Function: Verify Interview Access
+    function verifyInterviewAccess(session) {
+        if (!session) return;
+
+        const lockedState = document.getElementById('interview-locked-state');
+        const activeState = document.getElementById('interview-active-state');
+        const startBtn = document.getElementById('start-interview-btn');
+        const chatInterface = document.getElementById('chat-interface');
+
+        // Safety check if elements exist (might not be on app page)
+        if (!lockedState || !activeState) return;
+
+        const credits = session.sim_credits || 0;
+        const isUnlimited = session.is_unlimited || false;
+
+        if (credits > 0 || isUnlimited) {
+            // UNLOCKED
+            lockedState.style.display = 'none';
+            activeState.style.display = 'block';
+            chatInterface.style.display = 'none'; // Hide chat until started
+
+            if (startBtn) {
+                startBtn.innerHTML = `Start Interview (${isUnlimited ? 'Unlimited' : '1 Credit'})`;
+                startBtn.disabled = false;
+            }
+        } else {
+            // LOCKED
+            lockedState.style.display = 'block';
+            activeState.style.display = 'none';
+            chatInterface.style.display = 'none';
+        }
+    }
+
+    // Bind Unlock Button for Interview Logic
+    const unlockInterviewBtn = document.getElementById('btn-unlock-interview');
+    if (unlockInterviewBtn) {
+        unlockInterviewBtn.addEventListener('click', async () => {
+            const session = getSession();
+            if (!session) return window.location.href = '/login.html';
+
+            initiateCheckout('strategy_interview_sim', session.email);
+        });
+    }
+
+    // Helper to reuse checkout logic
+    async function initiateCheckout(planType, email) {
+        const btn = event.target;
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = 'Processing...';
+
+        try {
+            const res = await fetch('/api/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+                },
+                body: JSON.stringify({
+                    plan_type: planType,
+                    email: email,
+                    successUrl: window.location.origin + '/app.html?status=success#interview', // redirect back to interview tab
+                    cancelUrl: window.location.href
+                })
+            });
+            const json = await res.json();
+            if (json.error) throw new Error(json.error);
+
+            window.location.href = json.url;
+
+        } catch (e) {
+            alert("Checkout Error: " + e.message);
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
 
     // Handle Deep Linking on Load
     function handleDeepLink() {
@@ -884,11 +970,20 @@ function init() {
     });
     document.getElementById('start-interview-btn').addEventListener('click', () => {
         const jobPosting = document.getElementById('interview-job-posting').value;
+        const chatInterface = document.getElementById('chat-interface');
+        const activeState = document.getElementById('interview-active-state');
+
         if (jobPosting.trim()) {
             primeAudio();
             primeAudio();
             questionCount = 0; // Reset counter to 0 for welcome message
             interviewHistory = []; // Reset history
+
+            // Show Chat Interface, Hide Setup Form (Standard flow)
+            // Or keep setup form visible? Better UX to switch view.
+            if (activeState) activeState.style.display = 'none';
+            if (chatInterface) chatInterface.style.display = 'block';
+
             sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
             alert("Please paste a job description first.");
