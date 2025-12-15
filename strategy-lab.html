@@ -42,7 +42,6 @@
             font-weight: 600;
             color: var(--gray-500);
             margin-top: auto;
-            /* Push to bottom */
         }
 
         .status-unlocked {
@@ -96,7 +95,6 @@
 
 <body class="bg-gray-50">
 
-    <!-- Navigation (Simplified for Lab) -->
     <nav class="nav">
         <div class="nav-container">
             <a href="/dashboard.html" class="nav-logo">AI Career Coach</a>
@@ -111,14 +109,14 @@
 
         <div class="section-header">
             <h1>Strategy Lab</h1>
-            <p>Advanced tools for high-stakes career moves.</p>
+            <p>Advanced tools for high-stakes career moves. Own the process.</p>
         </div>
 
         <!-- Bundle Banner -->
         <div id="bundle-banner" class="bundle-banner" style="display: none;">
             <div class="bundle-content">
                 <h2>Unlock the Full Suite</h2>
-                <p>Get instant access to All 3 Strategy Tools + A Premium Resume Rewrite.</p>
+                <p>Get instant access to All 5 Strategy Tools + A Premium Resume Rewrite.</p>
             </div>
             <button id="btn-buy-bundle" class="btn btn-secondary animate-pulse"
                 style="background: white; color: var(--primary);">
@@ -150,13 +148,35 @@
                 </div>
             </div>
 
-            <!-- Card 3: Negotiation Script -->
+            <!-- Card 3: The Closer (Negotiation) -->
             <div class="tool-card">
                 <div class="tool-icon">💰</div>
-                <h3>Salary Negotiation</h3>
-                <p>Get a precise script to negotiate your offer with confidence.</p>
+                <h3>The Closer</h3>
+                <p>Negotiation scripts to maximize your comp package. Phone & Email.</p>
                 <div id="status-negotiation" class="tool-status"></div>
                 <div id="action-negotiation">
+                    <button class="btn btn-unlock">Unlock - $4.99</button>
+                </div>
+            </div>
+
+            <!-- Card 4: The Inquisitor -->
+            <div class="tool-card">
+                <div class="tool-icon">🕵️</div>
+                <h3>The Inquisitor</h3>
+                <p>Strategic reverse-interview questions to ask your interviewer.</p>
+                <div id="status-inquisitor" class="tool-status"></div>
+                <div id="action-inquisitor">
+                    <button class="btn btn-unlock">Unlock - $4.99</button>
+                </div>
+            </div>
+
+            <!-- Card 5: Value Follow-Up -->
+            <div class="tool-card">
+                <div class="tool-icon">📨</div>
+                <h3>Value Follow-Up</h3>
+                <p>Post-interview email that pitches a solution, not just a "thank you".</p>
+                <div id="status-followup" class="tool-status"></div>
+                <div id="action-followup">
                     <button class="btn btn-unlock">Unlock - $4.99</button>
                 </div>
             </div>
@@ -192,23 +212,28 @@
             const creditsPlan = userData.credits_30_60_90 || 0;
             const creditsCover = userData.credits_cover_letter || 0;
             const creditsNeg = userData.credits_negotiation || 0;
+            const creditsInq = userData.credits_inquisitor || 0;
+            const creditsFollow = userData.credits_followup || 0;
 
-            // Show Banner? Only if user has 0 of at least one tool?
-            // User requested: "Banner: Unlock the Full Suite for $29.99"
-            // If user has everything, maybe hide?
-            if (creditsPlan === 0 || creditsCover === 0 || creditsNeg === 0) {
+            const isUnlimited = userData.is_unlimited;
+
+            // Show Banner? Only if user is missing something and NOT unlimited
+            if (!isUnlimited && (creditsPlan === 0 || creditsCover === 0 || creditsNeg === 0 || creditsInq === 0 || creditsFollow === 0)) {
                 document.getElementById('bundle-banner').style.display = 'flex';
             }
 
             // -- RENDER CARDS --
 
             // 1. Plan
-            renderCard('plan', creditsPlan, '/strategy/30-60-90', 'strategy_plan');
+            renderCard('plan', creditsPlan, '/strategy/30-60-90', 'strategy_plan', isUnlimited);
             // 2. Cover
-            renderCard('cover', creditsCover, '/strategy/cover-letter', 'strategy_cover');
-            // 3. Negotiation
-            renderCard('negotiation', creditsNeg, '/strategy/negotiation', 'strategy_negotiation');
-
+            renderCard('cover', creditsCover, '/strategy/cover-letter', 'strategy_cover', isUnlimited);
+            // 3. Negotiation (Closer)
+            renderCard('negotiation', creditsNeg, '/strategy/closer', 'strategy_negotiation', isUnlimited);
+            // 4. Inquisitor
+            renderCard('inquisitor', creditsInq, '/strategy/inquisitor', 'strategy_inquisitor', isUnlimited); // Note: Price ID mapping needed in API if buying individually
+            // 5. Follow-Up
+            renderCard('followup', creditsFollow, '/strategy/follow-up', 'strategy_followup', isUnlimited); // Price ID mapping needed? 
 
             // -- BUNDLE CLICK --
             document.getElementById('btn-buy-bundle').addEventListener('click', () => {
@@ -218,22 +243,22 @@
 
             // -- HELPER FUNCTIONS --
 
-            function renderCard(idSuffix, credits, url, priceType) {
+            function renderCard(idSuffix, credits, url, priceType, isUnlimited) {
                 const statusEl = document.getElementById(`status-${idSuffix}`);
                 const actionEl = document.getElementById(`action-${idSuffix}`);
 
-                if (credits > 0) {
-                    statusEl.textContent = `${credits} Credit${credits > 1 ? 's' : ''} Available`;
+                // Allow access if credits > 0 OR Unlimited
+                const hasAccess = isUnlimited || credits > 0;
+
+                if (hasAccess) {
+                    statusEl.textContent = isUnlimited ? "Unlimited Access" : `${credits} Credit${credits > 1 ? 's' : ''} Available`;
                     statusEl.classList.add('status-unlocked');
-                    actionEl.innerHTML = `<a href="${url}.html" class="btn btn-open">Open Tool</a>`; // Note: assuming .html extension or path structure
-                    // The user asked to link to "/strategy/30-60-90". I'll assume that maps to a page.
-                    // If not, I might need to create those pages later. For now, linking.
+                    actionEl.innerHTML = `<a href="${url}.html" class="btn btn-open">Open Tool</a>`;
                 } else {
                     statusEl.textContent = "Locked";
                     statusEl.classList.add('status-locked');
-                    // Price is hardcoded in HTML for now, but click handler needs type
                     const btn = actionEl.querySelector('button');
-                    btn.onclick = () => initiateCheckout(priceType);
+                    if (btn) btn.onclick = () => initiateCheckout(priceType);
                 }
             }
 
@@ -251,14 +276,13 @@
                             'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
-                            plan_type: planType, // Matches keys in api/index.py PRICE_IDS
+                            plan_type: planType,
                             email: userData.email
                         })
                     });
                     const json = await res.json();
                     if (json.error) throw new Error(json.error);
 
-                    // Redirect to Stripe
                     window.location.href = json.url;
 
                 } catch (e) {

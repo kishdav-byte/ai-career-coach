@@ -1413,6 +1413,115 @@ def admin_transcript():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/generate-strategy-tool', methods=['POST'])
+def generate_strategy_tool():
+    """Unified endpoint for Strategy Lab tools with credit deduction."""
+    try:
+        # 1. Validation
+        if not API_KEY:
+            return jsonify({"error": "Configuration Error"}), 500
+        
+        data = request.json
+        user_email = data.get('email')
+        tool_type = data.get('tool_type') # 'closer', 'inquisitor', 'followup', 'plan'
+        user_inputs = data.get('inputs', {}) # dict of fields
+        
+        if not user_email or not tool_type:
+            return jsonify({"error": "Missing parameters"}), 400
+
+        # 2. Get User & Check Credits
+        db = supabase_admin if supabase_admin else supabase
+        user_res = db.table('users').select('*').eq('email', user_email).execute()
+        
+        if not user_res.data:
+            return jsonify({"error": "User not found"}), 404
+            
+        user = user_res.data[0]
+        has_credit = False
+        credit_col = ''
+        
+        # Credit Mapping
+        if tool_type == 'closer':
+            credit_col = 'credits_negotiation'
+            has_credit = user.get(credit_col, 0) > 0
+        elif tool_type == 'inquisitor':
+            credit_col = 'credits_inquisitor'
+            has_credit = user.get(credit_col, 0) > 0
+        elif tool_type == 'followup':
+            credit_col = 'credits_followup'
+            has_credit = user.get(credit_col, 0) > 0
+        elif tool_type == 'plan':
+             credit_col = 'credits_30_60_90'
+             has_credit = user.get(credit_col, 0) > 0
+        else:
+            return jsonify({"error": "Unknown tool type"}), 400
+
+        # Unlimited Override (Pro Plan)
+        if user.get('is_unlimited', False):
+            has_credit = True
+
+        if not has_credit:
+            return jsonify({"error": "Insufficient credits", "buy_link": "/strategy-lab.html"}), 402
+
+        # 3. Construct Prompt
+        system_prompt = "You are an expert career strategist."
+        user_prompt = ""
+
+        if tool_type == 'closer':
+            system_prompt = "You are a ruthless but professional negotiation coach. Use the 'Ackerman Bargaining' principles where appropriate but keep it professional."
+            user_prompt = (
+                f"Write a negotiation script (Phone Script + Email Draft) for this offer:\n"
+                f"Base Salary: {user_inputs.get('base')}\n"
+                f"Equity/Bonus: {user_inputs.get('equity')}\n"
+                f"Leverage/Counter-offer: {user_inputs.get('leverage')}\n"
+                f"Goal/Ask: {user_inputs.get('goal')}\n\n"
+                "Output Markdown. Be specific. Do not use placeholders like [Insert Name]."
+            )
+        
+        elif tool_type == 'inquisitor':
+            system_prompt = "You are a reverse-interview expert. You help candidates ask high-IQ questions that make them look strategic."
+            user_prompt = (
+                f"Generate 5 high-impact questions for an interviewer with this title: {user_inputs.get('interviewer_role')}\n"
+                f"Job Context: {user_inputs.get('job_description')[:500]}\n\n"
+                "Categorize them: 1. Cultural, 2. Strategic, 3. Role-Specific, 4. The 'Closer' Question.\n"
+                "Explain WHY each question works in 1 sentence."
+            )
+
+        elif tool_type == 'followup':
+            system_prompt = "You write 'Value-Add' follow-up emails. No generic 'thank yous'. We pitch a solution."
+            user_prompt = (
+                f"Write a short (<150 words) follow-up email to: {user_inputs.get('interviewer_name')}\n"
+                f"Pain Point Discussed: {user_inputs.get('pain_point')}\n"
+                f"Proposed Solution/Idea: {user_inputs.get('solution')}\n\n"
+                "Tone: Professional, concise, confident. Subject Line included."
+            )
+            
+        elif tool_type == 'plan':
+             # Re-implementing logic if not existing, or just hooking into this new endpoint
+             system_prompt = "You are an executive coach."
+             user_prompt = f"Create a 30-60-90 Day Plan for: {user_inputs.get('role')} at {user_inputs.get('company')}."
+
+        # 4. Call OpenAI
+        try:
+            content = call_openai([
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ])
+        except Exception as ai_err:
+             return jsonify({"error": f"AI Generation Failed: {str(ai_err)}"}), 500
+
+        # 5. Deduct Credit (if not unlimited)
+        if not user.get('is_unlimited', False) and credit_col:
+            new_val = user.get(credit_col, 0) - 1
+            db.table('users').update({credit_col: new_val}).eq('email', user_email).execute()
+            print(f"Deducted 1 {tool_type} credit for {user_email}")
+
+        return jsonify({"success": True, "content": content})
+
+    except Exception as e:
+        print(f"Strategy Gen Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # ========================================
 # USER AUTHENTICATION ENDPOINTS
 # ========================================
@@ -1783,6 +1892,8 @@ PRICE_IDS = {
     'strategy_plan': os.environ.get('STRIPE_PLAN_PRICE_ID'),
     'strategy_cover': os.environ.get('STRIPE_COVER_LETTER_PRICE_ID'),
     'strategy_negotiation': os.environ.get('STRIPE_NEGOTIATION_PRICE_ID'),
+    'strategy_inquisitor': os.environ.get('STRIPE_INQUISITOR_PRICE_ID'), # New
+    'strategy_followup': os.environ.get('STRIPE_FOLLOWUP_PRICE_ID'),     # New
     'strategy_bundle': os.environ.get('STRIPE_BUNDLE_PRICE_ID')
 }
 
