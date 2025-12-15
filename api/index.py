@@ -1767,7 +1767,13 @@ PRICE_IDS = {
     'pro': os.environ.get('Stripe_Pro_Package'),           # Monthly Subscription
     'complete': os.environ.get('Stripe_Complete_Package'), # Resume & Interview ($24.99)
     'resume': os.environ.get('Stripe_Resume_Only'),        # Resume Feedback Only ($14.99)
-    'interview': os.environ.get('Stripe_Interview_Only')   # Mock Interview Session ($19.99)
+    'interview': os.environ.get('Stripe_Interview_Only'),  # Mock Interview Session ($19.99)
+    
+    # STRATEGY LAB
+    'strategy_plan': os.environ.get('STRIPE_PLAN_PRICE_ID'),
+    'strategy_cover': os.environ.get('STRIPE_COVER_LETTER_PRICE_ID'),
+    'strategy_negotiation': os.environ.get('STRIPE_NEGOTIATION_PRICE_ID'),
+    'strategy_bundle': os.environ.get('STRIPE_BUNDLE_PRICE_ID')
 }
 
 
@@ -1848,8 +1854,19 @@ def stripe_webhook():
                 customer_email = session.get('customer_details', {}).get('email')
                 client_reference_id = session.get('client_reference_id')
                 metadata = session.get('metadata', {})
-                plan_type = metadata.get('plan_type', 'basic')
-
+                # NEW: Get Price ID from line_items check (or simple single-item checkout assumption)
+                # However, metadata is easier. We will rely on Metadata passed from Frontend Checkout Creation. 
+                # If plan_type is passed in metadata, use it.
+                # BUT, for direct links, we might need to match Price ID.
+                # Let's simplify: Checkout Session creation MUST pass metadata 'plan_type' matching our keys.
+                # Fallback: Check lines if needed? 
+                # For now, let's trust metadata or simple Price ID match if available in session (session usually has line_items expanded)
+                # We'll stick to metadata 'plan_type' OR 'feature' as primary signal.
+                
+                plan_type = metadata.get('plan_type', 'basic') 
+                # Also check direct Price ID if needed?
+                # session.line_items requires expansion.
+                
                 print(f"WEBHOOK DEBUG: Email={customer_email}, Plan={plan_type}, RefID={client_reference_id}")
                 print(f"WEBHOOK DEBUG: Full Metadata: {metadata}")
                 print(f"WEBHOOK DEBUG: Supabase Admin Active? {'YES' if supabase_admin else 'NO - Using Anon Client'}")
@@ -1904,6 +1921,35 @@ def stripe_webhook():
                     elif plan_type == 'interview':
                         update_data['interview_credits'] = current_interview + 1
                         print(f"Granting +1 Interview Credit. New Total: {update_data['interview_credits']}")
+
+                    # STRATEGY LAB LOGIC
+                    elif plan_type == 'strategy_plan':
+                         curr = user_data.get('credits_30_60_90', 0)
+                         update_data['credits_30_60_90'] = curr + 1
+                         print(f"Granting +1 30-60-90 Plan Credit.")
+                    
+                    elif plan_type == 'strategy_cover':
+                         curr = user_data.get('credits_cover_letter', 0)
+                         update_data['credits_cover_letter'] = curr + 1
+                         print(f"Granting +1 Cover Letter Credit.")
+                         
+                    elif plan_type == 'strategy_negotiation':
+                         curr = user_data.get('credits_negotiation', 0)
+                         update_data['credits_negotiation'] = curr + 1
+                         print(f"Granting +1 Negotiation Credit.")
+                         
+                    elif plan_type == 'strategy_bundle':
+                         # Grant 1 of EACH feature + 1 Rewrite (Full Suite)
+                         # "Unlock the Full Suite" -> usually implies access to everything.
+                         # User requested: Increment ALL of the following: rewrite_credits, credits_30_60_90, credits_cover_letter, credits_negotiation, credits_linkedin
+                         
+                         update_data['rewrite_credits'] = user_data.get('rewrite_credits', 0) + 1
+                         update_data['credits_30_60_90'] = user_data.get('credits_30_60_90', 0) + 1
+                         update_data['credits_cover_letter'] = user_data.get('credits_cover_letter', 0) + 1
+                         update_data['credits_negotiation'] = user_data.get('credits_negotiation', 0) + 1
+                         update_data['credits_linkedin'] = user_data.get('credits_linkedin', 0) + 1
+                         
+                         print("Granting STRATEGY BUNDLE (1 of each tool).")
 
                     # EXECUTE UPDATE
                     response = db_client.table('users').update(update_data).eq('id', user_id).execute()

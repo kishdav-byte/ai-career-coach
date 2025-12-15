@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Lab | AI Career Coach</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .tool-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            border: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tool-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .tool-status {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--gray-500);
+            margin-top: auto;
+            /* Push to bottom */
+        }
+
+        .status-unlocked {
+            color: var(--success);
+        }
+
+        .status-locked {
+            color: var(--gray-500);
+        }
+
+        .bundle-banner {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 2rem;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .bundle-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .bundle-content p {
+            opacity: 0.9;
+        }
+
+        .btn-unlock {
+            background: var(--success);
+            color: white;
+            border: none;
+            width: 100%;
+        }
+
+        .btn-open {
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 8px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+    <!-- Navigation (Simplified for Lab) -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/dashboard.html" class="nav-logo">AI Career Coach</a>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <span id="credit-display" style="font-size: 0.9rem; font-weight: 600;"></span>
+                <a href="/dashboard.html" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container" style="padding-top: 2rem; padding-bottom: 4rem;">
+
+        <div class="section-header">
+            <h1>Strategy Lab</h1>
+            <p>Advanced tools for high-stakes career moves.</p>
+        </div>
+
+        <!-- Bundle Banner -->
+        <div id="bundle-banner" class="bundle-banner" style="display: none;">
+            <div class="bundle-content">
+                <h2>Unlock the Full Suite</h2>
+                <p>Get instant access to All 3 Strategy Tools + A Premium Resume Rewrite.</p>
+            </div>
+            <button id="btn-buy-bundle" class="btn btn-secondary animate-pulse"
+                style="background: white; color: var(--primary);">
+                Unlock All for $29.99
+            </button>
+        </div>
+
+        <div class="strategy-grid">
+
+            <!-- Card 1: 30-60-90 Day Plan -->
+            <div class="tool-card">
+                <div class="tool-icon">📅</div>
+                <h3>30-60-90 Day Plan</h3>
+                <p>Impress hiring managers with a concrete vision for your first 3 months.</p>
+                <div id="status-plan" class="tool-status"></div>
+                <div id="action-plan">
+                    <button class="btn btn-unlock">Unlock - $9.99</button>
+                </div>
+            </div>
+
+            <!-- Card 2: Cover Letter -->
+            <div class="tool-card">
+                <div class="tool-icon">✉️</div>
+                <h3>Smart Cover Letter</h3>
+                <p>Generate a tailored cover letter that highlights your fit for the role.</p>
+                <div id="status-cover" class="tool-status"></div>
+                <div id="action-cover">
+                    <button class="btn btn-unlock">Unlock - $4.99</button>
+                </div>
+            </div>
+
+            <!-- Card 3: Negotiation Script -->
+            <div class="tool-card">
+                <div class="tool-icon">💰</div>
+                <h3>Salary Negotiation</h3>
+                <p>Get a precise script to negotiate your offer with confidence.</p>
+                <div id="status-negotiation" class="tool-status"></div>
+                <div id="action-negotiation">
+                    <button class="btn btn-unlock">Unlock - $4.99</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Stripe JS -->
+    <script src="https://js.stripe.com/v3/"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('supabase.auth.token');
+            if (!token) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            // Fetch User Data
+            let userData = null;
+            try {
+                const res = await fetch('/api/user-profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                userData = await res.json();
+            } catch (e) {
+                console.error("Error fetching profile:", e);
+                return;
+            }
+
+            if (!userData) return;
+
+            // -- CHECK CREDITS --
+            const creditsPlan = userData.credits_30_60_90 || 0;
+            const creditsCover = userData.credits_cover_letter || 0;
+            const creditsNeg = userData.credits_negotiation || 0;
+
+            // Show Banner? Only if user has 0 of at least one tool?
+            // User requested: "Banner: Unlock the Full Suite for $29.99"
+            // If user has everything, maybe hide?
+            if (creditsPlan === 0 || creditsCover === 0 || creditsNeg === 0) {
+                document.getElementById('bundle-banner').style.display = 'flex';
+            }
+
+            // -- RENDER CARDS --
+
+            // 1. Plan
+            renderCard('plan', creditsPlan, '/strategy/30-60-90', 'strategy_plan');
+            // 2. Cover
+            renderCard('cover', creditsCover, '/strategy/cover-letter', 'strategy_cover');
+            // 3. Negotiation
+            renderCard('negotiation', creditsNeg, '/strategy/negotiation', 'strategy_negotiation');
+
+
+            // -- BUNDLE CLICK --
+            document.getElementById('btn-buy-bundle').addEventListener('click', () => {
+                initiateCheckout('strategy_bundle');
+            });
+
+
+            // -- HELPER FUNCTIONS --
+
+            function renderCard(idSuffix, credits, url, priceType) {
+                const statusEl = document.getElementById(`status-${idSuffix}`);
+                const actionEl = document.getElementById(`action-${idSuffix}`);
+
+                if (credits > 0) {
+                    statusEl.textContent = `${credits} Credit${credits > 1 ? 's' : ''} Available`;
+                    statusEl.classList.add('status-unlocked');
+                    actionEl.innerHTML = `<a href="${url}.html" class="btn btn-open">Open Tool</a>`; // Note: assuming .html extension or path structure
+                    // The user asked to link to "/strategy/30-60-90". I'll assume that maps to a page.
+                    // If not, I might need to create those pages later. For now, linking.
+                } else {
+                    statusEl.textContent = "Locked";
+                    statusEl.classList.add('status-locked');
+                    // Price is hardcoded in HTML for now, but click handler needs type
+                    const btn = actionEl.querySelector('button');
+                    btn.onclick = () => initiateCheckout(priceType);
+                }
+            }
+
+            async function initiateCheckout(planType) {
+                const btn = event.target;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                try {
+                    const res = await fetch('/api/create-checkout-session', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({
+                            plan_type: planType, // Matches keys in api/index.py PRICE_IDS
+                            email: userData.email
+                        })
+                    });
+                    const json = await res.json();
+                    if (json.error) throw new Error(json.error);
+
+                    // Redirect to Stripe
+                    window.location.href = json.url;
+
+                } catch (e) {
+                    alert("Checkout Error: " + e.message);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            }
+
+        });
+    </script>
+</body>
+
+</html>
