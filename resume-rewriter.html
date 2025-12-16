@@ -4,45 +4,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Resume Rewriter | Strategy Lab</title>
+    <title>Resume Builder - Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Marked JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        slate: { 850: '#151F32', 900: '#0F172A', 950: '#020617' },
-                        blue: { 450: '#60A5FA', 550: '#3B82F6' } // Neon touches
-                    }
-                }
-            }
-        }
-    </script>
+
     <style>
         body {
-            background-color: #020617;
-            color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
         }
 
-        /* Glassmorphism */
+        /* Custom Scrollbar for Dark Theme */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Step Loader Animations */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Glassmorphism Utilities */
         .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(15, 23, 42, 0.6);
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(148, 163, 184, 0.1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
-        .gradient-text {
-            background: linear-gradient(135deg, #60A5FA 0%, #A78BFA 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* A4 Paper Preview */
+        /* Resume Paper Preview */
         .resume-paper {
             width: 210mm;
             min-height: 297mm;
@@ -50,7 +70,7 @@
             color: #1a202c;
             padding: 20mm;
             margin: 0 auto;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
             font-size: 11pt;
             line-height: 1.5;
             position: relative;
@@ -119,8 +139,8 @@
             border: 3px solid rgba(255, 255, 255, 0.1);
             border-left-color: #60A5FA;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             animation: spin 1s linear infinite;
         }
 
@@ -136,210 +156,221 @@
     </style>
 </head>
 
-<body class="min-h-screen flex flex-col antialiased selection:bg-blue-500/30">
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
 
-    <!-- NAV -->
-    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="/dashboard.html" class="text-slate-400 hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-                    </svg>
-                </a>
-                <span class="text-lg font-bold tracking-tight"><span class="text-blue-400">AI</span> Resume
-                    Rewriter</span>
-            </div>
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2 text-xs font-mono text-slate-500">
-                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                    SYSTEM ONLINE
-                </div>
-            </div>
-        </div>
-    </nav>
+    <!-- LEFT PANEL: CONTROLS (35%) -->
+    <aside
+        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
 
-    <!-- CONTENT -->
-    <main class="flex-1 flex flex-col lg:flex-row h-[calc(100vh-64px)] overflow-hidden">
-
-        <!-- LEFT PANEL: CONTROLS & INPUTS -->
-        <div
-            class="w-full lg:w-1/3 border-r border-slate-800 bg-slate-950/50 overflow-y-auto p-6 space-y-8 custom-scrollbar">
-
-            <!-- Header -->
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
             <div>
-                <h1 class="text-2xl font-bold text-white mb-2">Build & Optimize</h1>
-                <p class="text-slate-400 text-sm">Import your resume and let our AI rewrite it for specific job
-                    opportunities.</p>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
+                    LAB</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">RESUME<span
+                        class="text-blue-500">_BUILDER</span></div>
+            </div>
+            <a href="/dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+        </div>
+
+        <!-- Scrollable Inputs -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
+
+            <!-- SECTION 1: Source Data -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><span
+                            class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                        1. Source Data</span>
+                    <button onclick="smartParse()"
+                        class="text-[10px] text-blue-400 hover:text-white transition-colors border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20">AUTO-FILL
+                        FORM</button>
+                </label>
+
+                <div class="space-y-4">
+                    <div class="group">
+                        <label class="text-[10px] text-slate-500 font-mono mb-1 block">CURRENT RESUME (TEXT)</label>
+                        <textarea id="source-resume"
+                            class="w-full h-32 bg-slate-900/60 border border-slate-700/60 rounded-xl p-4 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                            placeholder="Paste your full resume text here..."></textarea>
+                    </div>
+
+                    <div class="group">
+                        <label class="text-[10px] text-slate-500 font-mono mb-1 block">TARGET JOB DESCRIPTION</label>
+                        <textarea id="target-job"
+                            class="w-full h-32 bg-slate-900/60 border border-slate-700/60 rounded-xl p-4 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                            placeholder="Paste the job description for optimization..."></textarea>
+                    </div>
+                </div>
             </div>
 
-            <!-- SECTION 1: SOURCE -->
-            <div class="space-y-4">
-                <h2 class="text-sm font-semibold text-blue-400 uppercase tracking-wider">1. Source Data</h2>
+            <!-- SECTION 2: Edit Details -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    2. Edit Details
+                </label>
 
-                <div class="glass-panel p-4 rounded-xl">
-                    <div class="flex justify-between items-center mb-2">
-                        <label class="text-xs text-slate-300 font-medium">Current Resume (Text)</label>
-                        <button onclick="smartParse()"
-                            class="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 transition-colors">
-                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="space-y-3">
+                    <!-- Personal Info -->
+                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800" open>
+                        <summary
+                            class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
+                            <span>Personal Information</span>
+                            <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    d="M19 9l-7 7-7-7"></path>
                             </svg>
-                            Auto-Fill Form
-                        </button>
-                    </div>
-                    <textarea id="source-resume"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-slate-600"
-                        rows="6" placeholder="Paste your full resume text here..."></textarea>
-                </div>
-
-                <div class="glass-panel p-4 rounded-xl">
-                    <label class="text-xs text-slate-300 font-medium block mb-2">Target Job Description</label>
-                    <textarea id="target-job"
-                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 outline-none transition-all placeholder-slate-600"
-                        rows="4" placeholder="Paste the job description..."></textarea>
-                </div>
-            </div>
-
-            <!-- SECTION 2: EDIT FIELDS (Accordion) -->
-            <div class="space-y-4">
-                <h2 class="text-sm font-semibold text-blue-400 uppercase tracking-wider">2. Edit Details</h2>
-
-                <!-- Personal Info -->
-                <details class="glass-panel rounded-xl group" open>
-                    <summary
-                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
-                        <span>Personal Information</span>
-                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </summary>
-                    <div class="p-4 pt-0 space-y-3 border-t border-slate-800/50 mt-2">
-                        <input id="rb-name" type="text" placeholder="Full Name"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
-                        <input id="rb-email" type="email" placeholder="Email"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
-                        <input id="rb-phone" type="text" placeholder="Phone"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
-                        <input id="rb-location" type="text" placeholder="Location"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none">
-                        <textarea id="rb-summary" placeholder="Professional Summary" rows="3"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none"></textarea>
-                    </div>
-                </details>
-
-                <!-- Experience -->
-                <details class="glass-panel rounded-xl group">
-                    <summary
-                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
-                        <span>Experience</span>
-                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </summary>
-                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
-                        <div id="rb-experience-list" class="space-y-4 mb-4">
-                            <!-- Items go here -->
+                        </summary>
+                        <div class="p-4 pt-0 space-y-3 bg-slate-900/30 border-t border-slate-800">
+                            <input id="rb-name" type="text" placeholder="Full Name"
+                                class="w-full bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none">
+                            <input id="rb-email" type="email" placeholder="Email"
+                                class="w-full bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none">
+                            <div class="flex gap-3">
+                                <input id="rb-phone" type="text" placeholder="Phone"
+                                    class="w-1/2 bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none">
+                                <input id="rb-location" type="text" placeholder="Location"
+                                    class="w-1/2 bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none">
+                            </div>
+                            <textarea id="rb-summary" placeholder="Professional Summary" rows="4"
+                                class="w-full bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none resize-none"></textarea>
                         </div>
-                        <button onclick="addExperience()"
-                            class="w-full py-2 border border-slate-700 border-dashed rounded text-sm text-slate-400 hover:text-white hover:border-slate-500 transition-colors">+
-                            Add Position</button>
-                    </div>
-                </details>
+                    </details>
 
-                <!-- Education -->
-                <details class="glass-panel rounded-xl group">
-                    <summary
-                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
-                        <span>Education</span>
-                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </summary>
-                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
-                        <div id="rb-education-list" class="space-y-4 mb-4"></div>
-                        <button onclick="addEducation()"
-                            class="w-full py-2 border border-slate-700 border-dashed rounded text-sm text-slate-400 hover:text-white hover:border-slate-500 transition-colors">+
-                            Add Education</button>
-                    </div>
-                </details>
+                    <!-- Experience -->
+                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                        <summary
+                            class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
+                            <span>Experience</span>
+                            <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </summary>
+                        <div class="p-4 pt-0 bg-slate-900/30 border-t border-slate-800">
+                            <div id="rb-experience-list" class="space-y-4 mb-4 mt-4"></div>
+                            <button onclick="addExperience()"
+                                class="w-full py-3 border border-slate-700 border-dashed rounded-lg text-xs font-bold text-slate-500 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all uppercase tracking-wide">+
+                                Add Position</button>
+                        </div>
+                    </details>
 
-                <!-- Skills -->
-                <details class="glass-panel rounded-xl group">
-                    <summary
-                        class="p-4 cursor-pointer flex justify-between items-center font-medium text-slate-200 hover:text-white transition-colors">
-                        <span>Skills</span>
-                        <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
-                            stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7">
-                            </path>
-                        </svg>
-                    </summary>
-                    <div class="p-4 pt-0 border-t border-slate-800/50 mt-2">
-                        <textarea id="rb-skills" placeholder="List skills separated by comma..." rows="3"
-                            class="w-full bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-slate-300 focus:border-blue-500 outline-none"></textarea>
-                    </div>
-                </details>
+                    <!-- Education -->
+                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                        <summary
+                            class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
+                            <span>Education</span>
+                            <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </summary>
+                        <div class="p-4 pt-0 bg-slate-900/30 border-t border-slate-800">
+                            <div id="rb-education-list" class="space-y-4 mb-4 mt-4"></div>
+                            <button onclick="addEducation()"
+                                class="w-full py-3 border border-slate-700 border-dashed rounded-lg text-xs font-bold text-slate-500 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all uppercase tracking-wide">+
+                                Add Education</button>
+                        </div>
+                    </details>
+
+                    <!-- Skills -->
+                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                        <summary
+                            class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
+                            <span>Skills</span>
+                            <svg class="w-4 h-4 text-slate-500 group-open:rotate-180 transition-transform" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </summary>
+                        <div class="p-4 pt-0 bg-slate-900/30 border-t border-slate-800">
+                            <textarea id="rb-skills" placeholder="List skills separated by comma..." rows="4"
+                                class="w-full bg-slate-950 border border-slate-700/50 rounded px-3 py-2 text-sm text-slate-200 focus:border-blue-500/50 outline-none resize-none mt-2"></textarea>
+                        </div>
+                    </details>
+                </div>
             </div>
 
-            <!-- ACTION AREA -->
-            <div class="sticky bottom-0 bg-slate-950 pt-4 pb-2 border-t border-slate-800">
-                <button id="generate-btn" onclick="generateResume()"
-                    class="w-full bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-500 hover:to-violet-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-900/20 transition-all transform hover:scale-[1.02] flex items-center justify-center gap-2">
-                    <span>GENERATE & OPTIMIZE</span>
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                </button>
-            </div>
         </div>
 
-        <!-- RIGHT PANEL: PREVIEW -->
-        <div class="w-full lg:w-2/3 bg-slate-900 h-full overflow-hidden flex flex-col relative">
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+            <button id="generate-btn" onclick="generateResume()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                <span>GENERATE & OPTIMIZE</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </button>
+        </div>
 
-            <!-- Toolbar -->
-            <div
-                class="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/90 backdrop-blur z-20">
-                <h2 class="text-white font-semibold">Live Preview</h2>
-                <div class="flex gap-3">
-                    <button onclick="printResume()"
-                        class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded text-sm transition-colors flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
-                            </path>
-                        </svg>
-                        Print / PDF
-                    </button>
-                </div>
-            </div>
+    </aside>
 
-            <!-- Paper Area -->
-            <div class="flex-1 overflow-auto p-8 bg-slate-900 " id="preview-scroll-area">
-                <div class="resume-wrapper flex justify-center pb-20">
-                    <div id="resume-preview" class="resume-paper modern">
-                        <!-- Placeholder Content -->
-                        <div class="text-center mt-20 text-gray-400">
-                            <h3 class="text-xl font-bold mb-2">Ready to Build</h3>
-                            <p>Fill in your details on the left or import an existing resume to see the magic happen.
-                            </p>
+
+    <!-- RIGHT PANEL: PREVIEW (65%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                Live Preview
+            </h2>
+            <button onclick="printResume()"
+                class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                    </path>
+                </svg>
+                PDF / PRINT
+            </button>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+            id="preview-scroll-area">
+            <div class="resume-wrapper">
+                <div id="resume-preview" class="resume-paper modern">
+                    <!-- Placeholder Content -->
+                    <div class="text-center mt-32 text-gray-400">
+                        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                </path>
+                            </svg>
                         </div>
+                        <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
+                        <p class="text-sm">Import your resume or fill the details on the left.</p>
                     </div>
                 </div>
             </div>
         </div>
+
     </main>
 
-    <!-- LOGIC -->
+    <!-- LOGIC PRESERVED FROM ORIGINAL -->
     <script>
         // --- AUTH ---
         const SESSION_KEY = 'supabase.auth.token';
@@ -360,8 +391,18 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            // AUTO-LOAD DISABLED BY USER REQUEST
-            // User wants to manually enter information each time.
+            // Check for passed data from Resume Analyzer
+            const pendingSource = localStorage.getItem('rewrite_source_text');
+            const pendingJD = localStorage.getItem('rewrite_job_desc');
+
+            if (pendingSource) {
+                document.getElementById('source-resume').value = pendingSource;
+                localStorage.removeItem('rewrite_source_text'); // Clear
+            }
+            if (pendingJD) {
+                document.getElementById('target-job').value = pendingJD;
+                localStorage.removeItem('rewrite_job_desc'); // Clear
+            }
         });
 
         // --- FUNCTIONS ---
@@ -385,7 +426,6 @@
                 if (phoneMatch) document.getElementById('rb-phone').value = phoneMatch[0];
 
                 // 2. Section Splitting
-                // Simple heuristic: look for lines that are ALL CAPS or contain specific keywords followed by newlines
                 const lines = text.split(/\n+/);
                 let currentSection = 'summary'; // default start
                 let sections = { summary: [], experience: [], education: [], skills: [] };
@@ -402,9 +442,8 @@
                     if (!line || line.length < 2) continue;
 
                     let isHeader = false;
-                    // Check if header
                     for (const [key, regex] of Object.entries(keywords)) {
-                        if (regex.test(line) && line.length < 50) { // Headers usually short
+                        if (regex.test(line) && line.length < 50) {
                             currentSection = key;
                             isHeader = true;
                             break;
@@ -417,42 +456,29 @@
                 }
 
                 // 3. Populate Fields
-
-                // Summary (First few lines if not explicit?)
-                // If summary section empty, take first paragraph
-                const summaryText = sections.summary.slice(0, 5).join(' '); // Limit to first few lines if unstructured
+                const summaryText = sections.summary.slice(0, 5).join(' ');
                 document.getElementById('rb-summary').value = summaryText;
 
-                // Skills
                 if (sections.skills.length > 0) {
                     document.getElementById('rb-skills').value = sections.skills.join(', ');
                 }
 
-                // Experience (Hard part: detecting job blocks)
-                // Heuristic: Line with Date -> Start of block
+                // Experience Parsing
                 const dateRegex = /((19|20)\d{2}|Present|Current|Now)/i;
                 let currentExp = null;
                 const expContainer = document.getElementById('rb-experience-list');
-                expContainer.innerHTML = ''; // clear previous parsing attempt
+                expContainer.innerHTML = '';
 
                 sections.experience.forEach(line => {
-                    // If line has a date, assume new job start OR line is very short (Company/Title)
                     if (dateRegex.test(line) && line.length < 80) {
-                        // Save previous
                         if (currentExp) addExperience(currentExp);
-
-                        // Start new
                         currentExp = {
                             company: '',
                             role: '',
-                            dates: '',
+                            dates: line.trim(),
                             description: ''
                         };
-
-                        // Try to split date from rest
-                        currentExp.dates = line.trim(); // simplistic, user can edit
                     } else if (currentExp) {
-                        // Heuristic: If we don't have role/company yet
                         if (!currentExp.role) {
                             currentExp.role = line;
                         } else if (!currentExp.company) {
@@ -464,17 +490,15 @@
                 });
                 if (currentExp) addExperience(currentExp);
 
-                // Education
+                // Education Parsing
                 const eduContainer = document.getElementById('rb-education-list');
                 eduContainer.innerHTML = '';
                 let currentEdu = null;
 
                 sections.education.forEach(line => {
-                    // Assume new block if line contains Degree keyword or Date
                     if (/Bachelor|Master|PhD|B\.?S|M\.?S|Associate|Diploma|20\d{2}/i.test(line)) {
                         if (currentEdu) addEducation(currentEdu);
-                        currentEdu = { school: '', degree: '', dates: '' };
-                        currentEdu.degree = line;
+                        currentEdu = { school: '', degree: line, dates: '' };
                     } else if (currentEdu) {
                         if (!currentEdu.school) currentEdu.school = line;
                         else currentEdu.dates += line + ' ';
@@ -482,7 +506,6 @@
                 });
                 if (currentEdu) addEducation(currentEdu);
 
-                // alert("Smart Scan Complete. Please review and refine the extracted fields.");
                 console.log("Smart Scan Complete");
 
             } catch (e) {
@@ -496,27 +519,30 @@
 
         // 2. ADD/REMOVE ITEMS
         window.addExperience = function (data = {}) {
-            const id = Date.now();
             const div = document.createElement('div');
-            div.className = "bg-slate-900 border border-slate-700 rounded p-3 relative group";
+            div.className = "bg-slate-950 border border-slate-800 rounded p-4 relative group hover:border-blue-500/30 transition-colors";
             div.innerHTML = `
-                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs">Delete</button>
-                <input type="text" class="rb-exp-role w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Role / Job Title" value="${data.role || ''}">
-                <input type="text" class="rb-exp-company w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Company" value="${data.company || ''}">
-                <input type="text" class="rb-exp-dates w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Dates" value="${data.dates || ''}">
-                <textarea class="rb-exp-desc w-full bg-slate-800/50 rounded p-2 text-xs text-slate-300 outline-none" rows="2" placeholder="Description...">${data.description || ''}</textarea>
+                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-wider hover:text-red-400">Delete</button>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <input type="text" class="rb-exp-role w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-600 focus:border-blue-500 outline-none pb-1 font-bold" placeholder="Role / Job Title" value="${data.role || ''}">
+                    <input type="text" class="rb-exp-dates w-full bg-transparent border-b border-slate-700 text-xs text-slate-400 placeholder-slate-600 focus:border-blue-500 outline-none pb-1 text-right font-mono" placeholder="Dates" value="${data.dates || ''}">
+                </div>
+                <input type="text" class="rb-exp-company w-full bg-transparent border-b border-slate-700 text-xs text-blue-400 placeholder-slate-600 focus:border-blue-500 outline-none mb-3 pb-1" placeholder="Company" value="${data.company || ''}">
+                <textarea class="rb-exp-desc w-full bg-slate-900/50 rounded p-2 text-xs text-slate-300 outline-none resize-none border border-transparent focus:border-slate-700" rows="3" placeholder="Description...">${data.description || ''}</textarea>
             `;
             expList.appendChild(div);
         }
 
         window.addEducation = function (data = {}) {
             const div = document.createElement('div');
-            div.className = "bg-slate-900 border border-slate-700 rounded p-3 relative group";
+            div.className = "bg-slate-950 border border-slate-800 rounded p-4 relative group hover:border-blue-500/30 transition-colors";
             div.innerHTML = `
-                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-xs">Delete</button>
-                <input type="text" class="rb-edu-degree w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Degree" value="${data.degree || ''}">
-                <input type="text" class="rb-edu-school w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="School" value="${data.school || ''}">
-                <input type="text" class="rb-edu-dates w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-500 focus:border-blue-500 outline-none mb-2 pb-1" placeholder="Dates" value="${data.dates || ''}">
+                <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-wider hover:text-red-400">Delete</button>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <input type="text" class="rb-edu-degree w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-600 focus:border-blue-500 outline-none pb-1 font-bold" placeholder="Degree" value="${data.degree || ''}">
+                    <input type="text" class="rb-edu-dates w-full bg-transparent border-b border-slate-700 text-xs text-slate-400 placeholder-slate-600 focus:border-blue-500 outline-none pb-1 text-right font-mono" placeholder="Dates" value="${data.dates || ''}">
+                </div>
+                <input type="text" class="rb-edu-school w-full bg-transparent border-b border-slate-700 text-xs text-blue-400 placeholder-slate-600 focus:border-blue-500 outline-none pb-1" placeholder="School" value="${data.school || ''}">
             `;
             eduList.appendChild(div);
         }
@@ -528,12 +554,12 @@
 
             // 1. Loading UI
             btn.disabled = true;
-            btn.innerHTML = `<div class="loader"></div> <span class="ml-2">OPTIMIZING...</span>`;
+            btn.innerHTML = `<div class="loader"></div> <span class="ml-2 animate-pulse">OPTIMIZING...</span>`;
 
             try {
                 // 2. Gather Data
                 const payload = {
-                    action: 'optimize', // Matches app.js
+                    action: 'optimize',
                     user_data: {
                         personal: {
                             name: document.getElementById('rb-name').value,
@@ -575,11 +601,6 @@
                     const sessionStr = localStorage.getItem(APP_SESSION_KEY);
                     if (sessionStr) email = JSON.parse(sessionStr).email;
                 } catch (e) { }
-                // Inject email for credits
-                // Wait, app.js logic sent data separately? No, it sent user_data inside body.
-                // We'll mimic the exact fetch from app.js line 1771
-
-                // Credit check? We'll skip client side credit check for now and let backend handle or user can check dashboard
 
                 const response = await fetch('/api', {
                     method: 'POST',
@@ -605,11 +626,9 @@
 
         function renderPreview(result, originalData) {
             const container = document.getElementById('resume-preview');
-            const data = result; // API returns optimized data usually in root or data field? 
-            // Checking app.js line 1788, it seems result IS the data object merged?
-            // "if (result.error) ... else ... result.personal.name"
+            const data = result;
 
-            // Fallbacks to original data if API didn't return specific fields
+            // Fallbacks
             const p = data.personal || originalData.personal;
             const exps = data.experience || originalData.experience;
             const edus = data.education || originalData.education;
