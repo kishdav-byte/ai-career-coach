@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Assistant - Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        slate: { 850: '#151F32', 900: '#0F172A', 950: '#020617' },
+                        blue: { 450: '#60A5FA', 550: '#3B82F6' },
+                    },
+                    animation: {
+                        'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        'pulse-glow': {
+                            '0%, 100%': { opacity: 0.6, boxShadow: '0 0 0 0 rgba(59, 130, 246, 0.4)' },
+                            '50%': { opacity: 1, boxShadow: '0 0 15px 0 rgba(59, 130, 246, 0.6)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Grid Background pattern */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image:
+                linear-gradient(to right, rgba(30, 41, 59, 0.3) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(30, 41, 59, 0.3) 1px, transparent 1px);
+        }
+
+        /* Glassmorphism */
+        .glass {
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Typing Dots */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typing {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Message Fade In */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-anim {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-300 min-h-screen flex flex-col font-sans relative overflow-hidden">
+
+    <!-- Background Grid -->
+    <div class="absolute inset-0 bg-grid pointer-events-none z-0"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-slate-950 via-transparent to-slate-950 pointer-events-none z-0">
+    </div>
+
+    <!-- HEADER -->
+    <header
+        class="w-full glass h-16 flex items-center justify-between px-6 z-20 border-b border-slate-800/50 sticky top-0">
+        <div class="flex items-center gap-4">
+            <h1 class="text-white font-mono font-bold tracking-[0.2em] text-sm uppercase flex items-center gap-2">
+                <span class="text-blue-500">///</span>
+                LAB ASSISTANT
+            </h1>
+            <div
+                class="hidden md:flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/50 border border-slate-800">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-[pulse_2s_infinite]"></span>
+                <span class="text-[10px] font-mono font-medium text-green-400 tracking-wide">SYSTEM ONLINE</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+            <a href="/dashboard.html"
+                class="text-[10px] font-mono text-slate-500 hover:text-white transition-colors tracking-widest">[EXIT TO
+                DASHBOARD]</a>
+        </div>
+    </header>
+
+    <!-- CHAT CONTAINER -->
+    <main
+        class="flex-1 overflow-y-auto custom-scroll p-4 md:p-6 pb-48 relative z-10 w-full max-w-4xl mx-auto flex flex-col gap-6"
+        id="chat-container">
+
+        <!-- Welcome Message -->
+        <div class="flex gap-4 message-anim opacity-0">
+            <div
+                class="w-8 h-8 rounded bg-blue-600/20 border border-blue-500/50 flex items-center justify-center shrink-0 mt-1">
+                <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z" />
+                    <path d="M12 8v4l3 3" />
+                </svg>
+            </div>
+            <div class="max-w-[85%] bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none p-5 shadow-lg">
+                <p class="text-sm leading-relaxed text-slate-300">
+                    <span class="text-blue-400 font-mono text-xs font-bold block mb-2">Initialize Sequence...</span>
+                    Hello. I am your Strategy Lab Assistant. I am calibrated to analyze career trajectories, optimize
+                    negotiation leverage, and critique professional assets. <br><br>
+                    How can I advance your position today?
+                </p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER INPUT ZONE -->
+    <div
+        class="fixed bottom-0 left-0 w-full z-30 p-4 md:p-6 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-20">
+        <div class="max-w-4xl mx-auto flex flex-col gap-4">
+
+            <!-- Quick Chips -->
+            <div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar mask-gradient" id="quick-chips">
+                <button onclick="sendQuickPrompt('Critique my elevator pitch')"
+                    class="whitespace-nowrap px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-900/40 text-[10px] font-mono text-slate-400 hover:border-blue-500 hover:text-blue-400 transition-all hover:shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                    Critique my elevator pitch
+                </button>
+                <button onclick="sendQuickPrompt('Explain STAR Method')"
+                    class="whitespace-nowrap px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-900/40 text-[10px] font-mono text-slate-400 hover:border-blue-500 hover:text-blue-400 transition-all hover:shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                    Explain 'STAR Method'
+                </button>
+                <button onclick="sendQuickPrompt('Salary negotiation tactics')"
+                    class="whitespace-nowrap px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-900/40 text-[10px] font-mono text-slate-400 hover:border-blue-500 hover:text-blue-400 transition-all hover:shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                    Salary negotiation tactics
+                </button>
+                <button onclick="sendQuickPrompt('Review my resume summary')"
+                    class="whitespace-nowrap px-4 py-1.5 rounded-full border border-slate-700/50 bg-slate-900/40 text-[10px] font-mono text-slate-400 hover:border-blue-500 hover:text-blue-400 transition-all hover:shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+                    Review my resume summary
+                </button>
+            </div>
+
+            <!-- Input Bar -->
+            <div
+                class="glass rounded-xl p-2 pl-4 flex items-center gap-3 shadow-[0_0_30px_-5px_rgba(0,0,0,0.5)] transition-all focus-within:ring-1 focus-within:ring-blue-500/50 focus-within:shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+                <input type="text" id="user-input"
+                    class="flex-1 bg-transparent border-none outline-none text-slate-200 placeholder-slate-600 text-sm font-medium h-10"
+                    placeholder="Input command or query..." autocomplete="off">
+
+                <button onclick="sendMessage()" id="send-btn"
+                    class="w-10 h-10 rounded-lg bg-blue-600 hover:bg-blue-500 text-white flex items-center justify-center transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m22 2-7 20-4-9-9-4Z" />
+                        <path d="M22 2 11 13" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="text-center">
+                <p class="text-[10px] text-slate-600 font-mono tracking-tight">AI can make mistakes. Verify critical
+                    career data.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        let isProcessing = false;
+
+        // -- MOCK RESPONSES --
+        const mockResponses = {
+            "default": "I've analyzed your input. Based on current market trends, I suggest we focus on quantifying your impact. Can you provide specific metrics regarding your last role?",
+            "star": "The **STAR Method** (Situation, Task, Action, Result) is the gold standard for behavioral interviews.\n\n* **Situation**: Briefly set the scene.\n* **Task**: Describe your specific responsibility.\n* **Action**: Detail the steps *you* took (use 'I', not 'We').\n* **Result**: Quantify the outcome (e.g., 'Increased revenue by 20%').\n\nWould you like to practice a STAR response?",
+            "salary": "Negotiation requires leverage. \n1. **Anchor High**: Don't provide the first number unless you've done deep research.\n2. **Focus on Value**: Pivot from 'I need' to 'The market rate for this impact is...'.\n3. **Silence**: After stating your number, stop talking. \n\nWhat is your target base salary?",
+            "elevator": "An elevator pitch must be a hook, not a autobiography. \n\n*Target Structure:*\n1. **The Problem** you solve.\n2. **Your Unique Approach**.\n3. **Social Proof** (Companies/Metrics).\n\nPaste your current pitch below for a breakdown."
+        };
+
+        // EVENT LISTENERS
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !isProcessing) sendMessage();
+        });
+
+        function sendQuickPrompt(text) {
+            if (isProcessing) return;
+            userInput.value = text;
+            sendMessage();
+        }
+
+        // --- CORE LOGIC ---
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. User Message
+            appendMessage('user', text);
+            userInput.value = '';
+            isProcessing = true;
+            sendBtn.disabled = true;
+
+            // 2. Scroll
+            scrollToBottom();
+
+            // 3. Thinking State
+            const loadingId = showThinking();
+            scrollToBottom();
+
+            // 4. AI Response (Mock)
+            setTimeout(() => {
+                removeThinking(loadingId);
+
+                // Determine response based on keywords
+                let responseText = mockResponses.default;
+                const lower = text.toLowerCase();
+                if (lower.includes('star')) responseText = mockResponses.star;
+                if (lower.includes('salary') || lower.includes('negotiat')) responseText = mockResponses.salary;
+                if (lower.includes('elevator') || lower.includes('pitch')) responseText = mockResponses.elevator;
+
+                streamResponse(responseText);
+
+            }, 1500); // 1.5s thinking delay
+        }
+
+        function appendMessage(role, text) {
+            const div = document.createElement('div');
+            div.className = "flex gap-4 message-anim opacity-0 " + (role === 'user' ? "flex-row-reverse" : "");
+
+            let icon = '';
+            let bubbleClass = '';
+
+            if (role === 'user') {
+                icon = `<div class="w-8 h-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        </div>`;
+                bubbleClass = "bg-gradient-to-br from-blue-600 to-blue-500 text-white rounded-2xl rounded-tr-none px-5 py-3 shadow-[0_0_15px_rgba(37,99,235,0.3)] max-w-[80%]";
+            } else {
+                icon = `<div class="w-8 h-8 rounded bg-blue-600/20 border border-blue-500/50 flex items-center justify-center shrink-0 mt-1">
+                            <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"/><path d="M12 8v4l3 3"/></svg>
+                        </div>`;
+                bubbleClass = "bg-slate-900 border border-slate-800 text-slate-300 rounded-2xl rounded-tl-none p-5 shadow-lg max-w-[85%]";
+            }
+
+            div.innerHTML = `
+                ${icon}
+                <div class="${bubbleClass}">
+                    <div class="text-sm leading-relaxed prose prose-invert max-w-none">
+                        ${role === 'user' ? text : ''} <!-- AI Text filled later if streaming -->
+                    </div>
+                </div>
+            `;
+
+            chatContainer.appendChild(div);
+            return div.querySelector('.prose'); // Return content container for streaming
+        }
+
+        function showThinking() {
+            const id = 'thinking-' + Date.now();
+            const div = document.createElement('div');
+            div.id = id;
+            div.className = "flex gap-4 message-anim opacity-0";
+            div.innerHTML = `
+                 <div class="w-8 h-8 rounded bg-blue-600/20 border border-blue-500/50 flex items-center justify-center shrink-0 mt-1">
+                    <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 16a6 6 0 1 1 6-6 6 6 0 0 1-6 6z"/><path d="M12 8v4l3 3"/></svg>
+                </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl rounded-tl-none px-4 py-3 shadow-lg flex items-center gap-1">
+                    <div class="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot"></div>
+                    <div class="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot"></div>
+                    <div class="w-1.5 h-1.5 bg-blue-500 rounded-full typing-dot"></div>
+                </div>
+            `;
+            chatContainer.appendChild(div);
+            return id;
+        }
+
+        function removeThinking(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function streamResponse(fullText) {
+            const contentDiv = appendMessage('ai', ''); // Create empty bubble
+            let parsedText = marked.parse(fullText); // Parse markdown first (simple mock)
+
+            // For simple streaming effect, we will just stream plain text or simplified HTML. 
+            // Better: Stream the raw text, but parse it at the end? 
+            // Hybrid: Split by words and append.
+
+            const words = fullText.split(' ');
+            let i = 0;
+
+            const interval = setInterval(() => {
+                if (i >= words.length) {
+                    clearInterval(interval);
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                    // Final render with full markdown to ensure formatting is correct
+                    contentDiv.innerHTML = marked.parse(fullText);
+                    scrollToBottom();
+                    return;
+                }
+
+                // Append word
+                // Note: Intermediary state might look raw if we don't parse md. 
+                // For this mock, we'll just append text content then swap at end.
+                contentDiv.textContent += (i === 0 ? '' : ' ') + words[i];
+                scrollToBottom();
+                i++;
+            }, 50); // Speed of typing
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+    </script>
+</body>
+
+</html>
