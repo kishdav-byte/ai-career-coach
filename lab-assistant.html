@@ -264,20 +264,36 @@
             const loadingId = showThinking();
             scrollToBottom();
 
-            // 4. AI Response (Mock)
-            setTimeout(() => {
-                removeThinking(loadingId);
+            // 4. API Call
+            fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    action: 'lab_assistant_chat',
+                    message: text
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    removeThinking(loadingId);
 
-                // Determine response based on keywords
-                let responseText = mockResponses.default;
-                const lower = text.toLowerCase();
-                if (lower.includes('star')) responseText = mockResponses.star;
-                if (lower.includes('salary') || lower.includes('negotiat')) responseText = mockResponses.salary;
-                if (lower.includes('elevator') || lower.includes('pitch')) responseText = mockResponses.elevator;
-
-                streamResponse(responseText);
-
-            }, 1500); // 1.5s thinking delay
+                    if (data.response) {
+                        streamResponse(data.response);
+                    } else if (data.error) {
+                        streamResponse("**System Error:** " + data.error);
+                        isProcessing = false;
+                        sendBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    removeThinking(loadingId);
+                    streamResponse("**Connection Error:** Unable to reach the Neural Net. Please try again.");
+                    console.error(err);
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                });
         }
 
         function appendMessage(role, text) {
