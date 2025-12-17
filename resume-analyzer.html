@@ -625,6 +625,13 @@
 
                 // Data Normalization
                 let data = result.data;
+
+                // DEBUG: Check if save failed
+                if (result.debug_save_status && !result.debug_save_status.startsWith('Success')) {
+                    console.warn("Resume Save Failed:", result.debug_save_status);
+                    alert("Debug: Saving failed -> " + result.debug_save_status);
+                }
+
                 if (typeof data === 'string') {
                     // Clean markdown
                     let clean = data.trim().replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '');

@@ -1334,44 +1334,58 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                 pass
             log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
             
-            # ---------------------------------------------------------
-            # SAVE TO DATABASE (Fix for Empty Dashboard)
+            # SAVE TO DATABASE (Debug/Robust Version)
             # ---------------------------------------------------------
             input_user_id = data.get('user_id')
+            save_status = "Skipped"
+            save_error = None
             
-            if (email or input_user_id) and supabase_admin:
+            if not supabase_admin:
+                save_status = "Failed: No Admin Client"
+            else:
                 try:
                     user_id = input_user_id
                     
-                    # 1. Resolve User ID if not provided
+                    # 1. Resolve User ID
                     if not user_id and email:
                         u_res = supabase_admin.table('users').select('id').eq('email', email).execute()
                         if u_res.data:
                             user_id = u_res.data[0]['id']
+                        else:
+                            save_status = "Failed: User Not Found by Email"
                     
                     if user_id:
-                        
                         # 2. Extract Data
                         try:
-                            res_json = json.loads(text)
-                            overall_score = res_json.get('overall_score', 0)
-                            job_tile_extracted = res_json.get('job_title', 'Unknown Role')
+                            # Re-parse to be safe or use existing object if available
+                            # 'res_json' might be defined in try block above (line 1330), but 'text' is safer source here
+                            payload_json = json.loads(text)
+                            overall_score = payload_json.get('overall_score', 0)
+                            job_tile_extracted = payload_json.get('job_title', 'Unknown Role')
                             
                             # 3. Insert Record
                             resumes_data = {
                                 "user_id": user_id,
                                 "overall_score": overall_score,
                                 "job_title": job_tile_extracted,
-                                "content": res_json # Store full analysis
+                                "content": payload_json
                             }
                             supabase_admin.table('resumes').insert(resumes_data).execute()
-                            print(f"SUCCESS: Saved Resume Analysis for {email} (Score: {overall_score})")
+                            save_status = "Success"
+                            print(f"SUCCESS: Saved Resume Analysis for {user_id}")
                         except Exception as parse_err:
-                            print(f"Error parsing/saving resume JSON: {parse_err}")
+                            save_status = f"Failed: Parse/Insert Error ({str(parse_err)})"
+                            print(f"Resume Save Error: {parse_err}")
                 except Exception as db_err:
-                    print(f"Error saving resume to DB: {db_err}")
+                    save_status = f"Failed: DB Error ({str(db_err)})"
+                    print(f"Resume DB Error: {db_err}")
 
-        return jsonify({"data": text})
+        # Return with debug info
+        return jsonify({
+            "data": text,
+            "debug_save_status": save_status, 
+            "debug_save_error": str(save_error) if save_error else None
+        })
 
     except Exception as e:
         print(f"OpenAI API error: {e}")
