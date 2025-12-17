@@ -338,7 +338,8 @@ def create_checkout_session():
         cancel_url = data.get('cancelUrl')
         email = data.get('email')
         plan_type = data.get('plan_type') # 'strategy_plan', 'strategy_bundle', etc.
-        
+        feature = data.get('feature') # Fix: Define feature variable
+
         # Determine Price ID
         if plan_type:
             price_id = PRICE_IDS.get(plan_type)
