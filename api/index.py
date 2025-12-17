@@ -1798,54 +1798,65 @@ def generate_strategy_tool():
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
     """Unified endpoint to Get or Add jobs."""
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-         return jsonify({"error": "Missing Authorization header"}), 401
-    
-    token = auth_header.split(" ")[1]
-    
-    # Verify User
-    if not supabase:
-         return jsonify({"error": "DB Config Error"}), 500
-    
-    user_res = supabase.auth.get_user(token)
-    if not user_res.user:
-         return jsonify({"error": "Invalid token"}), 401
-         
-    user_id = user_res.user.id
-
-    if request.method == 'GET':
+    try:
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+             return jsonify({"error": "Missing Authorization header"}), 401
+        
+        token = auth_header.split(" ")[1]
+        
+        # Verify User
+        if not supabase:
+             return jsonify({"error": "DB Config Error"}), 500
+        
         try:
-            # Return jobs sorted by newest
-            res = supabase_admin.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
-            return jsonify(res.data)
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+            user_res = supabase.auth.get_user(token)
+            if not user_res.user:
+                 return jsonify({"error": "Invalid token"}), 401
+            user_id = user_res.user.id
+        except Exception as auth_e:
+            print(f"Auth Check Failed: {auth_e}")
+            return jsonify({"error": f"Auth Verification Failed: {str(auth_e)}"}), 401
 
-    elif request.method == 'POST':
-        try:
-            data = request.json
-            job_title = data.get('job_title')
-            company_name = data.get('company_name')
-            job_description = data.get('job_description')
+        if request.method == 'GET':
+            try:
+                # Return jobs sorted by newest
+                db = supabase_admin if supabase_admin else supabase
+                res = db.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+                return jsonify(res.data)
+            except Exception as e:
+                print(f"Fetch Jobs Error: {e}")
+                return jsonify({"error": str(e)}), 500
 
-            if not job_title or not company_name:
-                return jsonify({"error": "Job Title and Company are required"}), 400
+        elif request.method == 'POST':
+            try:
+                data = request.json
+                job_title = data.get('job_title')
+                company_name = data.get('company_name')
+                job_description = data.get('job_description')
 
-            new_job = {
-                "user_id": user_id,
-                "job_title": job_title,
-                "company_name": company_name,
-                "job_description": job_description,
-                "status": "Identified"
-            }
-            
-            res = supabase_admin.table('user_jobs').insert(new_job).execute()
-            # Return the created object
-            return jsonify(res.data[0] if res.data else {})
-        except Exception as e:
-            print(f"Add Job Error: {e}")
-            return jsonify({"error": str(e)}), 500
+                if not job_title or not company_name:
+                    return jsonify({"error": "Job Title and Company are required"}), 400
+
+                new_job = {
+                    "user_id": user_id,
+                    "job_title": job_title,
+                    "company_name": company_name,
+                    "job_description": job_description,
+                    "status": "Identified"
+                }
+                
+                db = supabase_admin if supabase_admin else supabase
+                res = db.table('user_jobs').insert(new_job).execute()
+                # Return the created object
+                return jsonify(res.data[0] if res.data else {})
+            except Exception as e:
+                print(f"Add Job Error: {e}")
+                return jsonify({"error": str(e)}), 500
+
+    except Exception as outer_e:
+        print(f"Manage Jobs Critical Error: {outer_e}")
+        return jsonify({"error": f"Critical Server Error: {str(outer_e)}"}), 500
 
 @app.route('/api/jobs/<job_id>', methods=['DELETE', 'PUT'])
 def job_operations(job_id):
