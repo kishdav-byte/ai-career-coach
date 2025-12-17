@@ -611,7 +611,8 @@
                     body: JSON.stringify({
                         action: 'analyze_resume',
                         email: email,
-                        user_id: userId, // Pass explicitly
+                        user_id: userId,
+                        filename: filenameDisplay.textContent || "resume.pdf",
                         resume: currentFileText,
                         job_description: jobDescInput.value // Pass JD if available
                     })

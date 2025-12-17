@@ -1368,7 +1368,9 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                                 "user_id": user_id,
                                 "overall_score": overall_score,
                                 "job_title": job_tile_extracted,
-                                "content": payload_json
+                                "content": payload_json,
+                                "file_name": data.get('filename', 'resume_analysis.pdf'),
+                                "status": "analyzed"
                             }
                             supabase_admin.table('resumes').insert(resumes_data).execute()
                             save_status = "Success"
