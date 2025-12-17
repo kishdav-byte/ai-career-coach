@@ -44,10 +44,9 @@ const Dashboard = () => {
                     .limit(1);
 
                 // 2. Get Strategy Count (Active Jobs)
-                const { count: jobCount } = await supabase.from('job_tracker')
+                const { count: jobCount } = await supabase.from('user_jobs')
                     .select('*', { count: 'exact', head: true })
-                    .eq('user_id', user.id)
-                    .eq('is_active', true);
+                    .eq('user_id', user.id);
 
                 // 3. Get Plan Details
                 const { data: profile } = await supabase.from('profiles')
