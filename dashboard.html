@@ -96,17 +96,13 @@
             </div>
 
             <!-- Navigation Stack -->
-            <nav class="flex-1 px-4 space-y-2 mt-4">
-
-                <!-- Dashboard (Active) -->
+            <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scroll" id="nav-accordion">
+                <!-- Dashboard -->
                 <a href="/dashboard.html"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group bg-teal/10 text-teal">
-                    <div
-                        class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-teal rounded-r-full shadow-[0_0_10px_rgba(32,201,151,0.5)]">
-                    </div>
+                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5"
+                    data-path="/dashboard.html">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="text-teal">
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <rect width="7" height="9" x="3" y="3" rx="1" />
                         <rect width="7" height="5" x="14" y="3" rx="1" />
                         <rect width="7" height="9" x="14" y="12" rx="1" />
@@ -115,50 +111,164 @@
                     <span>Dashboard</span>
                 </a>
 
-                <!-- The Clinic -->
-                <a href="/resume-analyzer.html"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="text-slate-500 group-hover:text-white">
-                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <path d="M12 18v-4" />
-                        <path d="M8 18v-2" />
-                        <path d="M16 18v-6" />
-                    </svg>
-                    <span>The Clinic</span>
-                </a>
+                <!-- The Clinic Category -->
+                <div class="nav-group">
+                    <button onclick="toggleGroup('clinic')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
+                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <path d="M16 13H8" />
+                                <path d="M16 17H8" />
+                                <path d="M10 9H8" />
+                            </svg>
+                            <span>The Clinic</span>
+                        </div>
+                        <svg id="icon-clinic" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="text-slate-500 transform transition-transform duration-200">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <div id="group-clinic" class="hidden pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                        <a href="/resume-analyzer.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/resume-analyzer.html">Resume Scanner</a>
+                        <a href="/resume-rewriter.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/resume-rewriter.html">Executive Rewrite</a>
+                        <a href="/app.html#linkedin"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/app.html#linkedin">LinkedIn Optimizer</a>
+                    </div>
+                </div>
 
-                <!-- The Simulator -->
-                <a href="/role-reversal.html"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="text-slate-500 group-hover:text-white">
-                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                        <line x1="12" x2="12" y1="19" y2="22" />
-                    </svg>
-                    <span>The Simulator</span>
-                </a>
+                <!-- The Simulator Category -->
+                <div class="nav-group">
+                    <button onclick="toggleGroup('simulator')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                                <line x1="12" x2="12" y1="19" y2="22" />
+                            </svg>
+                            <span>The Simulator</span>
+                        </div>
+                        <svg id="icon-simulator" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="text-slate-500 transform transition-transform duration-200">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <div id="group-simulator" class="hidden pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                        <a href="/app.html#interview"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/app.html#interview">Mock Interview</a>
+                        <a href="/role-reversal.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/role-reversal.html">Role Reversal</a>
+                        <a href="/role-reversal.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/role-reversal.html">STAR Drill</a>
+                    </div>
+                </div>
 
-                <!-- Strategy -->
-                <a href="/strategy/strategy-log.html"
-                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="text-slate-500 group-hover:text-white">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="22" x2="18" y1="12" y2="12" />
-                        <line x1="6" x2="2" y1="12" y2="12" />
-                        <line x1="12" x2="12" y1="6" y2="2" />
-                        <line x1="12" x2="12" y1="22" y2="18" />
-                    </svg>
-                    <span>Strategy</span>
-                </a>
-
+                <!-- Strategy Category -->
+                <div class="nav-group">
+                    <button onclick="toggleGroup('strategy')"
+                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                        <div class="flex items-center gap-3">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="22" y1="12" x2="18" y2="12" />
+                                <line x1="6" y1="12" x2="2" y2="12" />
+                                <line x1="12" y1="6" x2="12" y2="2" />
+                                <line x1="12" y1="22" x2="12" y2="18" />
+                            </svg>
+                            <span>Strategy</span>
+                        </div>
+                        <svg id="icon-strategy" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"
+                            class="text-slate-500 transform transition-transform duration-200">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                    <div id="group-strategy" class="hidden pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                        <a href="/strategy/strategy-log.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/strategy/strategy-log.html">Job Tracker</a>
+                        <a href="/strategy/30-60-90.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/strategy/30-60-90.html">30-60-90 Plan</a>
+                        <a href="/strategy/closer.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            data-path="/strategy/closer.html">Salary Negotiation</a>
+                    </div>
+                </div>
             </nav>
+
+            <script>
+                function toggleGroup(id) {
+                    const group = document.getElementById('group-' + id);
+                    const icon = document.getElementById('icon-' + id);
+
+                    if (group.classList.contains('hidden')) {
+                        group.classList.remove('hidden');
+                        icon.style.transform = 'rotate(90deg)';
+                    } else {
+                        group.classList.add('hidden');
+                        icon.style.transform = 'rotate(0deg)';
+                    }
+                }
+
+                function initSidebar() {
+                    const path = window.location.pathname;
+                    const hash = window.location.hash;
+                    const fullPath = path + hash;
+
+                    // 1. Highlight Active Link
+                    const links = document.querySelectorAll('.nav-sub-item, .nav-item');
+                    links.forEach(link => {
+                        const linkPath = link.getAttribute('data-path');
+                        // Simple match or startsWith for deeper
+                        if (fullPath.includes(linkPath) || (linkPath === '/dashboard.html' && path === '/dashboard.html')) {
+                            // Active Style
+                            link.classList.remove('text-slate-400');
+                            link.classList.add('text-[#20C997]', 'bg-[#20C997]/5');
+
+                            // Add indicator
+                            const indicator = document.createElement('div');
+                            indicator.className = 'absolute -left-[9px] top-1/2 -translate-y-1/2 w-1 h-4 bg-[#20C997] rounded-full shadow-[0_0_8px_#20C997]';
+                            link.appendChild(indicator);
+
+                            // Expand Parent Group
+                            const parentGroup = link.closest('.nav-group');
+                            if (parentGroup) {
+                                // Find the button inside to trigger toggle or manually toggle
+                                const btn = parentGroup.querySelector('button');
+                                const onclickAttr = btn.getAttribute('onclick');
+                                const groupIdMatch = onclickAttr.match(/toggleGroup\('(.+)'\)/);
+                                if (groupIdMatch) {
+                                    toggleGroup(groupIdMatch[1]);
+                                }
+                            }
+                        }
+                    });
+                }
+
+                document.addEventListener('DOMContentLoaded', initSidebar);
+            </script>
 
             <!-- Footer / User Profile -->
             <div class="p-4 border-t border-white/5">
