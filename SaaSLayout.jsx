@@ -8,76 +8,58 @@ import {
     Menu,
     X,
     ChevronDown,
-    ChevronRight,
-    Circle
+    ChevronRight
 } from 'lucide-react';
 
 const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } }) => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [currentPath, setCurrentPath] = useState('');
-    // Categories that are expanded by default or by user interaction
-    const [expandedCategories, setExpandedCategories] = useState(new Set(['clinic', 'simulator', 'strategy']));
+    const [expandedCategories, setExpandedCategories] = useState(new Set(['The Clinic', 'The Simulator', 'Strategy']));
 
     useEffect(() => {
-        // Set current path for highlighting
-        setCurrentPath(window.location.pathname);
-
-        // Auto-expand category based on active path
-        const path = window.location.pathname;
-        if (path.includes('/clinic')) setExpandedCategories(prev => new Set([...prev, 'clinic']));
-        if (path.includes('/simulator')) setExpandedCategories(prev => new Set([...prev, 'simulator']));
-        if (path.includes('/strategy')) setExpandedCategories(prev => new Set([...prev, 'strategy']));
+        if (typeof window !== 'undefined') {
+            setCurrentPath(window.location.pathname);
+        }
     }, []);
 
-    const toggleCategory = (id) => {
+    const toggleCategory = (name) => {
         setExpandedCategories(prev => {
             const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
+            if (next.has(name)) next.delete(name);
+            else next.add(name);
             return next;
         });
     };
 
     const navItems = [
-        {
-            name: 'Dashboard',
-            icon: LayoutGrid,
-            link: '/dashboard',
-            type: 'link'
-        },
+        { name: 'Dashboard', path: '/dashboard.html', icon: LayoutGrid },
         {
             name: 'The Clinic',
             icon: FileText,
-            id: 'clinic',
-            type: 'category',
-            subItems: [
-                { name: 'Resume Scanner', link: '/clinic/scan' },
-                { name: 'Executive Rewrite', link: '/clinic/rewrite' },
-                { name: 'LinkedIn Optimizer', link: '/clinic/linkedin' }
+            submenu: [
+                { name: 'Resume Scanner', path: '/resume-analyzer.html' },
+                { name: 'Executive Rewrite', path: '/resume-rewriter.html' },
+                { name: 'LinkedIn Optimizer', path: '/app.html#linkedin' }
             ]
         },
         {
             name: 'The Simulator',
             icon: Mic,
-            id: 'simulator',
-            type: 'category',
-            subItems: [
-                { name: 'Mock Interview', link: '/simulator/interview' },
-                { name: 'Role Reversal', link: '/simulator/role-reversal' },
-                { name: 'STAR Drill', link: '/simulator/star' }
+            submenu: [
+                { name: 'Mock Interview', path: '/app.html#interview' },
+                { name: 'Role Reversal', path: '/role-reversal.html' },
+                { name: 'STAR Method Drill', path: '/role-reversal.html' }
             ]
         },
         {
             name: 'Strategy',
             icon: Crosshair,
-            id: 'strategy',
-            type: 'category',
-            subItems: [
-                { name: 'Job Tracker', link: '/strategy/tracker' },
-                { name: '30-60-90 Plan', link: '/strategy/30-60-90' },
-                { name: 'Salary Negotiation', link: '/strategy/negotiation' }
+            submenu: [
+                { name: 'Job Tracker', path: '/strategy/strategy-log.html' },
+                { name: '30-60-90 Plan', path: '/strategy/30-60-90.html' },
+                { name: 'Salary Negotiation', path: '/strategy/closer.html' }
             ]
-        },
+        }
     ];
 
     return (
@@ -96,44 +78,41 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                 className={`fixed inset-y-0 left-0 w-[260px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 
         ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static`}
             >
-
-                {/* Logo Area */}
+                {/* Logo */}
                 <div className="h-20 flex items-center px-6 mt-4 lg:mt-0">
                     <h1 className="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
                         AI Career Coach
                     </h1>
                 </div>
 
-                {/* Navigation Stack */}
+                {/* Nav Items */}
                 <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
-                    {navItems.map((item) => {
+                    {navItems.map((item, index) => {
                         const Icon = item.icon;
-                        const isExpanded = expandedCategories.has(item.id);
-                        const isDashboardActive = item.link === currentPath;
 
-                        if (item.type === 'link') {
+                        // 1. Leaf Node (No Submenu)
+                        if (!item.submenu) {
+                            const isActive = currentPath === item.path;
                             return (
                                 <a
-                                    key={item.name}
-                                    href={item.link}
+                                    key={index}
+                                    href={item.path}
                                     className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all relative group mb-1
-                                    ${isDashboardActive
-                                            ? 'bg-teal-500/10 text-[#20C997]'
-                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                        }`}
+                  ${isActive ? 'bg-teal-500/10 text-[#20C997]' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                                 >
-                                    <Icon size={18} className={isDashboardActive ? 'text-[#20C997]' : 'text-slate-500 group-hover:text-white'} />
+                                    <Icon size={18} className={isActive ? 'text-[#20C997]' : 'text-slate-500 group-hover:text-white'} />
                                     <span>{item.name}</span>
-                                    {isDashboardActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 bg-[#20C997] rounded-r-full"></div>}
+                                    {isActive && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-1 bg-[#20C997] rounded-r-full"></div>}
                                 </a>
                             );
                         }
 
-                        // Category
+                        // 2. Accordion (Has Submenu)
+                        const isExpanded = expandedCategories.has(item.name);
                         return (
-                            <div key={item.id} className="mb-2">
+                            <div key={index} className="mb-2">
                                 <button
-                                    onClick={() => toggleCategory(item.id)}
+                                    onClick={() => toggleCategory(item.name)}
                                     className="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group"
                                 >
                                     <div className="flex items-center gap-3">
@@ -143,20 +122,16 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                                     {isExpanded ? <ChevronDown size={14} className="text-slate-500" /> : <ChevronRight size={14} className="text-slate-500" />}
                                 </button>
 
-                                {/* Sub-Items */}
                                 {isExpanded && (
                                     <div className="ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                                        {item.subItems.map((sub) => {
-                                            const isSubActive = currentPath === sub.link;
+                                        {item.submenu.map((sub, subIndex) => {
+                                            const isSubActive = currentPath === sub.path;
                                             return (
                                                 <a
-                                                    key={sub.name}
-                                                    href={sub.link}
+                                                    key={subIndex}
+                                                    href={sub.path}
                                                     className={`block px-3 py-2 text-sm rounded-md transition-all relative
-                                                    ${isSubActive
-                                                            ? 'text-[#20C997] bg-[#20C997]/5'
-                                                            : 'text-slate-400 hover:text-white hover:bg-white/5'
-                                                        }`}
+                          ${isSubActive ? 'text-[#20C997] bg-[#20C997]/5' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
                                                 >
                                                     {isSubActive && (
                                                         <div className="absolute -left-[9px] top-1/2 -translate-y-1/2 w-1 h-4 bg-[#20C997] rounded-full shadow-[0_0_8px_#20C997]"></div>
@@ -172,7 +147,7 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                     })}
                 </nav>
 
-                {/* Footer / User Profile */}
+                {/* User Profile */}
                 <div className="p-4 border-t border-white/5 mt-auto">
                     <div className="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
                         <div className="flex items-center gap-3">
@@ -200,7 +175,6 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                 </main>
             </div>
 
-            {/* Mobile Overlay */}
             {isSidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
