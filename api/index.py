@@ -1332,8 +1332,38 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                     meta['job_title'] = res_json.get('job_title')
             except:
                 pass
-            log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
+             log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
             
+            # ---------------------------------------------------------
+            # SAVE TO DATABASE (Fix for Empty Dashboard)
+            # ---------------------------------------------------------
+            if email and supabase_admin:
+                try:
+                    # 1. Get User ID
+                    u_res = supabase_admin.table('users').select('id').eq('email', email).execute()
+                    if u_res.data:
+                        user_id = u_res.data[0]['id']
+                        
+                        # 2. Extract Data
+                        try:
+                            res_json = json.loads(text)
+                            overall_score = res_json.get('overall_score', 0)
+                            job_tile_extracted = res_json.get('job_title', 'Unknown Role')
+                            
+                            # 3. Insert Record
+                            resumes_data = {
+                                "user_id": user_id,
+                                "overall_score": overall_score,
+                                "job_title": job_tile_extracted,
+                                "content": res_json # Store full analysis
+                            }
+                            supabase_admin.table('resumes').insert(resumes_data).execute()
+                            print(f"SUCCESS: Saved Resume Analysis for {email} (Score: {overall_score})")
+                        except Exception as parse_err:
+                            print(f"Error parsing/saving resume JSON: {parse_err}")
+                except Exception as db_err:
+                    print(f"Error saving resume to DB: {db_err}")
+
         return jsonify({"data": text})
 
     except Exception as e:
