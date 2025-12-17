@@ -719,19 +719,37 @@
             if (!supabase) return;
 
             try {
-                // 0. Get User ID from Email
-                // Since we are using an Anon key, we might need the actual user object from Auth or query by email if RLS allows.
-                // Best practice: Get the session user.
+                // 0. AUTH RESTORATION
+                // The new client doesn't automatically pick up the token from localStorage
+                // We must set it manually if it exists.
+                const token = localStorage.getItem('supabase.auth.token');
+                if (token) {
+                    // Attempt to set session. Note: This expects 'access_token' and optional 'refresh_token'.
+                    // Our legacy code stored just the token string or a JSON? 
+                    // Let's check how it was stored. Based on previous code: localStorage.setItem('supabase.auth.token', session.access_token);
+                    // If it's just the token string:
+                    const { data, error } = await supabase.auth.setSession({
+                        access_token: token,
+                        refresh_token: localStorage.getItem('supabase.auth.refresh_token') || ''
+                    });
+
+                    if (error) {
+                        console.warn("Session restore failed:", error.message);
+                        // If fail, maybe redirect or clear?
+                    }
+                }
+
+                // 1. Get User
                 const { data: { user } } = await supabase.auth.getUser();
 
                 if (!user) {
-                    console.log("No Supabase user session found. Data might be limited.");
-                    // If we have a local session but no Supabase session (weird state), we might need to rely on what we have or re-auth.
-                    // For now, let's try to query public data or handle gracefully.
+                    console.log("No authenticated user found even after token check.");
                     return;
                 }
 
-                // 1. Get Resume Score (Latest)
+                console.log("Authenticated as:", user.id);
+
+                // 2. Get Resume Score (Latest)
                 const { data: resumes } = await supabase.from('resumes')
                     .select('overall_score')
                     .eq('user_id', user.id)
@@ -750,15 +768,16 @@
                 circle.style.stroke = resumeScore > 75 ? '#20C997' : (resumeScore > 50 ? '#fbbf24' : '#ef4444');
 
 
-                // 2. Get Strategy Count (Active Jobs)
+                // 3. Get Strategy Count (Active Jobs)
                 const { count: jobCount } = await supabase.from('user_jobs')
                     .select('*', { count: 'exact', head: true })
                     .eq('user_id', user.id);
 
+                console.log("Jobs found:", jobCount);
                 document.getElementById('strategy-count').textContent = jobCount || 0;
 
 
-                // 3. Get Plan Details & Credits
+                // 4. Get Plan Details & Credits
                 const { data: profile } = await supabase.from('profiles')
                     .select('plan_tier, credits_remaining')
                     .eq('id', user.id)
@@ -766,13 +785,13 @@
 
                 if (profile) {
                     document.getElementById('plan-name').textContent = profile.plan_tier || 'Free Plan';
-                    document.getElementById('credit-count').textContent = `\${profile.credits_remaining} Credits`;
+                    document.getElementById('credit-count').textContent = `${profile.credits_remaining} Credits`;
                     // Assume 100 is max credits for visual bar
                     const pct = Math.min((profile.credits_remaining || 0), 100);
-                    document.getElementById('credit-bar').style.width = `\${pct}%`;
+                    document.getElementById('credit-bar').style.width = `${pct}%`;
                 }
 
-                // 4. Get Interview Avg (Last 30 days)
+                // 5. Get Interview Avg (Last 30 days)
                 const pastDate = new Date();
                 pastDate.setDate(pastDate.getDate() - 30);
 
@@ -785,10 +804,10 @@
                     ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1)
                     : 0;
 
-                document.getElementById('interview-score').innerHTML = `\${avgScore}<span class="text-gray-500 text-xl">/10</span>`;
+                document.getElementById('interview-score').innerHTML = `${avgScore}<span class="text-gray-500 text-xl">/10</span>`;
 
 
-                // 5. Recent Activity
+                // 6. Recent Activity
                 const { data: activity } = await supabase.from('user_recent_activity')
                     .select('*')
                     .eq('user_id', user.id)
@@ -799,12 +818,12 @@
                 if (activity && activity.length > 0) {
                     tableBody.innerHTML = activity.map(a => `
                          <tr class="group hover:bg-white/5 transition-colors">
-                            <td class="py-4 pl-2 font-medium text-white">\${a.project_name || 'Untitled'}</td>
-                            <td class="py-4 text-gray-400">\${a.type}</td>
-                            <td class="py-4 text-white font-bold">\${a.score || '-'}</td>
-                            <td class="py-4 text-gray-500">\${timeAgo(a.created_at)}</td>
+                            <td class="py-4 pl-2 font-medium text-white">${a.project_name || 'Untitled'}</td>
+                            <td class="py-4 text-gray-400">${a.type}</td>
+                            <td class="py-4 text-white font-bold">${a.score || '-'}</td>
+                            <td class="py-4 text-gray-500">${timeAgo(a.created_at)}</td>
                             <td class="py-4">
-                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">\${a.status || 'Done'}</span>
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">${a.status || 'Done'}</span>
                             </td>
                             <td class="py-4 text-right pr-2">
                                 <button class="text-gray-400 hover:text-white">•••</button>
