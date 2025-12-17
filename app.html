@@ -337,15 +337,20 @@
         // Inline View Switching Logic
         document.addEventListener('DOMContentLoaded', () => {
             function updateView() {
-                const hash = window.location.hash || '#interview';
+                const hash = window.location.hash;
+                const path = window.location.pathname;
 
                 // Hide All
                 document.querySelectorAll('.tool-view').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.tool-main-view').forEach(el => el.classList.add('hidden'));
                 document.querySelectorAll('.tool-action').forEach(el => el.classList.add('hidden'));
 
-                // Show Target
-                if (hash === '#linkedin') {
+                // Determine View based on Path OR Hash
+                const isLinkedIn = path.includes('/clinic/linkedin') || hash === '#linkedin';
+                const isCoverLetter = hash === '#cover-letter'; // Legacy only
+                // Default to Interview for /simulator/interview or empty hash
+
+                if (isLinkedIn) {
                     document.getElementById('view-linkedin-sidebar').classList.remove('hidden');
                     document.getElementById('view-linkedin-main').classList.remove('hidden');
                     document.getElementById('action-linkedin').classList.remove('hidden');
@@ -353,11 +358,11 @@
                     document.getElementById('tool-category').textContent = "THE CLINIC";
                     document.getElementById('tool-title').innerHTML = 'LINKEDIN<span class="text-blue-500">_OPT</span>';
                 }
-                else if (hash === '#cover-letter') {
+                else if (isCoverLetter) {
                     window.location.href = '/strategy/cover-letter.html';
                 }
                 else {
-                    // Default: Interview
+                    // Default: Interview Lab
                     document.getElementById('view-interview-sidebar').classList.remove('hidden');
                     document.getElementById('view-interview-main').classList.remove('hidden');
                     document.getElementById('action-interview').classList.remove('hidden');

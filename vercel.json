@@ -77,6 +77,42 @@
             "destination": "/strategy/follow-up.html"
         },
         {
+            "source": "/clinic/scan",
+            "destination": "/resume-analyzer.html"
+        },
+        {
+            "source": "/clinic/rewrite",
+            "destination": "/resume-rewriter.html"
+        },
+        {
+            "source": "/clinic/linkedin",
+            "destination": "/app.html"
+        },
+        {
+            "source": "/simulator/interview",
+            "destination": "/app.html"
+        },
+        {
+            "source": "/simulator/role-reversal",
+            "destination": "/role-reversal.html"
+        },
+        {
+            "source": "/simulator/star",
+            "destination": "/role-reversal.html"
+        },
+        {
+            "source": "/strategy/tracker",
+            "destination": "/strategy/strategy-log.html"
+        },
+        {
+            "source": "/strategy/30-60-90",
+            "destination": "/strategy/30-60-90.html"
+        },
+        {
+            "source": "/strategy/negotiation",
+            "destination": "/strategy/closer.html"
+        },
+        {
             "source": "/clinic",
             "destination": "/resume-analyzer.html"
         },
