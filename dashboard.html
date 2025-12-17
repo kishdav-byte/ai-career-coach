@@ -769,12 +769,18 @@
 
 
                 // 3. Get Strategy Count (Active Jobs)
-                const { count: jobCount } = await supabase.from('user_jobs')
-                    .select('*', { count: 'exact', head: true })
+                // Use explicit count of 'id' as requested
+                const { count: jobCount, error: jobError } = await supabase.from('user_jobs')
+                    .select('id', { count: 'exact', head: true })
                     .eq('user_id', user.id);
 
-                console.log("Jobs found:", jobCount);
-                document.getElementById('strategy-count').textContent = jobCount || 0;
+                if (jobError) {
+                    console.error("Error counting jobs:", jobError);
+                    // Optional: could show error in UI
+                } else {
+                    console.log("Jobs found (count exact):", jobCount);
+                    document.getElementById('strategy-count').textContent = jobCount || 0;
+                }
 
 
                 // 4. Get Plan Details & Credits
