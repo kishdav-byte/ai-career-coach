@@ -266,9 +266,14 @@
                             <h3 class="text-white font-bold text-lg leading-tight mb-1">${job.job_title}</h3>
                             <p class="text-blue-400 font-mono text-xs uppercase tracking-wider">${job.company_name}</p>
                         </div>
-                        <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
-                            ${job.status}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                                ${job.status}
+                            </span>
+                            <button onclick="deleteJob('${job.id}')" class="text-slate-600 hover:text-red-500 transition-colors p-1" title="Remove Target">
+                                <i class="fas fa-trash-alt text-[10px]"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Status Grid -->
@@ -317,6 +322,26 @@
             window.openWarRoom = (id) => {
                 const room = document.getElementById(`war-room-${id}`);
                 room.classList.toggle('hidden');
+            };
+
+            // Delete Job Logic
+            window.deleteJob = async (id) => {
+                if (!confirm("Are you sure you want to remove this target campaign?")) return;
+
+                try {
+                    const res = await fetch(`/api/jobs/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    });
+
+                    if (!res.ok) throw new Error("Failed to delete job");
+
+                    // Reload the grid
+                    loadJobs();
+                } catch (e) {
+                    console.error("Delete Error:", e);
+                    alert("Error removing target: " + e.message);
+                }
             };
 
             // Smart Launch Logic
