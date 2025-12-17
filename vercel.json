@@ -75,6 +75,18 @@
         {
             "source": "/strategy/follow-up",
             "destination": "/strategy/follow-up.html"
+        },
+        {
+            "source": "/clinic",
+            "destination": "/resume-analyzer.html"
+        },
+        {
+            "source": "/simulator",
+            "destination": "/role-reversal.html"
+        },
+        {
+            "source": "/strategy",
+            "destination": "/strategy/strategy-log.html"
         }
     ]
 }
