@@ -1332,7 +1332,7 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                     meta['job_title'] = res_json.get('job_title')
             except:
                 pass
-             log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
+            log_db_activity(data.get('email', 'unknown'), 'resume_analysis', meta)
             
             # ---------------------------------------------------------
             # SAVE TO DATABASE (Fix for Empty Dashboard)
