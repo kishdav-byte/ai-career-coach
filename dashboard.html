@@ -29,6 +29,8 @@
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
         // Auth Logic Pre-check
@@ -343,13 +345,14 @@
                                 <svg class="w-full h-full" viewBox="0 0 100 100">
                                     <circle class="text-slate-700 stroke-current" stroke-width="8" cx="50" cy="50"
                                         r="40" fill="transparent"></circle>
-                                    <circle class="text-teal progress-ring__circle stroke-current ring-circle"
+                                    <circle id="resume-score-ring"
+                                        class="text-teal progress-ring__circle stroke-current ring-circle"
                                         stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40"
-                                        fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="37.6"></circle>
-                                    <!-- 85% -->
+                                        fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
+                                    <!-- Dynamic -->
                                 </svg>
                                 <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-                                    <span class="text-2xl font-bold text-white">85</span>
+                                    <span id="resume-score" class="text-2xl font-bold text-white">--</span>
                                 </div>
                             </div>
                         </a>
@@ -361,13 +364,13 @@
                             </div>
                             <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg. Interview
                                 Score</h3>
-                            <div class="text-4xl font-bold text-white mb-2">7.5<span
+                            <div id="interview-score" class="text-4xl font-bold text-white mb-2">--<span
                                     class="text-gray-500 text-xl">/10</span>
                             </div>
                             <div
                                 class="flex items-center text-teal text-xs font-bold bg-teal/10 px-2 py-1 rounded-full">
-                                <span>↑ 12%</span>
-                                <span class="ml-1 opacity-70">vs last week</span>
+                                <span>--</span>
+                                <span class="ml-1 opacity-70">Last 30 days</span>
                             </div>
                         </a>
 
@@ -380,7 +383,7 @@
                             </h3>
                             <div class="flex items-center gap-3 mb-2">
                                 <span class="text-2xl">♟️</span>
-                                <span class="text-4xl font-bold text-white">12</span>
+                                <span id="strategy-count" class="text-4xl font-bold text-white">--</span>
                             </div>
                             <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                         </a>
@@ -389,13 +392,14 @@
                         <div
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20"></div>
-                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Pro Plan</h3>
+                            <h3 id="plan-name" class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">
+                                Plan</h3>
                             <!-- Progress Bar -->
                             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
-                                <div class="bg-teal h-full rounded-full" style="width: 70%"></div>
+                                <div id="credit-bar" class="bg-teal h-full rounded-full" style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between w-full text-xs">
-                                <span class="text-white font-bold">50 Credits</span>
+                                <span id="credit-count" class="text-white font-bold">-- Credits</span>
                                 <span class="text-gray-500">Left</span>
                             </div>
                         </div>
@@ -535,45 +539,10 @@
                                         <th class="pb-3 font-medium text-right pr-2">Action</th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-white/5 text-sm">
-                                    <tr class="group hover:bg-white/5 transition-colors">
-                                        <td class="py-4 pl-2 font-medium text-white">Product_Manager_Resume_v2.pdf</td>
-                                        <td class="py-4 text-gray-400">Resume</td>
-                                        <td class="py-4 text-white font-bold">85</td>
-                                        <td class="py-4 text-gray-500">2h ago</td>
-                                        <td class="py-4">
-                                            <span
-                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">Optimized</span>
-                                        </td>
-                                        <td class="py-4 text-right pr-2">
-                                            <button class="text-gray-400 hover:text-white">•••</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="group hover:bg-white/5 transition-colors">
-                                        <td class="py-4 pl-2 font-medium text-white">Behavioral Interview #12</td>
-                                        <td class="py-4 text-gray-400">Simulation</td>
-                                        <td class="py-4 text-white font-bold">7.5</td>
-                                        <td class="py-4 text-gray-500">5h ago</td>
-                                        <td class="py-4">
-                                            <span
-                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400">Completed</span>
-                                        </td>
-                                        <td class="py-4 text-right pr-2">
-                                            <button class="text-gray-400 hover:text-white">•••</button>
-                                        </td>
-                                    </tr>
-                                    <tr class="group hover:bg-white/5 transition-colors">
-                                        <td class="py-4 pl-2 font-medium text-white">30-60-90 Day Plan - Google</td>
-                                        <td class="py-4 text-gray-400">Strategy</td>
-                                        <td class="py-4 text-white font-bold">-</td>
-                                        <td class="py-4 text-gray-500">1d ago</td>
-                                        <td class="py-4">
-                                            <span
-                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-gray-500/20 text-gray-300">Generated</span>
-                                        </td>
-                                        <td class="py-4 text-right pr-2">
-                                            <button class="text-gray-400 hover:text-white">•••</button>
-                                        </td>
+                                <tbody id="recent-activity-table" class="divide-y divide-white/5 text-sm">
+                                    <!-- Dynamic Content -->
+                                    <tr>
+                                        <td colspan="6" class="py-10 text-center text-gray-500">Loading activity...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -720,7 +689,145 @@
             // Also remove auth tokens
             localStorage.removeItem('supabase.auth.token');
             localStorage.removeItem('supabase.auth.refresh_token');
+            if (window.supabase) supabase.auth.signOut();
             window.location.href = '/?logout=success';
+        }
+
+        // SUPABASE INIT
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
+        let supabase = null;
+        if (typeof createClient !== 'undefined') { // Check if CDN loaded
+            supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+        } else {
+            // Fallback if CDN fails or strict CSP
+            console.error("Supabase CDN not loaded.");
+            // Try to use window.supabase if available globally from some other import (unlikely here)
+        }
+
+        // Wait for Supabase to define if script async
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!supabase && window.supabase && window.supabase.createClient) {
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            }
+        });
+
+
+        async function fetchDashboardData(userEmail) {
+            console.log("Fetching dashboard data for:", userEmail);
+            if (!supabase) return;
+
+            try {
+                // 0. Get User ID from Email
+                // Since we are using an Anon key, we might need the actual user object from Auth or query by email if RLS allows.
+                // Best practice: Get the session user.
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    console.log("No Supabase user session found. Data might be limited.");
+                    // If we have a local session but no Supabase session (weird state), we might need to rely on what we have or re-auth.
+                    // For now, let's try to query public data or handle gracefully.
+                    return;
+                }
+
+                // 1. Get Resume Score (Latest)
+                const { data: resumes } = await supabase.from('resumes')
+                    .select('overall_score')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+
+                const resumeScore = resumes?.[0]?.overall_score || 0;
+                document.getElementById('resume-score').textContent = resumeScore;
+
+                // Update Ring
+                const circle = document.getElementById('resume-score-ring');
+                const radius = circle.r.baseVal.value;
+                const circumference = radius * 2 * Math.PI;
+                const offset = circumference - (resumeScore / 100) * circumference;
+                circle.style.strokeDashoffset = offset;
+                circle.style.stroke = resumeScore > 75 ? '#20C997' : (resumeScore > 50 ? '#fbbf24' : '#ef4444');
+
+
+                // 2. Get Strategy Count (Active Jobs)
+                const { count: jobCount } = await supabase.from('user_jobs')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id);
+
+                document.getElementById('strategy-count').textContent = jobCount || 0;
+
+
+                // 3. Get Plan Details & Credits
+                const { data: profile } = await supabase.from('profiles')
+                    .select('plan_tier, credits_remaining')
+                    .eq('id', user.id)
+                    .single();
+
+                if (profile) {
+                    document.getElementById('plan-name').textContent = profile.plan_tier || 'Free Plan';
+                    document.getElementById('credit-count').textContent = `\${profile.credits_remaining} Credits`;
+                    // Assume 100 is max credits for visual bar
+                    const pct = Math.min((profile.credits_remaining || 0), 100);
+                    document.getElementById('credit-bar').style.width = `\${pct}%`;
+                }
+
+                // 4. Get Interview Avg (Last 30 days)
+                const pastDate = new Date();
+                pastDate.setDate(pastDate.getDate() - 30);
+
+                const { data: interviews } = await supabase.from('interviews')
+                    .select('overall_score')
+                    .eq('user_id', user.id)
+                    .gte('created_at', pastDate.toISOString());
+
+                const avgScore = interviews && interviews.length
+                    ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1)
+                    : 0;
+
+                document.getElementById('interview-score').innerHTML = `\${avgScore}<span class="text-gray-500 text-xl">/10</span>`;
+
+
+                // 5. Recent Activity
+                const { data: activity } = await supabase.from('user_recent_activity')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                const tableBody = document.getElementById('recent-activity-table');
+                if (activity && activity.length > 0) {
+                    tableBody.innerHTML = activity.map(a => `
+                         <tr class="group hover:bg-white/5 transition-colors">
+                            <td class="py-4 pl-2 font-medium text-white">\${a.project_name || 'Untitled'}</td>
+                            <td class="py-4 text-gray-400">\${a.type}</td>
+                            <td class="py-4 text-white font-bold">\${a.score || '-'}</td>
+                            <td class="py-4 text-gray-500">\${timeAgo(a.created_at)}</td>
+                            <td class="py-4">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">\${a.status || 'Done'}</span>
+                            </td>
+                            <td class="py-4 text-right pr-2">
+                                <button class="text-gray-400 hover:text-white">•••</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-gray-500">No activity found.</td></tr>';
+                }
+
+            } catch (err) {
+                console.error("Error fetching dashboard data:", err);
+            }
+        }
+
+        function timeAgo(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `\${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `\${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `\${Math.floor(diffInSeconds / 86400)}d ago`;
         }
 
         async function initDashboard() {
@@ -792,7 +899,14 @@
         }
 
         // Initialize on load
-        initDashboard();
+        initDashboard().then(() => {
+            // Fetch real data after generic init
+            // Recover user from session
+            const session = getSession();
+            if (session) {
+                fetchDashboardData(session.email);
+            }
+        });
     </script>
 </body>
 
