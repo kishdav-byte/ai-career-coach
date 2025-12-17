@@ -46,6 +46,9 @@ if SUPABASE_URL:
 
 app = Flask(__name__)
 
+# CONSTANTS
+VOICE_CAP = 50
+
 # API Key from Environment Variable
 API_KEY = os.environ.get('OPENAI_API_KEY_')
 
@@ -141,6 +144,64 @@ def generate_model_answer():
     data = request.json
     question = data.get('question')
     resume_context = data.get('resume_context', '')
+    user_email = data.get('user_email') # Added for tracking
+
+    # 3-TIER ROLE REVERSAL LOGIC
+    # Tier 1: Free (Limit 3 Lifetime)
+    # Tier 2: Unlimited (Limit 50/mo)
+    # Tier 3: Credit (Deduct 1 Universal Credit)
+
+    allowed = False
+    
+    if user_email and supabase:
+        try:
+             # Fetch Status
+             db = supabase_admin if supabase_admin else supabase
+             u_res = db.table('users').select('is_unlimited, subscription_status, monthly_voice_usage, role_reversal_count, credits').eq('email', user_email).execute()
+             
+             if u_res.data:
+                 u = u_res.data[0]
+                 rr_count = u.get('role_reversal_count', 0)
+                 is_unlimited = u.get('is_unlimited', False)
+                 sub_active = u.get('subscription_status') == 'active'
+                 voice_usage = u.get('monthly_voice_usage', 0)
+                 credits = u.get('credits', 0)
+
+                 # CHECK 1: FREE TIER (< 3)
+                 if rr_count < 3:
+                     allowed = True
+                     # Increment count
+                     db.table('users').update({'role_reversal_count': rr_count + 1}).eq('email', user_email).execute()
+                     print(f"Role Reversal: {user_email} used FREE tier ({rr_count + 1}/3)")
+                 
+                 # CHECK 2: UNLIMITED TIER (Status=Active, Usage < 50)
+                 elif is_unlimited and sub_active:
+                     if voice_usage < VOICE_CAP:
+                         allowed = True
+                         db.table('users').update({'monthly_voice_usage': voice_usage + 1}).eq('email', user_email).execute()
+                         print(f"Role Reversal: {user_email} used UNLIMITED tier ({voice_usage + 1}/50)")
+                     else:
+                         return jsonify({"error": "Monthly Voice Limit Reached."}), 403
+
+                 # CHECK 3: CREDIT TIER (Deduct 1 Credit)
+                 elif credits > 0:
+                     allowed = True
+                     db.table('users').update({'credits': credits - 1}).eq('email', user_email).execute()
+                     print(f"Role Reversal: {user_email} used CREDIT tier. Remaining: {credits - 1}")
+                 
+                 else:
+                     return jsonify({"error": "Limit reached. Upgrade to Pro or buy credits."}), 402
+
+        except Exception as tier_err:
+             print(f"Role Reversal Access Error: {tier_err}")
+             return jsonify({"error": "Access check failed"}), 500
+    else:
+        # Default allow if no auth? (Or block?)
+        # For security, we should probably require auth, but existing logic was loose.
+        # Let's assume auth is required for this specific tool if email is sent.
+        if not user_email: 
+             return jsonify({"error": "Login required"}), 401
+
 
     if not question:
         return jsonify({"error": "Question is required"}), 400
@@ -165,6 +226,19 @@ def generate_model_answer():
         content = call_openai(messages, json_mode=True)
         # Parse JSON to ensure validity before returning
         parsed_content = json.loads(content)
+        
+        # TRACKING: Role Reversal Logic
+        if user_email and supabase:
+            try:
+                # Simple Read-Modify-Write (Concurrency risk minimal for this scale)
+                user_res = supabase.table('users').select('role_reversal_count').eq('email', user_email).execute()
+                if user_res.data:
+                    current_count = user_res.data[0].get('role_reversal_count', 0) or 0
+                    supabase.table('users').update({'role_reversal_count': current_count + 1}).eq('email', user_email).execute()
+                    print(f"Tracked Role Reversal for {user_email}: {current_count + 1}")
+            except Exception as e:
+                print(f"Tracking Error (Role Reversal): {e}")
+
         return jsonify(parsed_content)
     except Exception as e:
         print(f"Model Answer Gen Error: {e}")
@@ -334,7 +408,7 @@ def api():
         # 'optimize_resume' uses 'user_data' -> 'personal' -> 'email'
         email = data.get('email')
         
-        if not email and action == 'optimize_resume' and 'user_data' in data:
+        if not email and (action == 'optimize_resume' or action == 'optimize') and 'user_data' in data:
             email = data.get('user_data', {}).get('personal', {}).get('email')
 
         if not email and action == 'analyze_resume' and 'email' not in data:
@@ -346,8 +420,9 @@ def api():
             db_client = supabase_admin if supabase_admin else supabase
             
             if db_client:
-                # Check User Status (Updated Phase 34)
-                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits').eq('email', email).execute()
+                # Check User Status (Updated Phase 34 + Free Tier Tracking)
+                # NOTE: Removed analysis_count from here to prevent crash if SQL not run yet. We fetch it safely below.
+                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, monthly_voice_usage').eq('email', email).execute()
                 
                 if user_res.data:
                     user = user_res.data[0]
@@ -379,10 +454,56 @@ def api():
                          has_access = True
 
                     elif is_unlimited:
-                        has_access = True
+                        # FAIR USE CHECK (Voice Tools)
+                        if action in ['interview_chat']:
+                             usage = user.get('monthly_voice_usage', 0) or 0
+                             sub_status = user.get('subscription_status', 'active')
+                             
+                             if sub_status == 'active' and usage < VOICE_CAP:
+                                 # Increment Usage (Optimistic / Fire & Forget or Await)
+                                 # We are in checking phase. Does this function DEDUCT?
+                                 # Current logic separates check vs deduct.
+                                 # Line 405: "if should_deduct:"
+                                 # But for Unlimited, we usually just return True.
+                                 # We need to increment usage here IF should_deduct is True.
+                                 if should_deduct:
+                                     new_usage = usage + 1
+                                     supabase_admin.table('users').update({'monthly_voice_usage': new_usage}).eq('email', email).execute()
+                                     print(f"Fair Use Tracking: {new_usage}/{VOICE_CAP}")
+                                 has_access = True
+                             else:
+                                 print(f"Fair Use Limit Reached or Inactive Sub: {usage}/{VOICE_CAP}, Status={sub_status}")
+                                 has_access = False
+                        else:
+                             has_access = True
                     else:
                         # Check specific credit based on action
-                        if action in ['analyze_resume', 'optimize_resume']:
+                        if action == 'analyze_resume':
+                            # FREE TIER: No credit check, just track usage
+                            has_access = True
+                            
+                            # Increment Usage (if not admin/ghost preventing it)
+                            if should_deduct: 
+                                supabase_upd = supabase_admin if supabase_admin else supabase
+                                try:
+                                    # Fetch current count safely
+                                    # This protects against 500 Error if column doesn't exist yet
+                                    count_res = supabase_upd.table('users').select('analysis_count').eq('email', email).execute()
+                                    current_count = 0
+                                    if count_res.data:
+                                        current_count = count_res.data[0].get('analysis_count', 0) or 0
+                                    
+                                    new_count = current_count + 1
+                                    
+                                    supabase_upd.table('users').update({
+                                        'analysis_count': new_count,
+                                        'last_analysis_date': 'now()'
+                                    }).eq('email', email).execute()
+                                    print(f"Tracked Resume Analysis. Count: {new_count}")
+                                except Exception as e:
+                                    print(f"Tracking Error (Analysis): {e}")
+
+                        elif action == 'optimize_resume':
                             if resume_credits > 0:
                                 has_access = True
                                 # Deduct immediately (unless unlimited, which is handled above)
@@ -699,6 +820,12 @@ TONE:
 - Professional, concise, slightly "Cyberpunk/Avant-Garde" (matches the app aesthetic).
 - Use formatting (bullet points) for readability.
 - Always end a "refusal" with a helpful link/nudge to the paid tool.
+
+IMPORTANT - REVENUE LINKING PROTOCOL:
+When you recommend a solution that requires deep work (writing, simulation, negotiation), you MUST use the EXACT tool name in your response to trigger the user interface link:
+- Use "Executive Rewrite" if they need resume help.
+- Use "Interview Simulator" if they need practice.
+- Use "The Closer" if they need negotiation help.
 """
         
         # Build messages list
@@ -1444,6 +1571,10 @@ def user_profile():
         token = auth_header.split(" ")[1]
         
         # 1. Verify User with Supabase Auth
+        if not supabase:
+             print("CRITICAL: Supabase client is None (Env vars missing?)")
+             return jsonify({"error": "Database configuration error"}), 500
+
         user_res = supabase.auth.get_user(token)
         if not user_res.user:
              return jsonify({"error": "Invalid token"}), 401
@@ -1452,23 +1583,43 @@ def user_profile():
         email = user_res.user.email
         
         # 2. Fetch Profile from 'users' table
-        profile_res = supabase.table('users').select(
-            'email, is_unlimited, credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
-        ).eq('id', user_id).execute()
+        # CRITICAL: We MUST use the Admin client to bypass RLS.
+        # If supabase_admin is None, it means SUPABASE_SERVICE_ROLE_KEY is missing in Vercel.
+        if not supabase_admin:
+            print("CRITICAL CONFIG ERROR: SUPABASE_SERVICE_ROLE_KEY is missing.")
+            return jsonify({
+                "error": "Configuration Error: SUPABASE_SERVICE_ROLE_KEY is missing in Vercel Environment Variables. Please add it to fix Database Access."
+            }), 500
+
+        db_client = supabase_admin
+        print(f"User Profile Fetch: Using ADMIN client for {email}")
         
-        if not profile_res.data:
+        # Select ALL columns so frontend gets all credit types and flags.
+        try:
+            profile_res = db_client.table('users').select('*').eq('id', user_id).execute()
+        except Exception as query_err:
+             print(f"User Profile Query Failed (ID lookup): {query_err}")
+             profile_res = None
+
+        if not profile_res or not profile_res.data:
             # Fallback checks if users table uses email as key or hasn't synced ID yet
-            profile_res = supabase.table('users').select(
-                'email, is_unlimited, credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
-            ).eq('email', email).execute()
+            print(f"User Profile: Fallback to email lookup for {email}")
+            try:
+                profile_res = db_client.table('users').select('*').eq('email', email).execute()
+            except Exception as fb_err:
+                print(f"User Profile Fallback Query Failed: {fb_err}")
+                return jsonify({"error": f"Database Query Failed: {str(fb_err)}"}), 500
 
             if not profile_res.data:
+                 print(f"User Profile: User not found for {email}")
                  return jsonify({"error": "User profile not found"}), 404
 
         return jsonify(profile_res.data[0])
 
     except Exception as e:
-        print(f"User Profile Fetch Error: {e}")
+        print(f"User Profile Fetch CRITICAL Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/generate-strategy-tool', methods=['POST'])
@@ -1496,33 +1647,18 @@ def generate_strategy_tool():
             
         user = user_res.data[0]
         has_credit = False
-        credit_col = ''
         
-        # Credit Mapping
-        if tool_type == 'closer':
-            credit_col = 'credits_negotiation'
-            has_credit = user.get(credit_col, 0) > 0
-        elif tool_type == 'inquisitor':
-            credit_col = 'credits_inquisitor'
-            has_credit = user.get(credit_col, 0) > 0
-        elif tool_type == 'followup':
-            credit_col = 'credits_followup'
-            has_credit = user.get(credit_col, 0) > 0
-        elif tool_type == 'plan':
-             credit_col = 'credits_30_60_90'
-             has_credit = user.get(credit_col, 0) > 0
-        elif tool_type == 'cover_letter':
-             credit_col = 'credits_cover_letter'
-             has_credit = user.get(credit_col, 0) > 0
-        else:
-            return jsonify({"error": "Unknown tool type"}), 400
+        # UNIVERSAL CREDIT CHECK (Except for Free/Unlimited)
+        # Any tool costs 1 Credit
+        current_credits = user.get('credits', 0)
+        has_credit = current_credits > 0
 
         # Unlimited Override (Pro Plan)
         if user.get('is_unlimited', False):
             has_credit = True
 
         if not has_credit:
-            return jsonify({"error": "Insufficient credits", "buy_link": "/strategy-lab.html"}), 402
+            return jsonify({"error": "Insufficient credits", "buy_link": "/pricing.html"}), 402
 
         # 3. Construct Prompt
         system_prompt = "You are an expert career strategist."
@@ -1541,9 +1677,12 @@ def generate_strategy_tool():
         
         elif tool_type == 'inquisitor':
             system_prompt = "You are a reverse-interview expert. You help candidates ask high-IQ questions that make them look strategic."
+            # Frontend uses 'context' and 'company_name'. Backend was expecting 'job_description'.
+            context_text = user_inputs.get('context') or user_inputs.get('job_description') or ""
             user_prompt = (
                 f"Generate 5 high-impact questions for an interviewer with this title: {user_inputs.get('interviewer_role')}\n"
-                f"Job Context: {user_inputs.get('job_description')[:500]}\n\n"
+                f"Company: {user_inputs.get('company_name')}\n"
+                f"Context/News: {context_text[:500]}\n\n"
                 "Categorize them: 1. Cultural, 2. Strategic, 3. Role-Specific, 4. The 'Closer' Question.\n"
                 "Explain WHY each question works in 1 sentence."
             )
@@ -1586,16 +1725,106 @@ def generate_strategy_tool():
              return jsonify({"error": f"AI Generation Failed: {str(ai_err)}"}), 500
 
         # 5. Deduct Credit (if not unlimited)
-        if not user.get('is_unlimited', False) and credit_col:
-            new_val = user.get(credit_col, 0) - 1
-            db.table('users').update({credit_col: new_val}).eq('email', user_email).execute()
-            print(f"Deducted 1 {tool_type} credit for {user_email}")
+        # 5. Deduct Credit (if not unlimited)
+        if not user.get('is_unlimited', False) and current_credits > 0:
+            new_val = current_credits - 1
+            db.table('users').update({'credits': new_val}).eq('email', user_email).execute()
+            print(f"Deducted 1 Universal Credit for {tool_type} from {user_email}")
 
         return jsonify({"success": True, "content": content})
 
     except Exception as e:
         print(f"Strategy Gen Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+# ========================================
+# JOB TRACKING ENDPOINTS (STRATEGY LOG)
+# ========================================
+
+@app.route('/api/jobs', methods=['GET', 'POST'])
+def manage_jobs():
+    """Unified endpoint to Get or Add jobs."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+         return jsonify({"error": "Missing Authorization header"}), 401
+    
+    token = auth_header.split(" ")[1]
+    
+    # Verify User
+    if not supabase:
+         return jsonify({"error": "DB Config Error"}), 500
+    
+    user_res = supabase.auth.get_user(token)
+    if not user_res.user:
+         return jsonify({"error": "Invalid token"}), 401
+         
+    user_id = user_res.user.id
+
+    if request.method == 'GET':
+        try:
+            # Return jobs sorted by newest
+            res = supabase_admin.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+            return jsonify(res.data)
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    elif request.method == 'POST':
+        try:
+            data = request.json
+            job_title = data.get('job_title')
+            company_name = data.get('company_name')
+            job_description = data.get('job_description')
+
+            if not job_title or not company_name:
+                return jsonify({"error": "Job Title and Company are required"}), 400
+
+            new_job = {
+                "user_id": user_id,
+                "job_title": job_title,
+                "company_name": company_name,
+                "job_description": job_description,
+                "status": "Identified"
+            }
+            
+            res = supabase_admin.table('user_jobs').insert(new_job).execute()
+            # Return the created object
+            return jsonify(res.data[0] if res.data else {})
+        except Exception as e:
+            print(f"Add Job Error: {e}")
+            return jsonify({"error": str(e)}), 500
+
+@app.route('/api/jobs/<job_id>', methods=['DELETE', 'PUT'])
+def job_operations(job_id):
+    """Delete or Update a specific job."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+         return jsonify({"error": "Missing Authorization header"}), 401
+    token = auth_header.split(" ")[1]
+    user_res = supabase.auth.get_user(token)
+    if not user_res.user: 
+        return jsonify({"error": "Unauthorized"}), 401
+        
+    user_id = user_res.user.id
+
+    if request.method == 'DELETE':
+        try:
+            res = supabase_admin.table('user_jobs').delete().eq('id', job_id).eq('user_id', user_id).execute()
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
+    elif request.method == 'PUT':
+        try:
+            data = request.json
+            update_data = {}
+            if 'status' in data: update_data['status'] = data['status']
+            if 'resume_score' in data: update_data['resume_score'] = data['resume_score']
+            if 'interview_score' in data: update_data['interview_score'] = data['interview_score']
+            
+            res = supabase_admin.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
+            return jsonify(res.data)
+        except Exception as e:
+             return jsonify({"error": str(e)}), 500
 
 # ========================================
 # USER AUTHENTICATION ENDPOINTS
@@ -2093,72 +2322,50 @@ def stripe_webhook():
                         user_id = user_data['id']
                         print(f"Found user by Email: {customer_email} -> ID: {user_id}")
 
-                if user_id:
-                    # Determine Updates
-                    current_resume = user_data.get('resume_credits', 0)
-                    current_interview = user_data.get('interview_credits', 0)
-                    
-                    update_data = {}
+                    if user_id:
+                        update_data = {}
+                        current_credits = user_data.get('credits', 0) # Universal Credit
 
-                    if plan_type == 'pro':
-                        update_data['is_unlimited'] = True
-                        update_data['subscription_status'] = 'active'
-                        print("Granting UNLIMITED access.")
+                        if plan_type == 'pro':
+                            update_data['is_unlimited'] = True
+                            update_data['subscription_status'] = 'active'
+                            print("Granting UNLIMITED access.")
 
-                    # GLOBAL CHECK: Feature = Rewrite (Prioritize over Plan Type)
-                    elif metadata.get('feature') == 'rewrite':
-                         current_rewrite = user_data.get('rewrite_credits', 0)
-                         update_data['rewrite_credits'] = current_rewrite + 1
-                         print(f"Granting +1 V2 REWRITE Credit. New Total: {update_data['rewrite_credits']}")
-                    
-                    elif plan_type == 'complete':
-                        update_data['resume_credits'] = current_resume + 1
-                        update_data['interview_credits'] = current_interview + 1
-                        print(f"Granting Complete Package (+1 each). New Targets: R={update_data['resume_credits']}, I={update_data['interview_credits']}")
+                        # GLOBAL CHECK: Feature = Rewrite (Now consumes 1 Universal Credit)
+                        # We grant +1 Credit for purchase
+                        elif metadata.get('feature') == 'rewrite':
+                             update_data['credits'] = current_credits + 1
+                             print(f"Granting +1 Credit (Rewrite). New Total: {update_data['credits']}")
+                        
+                        elif plan_type == 'complete':
+                            # Legacy: Maybe Convert to +2 Credits? Or Keep separate?
+                            # User said "Exec Rewrite consumes 1 Credit".
+                            # Let's grant +2 Credits (1 for Resume, 1 for Interview)
+                            update_data['credits'] = current_credits + 2
+                            print(f"Granting Complete Package (+2 Credits).")
 
-                    elif plan_type == 'resume':
-                         # Legacy Resume Credit (fallback if feature != rewrite)
-                         update_data['resume_credits'] = current_resume + 1
-                         print(f"Granting +1 V1 Resume Analysis Credit. New Total: {update_data['resume_credits']}")
+                        elif plan_type == 'strategy_bundle':
+                             # Grant 5 Universal Credits
+                             update_data['credits'] = current_credits + 5
+                             print("Granting STRATEGY BUNDLE (+5 Credits).")
 
-                    elif plan_type == 'interview':
-                        update_data['interview_credits'] = current_interview + 1
-                        print(f"Granting +1 Interview Credit. New Total: {update_data['interview_credits']}")
+                        # Single Strategy Tool Purchases = +1 Credit
+                        elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
+                             update_data['credits'] = current_credits + 1
+                             print(f"Granting +1 Credit for {plan_type}")
 
-                    # STRATEGY LAB LOGIC
-                    elif plan_type == 'strategy_plan':
-                         curr = user_data.get('credits_30_60_90', 0)
-                         update_data['credits_30_60_90'] = curr + 1
-                         print(f"Granting +1 30-60-90 Plan Credit.")
-                    
-                    elif plan_type == 'strategy_cover':
-                         curr = user_data.get('credits_cover_letter', 0)
-                         update_data['credits_cover_letter'] = curr + 1
-                         print(f"Granting +1 Cover Letter Credit.")
-                         
-                    elif plan_type == 'strategy_negotiation':
-                         curr = user_data.get('credits_negotiation', 0)
-                         update_data['credits_negotiation'] = curr + 1
-                         print(f"Granting +1 Negotiation Credit.")
-                         
-                    elif plan_type == 'strategy_interview_sim':
-                         curr = user_data.get('credits_interview_sim', 0)
-                         update_data['credits_interview_sim'] = curr + 1
-                         print(f"Granting +1 Interview Simulator Credit.")
-                          
-                    elif plan_type == 'strategy_bundle':
-                         # Grant 1 of EACH feature + 1 Rewrite (Full Suite)
-                         # "Unlock the Full Suite" -> usually implies access to everything.
-                         # User requested: Increment ALL of the following: rewrite_credits, credits_30_60_90, credits_cover_letter, credits_negotiation, credits_linkedin
-                         
-                         update_data['rewrite_credits'] = user_data.get('rewrite_credits', 0) + 1
-                         update_data['credits_30_60_90'] = user_data.get('credits_30_60_90', 0) + 1
-                         update_data['credits_cover_letter'] = user_data.get('credits_cover_letter', 0) + 1
-                         update_data['credits_negotiation'] = user_data.get('credits_negotiation', 0) + 1
-                         update_data['credits_linkedin'] = user_data.get('credits_linkedin', 0) + 1
-                         update_data['credits_interview_sim'] = user_data.get('credits_interview_sim', 0) + 1
-                          
-                         print("Granting STRATEGY BUNDLE (1 of each tool).")
+                        elif plan_type == 'invoice_payment':
+                             pass
+                             
+                        # BONUS RESET LOGIC (Qualified Purchases reset Free Role Reversal Count)
+                        # Triggers: Monthly Unlimited ('pro'), Strategy Bundle ('strategy_bundle'), Interview Lab ('interview')
+                        if plan_type in ['pro', 'strategy_bundle', 'interview']:
+                             update_data['role_reversal_count'] = 0
+                             print(f"BONUS BONUS: Reset Role Reversal Count to 0 for {plan_type} purchase.")
+
+                        if update_data:
+                             db_client.table('users').update(update_data).eq('id', user_id).execute()
+                             print(f"User {user_id} updated successfully: {update_data}")
 
                     # EXECUTE UPDATE
                     response = db_client.table('users').update(update_data).eq('id', user_id).execute()
@@ -2205,6 +2412,61 @@ def stripe_webhook():
             except Exception as e:
                 print(f"Error handling subscription update: {e}")
                 return jsonify({'error': str(e)}), 500
+
+        # HANDLE INVOICE PAYMENT (Renewal / Monthly Reset)
+        elif event['type'] == 'invoice.payment_succeeded':
+            try:
+                invoice = event['data']['object']
+                billing_reason = invoice.get('billing_reason') # subscription_create, subscription_cycle, subscription_update
+                
+                # Only reset on cycle (renewal) or create.
+                if billing_reason in ['subscription_cycle', 'subscription_create']:
+                    customer_id = invoice.get('customer')
+                    subscription_id = invoice.get('subscription')
+                    amount_paid = invoice.get('amount_paid')
+                    
+                    print(f"Processing Renewal/Invoice: {customer_id}, Reason: {billing_reason}, Amount: {amount_paid}")
+                    
+                    # 1. Find User by Stripe Customer ID (if we stored it)
+                    user_data = None
+                    # Try finding by customer_id first
+                    if customer_id:
+                         # We assume we started storing stripe_customer_id in users table
+                         # If not, we must fetch email from Stripe
+                         res = db_client.table('users').select('*').eq('stripe_customer_id', customer_id).execute()
+                         if res.data:
+                             user_data = res.data[0]
+                    
+                    # 2. Fallback: Lookup by Email from Stripe Customer
+                    if not user_data and customer_id:
+                        try:
+                            cust_obj = stripe.Customer.retrieve(customer_id)
+                            email = cust_obj.email
+                            if email:
+                                res = db_client.table('users').select('*').eq('email', email).execute()
+                                if res.data:
+                                    user_data = res.data[0]
+                                    # SELF-HEAL: Save customer_id for next time
+                                    if not user_data.get('stripe_customer_id'):
+                                        db_client.table('users').update({'stripe_customer_id': customer_id}).eq('id', user_data['id']).execute()
+                        except Exception as e:
+                            print(f"Stripe Customer Lookup Failed: {e}")
+
+                    # 3. Apply Update
+                    if user_data:
+                        print(f"Resetting usage for user {user_data.get('email')}")
+                        db_client.table('users').update({
+                            'monthly_voice_usage': 0,
+                            'subscription_status': 'active',
+                            'is_unlimited': True # Ensure it's on
+                        }).eq('id', user_data['id']).execute()
+                        print("Voice Usage Reset to 0. Subscription Active.")
+                    else:
+                        print(f"User not found for Invoice {invoice.get('id')}")
+
+            except Exception as e:
+                 print(f"Error handling invoice payment: {e}")
+                 return jsonify({'error': str(e)}), 500
 
     except Exception as e:
         print(f"Global Webhook Error: {e}")

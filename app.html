@@ -4,329 +4,376 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Career Coach - Interview Prep</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4a90e2">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3135/3135715.png">
+    <title>Tool Suite | AI Career Coach</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Message Bubbles for Transcript */
+        .msg-bubble {
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .msg-user {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            margin-left: 20px;
+        }
+
+        .msg-system {
+            background: #3b82f61a;
+            color: #93c5fd;
+            border: 1px solid #3b82f640;
+            margin-right: 20px;
+            align-self: flex-start;
+        }
+
+        .msg-user {
+            background: #1e293b;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+            margin-left: 20px;
+            align-self: flex-end;
+            text-align: right;
+        }
+
+        /* Thinking Indicator */
+        .msg-system:last-child:contains("Thinking") {
+            animation: pulse-blue 1.5s infinite;
+        }
+
+        @keyframes pulse-blue {
+            0% {
+                opacity: 0.6;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                opacity: 0.6;
+            }
+        }
+
+        /* Mic Pulse */
+        @keyframes pulse-red {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
+
+        .mic-active {
+            animation: pulse-red 2s infinite;
+            background-color: #ef4444 !important;
+            border-color: #ef4444 !important;
+        }
+    </style>
 </head>
 
-<body>
-    <div class="app-layout">
-        <!-- Sidebar Navigation -->
-        <nav class="sidebar">
-            <div class="sidebar-header">
-                <h1>AI Career Coach</h1>
-                <div style="font-size: 0.8rem; opacity: 0.7;">Interview Lab</div>
-                <a href="/dashboard.html"
-                    style="font-size: 0.8rem; color: #64b5f6; text-decoration: none; display: block; margin-top: 5px;">&larr;
-                    Back to Dashboard</a>
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+
+    <!-- LEFT SIDEBAR: INPUTS & CONTROLS (35%) -->
+    <aside
+        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Universal Header -->
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md"
+                    id="tool-category">THE SIMULATOR</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl" id="tool-title">INTERVIEW<span
+                        class="text-blue-500">_LAB</span></div>
+            </div>
+            <!-- Tool Switcher / Exit -->
+            <div class="flex items-center gap-4">
+                <!-- Simple dropdown or links to switch tools within app.html if needed, or just Exit -->
+                <a href="dashboard.html"
+                    class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+            </div>
+        </div>
+
+        <!-- Scrollable Controls Container -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-8 relative">
+
+            <!-- VIEW: INTERVIEW LAB (#interview) -->
+            <div id="view-interview-sidebar" class="tool-view">
+                <div class="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 mb-6">
+                    <p class="text-sm text-slate-400">Configure your session. Choose a role and an interviewer persona.
+                    </p>
+                </div>
+
+                <!-- Locked State -->
+                <div id="interview-locked-state"
+                    class="hidden text-center p-6 border-2 border-dashed border-slate-700 rounded-xl">
+                    <div class="text-2xl mb-2">🔒</div>
+                    <p class="text-sm text-slate-500 mb-4">Interview Credits Required</p>
+                    <button id="btn-unlock-interview"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 rounded-lg text-xs">UNLOCK
+                        ($9.99)</button>
+                </div>
+
+                <!-- Active State -->
+                <div id="interview-active-state">
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Target
+                                Role</label>
+                            <input type="text" id="interview-job-posting"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none"
+                                placeholder="e.g. Product Manager">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Interviewer
+                                Persona</label>
+                            <select id="voice-select"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none">
+                                <option value="alloy">Alloy (Neutral)</option>
+                                <option value="echo">Echo (Male)</option>
+                                <option value="shimmer">Shimmer (Female)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <!-- SECTION: THE CLINIC -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">The Clinic</div>
-                <a href="/resume-analyzer.html" class="nav-item">
-                    <span class="nav-icon">📄</span> Resume Diagnosis
-                </a>
-                <a href="/resume-rewriter.html" class="nav-item">
-                    <span class="nav-icon">✏️</span> Resume Builder
-                </a>
-                <a href="#cover-letter" class="nav-item" data-tab="cover-letter">
-                    <span class="nav-icon">📝</span> Cover Letter
-                </a>
-                <a href="#linkedin" class="nav-item" data-tab="linkedin">
-                    <span class="nav-icon">💼</span> LinkedIn Opt
-                </a>
+            <!-- VIEW: LINKEDIN OPTIMIZER (#linkedin) -->
+            <div id="view-linkedin-sidebar" class="tool-view hidden">
+                <div class="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 mb-6">
+                    <p class="text-sm text-slate-400">Paste your current 'About' section. We'll rewrite it to top 1%
+                        standards.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Current About
+                        Section</label>
+                    <textarea id="linkedin-input"
+                        class="w-full h-64 bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none resize-none custom-scroll"
+                        placeholder="Paste text here..."></textarea>
+                </div>
             </div>
 
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">The Simulator</div>
-                <a href="#interview" class="nav-item" data-tab="interview">
-                    <span class="nav-icon">🎤</span> Interview Lab
-                </a>
-                <a href="/lab-assistant.html" class="nav-item">
-                    <span class="icon">🤖</span> Lab Assistant
-                </a>
-                <a href="role-reversal.html" class="nav-item">
-                    <span class="nav-icon">🎭</span> Role Reversal <span
-                        style="font-size: 0.6em; background: #F87171; color: white; padding: 2px 4px; border-radius: 4px; margin-left: 8px;">NEW</span>
-                </a>
+            <!-- VIEW: COVER LETTER (Integrated Fallback) (#cover-letter) -->
+            <!-- Note: dashboard links to strategy/cover-letter.html, but if user uses in-app nav -->
+            <div id="view-cover-letter-sidebar" class="tool-view hidden">
+                <div
+                    class="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 mb-6 font-mono text-xs text-yellow-500">
+                    <i class="fas fa-exclamation-triangle"></i> LEGACY VIEW. <a href="strategy/cover-letter.html"
+                        class="underline">Go to New Tool</a>
+                </div>
             </div>
 
-            <!-- SECTION: STRATEGY -->
-            <!-- SECTION: STRATEGY -->
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Strategy</div>
-                <a href="/strategy/30-60-90.html" class="nav-item">
-                    <span class="nav-icon">🗺️</span> 30-60-90 Plan
-                </a>
-                <a href="/strategy/inquisitor.html" class="nav-item">
-                    <span class="nav-icon">❓</span> The Inquisitor
-                </a>
-                <a href="/strategy/closer.html" class="nav-item">
-                    <span class="nav-icon">🤝</span> The Closer
-                </a>
-                <a href="/strategy/follow-up.html" class="nav-item">
-                    <span class="nav-icon">✉️</span> Value Follow-Up
-                </a>
-                <a href="/strategy/cover-letter.html" class="nav-item">
-                    <span class="nav-icon">✍️</span> Cover Letter
-                </a>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+
+            <!-- Interview Action -->
+            <div id="action-interview" class="tool-action">
+                <button id="start-interview-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2">
+                    START SESSION
+                </button>
+                <div id="active-session-controls" class="hidden flex flex-col gap-3">
+                    <div class="flex gap-2">
+                        <textarea id="chat-input" rows="1"
+                            class="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none resize-none custom-scroll"
+                            placeholder="Type response..."></textarea>
+                        <button id="send-chat-btn"
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 rounded-lg transition-all flex items-center justify-center">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <button id="record-btn" onclick="toggleRecording()"
+                        class="w-full bg-slate-800 border border-slate-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-all text-xs tracking-widest">
+                        <i class="fas fa-microphone"></i> MUTE/UNMUTE MIC
+                    </button>
+                </div>
             </div>
-        </nav>
 
-        <!-- Main Content Area -->
-        <main class="main-content">
-            <!-- Tab 1: Resume Analysis -->
-            <section id="resume" class="tab-pane active">
-                <div class="card">
-                    <h2>Resume Analysis</h2>
-                    <p>Paste your resume below for AI feedback.</p>
-                    <textarea id="resume-input" placeholder="Paste your resume text here..."></textarea>
-                    <button id="analyze-resume-btn" class="action-btn">Analyze Resume</button>
-                    <div id="resume-result" class="result-area"></div>
-                    <div id="resume-result-actions" class="preview-actions" style="display: none; margin-top: 10px;">
-                        <button id="resume-print-btn" class="secondary-btn">Print / Save PDF</button>
-                        <button id="resume-copy-btn" class="secondary-btn" style="margin-left: 10px;">Copy to
-                            Clipboard</button>
+            <!-- LinkedIn Action -->
+            <div id="action-linkedin" class="tool-action hidden">
+                <button id="optimize-linkedin-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">
+                    OPTIMIZE PROFILE
+                </button>
+            </div>
+
+        </div>
+
+    </aside>
+
+    <!-- RIGHT MAIN PANEL: OUTPUT (65%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- Background Grids -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"
+                id="status-indicator">
+                <span id="status-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
+                READY
+            </h2>
+            <div class="flex gap-3">
+                <button class="text-slate-500 hover:text-white"><i class="fas fa-cog"></i></button>
+            </div>
+        </div>
+
+        <!-- Main Content Scroll Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 relative z-10">
+
+            <!-- VIEW: INTERVIEW LAB OUTPUT -->
+            <div id="view-interview-main" class="tool-main-view">
+
+                <!-- Empty/Intro State -->
+                <div id="interview-intro" class="text-center mt-20">
+                    <div
+                        class="w-24 h-24 bg-slate-900/80 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800 shadow-2xl">
+                        <span class="text-4xl">🎙️</span>
                     </div>
+                    <h3 class="text-xl font-bold text-slate-200 mb-2">AI Interview Simulator</h3>
+                    <p class="text-slate-500 max-w-md mx-auto">Click Start to begin a real-time voice interview. The AI
+                        will ask questions based on your target role.</p>
                 </div>
-            </section>
 
-            <!-- Tab 2: Interview Coach -->
-            <section id="interview" class="tab-pane">
-                <div class="premium-container" style="max-width: 100%; min-height: auto; padding: 0;">
-                    <div class="strategy-card">
-                        <div class="flex items-center gap-3 mb-6"
-                            style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div
-                                style="width: 3rem; height: 3rem; background: #e0f2fe; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-                                🎤</div>
-                            <h2 class="premium-title" style="margin: 0; font-size: 1.875rem; font-weight: 700;">
-                                Interview Simulator</h2>
-                        </div>
-                        <p class="premium-subtitle mb-8" style="color: #6b7280; margin-bottom: 2rem;">Practice live with
-                            an AI hiring manager. Real-time feedback.</p>
-
-                        <!-- Unlock Overlay / Action Area -->
-                        <div id="interview-locked-state"
-                            style="display: none; text-align: center; padding: 2rem; background: #f9fafb; border-radius: 1rem; border: 2px dashed #e5e7eb;">
-                            <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                            <h3 style="font-size: 1.25rem; font-weight: 600; margin-bottom: 0.5rem;">Unlock Simulator
-                            </h3>
-                            <p style="color: #6b7280; margin-bottom: 1.5rem;">One credit required per session.</p>
-                            <button id="btn-unlock-interview" class="action-btn"
-                                style="background-color: var(--success); width: 100%; max-width: 300px; padding: 1rem; font-size: 1.1rem;">
-                                Unlock Tool ($9.99)
-                            </button>
-                        </div>
-
-                        <!-- Active Interview Form -->
-                        <div id="interview-active-state" style="display: block;">
-                            <div class="form-group">
-                                <label for="interview-job-posting" style="font-weight: 600;">Target Job Position</label>
-                                <input type="text" id="interview-job-posting"
-                                    placeholder="Enter job title (e.g. Product Manager)" maxlength="100"
-                                    class="input-premium" style="margin-bottom: 1rem;">
-                            </div>
-
-                            <div class="form-group" style="margin-bottom: 1.5rem;">
-                                <label for="voice-select" style="font-weight: 600;">Interviewer Voice</label>
-                                <select id="voice-select" class="input-premium">
-                                    <option value="alloy">Alloy (Neutral)</option>
-                                    <option value="echo">Echo (Male)</option>
-                                    <option value="fable">Fable (British)</option>
-                                    <option value="onyx">Onyx (Deep Male)</option>
-                                    <option value="nova">Nova (Female)</option>
-                                    <option value="shimmer">Shimmer (Soft Female)</option>
-                                </select>
-                            </div>
-
-                            <button id="start-interview-btn" class="action-btn"
-                                style="width: 100%; padding: 1rem; font-size: 1.1rem; border-radius: 0.75rem;">
-                                Start Interview (1 Credit)
-                            </button>
-                        </div>
-
-                        <div id="chat-interface" style="display: none; margin-top: 2rem;">
-                            <div id="chat-window" class="chat-window"
-                                style="min-height: 300px; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; margin-bottom: 1rem; background: #f9fafb;">
-                            </div>
-
-                            <div class="chat-input-area" style="display: flex; gap: 0.5rem;">
-                                <input type="text" id="chat-input" placeholder="Type your answer..."
-                                    class="input-premium" style="flex: 1;">
-                                <button id="record-btn" class="action-btn"
-                                    style="width: auto; padding: 0 1.5rem; background: var(--alert-color);"
-                                    onclick="toggleRecording()">🎤</button>
-                                <button id="send-chat-btn" class="action-btn"
-                                    style="width: auto; padding: 0 1.5rem;">Send</button>
-                            </div>
-                            <audio id="ai-audio-player" controls
-                                style="display:none; width: 100%; margin-top: 10px;"></audio>
-                        </div>
+                <!-- Chat Transcript -->
+                <div id="chat-interface" class="hidden max-w-3xl mx-auto pb-20">
+                    <div id="chat-window" class="space-y-4">
+                        <!-- Messages go here -->
 
                     </div>
+
                 </div>
-            </section>
 
-            <!-- Tab 2.5: Removed Lab Assistant (Moved to standalone page) -->
+                <!-- Audio Player (Hidden) -->
+                <audio id="ai-audio-player" class="hidden"></audio>
+            </div>
 
-            <!-- Tab 3: Career Planner -->
-            <section id="career-plan" class="tab-pane">
-                <div class="card">
-                    <h2>30-60-90 Day Plan</h2>
-                    <p>Generate a strategic plan for your new role.</p>
-                    <div class="form-group">
-                        <label>Job Title</label>
-                        <input type="text" id="job-title" placeholder="e.g. Senior Product Manager">
-                    </div>
-                    <div class="form-group">
-                        <label>Company Name</label>
-                        <input type="text" id="company" placeholder="e.g. Acme Corp">
-                    </div>
-                    <div class="form-group">
-                        <label>Job Description</label>
-                        <textarea id="job-posting" placeholder="Paste the full job description here..."></textarea>
-                    </div>
-                    <button id="generate-plan-btn" class="action-btn">Generate Plan</button>
-                    <div id="planner-result" class="result-area"></div>
-                    <div class="resume-actions" style="margin-top: 15px;">
-                        <button id="cp-print-btn" class="secondary-btn">Print PDF</button>
-                        <button id="cp-copy-btn" class="secondary-btn">Copy to Clipboard</button>
-                    </div>
+            <!-- VIEW: LINKEDIN OUTPUT -->
+            <div id="view-linkedin-main" class="tool-main-view hidden">
+                <div id="linkedin-placeholder" class="text-center mt-32 text-slate-600">
+                    <i class="fab fa-linkedin text-4xl mb-4 opacity-50"></i>
+                    <p>Results will appear here.</p>
                 </div>
-            </section>
 
-            <!-- Tab 4: LinkedIn Optimizer -->
-            <section id="linkedin" class="tab-pane">
-                <div class="card">
-                    <h2>LinkedIn Profile Optimizer</h2>
-                    <p>Rewrite your 'About' section to be more engaging.</p>
-                    <textarea id="linkedin-input" placeholder="Paste your current LinkedIn About section..."></textarea>
-                    <button id="optimize-linkedin-btn" class="action-btn">Optimize Profile</button>
+                <div id="linkedin-results-area" class="hidden max-w-3xl mx-auto space-y-12">
 
-                    <div id="linkedin-results-area" style="display:none;">
-                        <h3>Recommendations</h3>
-                        <div id="linkedin-recommendations" class="result-area"></div>
-                        <h3>Refined Version</h3>
-                        <div id="linkedin-refined-sample" class="result-area"></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tab 5: Cover Letter -->
-            <section id="cover-letter" class="tab-pane" style="margin-bottom: 40px;">
-                <div class="card">
-                    <h2>Cover Letter Generator</h2>
-                    <p>Create a tailored cover letter in seconds.</p>
-                    <div class="form-group">
-                        <label>Job Description</label>
-                        <textarea id="cl-job-desc" placeholder="Paste job description..."></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Your Resume Content</label>
-                        <textarea id="cl-resume" placeholder="Paste your resume text..."></textarea>
-                    </div>
-                    <button id="generate-cl-btn" class="action-btn">Generate Cover Letter</button>
-                    <div id="cl-result" class="result-area" style="display:none;"></div>
-                </div>
-            </section>
-
-            <!-- Tab 6: Resume Builder -->
-            <section id="resume-builder" class="tab-pane" style="margin-bottom: 40px;">
-                <div class="card">
-                    <h2>AI Resume Builder</h2>
-                    <div id="rb-actions-bar"
-                        style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-                        <p style="margin:0;">Build and optimize your resume from scratch.</p>
-
-                        <div id="rb-credit-display" style="display:none; align-items:center; gap:10px;">
-                            <span style="font-weight:bold; color:var(--primary);">Credits: <span
-                                    id="rb-credit-count">0</span></span>
-                            <button id="rb-buy-credits-btn" class="secondary-btn"
-                                style="padding: 5px 10px; font-size: 0.8rem;">Buy More</button>
+                    <!-- Analysis Keys -->
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i
+                                class="fas fa-lightbulb text-yellow-500"></i> Key Recommendations</h3>
+                        <div id="linkedin-recommendations"
+                            class="bg-slate-900/50 p-6 rounded-xl border border-slate-800 text-sm text-slate-300 space-y-2">
                         </div>
                     </div>
 
-                    <div class="rb-controls"
-                        style="margin-bottom: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        <h3>Option 1: Import from Existing Resume</h3>
-                        <p style="font-size: 0.9em; color: #666;">Paste your current resume here to auto-fill the
-                            form
-                            below.</p>
-                        <textarea id="rb-paste-input" placeholder="Paste your full resume text here..."
-                            style="width: 100%; height: 100px; margin-bottom: 10px;"></textarea>
-                        <button id="rb-parse-btn" class="secondary-btn" style="font-size: 0.9rem;">Import &
-                            Auto-Fill</button>
-                        <hr style="margin: 20px 0;">
-                        <h3>Option 2: Manual Entry / Sample Data</h3>
-                        <button id="rb-sample-btn" class="secondary-btn">Load Sample Data</button>
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Personal Info</h3>
-                        <input type="text" id="rb-name" placeholder="Full Name">
-                        <input type="email" id="rb-email" placeholder="Email">
-                        <input type="text" id="rb-phone" placeholder="Phone">
-                        <input type="text" id="rb-linkedin" placeholder="LinkedIn URL">
-                        <input type="text" id="rb-location" placeholder="Location">
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Target Job</h3>
-                        <textarea id="rb-job-desc"
-                            placeholder="Paste the job description you are targeting..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Professional Summary</h3>
-                        <textarea id="rb-summary" placeholder="Brief summary of your career..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Experience</h3>
-                        <div id="rb-experience-list"></div>
-                        <button id="rb-add-exp-btn" class="secondary-btn">+ Add Experience</button>
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Education</h3>
-                        <div id="rb-education-list"></div>
-                        <button id="rb-add-edu-btn" class="secondary-btn">+ Add Education</button>
-                    </div>
-
-                    <div class="form-group">
-                        <h3>Skills</h3>
-                        <textarea id="rb-skills" placeholder="List your key skills (comma separated)..."></textarea>
-                    </div>
-
-                    <div class="template-selector">
-                        <h3>Choose Template</h3>
-                        <div class="templates">
-                            <button class="template-btn active" data-template="modern">Modern</button>
-                            <button class="template-btn" data-template="classic">Classic</button>
-                            <button class="template-btn" data-template="minimal">Minimal</button>
+                    <!-- Refined Version -->
+                    <div>
+                        <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2"><i
+                                class="fas fa-pen-fancy text-blue-500"></i> Refined Profile</h3>
+                        <div id="linkedin-refined-sample"
+                            class="bg-slate-900 p-8 rounded-xl border border-blue-900/30 shadow-2xl text-slate-200 leading-relaxed whitespace-pre-wrap">
                         </div>
                     </div>
 
-                    <button id="rb-generate-btn" class="action-btn">Generate & Optimize Resume</button>
                 </div>
+            </div>
 
-                <div id="resume-preview-container" class="resume-preview modern"></div>
+        </div>
 
-                <div class="resume-actions">
-                    <button id="rb-print-btn" class="secondary-btn">Print / Save PDF</button>
-                    <button id="rb-gdocs-btn" class="secondary-btn">Copy for Google Docs</button>
-                </div>
-            </section>
-        </main>
-    </div> <!-- End App Layout -->
-    <div id="print-area"></div>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <!-- Access Control Removed (Phase 18) - Managed by API -->
-    <script src="app.js?v=9.3"></script>
+    </main>
+
+    <!-- Scripts -->
+    <script src="app.js?v=refactor_9.4"></script>
+    <script>
+        // Inline View Switching Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            function updateView() {
+                const hash = window.location.hash || '#interview';
+
+                // Hide All
+                document.querySelectorAll('.tool-view').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tool-main-view').forEach(el => el.classList.add('hidden'));
+                document.querySelectorAll('.tool-action').forEach(el => el.classList.add('hidden'));
+
+                // Show Target
+                if (hash === '#linkedin') {
+                    document.getElementById('view-linkedin-sidebar').classList.remove('hidden');
+                    document.getElementById('view-linkedin-main').classList.remove('hidden');
+                    document.getElementById('action-linkedin').classList.remove('hidden');
+
+                    document.getElementById('tool-category').textContent = "THE CLINIC";
+                    document.getElementById('tool-title').innerHTML = 'LINKEDIN<span class="text-blue-500">_OPT</span>';
+                }
+                else if (hash === '#cover-letter') {
+                    window.location.href = '/strategy/cover-letter.html';
+                }
+                else {
+                    // Default: Interview
+                    document.getElementById('view-interview-sidebar').classList.remove('hidden');
+                    document.getElementById('view-interview-main').classList.remove('hidden');
+                    document.getElementById('action-interview').classList.remove('hidden');
+
+                    document.getElementById('tool-category').textContent = "THE SIMULATOR";
+                    document.getElementById('tool-title').innerHTML = 'INTERVIEW<span class="text-blue-500">_LAB</span>';
+                }
+            }
+
+            window.addEventListener('hashchange', updateView);
+            updateView(); // Initial
+
+            // Bridge for app.js (legacy id mapping)
+            // app.js expects: 'interview-job-posting', 'voice-select', 'start-interview-btn', 'chat-window', 'record-btn'
+        });
+    </script>
 </body>
 
 </html>

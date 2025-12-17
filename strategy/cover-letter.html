@@ -5,311 +5,472 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Executive Cover Letter | Strategy Lab</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <!-- Marked JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
     <style>
-        .split-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: calc(100vh - 80px);
-        }
-
-        .form-side {
-            padding: 2rem;
-            background: #f8fafc;
-            border-right: 1px solid #e2e8f0;
+        body {
+            font-family: 'Inter', sans-serif;
             overflow-y: auto;
         }
 
-        .result-side {
-            padding: 2rem;
+        /* Drag Zone Active State */
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+
+        /* Custom Scrollbar for Dark Theme */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Resume/Letter Paper Preview */
+        .resume-paper {
+            box-sizing: border-box;
+            /* CRITICAL: Includes padding in width calculation */
+            width: 210mm;
+            min-height: 297mm;
             background: white;
-            overflow-y: auto;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.6;
             position: relative;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        /* Mobile Scale */
+        @media (max-width: 1024px) {
+            .resume-wrapper {
+                overflow-x: scroll;
+            }
+
+            .resume-paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--gray-800);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-family: inherit;
-        }
-
+        /* Markdown Content Styles inside Paper */
         .markdown-content {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            color: #333;
+            white-space: pre-wrap;
+            /* Preserves newlines from AI */
+            word-wrap: break-word;
+            /* Prevents overflow */
+            overflow-wrap: break-word;
         }
 
-        .markdown-content h1,
+        .markdown-content h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            color: #0f172a;
+        }
+
         .markdown-content h2 {
-            margin-top: 1.5rem;
-            color: #111;
+            font-size: 14pt;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
         }
 
         .markdown-content p {
             margin-bottom: 1em;
+            color: #334155;
         }
 
-        #unlock-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            text-align: center;
+        .markdown-content ul {
+            list-style-type: disc;
+            margin-left: 1.5em;
+            margin-bottom: 1em;
         }
 
-        .copy-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            z-index: 5;
-            display: none;
-            font-size: 0.85rem;
-            color: #475569;
-        }
-
-        .copy-btn:hover {
-            background: #e2e8f0;
-        }
-
-        @media (max-width: 768px) {
-            .split-container {
-                grid-template-columns: 1fr;
-            }
+        .markdown-content li {
+            margin-bottom: 0.5em;
         }
     </style>
 </head>
 
-<body class="bg-white">
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="../dashboard.html" class="nav-logo">AI Career Coach</a>
-            <a href="../strategy-lab.html" class="btn btn-secondary">Back to Lab</a>
-        </div>
-    </nav>
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
 
-    <div class="premium-container">
-        <!-- Input Side -->
-        <div class="strategy-card">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-2xl">✍️</div>
-                <h1 class="premium-title">Executive Cover Letter</h1>
+    <!-- LEFT PANEL: INPUTS (35%) -->
+    <aside
+        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
+                    LAB</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">COVER<span
+                        class="text-blue-500">_LETTER</span></div>
             </div>
-            <p class="premium-subtitle mb-8">Strategic. Brief. High-Impact.</p>
-
-            <form id="tool-form">
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Target Role Title</label>
-                    <input type="text" name="target_role" placeholder="e.g. VP of Engineering" class="input-premium"
-                        required>
-                </div>
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Company Name</label>
-                    <input type="text" name="company_name" placeholder="e.g. Stripe" class="input-premium" required>
-                </div>
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Hiring Manager Name (Optional)</label>
-                    <input type="text" name="hiring_manager" placeholder="e.g. Sarah Jones" class="input-premium">
-                </div>
-                <div class="form-group mb-6">
-                    <label class="block font-semibold text-gray-700 mb-2">Top 3 Skills/Achievements to Highlight</label>
-                    <textarea name="key_skills" rows="4"
-                        placeholder="e.g. Scaled team to 50, Reduced costs by 20%, Launched flagship product"
-                        class="input-premium" required></textarea>
-                </div>
-
-                <button type="submit" id="btn-generate" class="btn btn-primary btn-premium-action">
-                    Generate Letter (1 Credit)
-                </button>
-            </form>
+            <a href="../dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
-        <!-- Result Side -->
-        <div class="strategy-card relative overflow-y-auto">
-            <button id="btn-copy" class="copy-btn hidden"><i class="far fa-copy"></i> Copy to Clipboard</button>
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
 
-            <!-- Unlock Overlay -->
-            <div id="unlock-overlay" style="display: none;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                <h2 style="margin-bottom: 0.5rem;" class="premium-title text-2xl">Unlock Cover Letter</h2>
-                <p style="margin-bottom: 1.5rem; color: #64748b;">You need a Cover Letter Credit to use this tool.</p>
-                <button id="btn-unlock" class="btn btn-success btn-premium-action animate-pulse"
-                    style="background-color: var(--success); color: white; border: none;">
-                    Unlock Tool ($4.99)
-                </button>
+            <!-- Input 1: Resume Upload -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Your Resume
+                </label>
+                <div id="dropzone"
+                    class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-8 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                    <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+
+                    <div id="upload-idle">
+                        <div
+                            class="w-12 h-12 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                            <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase">Parses context & skills</p>
+                    </div>
+
+                    <div id="upload-success" class="hidden">
+                        <div
+                            class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-xs font-semibold text-white truncate px-2" id="filename-display">resume.pdf</p>
+                        <button onclick="resetUpload(event)"
+                            class="text-[9px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-2 font-bold transition-colors">Change
+                            File</button>
+                    </div>
+                </div>
             </div>
 
-            <div id="loading" style="display: none; text-align: center; margin-top: 5rem;">
-                <i class="fas fa-spinner fa-spin fa-3x text-pink-500"></i>
-                <p class="mt-4 text-gray-600 font-medium">Drafting your narrative...</p>
+            <!-- Input 2: Job Description -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    2. Target Job Description
+                </label>
+                <div class="relative group">
+                    <textarea id="job-description"
+                        class="w-full h-48 bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                        placeholder="Paste the full job description here..."></textarea>
+                </div>
             </div>
 
-            <!-- Empty State (Default) -->
-            <div id="empty-state" class="empty-state-premium">
-                <i class="fas fa-file-contract empty-state-icon"></i>
-                <p class="empty-state-text text-lg">Your cover letter will appear here.</p>
-                <p class="empty-state-subtext text-gray-500">Fill out the form to begin.</p>
+            <!-- Manual Overrides (Hidden but available for API mapping) -->
+            <!-- We'll extract Company/Role from JD or ask agent to infer -->
+
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+            <div id="auth-lock" class="hidden mb-2 text-center text-xs text-red-400 bg-red-900/20 p-2 rounded">
+                Authorization Check Failed
             </div>
 
-            <div id="result-content" class="markdown-content hidden p-2">
+            <button id="generate-btn" onclick="generateCoverLetter()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                <span>GENERATE LETTER</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                    </path>
+                </svg>
+            </button>
+            <div class="text-[9px] text-center mt-3 text-slate-600">
+                CONSUMES 1 CREDIT OR UNLIMITED PLAN
             </div>
         </div>
-    </div>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
+    </aside>
+
+
+    <!-- RIGHT PANEL: PREVIEW (65%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                Review & Edit
+            </h2>
+            <button onclick="copyContent()"
+                class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2">
+                    </path>
+                </svg>
+                COPY TEXT
+            </button>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+            id="preview-scroll-area">
+
+            <div id="loader" class="hidden text-center mt-32">
+                <div
+                    class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4">
+                </div>
+                <p class="text-blue-400 animate-pulse font-bold tracking-widest text-xs">CRAFTING NARRATIVE...</p>
+            </div>
+
+            <div id="result-container" class="resume-wrapper hidden">
+                <div class="resume-paper">
+                    <div id="markdown-output" class="markdown-content">
+                        <!-- Content will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="empty-state" class="text-center mt-32 text-slate-600">
+                <div
+                    class="w-20 h-20 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
+                    <span class="text-4xl">📝</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-400 mb-2">Ready to Write</h3>
+                <p class="text-sm text-slate-500 max-w-xs mx-auto">Upload your resume and paste the job description to
+                    generate a tailored cover letter.</p>
+            </div>
+
+        </div>
+
+    </main>
+
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) window.location.href = '/login.html';
+        // --- AUTH & STATE ---
+        let extractedResumeText = "";
+        const token = localStorage.getItem('supabase.auth.token');
+        if (!token) window.location.href = '/login.html';
 
-            const form = document.getElementById('tool-form');
-            const resultDiv = document.getElementById('result-content');
-            const loadDiv = document.getElementById('loading');
-            const emptyState = document.getElementById('empty-state');
-            const unlockOverlay = document.getElementById('unlock-overlay');
-            const btnGenerate = document.getElementById('btn-generate');
-            const btnUnlock = document.getElementById('btn-unlock');
-            const btnCopy = document.getElementById('btn-copy');
+        // --- DOM REFS ---
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-upload');
+        const uploadIdle = document.getElementById('upload-idle');
+        const uploadSuccess = document.getElementById('upload-success');
+        const filenameDisplay = document.getElementById('filename-display');
+        const loader = document.getElementById('loader');
+        const resultContainer = document.getElementById('result-container');
+        const emptyState = document.getElementById('empty-state');
+        const outputDiv = document.getElementById('markdown-output');
+        const generateBtn = document.getElementById('generate-btn');
 
-            let userEmail = '';
+        // --- DRAG & DROP LOGIC ---
+        dropzone.addEventListener('click', () => fileInput.click());
 
-            // 1. Check Credits on Load
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { dropzone.classList.add('drag-active'); }
+        function unhighlight() { dropzone.classList.remove('drag-active'); }
+
+        dropzone.addEventListener('drop', handleDrop, false);
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        async function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                filenameDisplay.textContent = file.name;
+
+                try {
+                    if (file.type === "application/pdf") {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(s => s.str).join(' ');
+                            fullText += pageText + "\n";
+                        }
+                        extractedResumeText = fullText;
+                    } else {
+                        extractedResumeText = await file.text();
+                    }
+                    showFileSuccess();
+                } catch (e) {
+                    console.error(e);
+                    alert("Could not process file. Please try a text-based PDF.");
+                }
+            }
+        }
+
+        function showFileSuccess() {
+            uploadIdle.classList.add('hidden');
+            uploadSuccess.classList.remove('hidden');
+            dropzone.classList.remove('border-dashed');
+            dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+        }
+
+        window.resetUpload = function (e) {
+            if (e) e.stopPropagation();
+            fileInput.value = '';
+            extractedResumeText = "";
+            uploadIdle.classList.remove('hidden');
+            uploadSuccess.classList.add('hidden');
+            dropzone.classList.add('border-dashed');
+            dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80');
+            dropzone.classList.remove('drag-active');
+        }
+
+        // --- MAIN LOGIC ---
+        async function generateCoverLetter() {
+            const jd = document.getElementById('job-description').value;
+
+            if (!extractedResumeText) return alert("Please upload your resume first.");
+            if (!jd) return alert("Please paste the job description.");
+
+            // UI State
+            generateBtn.disabled = true;
+            emptyState.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            loader.classList.remove('hidden');
+
             try {
-                // Default: Locked
-                unlockOverlay.style.display = 'flex';
-                btnGenerate.disabled = true;
-                btnGenerate.innerHTML = 'Unlock Tool';
-
-                const res = await fetch('/api/user-profile', {
+                // Get Email
+                const profileRes = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!res.ok) throw new Error("Failed to fetch profile");
-
-                const user = await res.json();
-                userEmail = user.email;
-
-                // For Cover Letter, check 'credits_cover_letter'
-                const hasCredit = user.is_unlimited || (user.credits_cover_letter && user.credits_cover_letter > 0);
-
-                if (hasCredit) {
-                    unlockOverlay.style.display = 'none';
-                    btnGenerate.disabled = false;
-                    btnGenerate.innerHTML = `Generate Letter (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
-                } else {
-                    // Remain Locked
-                    btnUnlock.onclick = () => initiateCheckout('strategy_cover', user.email);
+                if (!profileRes.ok) {
+                    if (profileRes.status === 401) {
+                        alert("Session expired. Please log in again.");
+                        window.location.href = '/login.html';
+                        return;
+                    }
+                    const errData = await profileRes.json();
+                    throw new Error(errData.error || `Profile Fetch Failed (${profileRes.status})`);
                 }
-            } catch (e) {
-                console.error("Auth check failed", e);
-                // Ensure locked
-                unlockOverlay.style.display = 'flex';
-                btnGenerate.disabled = true;
-            }
 
-            // 2. Handle Generation
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const inputs = Object.fromEntries(formData.entries());
+                const user = await profileRes.json();
 
-                loadDiv.style.display = 'block';
-                emptyState.style.display = 'none'; // toggle
-                resultDiv.classList.add('hidden');
-                btnGenerate.disabled = true;
-                btnCopy.classList.add('hidden');
+                // Construct Payload
+                // Note: The backend expects specific fields. We will construct a synthetic input 
+                // that forces the AI to extract details.
+                // Or better, we just populate the prompt with the raw text if backend supports it.
+                // Assuming legacy backend structure:
+                const payload = {
+                    email: user.email,
+                    tool_type: 'cover_letter',
+                    inputs: {
+                        // Pass combined context. The backend likely injects these into a prompt.
+                        // We'll try to map intelligently or overload fields.
+                        // Best approach: "key_skills" is a big text field, we'll stuff the resume summary there
+                        // and "company_name" from JD (or placeholder).
 
-                try {
-                    const res = await fetch('/api/generate-strategy-tool', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            email: userEmail,
-                            tool_type: 'cover_letter',
-                            inputs: inputs
-                        })
-                    });
+                        target_role: "Current Target Role (See Context)",
+                        company_name: "Target Company (See Context)",
+                        key_skills: `RESUME CONTEXT:\n${extractedResumeText.substring(0, 3000)}\n\nJOB DESCRIPTION:\n${jd.substring(0, 3000)}`
+                    }
+                };
 
-                    const data = await res.json();
-                    if (data.error) throw new Error(data.error);
+                // NOTE: If the backend strictly restricts prompts, this overload might be messy. 
+                // However, for a refactor without backend access, this is the best prompt engineering attempt.
 
-                    resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.classList.remove('hidden');
-                    btnCopy.classList.remove('hidden');
-
-                } catch (err) {
-                    alert("Error: " + err.message);
-                    emptyState.style.display = 'flex';
-                } finally {
-                    loadDiv.style.display = 'none';
-                    if (unlockOverlay.style.display === 'none') btnGenerate.disabled = false;
-                }
-            });
-
-            // 3. Checkout Logic
-            async function initiateCheckout(planType, email) {
-                const btn = event.target;
-                const oldText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                btn.disabled = true;
-
-                try {
-                    const res = await fetch('/api/create-checkout-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ plan_type: planType, email: email, successUrl: window.location.href })
-                    });
-                    const json = await res.json();
-                    if (json.url) window.location.href = json.url;
-                    else throw new Error(json.error);
-                } catch (e) {
-                    alert(e.message);
-                    btn.innerHTML = oldText;
-                    btn.disabled = false;
-                }
-            }
-
-            // 4. Copy Logic
-            btnCopy.addEventListener('click', () => {
-                const text = resultDiv.innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    const original = btnCopy.innerHTML;
-                    btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                    setTimeout(() => btnCopy.innerHTML = original, 2000);
+                const res = await fetch('/api/generate-strategy-tool', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
                 });
-            });
-        });
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                outputDiv.innerHTML = marked.parse(data.content);
+                resultContainer.classList.remove('hidden');
+
+            } catch (e) {
+                alert("Generation Error: " + e.message);
+                emptyState.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+                generateBtn.disabled = false;
+            }
+        }
+
+        window.copyContent = function () {
+            const text = outputDiv.innerText;
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard!");
+        }
+
     </script>
 </body>
 

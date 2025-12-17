@@ -12,6 +12,13 @@
         rel="stylesheet">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
     <!-- Marked JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
 
@@ -19,6 +26,13 @@
         body {
             font-family: 'Inter', sans-serif;
             overflow-y: auto;
+        }
+
+        /* Drag Zone Active State */
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
         }
 
         /* Custom Scrollbar for Dark Theme */
@@ -178,21 +192,68 @@
         <!-- Scrollable Inputs -->
         <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
 
-            <!-- SECTION 1: Source Data -->
+            <!-- SECTION 1: Source Data (UPDATED: Dropzone) -->
             <div>
                 <label
-                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center justify-between">
-                    <span class="flex items-center gap-2"><span
-                            class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-                        1. Source Data</span>
-                    <button onclick="smartParse()"
-                        class="text-[10px] text-blue-400 hover:text-white transition-colors border border-blue-500/30 px-2 py-1 rounded bg-blue-500/10 hover:bg-blue-500/20">AUTO-FILL
-                        FORM</button>
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Source Data
                 </label>
 
                 <div class="space-y-4">
-                    <div class="group">
-                        <label class="text-[10px] text-slate-500 font-mono mb-1 block">CURRENT RESUME (TEXT)</label>
+
+                    <!-- NEW: Dropzone to replace Text Area -->
+                    <div id="dropzone"
+                        class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-6 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                        <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+
+                        <div id="upload-idle">
+                            <div
+                                class="w-10 h-10 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                                <svg class="w-5 h-5 text-slate-400 group-hover:text-blue-400" fill="none"
+                                    stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                    </path>
+                                </svg>
+                            </div>
+                            <p class="text-xs font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                            <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase">Parses structure & keywords
+                            </p>
+                        </div>
+
+                        <div id="upload-success" class="hidden">
+                            <div
+                                class="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M5 13l4 4L19 7"></path>
+                                </svg>
+                            </div>
+                            <p class="text-xs font-semibold text-white truncate px-2" id="filename-display">resume.pdf
+                            </p>
+                            <button onclick="resetUpload(event)"
+                                class="text-[9px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-2 font-bold transition-colors">Change
+                                File</button>
+                        </div>
+                    </div>
+
+                    <!-- Toggle for Manual Text Paste -->
+                    <div class="text-center">
+                        <button onclick="toggleManualInput()"
+                            class="text-[10px] text-blue-400/80 hover:text-blue-400 underline decoration-blue-500/30 underline-offset-4 hover:decoration-blue-500 transition-all">
+                            Or paste text manually
+                        </button>
+                    </div>
+
+                    <!-- Hidden Manual Input -->
+                    <div class="group hidden" id="manual-input-container">
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-[10px] text-slate-500 font-mono">MANUAL TEXT</label>
+                            <button onclick="smartParse()"
+                                class="text-[9px] bg-blue-600/20 hover:bg-blue-600 text-blue-400 hover:text-white px-2 py-0.5 rounded border border-blue-500/30 transition-all">AUTO-FILL</button>
+                        </div>
                         <textarea id="source-resume"
                             class="w-full h-32 bg-slate-900/60 border border-slate-700/60 rounded-xl p-4 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
                             placeholder="Paste your full resume text here..."></textarea>
@@ -370,7 +431,6 @@
 
     </main>
 
-    <!-- LOGIC PRESERVED FROM ORIGINAL -->
     <script>
         // --- AUTH ---
         const SESSION_KEY = 'supabase.auth.token';
@@ -384,65 +444,250 @@
             experience: [],
             education: []
         };
+        let currentFileText = ""; // Store extracted PDF text
 
         // --- DOM REFS ---
         const expList = document.getElementById('rb-experience-list');
         const eduList = document.getElementById('rb-education-list');
 
+        // Dropzone DOM Refs
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-upload');
+        const uploadIdle = document.getElementById('upload-idle');
+        const uploadSuccess = document.getElementById('upload-success');
+        const filenameDisplay = document.getElementById('filename-display');
+        const manualInput = document.getElementById('manual-input-container');
+
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
-            // Check for passed data from Resume Analyzer
+            // Check for passed data from Resume Analyzer or Strategy Log
             const pendingSource = localStorage.getItem('rewrite_source_text');
             const pendingJD = localStorage.getItem('rewrite_job_desc');
+            const strategyContext = localStorage.getItem('strategy_context');
 
             if (pendingSource) {
+                // If text passed, switch to manual mode automatically
+                toggleManualInput();
                 document.getElementById('source-resume').value = pendingSource;
-                localStorage.removeItem('rewrite_source_text'); // Clear
+                localStorage.removeItem('rewrite_source_text');
             }
+
             if (pendingJD) {
                 document.getElementById('target-job').value = pendingJD;
-                localStorage.removeItem('rewrite_job_desc'); // Clear
+                localStorage.removeItem('rewrite_job_desc');
+            } else if (strategyContext) {
+                try {
+                    const ctx = JSON.parse(strategyContext);
+                    if (ctx.description) {
+                        document.getElementById('target-job').value = ctx.description;
+                        console.log("Loaded context from Strategy Log:", ctx.role);
+                        // Optional: clear if we only want one-time use
+                        localStorage.removeItem('strategy_context');
+                    }
+                } catch (e) { console.error("Bad Context", e); }
             }
         });
+
+        // --- DRAG & DROP LOGIC (Ported from Analyzer) ---
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { dropzone.classList.add('drag-active'); }
+        function unhighlight() { dropzone.classList.remove('drag-active'); }
+
+        dropzone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        async function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                filenameDisplay.textContent = file.name;
+
+                // Read content
+                try {
+                    if (file.type === "application/pdf") {
+                        // Parse PDF using PDF.js
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(s => s.str).join(' ');
+                            fullText += pageText + "\n";
+                        }
+
+                        currentFileText = fullText;
+                    } else {
+                        currentFileText = await file.text();
+                    }
+
+                    showFileSuccess();
+
+                    // Auto-Trigger Parse
+                    smartParse(currentFileText);
+
+                } catch (e) {
+                    console.error("PDF Read Error:", e);
+                    alert("Could not process this PDF. Please try a text file.");
+                }
+            }
+        }
+
+        function showFileSuccess() {
+            uploadIdle.classList.add('hidden');
+            uploadSuccess.classList.remove('hidden');
+            dropzone.classList.remove('border-dashed');
+            dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+        }
+
+        window.resetUpload = function (e) {
+            if (e) e.stopPropagation();
+            fileInput.value = '';
+            currentFileText = "";
+            uploadIdle.classList.remove('hidden');
+            uploadSuccess.classList.add('hidden');
+            dropzone.classList.add('border-dashed');
+            dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80');
+            dropzone.classList.remove('drag-active');
+        }
+
+        window.toggleManualInput = function () {
+            manualInput.classList.toggle('hidden');
+            if (!manualInput.classList.contains('hidden')) {
+                // Focus if shown
+                document.getElementById('source-resume').focus();
+            }
+        }
 
         // --- FUNCTIONS ---
 
         // 1. SMART PARSE (Heuristic Text Scanner)
-        async function smartParse() {
-            const text = document.getElementById('source-resume').value;
-            if (!text) return alert("Please paste resume text first.");
+        // Updated to accept text argument, defaults to manual input if null
+        // 1. SMART PARSE (Heuristic Text Scanner)
+        // Updated to accept text argument, defaults to manual input if null
+        async function smartParse(inputText = null) {
+            let text = inputText;
 
+            // Fallback to manual input if no argument passed
+            if (!text) {
+                text = document.getElementById('source-resume').value;
+            }
+
+            if (!text) return alert("Please provide resume text or upload a file.");
+
+            // UI Feedback fallback
             const btn = document.querySelector('button[onclick="smartParse()"]');
-            const original = btn.innerHTML;
-            btn.textContent = "Analyzing...";
-            btn.disabled = true;
+            let original = "";
+            if (btn) {
+                original = btn.innerHTML;
+                btn.textContent = "Analyzing...";
+                btn.disabled = true;
+            }
 
             try {
-                // 1. Basic Info
-                const emailMatch = text.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
-                const phoneMatch = text.match(/(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/);
+                const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
 
-                if (emailMatch) document.getElementById('rb-email').value = emailMatch[0];
-                if (phoneMatch) document.getElementById('rb-phone').value = phoneMatch[0];
+                // --- 1. CONTACT INFO EXTRACTION ---
+                const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
+                const phoneRegex = /(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/;
+                // urlRegex to catch linkedin or portfolio links to exclude from summary
+                const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(linkedin\.com[^\s]+)/i;
 
-                // 2. Section Splitting
-                const lines = text.split(/\n+/);
-                let currentSection = 'summary'; // default start
+                let email = "";
+                let phone = "";
+                let name = "";
+                let location = "";
+
+                // Find Contact Info & Name
+                // We assume Name is the very first non-empty line that isn't contact info
+                let nameFound = false;
+
+                // Pre-process lines to extract specific info and mark them for skipping
+                const processedLines = lines.map(line => {
+                    let isContact = false;
+
+                    // Email
+                    const emailMatch = line.match(emailRegex);
+                    if (emailMatch) {
+                        if (!email) email = emailMatch[0];
+                        isContact = true;
+                    }
+
+                    // Phone
+                    const phoneMatch = line.match(phoneRegex);
+                    if (phoneMatch) {
+                        if (!phone) phone = phoneMatch[0];
+                        isContact = true;
+                    }
+
+                    // Link/Location-ish
+                    if (urlRegex.test(line) || line.includes('|') || line.includes('•')) {
+                        // Likely a header line with contact info delimeters
+                        // Check if it's strictly just contact info
+                        if (line.length < 100 && (line.includes('@') || /\d{3}/.test(line))) {
+                            isContact = true;
+                        }
+                    }
+
+                    // NAME DETECTION: 
+                    // First line that is NOT contact info and has no numbers is likely the Name
+                    if (!nameFound && !isContact && !/\d/.test(line) && line.length < 40 && !line.includes(':')) {
+                        name = line;
+                        nameFound = true;
+                        return { text: line, type: 'name' }; // Mark as name
+                    }
+
+                    return { text: line, type: isContact ? 'contact' : 'content' };
+                });
+
+                // Set Contact UI
+                if (name) document.getElementById('rb-name').value = name;
+                if (email) document.getElementById('rb-email').value = email;
+                if (phone) document.getElementById('rb-phone').value = phone;
+
+
+                // --- 2. SECTION SPLITTING ---
+                let currentSection = null; // Don't start in summary immediately
                 let sections = { summary: [], experience: [], education: [], skills: [] };
 
                 const keywords = {
-                    experience: /experience|work history|employment|history/i,
-                    education: /education|academic|university|degree/i,
-                    skills: /skills|competencies|technologies/i,
+                    summary: /summary|profile|objective|about me|professional profile/i,
+                    experience: /experience|work history|employment|history|professional background/i,
+                    education: /education|academic|university|degree|qualifications/i,
+                    skills: /skills|competencies|technologies|core competencies|technical skills/i,
                     projects: /projects/i
                 };
 
-                for (let i = 0; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line || line.length < 2) continue;
+                for (let i = 0; i < processedLines.length; i++) {
+                    const lineObj = processedLines[i];
+                    if (lineObj.type === 'name' || lineObj.type === 'contact') continue; // Skip header stuff
 
+                    const line = lineObj.text;
+
+                    // Header Detection
                     let isHeader = false;
                     for (const [key, regex] of Object.entries(keywords)) {
+                        // Strict header check: Short line, matches keyword
                         if (regex.test(line) && line.length < 50) {
                             currentSection = key;
                             isHeader = true;
@@ -451,25 +696,36 @@
                     }
 
                     if (!isHeader) {
-                        if (sections[currentSection]) sections[currentSection].push(line);
+                        // If no section defined yet, and it's a long block of text early on, assume Summary
+                        if (!currentSection && i < 15 && line.length > 50) {
+                            currentSection = 'summary';
+                        }
+
+                        if (currentSection && sections[currentSection]) {
+                            sections[currentSection].push(line);
+                        }
                     }
                 }
 
-                // 3. Populate Fields
-                const summaryText = sections.summary.slice(0, 5).join(' ');
+                // --- 3. POPULATE FIELDS ---
+
+                // Summary: Join lines, but ensure we don't grab garbage.
+                const summaryText = sections.summary.join('\n');
                 document.getElementById('rb-summary').value = summaryText;
 
+                // Skills
                 if (sections.skills.length > 0) {
                     document.getElementById('rb-skills').value = sections.skills.join(', ');
                 }
 
-                // Experience Parsing
+                // Experience Parsing (Improved)
                 const dateRegex = /((19|20)\d{2}|Present|Current|Now)/i;
                 let currentExp = null;
                 const expContainer = document.getElementById('rb-experience-list');
                 expContainer.innerHTML = '';
 
                 sections.experience.forEach(line => {
+                    // Start of new job often has a date
                     if (dateRegex.test(line) && line.length < 80) {
                         if (currentExp) addExperience(currentExp);
                         currentExp = {
@@ -479,9 +735,10 @@
                             description: ''
                         };
                     } else if (currentExp) {
+                        // Heuristic: Short line -> Role or Company. Long line -> Description.
                         if (!currentExp.role) {
                             currentExp.role = line;
-                        } else if (!currentExp.company) {
+                        } else if (!currentExp.company && line.length < 60) {
                             currentExp.company = line;
                         } else {
                             currentExp.description += line + '\n';
@@ -496,26 +753,48 @@
                 let currentEdu = null;
 
                 sections.education.forEach(line => {
-                    if (/Bachelor|Master|PhD|B\.?S|M\.?S|Associate|Diploma|20\d{2}/i.test(line)) {
-                        if (currentEdu) addEducation(currentEdu);
-                        currentEdu = { school: '', degree: line, dates: '' };
+                    // Detect degree keywords or common universities
+                    if (/Bachelor|Master|PhD|B\.?S|M\.?S|Associate|Diploma|MBA|University|College/i.test(line) || /\b20\d{2}\b/.test(line)) {
+                        if (currentEdu && (currentEdu.degree || currentEdu.school)) addEducation(currentEdu);
+
+                        // New entry
+                        currentEdu = { school: '', degree: '', dates: '' };
+
+                        if (/University|College|Institute|School/i.test(line)) {
+                            currentEdu.school = line;
+                        } else {
+                            currentEdu.degree = line;
+                        }
+
                     } else if (currentEdu) {
-                        if (!currentEdu.school) currentEdu.school = line;
-                        else currentEdu.dates += line + ' ';
+                        if (!currentEdu.school && /University|College|Institute|School/i.test(line)) {
+                            currentEdu.school = line;
+                        } else if (!currentEdu.dates && /\d{4}/.test(line)) {
+                            currentEdu.dates = line;
+                        } else {
+                            // If we have school/degree already, maybe just append
+                            if (!currentEdu.degree) currentEdu.degree = line;
+                        }
                     }
                 });
                 if (currentEdu) addEducation(currentEdu);
 
-                console.log("Smart Scan Complete");
+
+                // Expand sections for visibility
+                document.querySelectorAll('details').forEach(el => el.open = true);
 
             } catch (e) {
-                console.error(e);
-                alert("Parsing error, please fill manually.");
+                console.error("Smart Parse Error:", e);
+                alert("Auto-fill encountered an issue. You may need to edit fields manually.");
+            } finally {
+                if (btn) {
+                    btn.textContent = original;
+                    btn.disabled = false;
+                }
             }
-
-            btn.innerHTML = original;
-            btn.disabled = false;
         }
+
+
 
         // 2. ADD/REMOVE ITEMS
         window.addExperience = function (data = {}) {

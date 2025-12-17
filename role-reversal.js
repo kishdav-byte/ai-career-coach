@@ -66,10 +66,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // 1. Get Text Content
+            // Get User Email for Tracking
+            let userEmail = null;
+            try {
+                const sessionStr = localStorage.getItem('aceinterview_session');
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    userEmail = session.email;
+                }
+            } catch (e) {
+                console.warn("Tracking: No valid session found.");
+            }
+
             const response = await fetch('/api/generate-model-answer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ question: question })
+                body: JSON.stringify({
+                    question: question,
+                    user_email: userEmail
+                })
             });
 
             const data = await response.json();

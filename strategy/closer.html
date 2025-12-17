@@ -4,195 +4,287 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Closer | Negotiation Script</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="../style.css">
+    <title>The Closer | Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Libs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+
     <style>
-        .split-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            min-height: calc(100vh - 80px);
-            /* Adjust for Nav */
+        body {
+            font-family: 'Inter', sans-serif;
         }
 
-        .form-side {
-            padding: 2rem;
-            background: #f8fafc;
-            border-right: 1px solid #e2e8f0;
-            overflow-y: auto;
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .result-side {
-            padding: 2rem;
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Resume/Letter Paper Preview */
+        .resume-paper {
+            box-sizing: border-box;
+            width: 210mm;
+            min-height: 297mm;
             background: white;
-            overflow-y: auto;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.6;
             position: relative;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        @media (max-width: 1024px) {
+            .resume-wrapper {
+                overflow-x: scroll;
+            }
+
+            .resume-paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+            }
         }
 
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: 600;
-            color: var(--gray-800);
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 0.75rem;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-family: inherit;
-        }
-
+        /* Markdown Styling inside Paper */
         .markdown-content {
-            font-family: 'Inter', sans-serif;
-            line-height: 1.6;
-            color: #333;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
-        .markdown-content h1,
+        .markdown-content h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1rem;
+        }
+
         .markdown-content h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #3b82f6;
             margin-top: 1.5rem;
-            color: #111;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .markdown-content h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
         }
 
         .markdown-content p {
-            margin-bottom: 1em;
+            color: #334155;
+            margin-bottom: 1rem;
+            line-height: 1.6;
         }
 
-        #unlock-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10;
-            text-align: center;
+        .markdown-content ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #334155;
         }
 
-        .copy-btn {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: #f1f5f9;
-            border: 1px solid #cbd5e1;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            cursor: pointer;
-            z-index: 5;
-            display: none;
-            /* Shown after gen */
-            font-size: 0.85rem;
-            color: #475569;
+        .markdown-content li {
+            margin-bottom: 0.5rem;
         }
 
-        .copy-btn:hover {
-            background: #e2e8f0;
+        .markdown-content strong {
+            color: #2563eb;
+            font-weight: 600;
         }
 
-        @media (max-width: 768px) {
-            .split-container {
-                grid-template-columns: 1fr;
-            }
-        }
+
+
+        /* Blue bold for emphasis */
     </style>
 </head>
 
-<body class="bg-white">
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="../dashboard.html" class="nav-logo">AI Career Coach</a>
-            <a href="../strategy-lab.html" class="btn btn-secondary">Back to Lab</a>
-        </div>
-    </nav>
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
 
-    <div class="premium-container">
-        <!-- Input Side -->
-        <div class="strategy-card">
-            <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-2xl">🤝</div>
-                <h1 class="premium-title">The Closer</h1>
+    <!-- LEFT PANEL: CONTROLS (300px Fixed) -->
+    <aside
+        class="w-full md:w-[320px] lg:w-[350px] flex-shrink-0 h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Header -->
+        <div class="p-6 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
+                    LAB</h1>
+                <div class="text-xl font-bold tracking-tight text-white font-mono">THE<span
+                        class="text-blue-500">_CLOSER</span></div>
             </div>
-            <p class="premium-subtitle mb-8">Generate a ruthless but professional negotiation script.</p>
+            <a href="../dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+        </div>
 
-            <form id="tool-form">
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Base Salary Offer ($)</label>
-                    <input type="number" name="current_offer" placeholder="e.g. 120000" class="input-premium" required>
-                    <p class="helper-text mt-1 text-sm text-gray-500">The base amount in your official offer letter.</p>
-                </div>
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Sign-On Bonus ($)</label>
-                    <input type="number" name="sign_on" placeholder="e.g. 10000" class="input-premium">
-                    <p class="helper-text mt-1 text-sm text-gray-500">Any one-time cash bonus offered up front.</p>
-                </div>
-                <div class="form-group mb-5">
-                    <label class="block font-semibold text-gray-700 mb-2">Leverage / Context</label>
-                    <textarea name="leverage" rows="4"
-                        placeholder="e.g. I have a competing offer from Google for $140k."
-                        class="input-premium"></textarea>
-                    <p class="helper-text mt-1 text-sm text-gray-500">Competing offers, market data, or strong
-                        performance reviews.</p>
-                </div>
-                <div class="form-group mb-6">
-                    <label class="block font-semibold text-gray-700 mb-2">Your Goal / Ask</label>
-                    <input type="text" name="goal" placeholder="e.g. Match the $140k base" class="input-premium"
-                        required>
+        <!-- Scrollable Form -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
+            <form id="tool-form" class="space-y-6">
+
+                <!-- Input: Current Offer -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Current Offer
+                        ($)</label>
+                    <div class="relative group">
+                        <input type="number" name="current_offer" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none transition-all group-hover:border-slate-600"
+                            placeholder="e.g. 120000">
+                    </div>
                 </div>
 
-                <button type="submit" id="btn-generate" class="btn btn-primary btn-premium-action">
-                    Generate Strategy (1 Credit)
-                </button>
+                <!-- Input: Sign On -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Sign-On Bonus
+                        ($)</label>
+                    <div class="relative group">
+                        <input type="number" name="sign_on"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none transition-all group-hover:border-slate-600"
+                            placeholder="e.g. 10000">
+                    </div>
+                </div>
+
+                <!-- Input: Leverage -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Leverage
+                        Points</label>
+                    <div class="relative group">
+                        <textarea name="leverage" rows="4"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none resize-none custom-scroll transition-all group-hover:border-slate-600"
+                            placeholder="e.g. Competing Google offer @ $140k..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Input: Goal -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Your Goal /
+                        Ask</label>
+                    <div class="relative group">
+                        <input type="text" name="goal" required
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none transition-all group-hover:border-slate-600"
+                            placeholder="e.g. Match $140k base + more equity">
+                    </div>
+                </div>
+
             </form>
         </div>
 
-        <!-- Result Side -->
-        <div class="strategy-card relative overflow-y-auto">
-            <button id="btn-copy" class="copy-btn hidden"><i class="far fa-copy"></i> Copy to Clipboard</button>
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md z-30">
+            <button type="submit" form="tool-form" id="btn-generate" disabled
+                class="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2 group">
+                <span class="btn-text">INITIALIZING...</span>
+                <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+        </div>
+    </aside>
+
+    <!-- RIGHT PANEL: OUPUT -->
+    <main
+        class="flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- Background Grids -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm flex-shrink-0">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-slate-600" id="status-dot"></span>
+                READY
+            </h2>
+            <div class="flex gap-4">
+                <button id="btn-copy"
+                    class="text-slate-400 hover:text-white transition-colors text-sm font-mono flex items-center gap-2 hidden">
+                    <i class="far fa-copy"></i> Copy
+                </button>
+            </div>
+        </div>
+
+        <!-- Content Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 relative z-10">
 
             <!-- Unlock Overlay -->
-            <div id="unlock-overlay" style="display: none;">
-                <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
-                <h2 style="margin-bottom: 0.5rem;" class="premium-title text-2xl">Unlock The Closer</h2>
-                <p style="margin-bottom: 1.5rem; color: #64748b;">You need a Negotiation Credit to use this tool.</p>
-                <button id="btn-unlock" class="btn btn-success btn-premium-action animate-pulse"
-                    style="background-color: var(--success); color: white; border: none;">
-                    Unlock Tool ($4.99)
+            <div id="unlock-overlay"
+                class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                    <i class="fas fa-lock text-2xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Unlock The Closer</h2>
+                <p class="text-slate-400 mb-6 max-w-sm">Use AI to negotiate a higher salary with a custom script.</p>
+                <button id="btn-unlock"
+                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                    Unlock Tool ($6.99)
                 </button>
             </div>
 
             <!-- Loading State -->
-            <div id="loading" style="display: none; text-align: center; margin-top: 5rem;">
-                <i class="fas fa-spinner fa-spin fa-3x text-blue-500"></i>
-                <p class="mt-4 text-gray-600 font-medium">Consulting the Negotiation Coach...</p>
+            <div id="loading" class="hidden flex flex-col items-center justify-center mt-20">
+                <div class="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-6">
+                </div>
+                <p class="text-blue-400 font-mono animate-pulse">GENERATING NEGOTIATION SCRIPT...</p>
             </div>
 
-            <!-- Empty State (Default) -->
-            <div id="empty-state" class="empty-state-premium">
-                <i class="fas fa-handshake empty-state-icon"></i>
-                <p class="empty-state-text text-lg">Your strategy will appear here.</p>
-                <p class="empty-state-subtext text-gray-500">Fill out the form to begin.</p>
+            <!-- Empty State -->
+            <div id="empty-state" class="flex flex-col items-center justify-center mt-20 opacity-50">
+                <i class="fas fa-handshake text-6xl text-slate-700 mb-6"></i>
+                <p class="text-slate-500 text-lg">Enter offer details to generate script.</p>
             </div>
 
-            <!-- Content -->
-            <div id="result-content" class="markdown-content hidden p-2">
+            <!-- Markdown Output (Paper) -->
+            <!-- Markdown Output (Paper) -->
+            <div
+                class="resume-wrapper w-full h-full p-4 md:p-8 overflow-auto custom-scroll relative z-10 flex justify-center items-start">
+                <div id="result-content" class="hidden resume-paper markdown-content shadow-2xl h-fit mb-8"></div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
-    <script src="https://js.stripe.com/v3/"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('supabase.auth.token');
@@ -204,55 +296,56 @@
             const emptyState = document.getElementById('empty-state');
             const unlockOverlay = document.getElementById('unlock-overlay');
             const btnGenerate = document.getElementById('btn-generate');
+            const btnText = btnGenerate.querySelector('.btn-text');
             const btnUnlock = document.getElementById('btn-unlock');
             const btnCopy = document.getElementById('btn-copy');
+            const statusDot = document.getElementById('status-dot');
 
             let userEmail = '';
 
             // 1. Check Credits
             try {
-                // Default: Locked
-                unlockOverlay.style.display = 'flex';
+                // Initial Lock State
+                unlockOverlay.classList.remove('hidden');
                 btnGenerate.disabled = true;
-                btnGenerate.innerHTML = 'Unlock Tool';
 
-                const res = await fetch('/api/user-profile', { headers: { 'Authorization': `Bearer ${token}` } });
+                const res = await fetch('/api/user-profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
 
                 if (!res.ok) throw new Error("Failed to fetch profile");
 
                 const user = await res.json();
                 userEmail = user.email;
 
-                // Credit Check
+                // Check Specific Credit
                 const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0);
 
                 if (hasCredit) {
-                    unlockOverlay.style.display = 'none';
+                    unlockOverlay.classList.add('hidden');
                     btnGenerate.disabled = false;
-                    btnGenerate.innerHTML = `Generate Strategy (${user.is_unlimited ? 'Unlimited' : '1 Credit'})`;
+                    btnText.textContent = `GENERATE STRATEGY (${user.is_unlimited ? 'UNLIMITED' : '1 CREDIT'})`;
+                    statusDot.classList.remove('bg-slate-600');
+                    statusDot.classList.add('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.6)]');
                 } else {
-                    // Remain Locked
+                    // Locked
                     btnUnlock.onclick = () => initiateCheckout('strategy_negotiation', user.email);
                 }
-
             } catch (e) {
-                console.error("Auth Exception", e);
-                // Ensure locked on error
-                unlockOverlay.style.display = 'flex';
-                btnGenerate.disabled = true;
+                console.error("Auth check failed", e);
             }
 
-            // 2. Generate Logic
+            // 2. Handle Generation
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(form);
                 const inputs = Object.fromEntries(formData.entries());
 
-                loadDiv.style.display = 'block';
-                emptyState.style.display = 'none'; // Hide placeholder
-                resultDiv.classList.add('hidden'); // Ensure content hidden during load
+                loadDiv.classList.remove('hidden');
+                emptyState.classList.add('hidden');
+                resultDiv.classList.add('hidden');
                 btnGenerate.disabled = true;
-                btnCopy.classList.add('hidden'); // Use class hidden
+                btnCopy.classList.add('hidden');
 
                 try {
                     const res = await fetch('/api/generate-strategy-tool', {
@@ -272,23 +365,23 @@
                     if (data.error) throw new Error(data.error);
 
                     resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.classList.remove('hidden'); // Show content
-                    btnCopy.classList.remove('hidden'); // Show copy btn
+                    resultDiv.classList.remove('hidden');
+                    btnCopy.classList.remove('hidden');
 
                 } catch (err) {
-                    alert(err.message);
-                    emptyState.style.display = 'flex'; // Restore empty state on error
+                    alert("Error: " + err.message);
+                    emptyState.classList.remove('hidden');
                 } finally {
-                    loadDiv.style.display = 'none';
-                    if (unlockOverlay.style.display === 'none') btnGenerate.disabled = false;
+                    loadDiv.classList.add('hidden');
+                    if (unlockOverlay.classList.contains('hidden')) btnGenerate.disabled = false;
                 }
             });
 
             // 3. Checkout Logic
             async function initiateCheckout(planType, email) {
                 const btn = event.target;
-                const oldText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                const oldText = btn.textContent;
+                btn.textContent = 'Processing...';
                 btn.disabled = true;
 
                 try {
@@ -302,7 +395,7 @@
                     else throw new Error(json.error);
                 } catch (e) {
                     alert(e.message);
-                    btn.innerHTML = oldText;
+                    btn.textContent = oldText;
                     btn.disabled = false;
                 }
             }

@@ -219,63 +219,87 @@
         </style>
 
         <div class="pricing-grid">
-            <!-- 1. Resume Only -->
+            <!-- 1. Single Strategy Tools -->
             <div class="pricing-card">
-                <h3>Resume Only</h3>
-                <div class="price">$14.99</div>
+                <h3>Single Strategy Tool</h3>
+                <div class="price">$6.99</div>
+                <p class="period">Individual Tool Access</p>
                 <ul>
-                    <li>10/10 Score Report</li>
-                    <li>ATS Compatibility Scan</li>
-                    <li>Keyword Gap Analysis</li>
-                    <li>Formatting Fixes</li>
-                    <li>Action Plan</li>
+                    <li>1 Targeted Deliverable</li>
+                    <li>Choice of: Cover Letter, LinkedIn Opt, Negotiation, Inquisitor, or Follow-Up</li>
+                    <li>Direct PDF Export</li>
                 </ul>
-                <a href="#" onclick="handleCheckout(event, 'resume')" class="btn btn-outline">Analyze Resume</a>
+                <a href="/strategy-lab.html" class="btn btn-outline">Go to Strategy Lab</a>
             </div>
 
-            <!-- 2. Interview Practice (New) -->
+            <!-- 2. Interview Simulator -->
             <div class="pricing-card">
-                <h3>Interview Practice</h3>
-                <div class="price">$19.99</div>
+                <h3>Interview Simulator</h3>
+                <div class="price">$9.99</div>
+                <p class="period">Per Session</p>
                 <ul>
-                    <li>Unlimited Mock Interviews</li>
-                    <li>Real-time Audio Feedback</li>
-                    <li>Voice Analysis Score</li>
-                    <li>STAR Format Coaching</li>
-                    <li>Answer Improvement Tips</li>
+                    <li>Real-time Voice Mock Interview</li>
+                    <li>Instant Feedback & Scoring</li>
+                    <li>Transcript & Audio Review</li>
                 </ul>
-                <a href="#" onclick="handleCheckout(event, 'interview')" class="btn btn-outline">Start Practice</a>
+                <a href="#" onclick="handleCheckout(event, 'strategy_interview_sim')" class="btn btn-outline">Start
+                    Session</a>
             </div>
 
-            <!-- 3. Complete Package (Moved & Repriced) -->
+            <!-- 3. Executive Rewrite -->
+            <div class="pricing-card">
+                <h3>Executive Rewrite</h3>
+                <div class="price">$12.99</div>
+                <p class="period">Full Resume Overhaul</p>
+                <ul>
+                    <li>Complete Content Rewrite</li>
+                    <li>Professional Formatting (PDF)</li>
+                    <li>Targeted to Job Description</li>
+                </ul>
+                <a href="#" onclick="handleCheckout(event, 'rewrite')" class="btn btn-outline">Rewrite Resume</a>
+            </div>
+
+            <!-- 4. 30-60-90 Day Plan -->
+            <div class="pricing-card">
+                <h3>30-60-90 Day Plan</h3>
+                <div class="price">$8.99</div>
+                <p class="period">Strategic Onboarding</p>
+                <ul>
+                    <li>Audit, Build, & Scale Phases</li>
+                    <li>Actionable Deliverables</li>
+                    <li>Impress Hiring Managers</li>
+                </ul>
+                <a href="#" onclick="handleCheckout(event, 'strategy_plan')" class="btn btn-outline">Build Plan</a>
+            </div>
+
+            <!-- 5. Strategy Bundle -->
             <div class="pricing-card" style="border: 2px solid #2563eb;">
                 <div class="badge" style="background:#2563eb">MOST POPULAR</div>
-                <h3>Complete Package</h3>
-                <div class="price">$24.99</div>
+                <h3>Strategy Bundle</h3>
+                <div class="price">$29.99</div>
                 <ul>
-                    <li><strong>Everything in Resume & Interview</strong></li>
-                    <li>Full Resume Analysis Report</li>
-                    <li>Unlimited Interview Practice</li>
-                    <li>Cover Letter Generator</li>
-                    <li>24-Hour Access Pass</li>
+                    <li><strong>5 Universal Credits</strong></li>
+                    <li>Valid on ANY $6.99 Tool</li>
+                    <li>Save ~$15 vs Single Purchase</li>
+                    <li>Flexible Usage</li>
                 </ul>
-                <a href="#" onclick="handleCheckout(event, 'complete')" class="btn btn-primary">Get Complete Pass</a>
+                <a href="#" onclick="handleCheckout(event, 'strategy_bundle')" class="btn btn-primary">Get Bundle</a>
             </div>
 
-            <!-- 4. Pro Monthly (Moved) -->
+            <!-- 6. Pro Monthly -->
             <div class="pricing-card featured">
                 <div class="badge">BEST VALUE</div>
-                <h3>Pro Monthly</h3>
-                <div class="price">$49<span class="period">/mo</span></div>
+                <h3>Monthly Unlimited</h3>
+                <div class="price">$49.99<span class="period">/mo</span></div>
                 <ul>
-                    <li><strong>Unlimited Monthly Access</strong></li>
-                    <li>Continuous Resume Scans</li>
-                    <li>Advanced Voice Models</li>
-                    <li>Priority Email Support</li>
-                    <li>Cancel Checks Anytime</li>
+                    <li><strong>Unlimited Text Tools</strong></li>
+                    <li>50 Voice Sessions / Month</li>
+                    <li>Access to ALL Strategy Tools</li>
+                    <li>Priority Support</li>
+                    <li>Cancel Anytime</li>
                 </ul>
                 <a href="#" onclick="handleCheckout(event, 'pro')" class="btn btn-primary"
-                    style="background:var(--dark)">Go Pro</a>
+                    style="background:var(--dark)">Go Unlimited</a>
             </div>
         </div>
     </div>

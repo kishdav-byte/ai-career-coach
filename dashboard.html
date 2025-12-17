@@ -4,620 +4,520 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - AceInterview</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Executive Hub - AceInterview</title>
+    <!-- Tailwind CSS (via CDN for immediate utility usage as requested) -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        // 1. Define the key exactly as it is used in login.html
-        const SESSION_KEY = 'supabase.auth.token';
-
-        // 2. Check for the token
-        const token = localStorage.getItem(SESSION_KEY);
-
-        // 3. Debugging (Optional: helps you see if it works in Console)
-        console.log("Checking for token:", token ? "Found" : "Missing");
-
-        if (!token) {
-            // No token? Go to login
-            console.warn("No token found. Redirecting to Login.");
-            window.location.href = '/login.html';
-        } else {
-            // Token found? Stay here! 
-            console.log("Access granted.");
-
-            // 4. (Optional) If you have the Supabase client loaded, set the session
-            if (typeof supabase !== 'undefined') {
-                supabase.auth.setSession({
-                    access_token: token,
-                    refresh_token: localStorage.getItem('supabase.auth.refresh_token') || ''
-                });
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        navy: '#0A2540',
+                        teal: '#20C997',
+                        slate: {
+                            900: '#0f172a',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
             }
         }
     </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+
+    <script>
+        // Auth Logic Pre-check
+        const SESSION_KEY = 'supabase.auth.token';
+        const token = localStorage.getItem(SESSION_KEY);
+        if (!token) {
+            window.location.href = '/login.html';
+        }
+    </script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #0A2540;
-            --primary-dark: #051b30;
-            --dark: #111827;
-            --gray-600: #4B5563;
-            --gray-200: #E5E7EB;
-            --gray-100: #F8F9FA;
-            --white: #ffffff;
-            --warning: #f59e0b;
-            --success: #20C997;
-            /* Adding success/teal here too */
-            --gradient-primary: linear-gradient(135deg, #0A2540 0%, #1e3a8a 100%);
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--gray-100);
-            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            /* Fallback */
         }
 
-        .header {
-            background: var(--white);
-            padding: 1rem 2rem;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .glass-card {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+        .glass-card:hover {
+            border-color: rgba(32, 201, 151, 0.3);
         }
 
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .user-name {
-            color: var(--gray-600);
-            font-size: 0.9rem;
-        }
-
-        .logout-btn {
-            padding: 0.5rem 1rem;
-            background: var(--gray-100);
-            border: 1px solid var(--gray-200);
-            border-radius: 8px;
-            color: var(--gray-600);
-            text-decoration: none;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .logout-btn:hover {
-            background: var(--white);
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        /* REFACTORED LAYOUT */
-        .app-shell {
-            display: flex;
-            height: 100vh;
-            /* Force full height, no window scroll */
-            overflow: hidden;
-        }
-
-        /* SIDEBAR */
-        .sidebar {
-            width: 240px;
-            /* Slightly narrower */
-            background-color: var(--primary);
-            color: white;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .sidebar-header {
-            padding: 1.25rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: white;
-            background: none;
-            -webkit-text-fill-color: white;
-        }
-
-        .close-sidebar-btn {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
-
-        .sidebar-nav {
-            padding: 1rem 0;
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .nav-group-title {
-            padding: 1rem 1.25rem 0.5rem;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.5);
-            font-weight: 700;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            padding: 0.65rem 1.25rem;
-            /* Compact Items */
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            transition: all 0.2s;
-            font-size: 0.9rem;
-        }
-
-        .nav-item:hover,
-        .nav-item.active {
-            background-color: rgba(255, 255, 255, 0.1);
-            color: var(--success);
-            padding-left: 1.5rem;
-        }
-
-        .nav-item .icon {
-            margin-right: 10px;
-            width: 18px;
-            text-align: center;
-            font-size: 1rem;
-        }
-
-        /* MAIN WRAPPER */
-        .main-wrapper {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            background-color: var(--gray-100);
-            height: 100vh;
-            overflow-y: auto;
-            /* Scroll ONLY the main content if needed */
-        }
-
-        /* TOP NAVBAR */
-        .top-navbar {
-            background: var(--white);
-            height: 60px;
-            /* Reduced Height */
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 2rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            flex-shrink: 0;
-        }
-
-        .hamburger-btn {
-            display: none;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: var(--dark);
-        }
-
-        /* DASHBOARD CONTENT AREA - COMPACT */
-        .dashboard-content-area {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem 1rem;
-        }
-
-        .dashboard-container-inner {
-            width: 100%;
-            max-width: 900px;
-            /* Tighter width for focus */
-            margin: 0 auto;
-        }
-
-        /* 1. RESUME WIDGET (Was Hero) */
-        .resume-widget-section {
-            background: white;
-            border-radius: 16px;
-            padding: 2rem;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            margin-bottom: 2rem;
-            position: relative;
-            /* Navy Top Border */
-            border-top: 5px solid var(--primary);
-        }
-
-        .resume-widget-header h1 {
-            font-family: 'DM Serif Display', 'Inter', serif;
-            font-size: 1.75rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .resume-widget-header p {
-            color: var(--gray-600);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .drop-zone {
-            background: var(--gray-100);
-            /* Highlight against white card */
-            border: 2px dashed #CBD5E1;
-            border-radius: 12px;
-            height: 160px;
-            /* Reduced Height */
-            max-width: 100%;
-            margin: 0 auto;
-            color: var(--dark);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .drop-zone:hover {
-            border-color: var(--primary);
-            background: #F0F4F8;
-        }
-
-        .drop-icon {
-            font-size: 1.75rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        /* 2. PROGRESS PILL */
-        .progress-section {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 2rem;
-        }
-
-        .progress-container {
-            background: white;
-            padding: 0.6rem 2rem;
-            border-radius: 50px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        /* 3. RECENT ACTIVITY (Was Grid) */
-        .recent-activity-section {
-            text-align: center;
-            color: var(--gray-600);
-            padding-top: 1rem;
-            border-top: 1px solid rgba(0, 0, 0, 0.05);
-        }
-
-        .activity-placeholder h3 {
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--primary);
-            /* Navy Header */
-            margin-bottom: 1rem;
-        }
-
-        .welcome-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-            display: inline-block;
-            text-align: left;
-            max-width: 500px;
-        }
-
-        .step-circle {
-            background: var(--gray-200);
-            color: var(--gray-600);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-weight: bold;
-            font-size: 0.8rem;
-        }
-
-        .step.active .step-circle {
-            background: var(--success);
-            color: white;
-        }
-
-        .step-label {
-            font-size: 0.8rem;
-            font-weight: 500;
-            margin-left: 8px;
-        }
-
-        .step {
-            display: flex;
-            align-items: center;
-        }
-
-        .step-line {
-            width: 30px;
-            height: 2px;
-            background: var(--gray-200);
-        }
-
-        @media (max-width: 768px) {
-            .app-shell {
-                flex-direction: column;
-                height: auto;
-                overflow: auto;
-            }
-
-            .sidebar {
-                position: fixed;
-                height: 100%;
-                z-index: 1000;
-                transform: translateX(-100%);
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
-            }
-
-            .main-wrapper {
-                height: auto;
-                margin-left: 0;
-            }
-
-            .feature-cards.show {
-                grid-template-columns: 1fr;
-            }
-
-            .hero-section {
-                padding: 3rem 1rem 5rem;
-            }
-
-            .hamburger-btn {
-                display: block;
-            }
-
-            .close-sidebar-btn {
-                display: block;
-            }
+        /* Custom Ring for Resume Health */
+        .ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
         }
     </style>
 </head>
 
-<body>
-    <!-- PDF.js for Resume Parsing -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 
-    <div class="app-shell">
-        <!-- SIDEBAR NAVIGATION -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo">AceInterview</div>
-                <button class="close-sidebar-btn" id="close-sidebar" onclick="toggleSidebar()">×</button>
+<body class="bg-gray-50 text-white font-sans selection:bg-teal selection:text-black overflow-hidden h-screen">
+
+    <div class="flex h-screen bg-slate-950">
+
+        <!-- MOBILE HEADER (Visible < lg) -->
+        <div
+            class="lg:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-4 z-50">
+            <div class="font-bold text-lg tracking-tight text-white">AceInterview</div>
+            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="4" y1="12" x2="20" y2="12" />
+                    <line x1="4" y1="6" x2="20" y2="6" />
+                    <line x1="4" y1="18" x2="20" y2="18" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- SIDEBAR (Fixed Left) -->
+        <aside id="sidebar"
+            class="fixed inset-y-0 left-0 w-[250px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full lg:translate-x-0 lg:static">
+
+            <!-- Logo Area -->
+            <div class="h-20 flex items-center px-8 mt-4 lg:mt-0">
+                <h1
+                    class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                    AceInterview
+                </h1>
             </div>
 
-            <nav class="sidebar-nav">
-                <!-- Group 1: THE CLINIC -->
-                <div class="nav-group">
-                    <div class="nav-group-title">THE CLINIC</div>
-                    <a href="/resume-analyzer.html" class="nav-item">
-                        <span class="icon">📄</span> Resume Diagnosis
-                    </a>
-                    <a href="/resume-rewriter.html" class="nav-item">
-                        <span class="icon">✏️</span> Resume Builder
-                    </a>
-                    <a href="/app.html#cover-letter" class="nav-item">
-                        <span class="icon">📝</span> Cover Letter
-                    </a>
-                    <a href="/app.html#linkedin" class="nav-item">
-                        <span class="icon">💼</span> LinkedIn Opt
-                    </a>
-                </div>
+            <!-- Navigation Stack -->
+            <nav class="flex-1 px-4 space-y-2 mt-4">
 
-                <!-- Group 2: THE SIMULATOR -->
-                <div class="nav-group">
-                    <div class="nav-group-title">THE SIMULATOR</div>
-                    <a href="/app.html#interview" class="nav-item">
-                        <span class="icon">🎤</span> Interview Lab
-                    </a>
-                    <a href="/lab-assistant.html" class="nav-item">
-                        <span class="icon">🤖</span> Lab Assistant
-                    </a>
-                    <a href="role-reversal.html" class="nav-item">
-                        <span class="icon">🎭</span> Role Reversal <span
-                            style="font-size: 0.6em; background: #F87171; color: white; padding: 2px 4px; border-radius: 4px; margin-left: 8px;">NEW</span>
-                    </a>
-                </div>
+                <!-- Dashboard (Active) -->
+                <a href="/dashboard.html"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group bg-teal/10 text-teal">
+                    <div
+                        class="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 bg-teal rounded-r-full shadow-[0_0_10px_rgba(32,201,151,0.5)]">
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="text-teal">
+                        <rect width="7" height="9" x="3" y="3" rx="1" />
+                        <rect width="7" height="5" x="14" y="3" rx="1" />
+                        <rect width="7" height="9" x="14" y="12" rx="1" />
+                        <rect width="7" height="5" x="3" y="16" rx="1" />
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
 
-                <!-- Group 3: STRATEGY -->
-                <div class="nav-group">
-                    <div class="nav-group-title">STRATEGY</div>
-                    <a href="/strategy/30-60-90" class="nav-item">
-                        <span class="icon">🗺️</span> 30-60-90 Plan
-                    </a>
-                    <a href="/strategy/cover-letter" class="nav-item">
-                        <span class="icon">📝</span> Cover Letter
-                    </a>
-                    <a href="/strategy/inquisitor" class="nav-item">
-                        <span class="icon">❓</span> The Inquisitor
-                    </a>
-                    <a href="/strategy/closer" class="nav-item">
-                        <span class="icon">🤝</span> The Closer
-                    </a>
-                    <a href="/strategy/follow-up" class="nav-item">
-                        <span class="icon">✉️</span> Value Follow-Up
-                    </a>
-                </div>
+                <!-- The Clinic -->
+                <a href="/resume-analyzer.html"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="text-slate-500 group-hover:text-white">
+                        <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <path d="M12 18v-4" />
+                        <path d="M8 18v-2" />
+                        <path d="M16 18v-6" />
+                    </svg>
+                    <span>The Clinic</span>
+                </a>
+
+                <!-- The Simulator -->
+                <a href="/role-reversal.html"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="text-slate-500 group-hover:text-white">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+                        <line x1="12" x2="12" y1="19" y2="22" />
+                    </svg>
+                    <span>The Simulator</span>
+                </a>
+
+                <!-- Strategy -->
+                <a href="/strategy/strategy-log.html"
+                    class="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="text-slate-500 group-hover:text-white">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="22" x2="18" y1="12" y2="12" />
+                        <line x1="6" x2="2" y1="12" y2="12" />
+                        <line x1="12" x2="12" y1="6" y2="2" />
+                        <line x1="12" x2="12" y1="22" y2="18" />
+                    </svg>
+                    <span>Strategy</span>
+                </a>
+
             </nav>
+
+            <!-- Footer / User Profile -->
+            <div class="p-4 border-t border-white/5">
+                <div
+                    class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center text-teal text-xs font-bold border border-teal/30">
+                            <span id="user-initials">DK</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <span id="user-display-sidebar"
+                                class="text-sm font-medium text-white group-hover:text-teal transition-colors">User</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Free Plan</span>
+                        </div>
+                    </div>
+                    <button onclick="logout()" class="text-gray-500 hover:text-white transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                            <polyline points="16 17 21 12 16 7" />
+                            <line x1="21" x2="9" y1="12" y2="12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
         </aside>
 
         <!-- MAIN CONTENT WRAPPER -->
-        <div class="main-wrapper">
-            <!-- TOP NAVBAR -->
-            <header class="top-navbar">
-                <button class="hamburger-btn" onclick="toggleSidebar()">☰</button>
-                <div class="header-right">
-                    <span class="user-name" id="user-display"></span>
-                    <button class="logout-btn" onclick="logout()">Logout</button>
-                </div>
-            </header>
+        <div class="flex-1 flex flex-col min-w-0 lg:ml-0 overflow-hidden relative">
 
-            <!-- DASHBOARD CONTENT (Compact) -->
-            <main class="dashboard-content-area">
+            <!-- Mobile Overlay -->
+            <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+                onclick="toggleSidebar()"></div>
 
-                <div class="dashboard-container-inner">
-                    <div class="loading" id="loading">
-                        Loading your workspace...
+            <!-- Top Spacer for Mobile Header -->
+            <div class="h-16 lg:hidden flex-shrink-0"></div>
+
+            <!-- Scrollable Content Area -->
+            <main
+                class="flex-1 overflow-y-auto p-4 lg:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black">
+
+                <div class="max-w-7xl mx-auto">
+                    <!-- Original Header Content (Title) moved here as Page Title -->
+                    <div class="flex justify-between items-center mb-10">
+                        <div>
+                            <h1
+                                class="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                                Executive Performance Hub
+                            </h1>
+                            <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
+                                    class="text-teal">Candidate</span>?</p>
+                        </div>
+                        <!-- Could add top-right actions here if needed, but nav is now in sidebar -->
                     </div>
 
-                    <div id="dashboard-content" style="display: none;">
+                    <!-- Main Grid Content (From previous step) -->
 
-                        <!-- 1. RESUME WIDGET (White Card) -->
-                        <section class="resume-widget-section">
-                            <div class="resume-widget-header">
-                                <h1>Resume Health Check</h1>
-                                <p>Upload your PDF to get an instant impact score.</p>
+                    <!-- 1. Key Metrics Row (4 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                        <!-- Metric 1: Resume Health -->
+                        <a href="/resume-analyzer.html"
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Resume Health
+                            </h3>
 
-                            <div class="drop-zone" id="resume-drop-zone">
-                                <div class="drop-content">
-                                    <div class="drop-icon">📄</div>
-                                    <h3>Drag & Drop your resume</h3>
-                                    <p>or <span
-                                            style="color: var(--success); text-decoration: underline; cursor: pointer;">browse
-                                            files</span></p>
-                                    <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx"
-                                        style="display: none;">
-                                    <div style="font-size:0.7rem; color:#999; margin-top:5px">Supports PDF, TXT</div>
-                                </div>
-                                <div class="cleaning-loader" id="parsing-loader" style="display: none;">
-                                    <div class="spinner"></div>
-                                    <p>Analyzing...</p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <!-- 2. PROGRESS TRACKER (Pill) -->
-                        <section class="progress-section">
-                            <div class="progress-container">
-                                <div class="step active">
-                                    <div class="step-circle">1</div>
-                                    <div class="step-label">Diagnosis</div>
-                                </div>
-                                <div class="step-line"></div>
-                                <div class="step locked">
-                                    <div class="step-circle">🔒</div>
-                                    <div class="step-label">The Cure</div>
-                                </div>
-                                <div class="step-line"></div>
-                                <div class="step locked">
-                                    <div class="step-circle">🔒</div>
-                                    <div class="step-label">Simulate</div>
+                            <!-- Ring Visualization -->
+                            <div class="relative w-24 h-24">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle class="text-slate-700 stroke-current" stroke-width="8" cx="50" cy="50"
+                                        r="40" fill="transparent"></circle>
+                                    <circle class="text-teal progress-ring__circle stroke-current ring-circle"
+                                        stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40"
+                                        fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="37.6"></circle>
+                                    <!-- 85% -->
+                                </svg>
+                                <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+                                    <span class="text-2xl font-bold text-white">85</span>
                                 </div>
                             </div>
-                        </section>
+                        </a>
 
-                        <!-- 3. RECENT ACTIVITY (Placeholder) -->
-                        <section class="recent-activity-section">
-                            <div class="activity-placeholder">
-                                <h3>Recent Activity</h3>
-                                <div class="welcome-card">
-                                    <div style="display:flex; gap:15px; align-items:flex-start;">
-                                        <div style="font-size:1.5rem;">👋</div>
-                                        <div>
-                                            <h4 style="margin-bottom:0.5rem; color:var(--primary);">Welcome to the Lab!
-                                            </h4>
-                                            <p style="font-size:0.9rem; margin-bottom:0;">Start by uploading your resume
-                                                above. We'll diagnose gaps, help you rewrite it, and then simulate
-                                                interviews.</p>
-                                        </div>
+                        <!-- Metric 2: Avg Interview Score (Dynamic Placeholder) -->
+                        <a href="/role-reversal.html"
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
+                            </div>
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg. Interview
+                                Score</h3>
+                            <div class="text-4xl font-bold text-white mb-2">7.5<span
+                                    class="text-gray-500 text-xl">/10</span>
+                            </div>
+                            <div
+                                class="flex items-center text-teal text-xs font-bold bg-teal/10 px-2 py-1 rounded-full">
+                                <span>↑ 12%</span>
+                                <span class="ml-1 opacity-70">vs last week</span>
+                            </div>
+                        </a>
+
+                        <!-- Metric 3: Strategy Log -->
+                        <a href="/strategy/strategy-log.html"
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
+                            </div>
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Active Strategy
+                            </h3>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="text-2xl">♟️</span>
+                                <span class="text-4xl font-bold text-white">12</span>
+                            </div>
+                            <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
+                        </a>
+
+                        <!-- Metric 4: Credits -->
+                        <div
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors">
+                            <div class="absolute top-0 left-0 w-full h-1 bg-teal/20"></div>
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Pro Plan</h3>
+                            <!-- Progress Bar -->
+                            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
+                                <div class="bg-teal h-full rounded-full" style="width: 70%"></div>
+                            </div>
+                            <div class="flex justify-between w-full text-xs">
+                                <span class="text-white font-bold">50 Credits</span>
+                                <span class="text-gray-500">Left</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Main Content Area (2:1 Ratio) -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+                        <!-- Left Column: Trend (Span 2) -->
+                        <div class="lg:col-span-2 glass-card rounded-2xl p-6 min-h-[300px] flex flex-col">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-lg font-bold text-white">Performance History</h3>
+                                <div class="flex gap-2">
+                                    <span class="text-xs text-teal bg-teal/10 px-2 py-1 rounded">Interviews</span>
+                                    <span
+                                        class="text-xs text-gray-500 hover:text-white cursor-pointer px-2 py-1">Resume</span>
+                                </div>
+                            </div>
+
+                            <!-- Chart Placeholder (Pure CSS) -->
+                            <div
+                                class="flex-grow flex items-end justify-between gap-4 px-4 pb-2 border-b border-white/5 relative">
+                                <!-- Y-Axis Grid Lines -->
+                                <div
+                                    class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                </div>
+
+                                <!-- Bars -->
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[40%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        4/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[55%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        5.5/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[50%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        5/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[70%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        7/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[65%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        6.5/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[80%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        8/10</div>
+                                </div>
+                                <div
+                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[75%] relative group cursor-pointer">
+                                    <div
+                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                                        7.5/10</div>
+                                </div>
+                            </div>
+                            <div class="flex justify-between mt-2 text-xs text-gray-500 uppercase tracking-widest">
+                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Action Center -->
+                        <div class="glass-card rounded-2xl p-6 flex flex-col">
+                            <h3 class="text-lg font-bold text-white mb-6">Recommended Actions</h3>
+
+                            <div class="flex-grow space-y-4">
+                                <!-- Action 1 -->
+                                <a href="/resume-analyzer.html"
+                                    class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
+                                    <div class="flex justify-between items-start">
+                                        <h4 class="font-semibold text-white group-hover:text-teal text-sm">Optimize
+                                            Resume</h4>
+                                        <span
+                                            class="text-[10px] bg-teal text-black font-bold px-1.5 py-0.5 rounded uppercase">High
+                                            Impact</span>
                                     </div>
-                                </div>
-                            </div>
-                        </section>
+                                    <p class="text-xs text-gray-400 mt-2">Your 'Experience' section needs active verbs.
+                                        Fix it
+                                        now.</p>
+                                </a>
 
+                                <!-- Action 2 -->
+                                <a href="/role-reversal.html"
+                                    class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
+                                    <div class="flex justify-between items-start">
+                                        <h4 class="font-semibold text-white group-hover:text-teal text-sm">Mock
+                                            Interview</h4>
+                                    </div>
+                                    <p class="text-xs text-gray-400 mt-2">Practice "Tell me about yourself" to boost
+                                        confidence.
+                                    </p>
+                                </a>
+                            </div>
+
+                            <a href="/resume-analyzer.html"
+                                class="w-full mt-6 py-3 bg-teal text-black font-bold text-sm rounded-xl hover:bg-[#1aa179] transition-colors text-center block">
+                                Start New Session
+                            </a>
+                        </div>
                     </div>
-                </div>
+
+                    <!-- 3. Bottom Section: Recent Activity -->
+                    <div class="glass-card rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-white">Recent Activity</h3>
+                            <button class="text-xs text-teal hover:text-white transition-colors">View All</button>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                        <th class="pb-3 font-medium pl-2">Project Name</th>
+                                        <th class="pb-3 font-medium">Type</th>
+                                        <th class="pb-3 font-medium">Score</th>
+                                        <th class="pb-3 font-medium">Date</th>
+                                        <th class="pb-3 font-medium">Status</th>
+                                        <th class="pb-3 font-medium text-right pr-2">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/5 text-sm">
+                                    <tr class="group hover:bg-white/5 transition-colors">
+                                        <td class="py-4 pl-2 font-medium text-white">Product_Manager_Resume_v2.pdf</td>
+                                        <td class="py-4 text-gray-400">Resume</td>
+                                        <td class="py-4 text-white font-bold">85</td>
+                                        <td class="py-4 text-gray-500">2h ago</td>
+                                        <td class="py-4">
+                                            <span
+                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">Optimized</span>
+                                        </td>
+                                        <td class="py-4 text-right pr-2">
+                                            <button class="text-gray-400 hover:text-white">•••</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="group hover:bg-white/5 transition-colors">
+                                        <td class="py-4 pl-2 font-medium text-white">Behavioral Interview #12</td>
+                                        <td class="py-4 text-gray-400">Simulation</td>
+                                        <td class="py-4 text-white font-bold">7.5</td>
+                                        <td class="py-4 text-gray-500">5h ago</td>
+                                        <td class="py-4">
+                                            <span
+                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-blue-500/20 text-blue-400">Completed</span>
+                                        </td>
+                                        <td class="py-4 text-right pr-2">
+                                            <button class="text-gray-400 hover:text-white">•••</button>
+                                        </td>
+                                    </tr>
+                                    <tr class="group hover:bg-white/5 transition-colors">
+                                        <td class="py-4 pl-2 font-medium text-white">30-60-90 Day Plan - Google</td>
+                                        <td class="py-4 text-gray-400">Strategy</td>
+                                        <td class="py-4 text-white font-bold">-</td>
+                                        <td class="py-4 text-gray-500">1d ago</td>
+                                        <td class="py-4">
+                                            <span
+                                                class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-gray-500/20 text-gray-300">Generated</span>
+                                        </td>
+                                        <td class="py-4 text-right pr-2">
+                                            <button class="text-gray-400 hover:text-white">•••</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div> <!-- End Max-W-7xl -->
             </main>
         </div>
     </div>
 
+    <!-- Hidden Drop Zone -->
+    <div id="resume-drop-zone" style="display:none;">
+        <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx" style="display: none;">
+        <div class="cleaning-loader" id="parsing-loader" style="display: none;">
+            <div class="spinner"></div>
+            <p>Analyzing...</p>
+        </div>
+        <div class="drop-content"></div>
+    </div>
+
     <script>
-        // PDF Parsing Logic
+        // PDF Parsing Logic (Retained from original)
         const dropZone = document.getElementById('resume-drop-zone');
         const fileInput = document.getElementById('resume-file-input');
         const parsingLoader = document.getElementById('parsing-loader');
-        const dropContent = document.querySelector('.drop-content');
+        const dropContent = document.querySelector('.drop-content'); // This might need adjustment if .drop-content is not directly under drop-zone
 
-        // Handle Click
-        dropZone.addEventListener('click', () => fileInput.click());
+        // Handle Click (only if dropZone is visible, which it isn't now)
+        if (dropZone) {
+            dropZone.addEventListener('click', () => fileInput.click());
 
-        // Handle Drag & Drop
-        dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = 'var(--success)';
-            dropZone.style.backgroundColor = 'rgba(32, 201, 151, 0.05)';
-        });
+            // Handle Drag & Drop (only if dropZone is visible)
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'var(--success)';
+                dropZone.style.backgroundColor = 'rgba(32, 201, 151, 0.05)';
+            });
 
-        dropZone.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#0A2540';
-            dropZone.style.backgroundColor = '#fff';
-        });
+            dropZone.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#0A2540';
+                dropZone.style.backgroundColor = '#fff';
+            });
 
-        dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.style.borderColor = '#0A2540';
-            dropZone.style.backgroundColor = '#fff';
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = '#0A2540';
+                dropZone.style.backgroundColor = '#fff';
 
-            const files = e.dataTransfer.files;
-            if (files.length) handleFile(files[0]);
-        });
+                const files = e.dataTransfer.files;
+                if (files.length) handleFile(files[0]);
+            });
+        }
 
         fileInput.addEventListener('change', (e) => {
             if (e.target.files.length) handleFile(e.target.files[0]);
@@ -625,8 +525,8 @@
 
         async function handleFile(file) {
             console.log("File detected:", file.name);
-            dropContent.style.display = 'none';
-            parsingLoader.style.display = 'flex';
+            if (dropContent) dropContent.style.display = 'none';
+            if (parsingLoader) parsingLoader.style.display = 'flex';
 
             try {
                 let text = "";
@@ -643,9 +543,6 @@
                     localStorage.setItem('pending_resume_text', text);
                     localStorage.setItem('pending_resume_filename', file.name);
 
-                    // Debug Alert (Temporary)
-                    // alert("Success! Extracted " + text.length + " characters. Redirecting to Analysis...");
-
                     // Redirect
                     window.location.href = '/resume-analyzer.html';
                 } else {
@@ -656,8 +553,8 @@
             } catch (err) {
                 console.error("Parsing Error:", err);
                 alert("Could not read this file. Please try a standard text-based PDF or TXT file.");
-                dropContent.style.display = 'block';
-                parsingLoader.style.display = 'none';
+                if (dropContent) dropContent.style.display = 'block';
+                if (parsingLoader) parsingLoader.style.display = 'none';
             }
         }
 
@@ -680,8 +577,7 @@
         }
 
 
-        // Main Dashboard Logic
-        // We use 'aceinterview_session' here because it contains the User Profile (credits, name).
+        // Main Dashboard Logic (Adapted from original)
         const APP_SESSION_KEY = 'aceinterview_session';
         const SESSION_EXPIRY_DAYS = 7;
 
@@ -725,7 +621,6 @@
             if (!session) {
                 const token = localStorage.getItem('supabase.auth.token');
                 if (token) {
-                    // console.log("Session missing but Token found. Attempting recovery...");
                     try {
                         const parts = token.split('.');
                         if (parts.length === 3) {
@@ -744,11 +639,10 @@
                                     interview_credits: 3
                                 };
                                 localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
-                                // console.log("Session Recovered!");
                             }
                         }
                     } catch (e) {
-                        // console.error("Recovery Error: " + e.message);
+                        console.error("Session Recovery Error:", e.message);
                     }
                 }
             }
@@ -763,8 +657,15 @@
             }
             // Display user info
             const displayName = session.name || session.email;
-            document.getElementById('user-display').textContent = displayName;
-            // document.getElementById('welcome-message').textContent = `Welcome back, ${session.name || 'there'}!`;
+            const shortName = displayName.split('@')[0].split(' ')[0]; // Extract first name or part before @
+
+            // Update New Sidebar & Header Elements
+            if (document.getElementById('user-display-sidebar')) document.getElementById('user-display-sidebar').textContent = shortName;
+            if (document.getElementById('user-display-kb')) document.getElementById('user-display-kb').textContent = shortName;
+
+            // Initials
+            const initials = shortName.substring(0, 2).toUpperCase();
+            if (document.getElementById('user-initials')) document.getElementById('user-initials').textContent = initials;
 
             // Check for payment success URL param
             const urlParams = new URLSearchParams(window.location.search);
@@ -773,49 +674,12 @@
                 window.history.replaceState({}, document.title, window.location.pathname);
             }
 
-            // Normal Init: Verify session with server and get latest status
-            // ... (Skipping verbose verify for now to speed up interaction, relying on local session, 
-            // real app would verify logic here as seen in prev version)
-
             // Show Dashboard
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('dashboard-content').style.display = 'block';
-
-            // Setup Manage Button
-            const btnManage = document.getElementById('btn-manage-sub-grid');
-            if (btnManage) {
-                btnManage.onclick = async () => {
-                    btnManage.textContent = '...';
-                    try {
-                        const res = await fetch('/api/create-portal-session', {
-                            method: 'POST', headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: session.email })
-                        });
-                        const data = await res.json();
-                        if (data.url) window.location.href = data.url;
-                        else btnManage.textContent = 'Manage';
-                    } catch (e) { btnManage.textContent = 'Error'; }
-                };
-            }
+            const loading = document.getElementById('loading');
+            const content = document.getElementById('dashboard-content');
+            if (loading) loading.style.display = 'none';
+            if (content) content.style.display = 'block';
         }
-
-        // Sidebar Toggle for Mobile
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
-
-        // Close sidebar when clicking outside (optional but good UX)
-        document.addEventListener('click', (e) => {
-            const sidebar = document.getElementById('sidebar');
-            const hamburger = document.querySelector('.hamburger-btn');
-            if (window.innerWidth <= 768 &&
-                sidebar.classList.contains('open') &&
-                !sidebar.contains(e.target) &&
-                e.target !== hamburger) {
-                sidebar.classList.remove('open');
-            }
-        });
 
         // Initialize on load
         initDashboard();

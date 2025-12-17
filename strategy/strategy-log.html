@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Strategy Log | Mission Control</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        .mission-card {
+            transition: all 0.2s ease;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #475569;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-950 text-slate-300 min-h-screen">
+
+    <!-- Navbar -->
+    <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="../dashboard.html" class="text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                <div>
+                    <div class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase">STRATEGY LAB</div>
+                    <div class="text-lg font-bold text-white font-mono tracking-tight">MISSION_CONTROL <span
+                            class="text-slate-600">//</span> ACTIVE_CAMPAIGNS</div>
+                </div>
+            </div>
+            <button onclick="openModal()"
+                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                <i class="fas fa-plus"></i> ADD TARGET
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-8">
+
+        <!-- Stats / Overview (Optional, serves as empty state if needed) -->
+        <div id="loading-state" class="flex flex-col items-center justify-center py-20">
+            <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <p class="text-slate-500 font-mono text-sm animate-pulse">LOADING INTELLIGENCE...</p>
+        </div>
+
+        <div id="empty-state"
+            class="hidden flex flex-col items-center justify-center py-20 border-2 border-dashed border-slate-800 rounded-2xl bg-slate-900/20">
+            <div class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4">
+                <i class="fas fa-radar text-slate-500 text-2xl"></i>
+            </div>
+            <h3 class="text-xl font-bold text-white mb-2">No Active Campaigns</h3>
+            <p class="text-slate-500 max-w-md text-center mb-6">Initialize a new target to begin tracking your strategy.
+            </p>
+            <button onclick="openModal()" class="text-blue-500 hover:text-blue-400 font-bold text-sm tracking-wide">
+                + INITIALIZE TARGET
+            </button>
+        </div>
+
+        <!-- Job Grid -->
+        <div id="job-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- Cards will be injected here -->
+        </div>
+
+    </main>
+
+    <!-- Add Job Modal -->
+    <div id="add-modal"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-xl shadow-2xl transform scale-95 transition-transform duration-200"
+            id="modal-content">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50 rounded-t-xl">
+                <h3 class="text-white font-bold font-mono tracking-wide">NEW_TARGET_ACQUISITION</h3>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="add-job-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Target
+                        Company</label>
+                    <input type="text" name="company_name" required placeholder="e.g. Acme Corp"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Role
+                        Title</label>
+                    <input type="text" name="job_title" required placeholder="e.g. Senior Strategist"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Job Description
+                        / Intel</label>
+                    <textarea name="job_description" rows="5" placeholder="Paste JD or context here..."
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600 resize-none custom-scroll"></textarea>
+                </div>
+
+                <div class="pt-4">
+                    <button type="submit" id="btn-save"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all">
+                        <span>INITIATE CAMPAIGN</span>
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const modal = document.getElementById('add-modal');
+        const modalContent = document.getElementById('modal-content');
+
+        function openModal() {
+            modal.classList.remove('hidden');
+            // small delay to define opacity transition
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('supabase.auth.token');
+            if (!token) window.location.href = '/login.html';
+
+            const jobGrid = document.getElementById('job-grid');
+            const loading = document.getElementById('loading-state');
+            const empty = document.getElementById('empty-state');
+            const form = document.getElementById('add-job-form');
+
+            // Fetch Jobs
+            async function loadJobs() {
+                try {
+                    const res = await fetch('/api/jobs', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (!res.ok) throw new Error("Failed to load jobs");
+
+                    const jobs = await res.json();
+                    loading.classList.add('hidden');
+
+                    if (jobs.length === 0) {
+                        empty.classList.remove('hidden');
+                        jobGrid.classList.add('hidden');
+                    } else {
+                        empty.classList.add('hidden');
+                        jobGrid.classList.remove('hidden');
+                        renderJobs(jobs);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    // Show error state?
+                }
+            }
+
+            function renderJobs(jobs) {
+                jobGrid.innerHTML = jobs.map(job => createJobCard(job)).join('');
+            }
+
+            function createJobCard(job) {
+                // Resume Status
+                const resScore = job.resume_score || 0;
+                const resClass = resScore > 80 ? 'text-green-500' : (resScore > 0 ? 'text-amber-500' : 'text-slate-600');
+                const resIcon = resScore > 80 ? 'fa-check-circle' : 'fa-circle';
+
+                // Interview Status
+                const intScore = job.interview_score || 0;
+                const intClass = intScore > 0 ? 'text-blue-500' : 'text-slate-600';
+
+                return `
+                <div class="mission-card bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col relative group">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-white font-bold text-lg leading-tight mb-1">${job.job_title}</h3>
+                            <p class="text-blue-400 font-mono text-xs uppercase tracking-wider">${job.company_name}</p>
+                        </div>
+                        <span class="px-2 py-1 rounded bg-slate-800 border border-slate-700 text-[10px] font-bold text-slate-400 uppercase tracking-wide">
+                            ${job.status}
+                        </span>
+                    </div>
+
+                    <!-- Status Grid -->
+                    <div class="grid grid-cols-2 gap-2 mb-6">
+                        <div class="bg-slate-950/50 rounded p-2 border border-slate-800/50 flex items-center justify-between">
+                            <span class="text-[10px] text-slate-500 font-mono">RESUME</span>
+                            <i class="fas ${resIcon} ${resClass} text-xs"></i>
+                        </div>
+                        <div class="bg-slate-950/50 rounded p-2 border border-slate-800/50 flex items-center justify-between">
+                            <span class="text-[10px] text-slate-500 font-mono">INTERVIEW</span>
+                            <i class="fas fa-circle ${intClass} text-xs"></i>
+                        </div>
+                    </div>
+
+                    <!-- Actions (War Room) -->
+                    <div class="mt-auto pt-4 border-t border-slate-800 space-y-2">
+                        <button onclick="openWarRoom('${job.id}')" class="w-full bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold py-2 rounded transition-colors flex items-center justify-center gap-2 group-hover:bg-blue-600/10 group-hover:text-blue-400 group-hover:border-blue-500/30 border border-transparent">
+                            OPEN WAR ROOM <i class="fas fa-chevron-down text-[10px]"></i>
+                        </button>
+                        
+                        <!-- Collapsible War Room Panel (Hidden by default, simple toggle logic needed) -->
+                        <div id="war-room-${job.id}" class="hidden space-y-2 pt-2 animate-fade-in">
+                            <button onclick="smartLaunch('${job.id}', '../resume-rewriter.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                                class="w-full text-left px-3 py-2 rounded bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-2 border border-slate-800/50 transition-colors">
+                                <i class="fas fa-file-alt text-slate-500"></i> Optimize Resume
+                            </button>
+                            <button onclick="smartLaunch('${job.id}', '30-60-90.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                                class="w-full text-left px-3 py-2 rounded bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-2 border border-slate-800/50 transition-colors">
+                                <i class="fas fa-road text-blue-500"></i> 30-60-90 Plan
+                            </button>
+                            <button onclick="smartLaunch('${job.id}', 'inquisitor.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                                class="w-full text-left px-3 py-2 rounded bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-2 border border-slate-800/50 transition-colors">
+                                <i class="fas fa-chess text-purple-500"></i> The Inquisitor
+                            </button>
+                            <button onclick="smartLaunch('${job.id}', 'closer.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                                class="w-full text-left px-3 py-2 rounded bg-slate-950 hover:bg-slate-800 text-xs text-slate-300 flex items-center gap-2 border border-slate-800/50 transition-colors">
+                                <i class="fas fa-handshake text-green-500"></i> The Closer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            // Global War Room Toggle
+            window.openWarRoom = (id) => {
+                const room = document.getElementById(`war-room-${id}`);
+                room.classList.toggle('hidden');
+            };
+
+            // Smart Launch Logic
+            window.smartLaunch = (id, url, job) => {
+                // Save context for the tool
+                const context = {
+                    job_id: id,
+                    role: job.job_title,
+                    company: job.company_name,
+                    description: job.job_description
+                };
+                localStorage.setItem('strategy_context', JSON.stringify(context));
+                window.location.href = url;
+            };
+
+            // Add Job Submit
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const btn = document.getElementById('btn-save');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+                btn.disabled = true;
+
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData.entries());
+
+                try {
+                    const res = await fetch('/api/jobs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+
+                    if (!res.ok) throw new Error("Failed to create target");
+
+                    // Reload
+                    closeModal();
+                    form.reset();
+                    loadJobs();
+
+                } catch (err) {
+                    alert("Error: " + err.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }
+            });
+
+            // Initial Load
+            loadJobs();
+        });
+    </script>
+</body>
+
+</html>

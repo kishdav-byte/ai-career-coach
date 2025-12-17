@@ -5,6 +5,51 @@ function getVoiceSettings() {
     return { voice, speed };
 }
 
+// Global scope definition for verifyInterviewAccess to allow external calls
+function verifyInterviewAccess(session) {
+    if (!session) return;
+
+    const lockedState = document.getElementById('interview-locked-state');
+    const activeState = document.getElementById('interview-active-state');
+    const startBtn = document.getElementById('start-interview-btn');
+
+    // Safety check if elements exist (might not be on app page)
+    if (!lockedState || !activeState) return;
+
+    const credits = session.interview_credits || 0; // Fixed: Use interview_credits (legacy) or sim_credits
+    const isUnlimited = session.is_unlimited || false;
+
+    // Logic: 
+    // If credits > 0 OR user is unlimited -> Show Start Screen (unlocked)
+
+    const statusDot = document.getElementById('status-dot');
+
+    if (credits > 0 || isUnlimited) {
+        lockedState.classList.add('hidden');
+        activeState.classList.remove('hidden');
+
+        // Enable Start Button
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // Status Indicator: Glowing Green
+        if (statusDot) {
+            statusDot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse';
+        }
+    } else {
+        // Locked
+        lockedState.classList.remove('hidden');
+        activeState.classList.add('hidden');
+
+        // Status Indicator: Grey
+        if (statusDot) {
+            statusDot.className = 'w-2 h-2 rounded-full bg-slate-600';
+        }
+    }
+}
+
 // Session Helper (Duplicated from dashboard for standalone app usage)
 // Session Helper (Duplicated from dashboard for standalone app usage)
 const SESSION_KEY = 'aceinterview_session';
@@ -145,27 +190,18 @@ async function checkAccess() {
                 }
             }
 
-            // Phase 20: Split Credits
-            let resume_credits = result.user.resume_credits;
-            let interview_credits = result.user.interview_credits;
-            let rewrite_credits = result.user.rewrite_credits;
-            let sim_credits = result.user.credits_interview_sim || 0; // New
+            // Phase 20: Split Credits (LEGACY - NOW CONSOLIDATED)
+            let credits = result.user.credits || 0; // Universal Credits
 
-            // Safe Parse
-            if (resume_credits === null || resume_credits === undefined) resume_credits = 0;
-            if (interview_credits === null || interview_credits === undefined) interview_credits = 0;
-            if (rewrite_credits === null || rewrite_credits === undefined) rewrite_credits = 0;
-
-            session.resume_credits = resume_credits;
-            session.interview_credits = interview_credits;
-            session.rewrite_credits = rewrite_credits;
-            session.sim_credits = sim_credits;
+            // Legacy fallbacks (display only if you want, but logic uses 'credits')
+            // For UI transition, we map Universal Credits to 'rewrite_credits' for older UI parts if needed
+            session.credits = credits;
 
             localStorage.setItem(SESSION_KEY, JSON.stringify(session));
             updateCreditDisplay(session); // UI Update
             verifyInterviewAccess(session); // Check Interview Tab Access
 
-            console.log(`Session refreshed. Sim Credits=${sim_credits}`);
+            console.log(`Session refreshed. Credits=${credits}`);
 
         }
     } catch (e) {
@@ -180,13 +216,25 @@ function updateCreditDisplay(session) {
     const displayEl = document.getElementById('rb-credit-display');
     const generateBtn = document.getElementById('rb-generate-btn');
 
-    if (countEl && session.rewrite_credits !== undefined) {
-        countEl.textContent = session.rewrite_credits;
+    // UNLIMITED LOGIC
+    if (session.is_unlimited) {
+        if (countEl) countEl.textContent = "∞";
+        if (displayEl) displayEl.style.display = 'flex';
+
+        if (generateBtn) {
+            generateBtn.innerHTML = `Generate Rewrite <small>(Unlimited)</small>`;
+            generateBtn.disabled = false;
+        }
+        return;
+    }
+
+    if (countEl && session.credits !== undefined) {
+        countEl.textContent = session.credits;
         if (displayEl) displayEl.style.display = 'flex';
 
         // Gate "Generate" Button
         if (generateBtn) {
-            if (session.rewrite_credits > 0) {
+            if (session.credits > 0) {
                 generateBtn.innerHTML = `Generate Rewrite <small>(1 Credit)</small>`;
                 generateBtn.disabled = false;
             } else {
@@ -383,39 +431,6 @@ function init() {
             }
         });
     });
-
-    // New Function: Verify Interview Access
-    function verifyInterviewAccess(session) {
-        if (!session) return;
-
-        const lockedState = document.getElementById('interview-locked-state');
-        const activeState = document.getElementById('interview-active-state');
-        const startBtn = document.getElementById('start-interview-btn');
-        const chatInterface = document.getElementById('chat-interface');
-
-        // Safety check if elements exist (might not be on app page)
-        if (!lockedState || !activeState) return;
-
-        const credits = session.sim_credits || 0;
-        const isUnlimited = session.is_unlimited || false;
-
-        if (credits > 0 || isUnlimited) {
-            // UNLOCKED
-            lockedState.style.display = 'none';
-            activeState.style.display = 'block';
-            chatInterface.style.display = 'none'; // Hide chat until started
-
-            if (startBtn) {
-                startBtn.innerHTML = `Start Interview (${isUnlimited ? 'Unlimited' : '1 Credit'})`;
-                startBtn.disabled = false;
-            }
-        } else {
-            // LOCKED
-            lockedState.style.display = 'block';
-            activeState.style.display = 'none';
-            chatInterface.style.display = 'none';
-        }
-    }
 
     // Bind Unlock Button for Interview Logic
     const unlockInterviewBtn = document.getElementById('btn-unlock-interview');
@@ -868,13 +883,15 @@ function init() {
     }
 
     // Resume Analysis Print Button
-    document.getElementById('resume-print-btn').addEventListener('click', () => {
-        const content = document.getElementById('resume-result').innerHTML;
+    const printBtn = document.getElementById('resume-print-btn');
+    if (printBtn) {
+        printBtn.addEventListener('click', () => {
+            const content = document.getElementById('resume-result').innerHTML;
 
-        // Open a new window with styled content for printing
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        if (printWindow) {
-            printWindow.document.write(`
+            // Open a new window with styled content for printing
+            const printWindow = window.open('', '_blank', 'width=800,height=600');
+            if (printWindow) {
+                printWindow.document.write(`
             < !DOCTYPE html >
                 <html>
                     <head>
@@ -940,25 +957,27 @@ function init() {
                     </body>
                 </html>
         `);
-            printWindow.document.close();
-        } else {
-            alert('Pop-up blocked. Please allow pop-ups for this site to use the print feature.');
-        }
-    });
+                printWindow.document.close();
+            }
+        });
+    }
 
     // Resume Analysis Copy Button
-    document.getElementById('resume-copy-btn').addEventListener('click', async () => {
-        const content = document.getElementById('resume-result');
-        try {
-            await navigator.clipboard.writeText(content.innerText);
-            const btn = document.getElementById('resume-copy-btn');
-            const originalText = btn.textContent;
-            btn.textContent = 'Copied!';
-            setTimeout(() => btn.textContent = originalText, 2000);
-        } catch (err) {
-            alert('Failed to copy. Please select text manually.');
-        }
-    });
+    const copyBtn = document.getElementById('resume-copy-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', async () => {
+            const content = document.getElementById('resume-result');
+            try {
+                await navigator.clipboard.writeText(content.innerText);
+                const btn = document.getElementById('resume-copy-btn');
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            } catch (err) {
+                alert('Failed to copy. Please select text manually.');
+            }
+        });
+    }
 
     // Tab 2: Interview Coach
     const chatWindow = document.getElementById('chat-window');
@@ -979,10 +998,18 @@ function init() {
             questionCount = 0; // Reset counter to 0 for welcome message
             interviewHistory = []; // Reset history
 
-            // Show Chat Interface, Hide Setup Form (Standard flow)
-            // Or keep setup form visible? Better UX to switch view.
-            if (activeState) activeState.style.display = 'none';
-            if (chatInterface) chatInterface.style.display = 'block';
+            // Show Chat Interface, Hide Intro & Setup
+            if (activeState) activeState.classList.add('hidden');
+            if (chatInterface) chatInterface.classList.remove('hidden');
+
+            const intro = document.getElementById('interview-intro');
+            if (intro) intro.classList.add('hidden');
+
+            // UI: Toggle Sidebar Buttons
+            const startBtn = document.getElementById('start-interview-btn');
+            const activeControls = document.getElementById('active-session-controls');
+            if (startBtn) startBtn.classList.add('hidden');
+            if (activeControls) activeControls.classList.remove('hidden');
 
             sendChatMessage("I have provided the job description. Please start the interview.", true);
         } else {
@@ -1056,16 +1083,18 @@ function init() {
         const message = msg || chatInput.value;
         if (!message) return;
 
-        // Add user message
-        addMessage(message, 'user');
-        chatInput.value = '';
-
-        // Call API
         // Note: In a real app, we'd send chat history. For prototype, we just send the last message.
         // To make it better, we could grab the last few messages from the DOM.
 
-        // Simple loading indicator
-        const loadingId = addMessage('Thinking...', 'system');
+        // Skip adding message to UI if it's the hidden start command
+        if (!isStart) {
+            // Add user message
+            addMessage(message, 'user');
+        }
+        chatInput.value = '';
+
+        // Animated Loading Indicator (Spinner)
+        const loadingId = addMessage('<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-sm text-slate-400">Thinking...</span></div>', 'system', true);
         const jobPosting = document.getElementById('interview-job-posting').value;
         const { voice, speed } = getVoiceSettings();
 
@@ -1107,9 +1136,9 @@ function init() {
                     // Standardized UI rendering (same as sendVoiceMessage)
                     let systemMsg = '';
                     if (result.data.score !== undefined && result.data.score !== null) {
-                        systemMsg += `< div style = "background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;" >
+                        systemMsg += `<div style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;">
             Score: ${result.data.score}/5
-                        </div > <br>`;
+                        </div><br>`;
                     }
                     if (result.data.feedback) {
                         systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
@@ -1333,15 +1362,21 @@ function init() {
 
     function addMessage(text, sender, isHtml = false) {
         const div = document.createElement('div');
-        div.classList.add('message', sender);
+        // Map generic 'user'/'system' to our specific CSS classes
+        const cssClass = sender === 'user' ? 'msg-user' : 'msg-system';
+        div.classList.add('msg-bubble', cssClass);
         div.id = 'msg-' + Date.now();
+
         if (isHtml) {
             div.innerHTML = text;
         } else {
             div.textContent = text;
         }
+
         chatWindow.appendChild(div);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        // Ensure we scroll the parent container, not just the window div if it's not the scroller
+        // The scroller is #view-interview-main or .overflow-auto parent
+        div.scrollIntoView({ behavior: 'smooth' });
         return div.id;
     }
     // Expose addMessage to global scope for sendVoiceMessage

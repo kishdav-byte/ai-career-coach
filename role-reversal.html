@@ -4,300 +4,291 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Role Reversal - STAR Calibration</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <title>Role Reversal - Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
     <style>
-        /* Specific Styles for Calibration Mode */
-        .calibration-container {
-            max-width: 1000px;
-            margin: 40px auto;
-            padding: 20px;
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
         }
 
-        .header-nav {
-            display: flex;
-            align-items: center;
-            margin-bottom: 30px;
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .back-link {
-            color: var(--text-secondary, #a0aec0);
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.9rem;
-            transition: color 0.2s;
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .back-link:hover {
-            color: var(--text-primary, #fff);
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
         }
 
-        .phase-cards {
-            display: flex;
-            gap: 20px;
-            margin-top: 40px;
+        /* Glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
+        /* Phase Cards specific styles */
         .phase-card {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 24px;
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
             transition: all 0.3s ease;
             opacity: 0.5;
-            position: relative;
-            min-height: 250px;
-            display: flex;
-            flex-direction: column;
         }
 
-        .phase-card h3 {
-            font-size: 1.1rem;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .phase-label {
-            font-size: 0.8rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .phase-content {
-            font-size: 0.95rem;
-            line-height: 1.6;
-            color: var(--text-secondary);
-        }
-
-        /* Active State (Currently Speaking) */
         .phase-card.active {
             opacity: 1;
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transform: translateY(-2px);
+            background: rgba(30, 41, 59, 0.8);
         }
 
-        /* Done State */
-        .phase-card.done {
-            opacity: 1;
-            border-color: var(--success, #48bb78);
-        }
-
-        .phase-card.done h3 {
-            color: var(--success, #48bb78);
-        }
-
-        .phase-card.done .phase-label {
-            background: var(--success, #48bb78);
-            color: #000;
-        }
-
-        /* Specific Colors for Active States per Phase */
         .phase-card.active[data-phase="S"] {
-            border-color: #3182ce;
-            /* Blue */
-            box-shadow: 0 0 20px rgba(49, 130, 206, 0.2);
-        }
-
-        .phase-card.active[data-phase="S"] h3 {
-            color: #63b3ed;
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.2);
         }
 
         .phase-card.active[data-phase="A"] {
-            border-color: #dd6b20;
-            /* Orange */
-            box-shadow: 0 0 20px rgba(221, 107, 32, 0.2);
-        }
-
-        .phase-card.active[data-phase="A"] h3 {
-            color: #fbd38d;
+            border-color: #f59e0b;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
         }
 
         .phase-card.active[data-phase="R"] {
-            border-color: #38a169;
-            /* Green */
-            box-shadow: 0 0 20px rgba(56, 161, 105, 0.2);
+            border-color: #10b981;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
         }
 
-        .phase-card.active[data-phase="R"] h3 {
-            color: #68d391;
-        }
-
-
-        /* Input Section */
-        .setup-panel {
-            background: var(--surface-card, #1e1e1e);
-            padding: 24px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        select,
-        input[type="text"] {
-            width: 100%;
-            padding: 12px;
-            background: rgba(0, 0, 0, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            border-radius: 8px;
-            font-size: 1rem;
-        }
-
-        .action-btn {
-            background: var(--primary, #3b82f6);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
-        }
-
-        .action-btn:hover {
-            background: var(--primary-hover, #2563eb);
-        }
-
-        .action-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        @media (max-width: 768px) {
-            .phase-cards {
-                flex-direction: column;
-            }
-        }
-
-        .voice-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-        }
-
-        .control-btn {
+        .phase-label {
+            font-size: 0.65rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
             background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 1.2rem;
-        }
-
-        .control-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
     </style>
 </head>
 
-<body class="dark-theme">
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
 
-    <div class="calibration-container">
+    <!-- LEFT PANEL: CONTROLS (35%) -->
+    <aside
+        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
 
-        <div class="header-nav">
-            <a href="app.html" class="back-link"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-red-400 uppercase mb-1 drop-shadow-md">SIMULATOR
+                </h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">ROLE<span
+                        class="text-red-400">_REVERSAL</span></div>
+            </div>
+            <a href="dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
-        <h1><i class="fas fa-theater-masks" style="color: #F87171; margin-right: 10px;"></i>Role Reversal <span
-                style="font-size: 0.5em; opacity: 0.6; vertical-align: middle; border: 1px solid currentColor; padding: 2px 6px; border-radius: 4px;">BETA</span>
-        </h1>
-        <p style="color: var(--text-secondary); margin-bottom: 30px;">
-            Watch the AI answer a question perfectly. Follow the STAR (Situation, Action, Result) structure as it lights
-            up.
-        </p>
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-8">
 
-        <!-- Setup Panel -->
-        <div class="setup-panel" id="setup-panel">
-            <div class="input-group">
-                <label>Choose a Category</label>
-                <select id="category-select">
-                    <option value="Leadership">Leadership & Management</option>
-                    <option value="Conflict Resolution">Conflict Resolution</option>
-                    <option value="Failure">Handling Failure</option>
-                    <option value="Innovation">Innovation & Creativity</option>
-                    <option value="Project Management">Project Management</option>
-                    <option value="Custom">Custom Question...</option>
-                </select>
+            <!-- Context -->
+            <div class="p-4 bg-slate-800/30 rounded-lg border border-slate-700/50">
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    <span class="text-white font-bold">How it works:</span> Watch the AI answer tricky behavioral
+                    questions. Pay attention to how it structures the answer using S-T-A-R.
+                </p>
             </div>
 
-            <div class="input-group" id="custom-question-group" style="display: none;">
-                <label>Enter Question</label>
-                <input type="text" id="custom-question-input"
-                    placeholder="e.g., Tell me about a time you missed a deadline.">
+            <!-- Setup Form -->
+            <div id="setup-panel" class="space-y-6">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Topic
+                        Category</label>
+                    <div class="relative">
+                        <select id="category-select"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-red-500 focus:ring-1 focus:ring-red-500/20 outline-none appearance-none">
+                            <option value="Leadership">Leadership & Management</option>
+                            <option value="Conflict Resolution">Conflict Resolution</option>
+                            <option value="Failure">Handling Failure</option>
+                            <option value="Innovation">Innovation & Creativity</option>
+                            <option value="Project Management">Project Management</option>
+                            <option value="Custom">Custom Question...</option>
+                        </select>
+                        <div class="absolute right-3 top-3 pointer-events-none text-slate-500">▼</div>
+                    </div>
+                </div>
+
+                <div id="custom-question-group" class="hidden">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Custom
+                        Question</label>
+                    <input type="text" id="custom-question-input"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-red-500 outline-none"
+                        placeholder="e.g., Tell me about a time you missed a deadline.">
+                </div>
+
+                <button id="generate-btn"
+                    class="w-full bg-red-600 hover:bg-red-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(239,68,68,0.4)] hover:shadow-[0_0_30px_rgba(239,68,68,0.6)] transition-all active:scale-[0.98] flex items-center justify-center gap-3 tracking-widest text-sm">
+                    <span>START SIMULATION</span>
+                    <i class="fas fa-play"></i>
+                </button>
             </div>
 
-            <button id="generate-btn" class="action-btn">
-                <i class="fas fa-magic"></i> Generate Model Answer
-            </button>
-        </div>
-
-        <!-- Player Area -->
-        <div id="player-area" style="display: none;">
-
-            <h2 id="current-question-display" style="text-align: center; margin-bottom: 20px; font-size: 1.2rem;"></h2>
-
-            <div class="phase-cards">
-                <!-- Situation / Task -->
-                <div class="phase-card" id="card-s" data-phase="S">
-                    <h3><span class="phase-label">S/T</span> Situation & Task</h3>
-                    <div class="phase-content" id="text-s">Loading...</div>
+            <!-- Active Controls (Hidden initially) -->
+            <div id="active-controls" class="hidden space-y-6">
+                <div class="flex justify-center gap-4">
+                    <button id="replay-btn"
+                        class="w-12 h-12 rounded-full bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 hover:text-white flex items-center justify-center transition-all shadow-lg"
+                        title="Replay">
+                        <i class="fas fa-redo"></i>
+                    </button>
+                    <button id="pause-btn"
+                        class="w-16 h-16 rounded-full bg-slate-800 border border-slate-600 text-white hover:bg-slate-700 flex items-center justify-center transition-all shadow-[0_0_15px_rgba(0,0,0,0.3)]"
+                        title="Pause/Resume">
+                        <i class="fas fa-pause text-xl"></i>
+                    </button>
                 </div>
 
-                <!-- Action -->
-                <div class="phase-card" id="card-a" data-phase="A">
-                    <h3><span class="phase-label">A</span> Action</h3>
-                    <div class="phase-content" id="text-a">Loading...</div>
-                </div>
-
-                <!-- Result -->
-                <div class="phase-card" id="card-r" data-phase="R">
-                    <h3><span class="phase-label">R</span> Result</h3>
-                    <div class="phase-content" id="text-r">Loading...</div>
-                </div>
-            </div>
-
-            <div class="voice-controls">
-                <button class="control-btn" id="replay-btn" title="Replay"><i class="fas fa-redo"></i></button>
-                <button class="control-btn" id="pause-btn" title="Pause/Resume"><i class="fas fa-pause"></i></button>
-                <button class="action-btn" onclick="window.location.href='app.html#interview'"
-                    style="background: var(--surface-card); border: 1px solid var(--primary);">
-                    <i class="fas fa-microphone"></i> Try It Myself
+                <button onclick="window.location.href='app.html#interview'"
+                    class="w-full py-3 border border-slate-700 border-dashed rounded-lg text-xs font-bold text-slate-500 hover:text-blue-400 hover:border-blue-500/50 hover:bg-blue-500/5 transition-all uppercase tracking-wide mt-8">
+                    Switch to Interview Mode
                 </button>
             </div>
 
         </div>
+    </aside>
 
-    </div>
 
+    <!-- RIGHT PANEL: DISPLAY (65%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(239, 68, 68, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(239, 68, 68, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-red-900/10 pointer-events-none">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]"></span>
+                Live Calibration
+            </h2>
+            <div class="text-[10px] font-mono text-slate-600">STATE: <span id="status-display">IDLE</span></div>
+        </div>
+
+        <!-- Content Area -->
+        <div
+            class="flex-1 overflow-auto custom-scroll p-8 md:p-12 relative z-10 flex flex-col justify-center max-w-4xl mx-auto w-full">
+
+            <!-- Empty State -->
+            <div id="empty-state" class="text-center">
+                <div
+                    class="w-20 h-20 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
+                    <span class="text-4xl">🎭</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-400 mb-2">Select a Scenario</h3>
+                <p class="text-sm text-slate-500 max-w-xs mx-auto">Choose a category on the left to watch the AI
+                    demonstrate a perfect answer.</p>
+            </div>
+
+            <!-- Active View -->
+            <div id="player-area" class="hidden w-full space-y-8">
+
+                <!-- The Question -->
+                <div class="text-center mb-8">
+                    <h2 id="current-question-display"
+                        class="text-xl md:text-2xl font-bold text-white leading-relaxed drop-shadow-md"></h2>
+                </div>
+
+                <!-- Three Phase Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+                    <!-- S/T -->
+                    <div class="phase-card p-6 rounded-xl relative overflow-hidden" id="card-s" data-phase="S">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-50"></div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="phase-label text-blue-300">S-T</span>
+                            <h3 class="text-sm font-bold text-blue-100">Situation & Task</h3>
+                        </div>
+                        <div class="phase-content text-sm text-slate-300 leading-relaxed h-48 overflow-y-auto custom-scroll"
+                            id="text-s">Waiting...</div>
+                    </div>
+
+                    <!-- A -->
+                    <div class="phase-card p-6 rounded-xl relative overflow-hidden" id="card-a" data-phase="A">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-amber-500 opacity-50"></div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="phase-label text-amber-300">A</span>
+                            <h3 class="text-sm font-bold text-amber-100">Action</h3>
+                        </div>
+                        <div class="phase-content text-sm text-slate-300 leading-relaxed h-48 overflow-y-auto custom-scroll"
+                            id="text-a">Waiting...</div>
+                    </div>
+
+                    <!-- R -->
+                    <div class="phase-card p-6 rounded-xl relative overflow-hidden" id="card-r" data-phase="R">
+                        <div class="absolute top-0 left-0 w-1 h-full bg-emerald-500 opacity-50"></div>
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="phase-label text-emerald-300">R</span>
+                            <h3 class="text-sm font-bold text-emerald-100">Result</h3>
+                        </div>
+                        <div class="phase-content text-sm text-slate-300 leading-relaxed h-48 overflow-y-auto custom-scroll"
+                            id="text-r">Waiting...</div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Preserve Logic from original JS, but map DOM elements -->
     <script src="role-reversal.js"></script>
+    <script>
+        // Additional Bridge Script to map new UI IDs to old Logic if needed
+        const catSelect = document.getElementById('category-select');
+        const customGroup = document.getElementById('custom-question-group');
+
+        catSelect.addEventListener('change', (e) => {
+            if (e.target.value === 'Custom') {
+                customGroup.classList.remove('hidden');
+            } else {
+                customGroup.classList.add('hidden');
+            }
+        });
+
+        // UI toggles
+        const genBtn = document.getElementById('generate-btn');
+        genBtn.addEventListener('click', () => {
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('player-area').classList.remove('hidden');
+            document.getElementById('setup-panel').classList.add('opacity-50', 'pointer-events-none'); // Lock setup
+            document.getElementById('active-controls').classList.remove('hidden');
+            document.getElementById('status-display').textContent = "SIMULATING";
+            document.getElementById('status-display').className = "text-red-400 animate-pulse font-bold";
+        });
+
+    </script>
 </body>
 
 </html>
