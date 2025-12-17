@@ -593,11 +593,16 @@
 
             // API Call
             try {
-                // Get Email from session
+                // Get Email/ID from session
                 let email = null;
+                let userId = null;
                 try {
                     const sessionStr = localStorage.getItem(APP_SESSION_KEY);
-                    if (sessionStr) email = JSON.parse(sessionStr).email;
+                    if (sessionStr) {
+                        const session = JSON.parse(sessionStr);
+                        email = session.email;
+                        userId = session.user?.id || session.id; // Handle various session shapes
+                    }
                 } catch (e) { }
 
                 const response = await fetch('/api', {
@@ -606,6 +611,7 @@
                     body: JSON.stringify({
                         action: 'analyze_resume',
                         email: email,
+                        user_id: userId, // Pass explicitly
                         resume: currentFileText,
                         job_description: jobDescInput.value // Pass JD if available
                     })

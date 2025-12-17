@@ -1337,12 +1337,19 @@ When you recommend a solution that requires deep work (writing, simulation, nego
             # ---------------------------------------------------------
             # SAVE TO DATABASE (Fix for Empty Dashboard)
             # ---------------------------------------------------------
-            if email and supabase_admin:
+            input_user_id = data.get('user_id')
+            
+            if (email or input_user_id) and supabase_admin:
                 try:
-                    # 1. Get User ID
-                    u_res = supabase_admin.table('users').select('id').eq('email', email).execute()
-                    if u_res.data:
-                        user_id = u_res.data[0]['id']
+                    user_id = input_user_id
+                    
+                    # 1. Resolve User ID if not provided
+                    if not user_id and email:
+                        u_res = supabase_admin.table('users').select('id').eq('email', email).execute()
+                        if u_res.data:
+                            user_id = u_res.data[0]['id']
+                    
+                    if user_id:
                         
                         # 2. Extract Data
                         try:
