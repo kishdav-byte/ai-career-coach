@@ -19,36 +19,58 @@ const Dashboard = () => {
         async function fetchDashboardData() {
             setLoading(true);
             try {
-                // --- PROMPT LOGIC ---
+                // 0. Get User First
+                const { data: { user } } = await supabase.auth.getUser();
+
+                if (!user) {
+                    console.log("No user found");
+                    setLoading(false);
+                    return;
+                }
+
+                // Set Profile immediately
+                const name = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+                setUserProfile({
+                    name: name,
+                    initials: name.substring(0, 2).toUpperCase()
+                });
+
+                // --- PROMPT LOGIC (With User Filters) ---
                 // 1. Get Resume Score
                 const { data: resumes } = await supabase.from('resumes')
                     .select('overall_score')
+                    .eq('user_id', user.id)
                     .order('created_at', { ascending: false })
                     .limit(1);
 
                 // 2. Get Strategy Count (Active Jobs)
                 const { count: jobCount } = await supabase.from('job_tracker')
                     .select('*', { count: 'exact', head: true })
+                    .eq('user_id', user.id)
                     .eq('is_active', true);
 
                 // 3. Get Plan Details
                 const { data: profile } = await supabase.from('profiles')
                     .select('plan_tier, credits_remaining')
+                    .eq('id', user.id)
                     .single();
 
                 // 4. Get Interview Avg (Last 30 days)
                 const { data: interviews } = await supabase.from('interviews')
                     .select('overall_score, created_at')
+                    .eq('user_id', user.id)
                     .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
                 // --- ADDITIONAL DATA FOR UI (Graph & Activity) to prevent blank sections ---
                 const { data: graph } = await supabase.from('interviews')
                     .select('created_at, overall_score')
+                    .eq('user_id', user.id)
                     .order('created_at', { ascending: true })
                     .limit(7);
 
                 const { data: activity } = await supabase.from('user_recent_activity')
                     .select('*')
+                    .eq('user_id', user.id)
                     .limit(5);
 
                 // UPDATE STATE
@@ -62,16 +84,6 @@ const Dashboard = () => {
 
                 if (graph) setGraphData(graph);
                 if (activity) setRecentActivity(activity);
-
-                // User Profile (Optional update if user data available)
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    const name = user.user_metadata?.name || user.email?.split('@')[0] || 'David Kish';
-                    setUserProfile({
-                        name: name,
-                        initials: name.substring(0, 2).toUpperCase()
-                    });
-                }
 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
