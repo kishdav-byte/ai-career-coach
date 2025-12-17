@@ -145,7 +145,14 @@
         </div>
     </div>
 
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
+        // Supabase Config (Same as Dashboard)
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
         const modal = document.getElementById('add-modal');
         const modalContent = document.getElementById('modal-content');
 
@@ -174,8 +181,39 @@
         });
 
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) window.location.href = '/login.html';
+            // AUTH CHECK & REFRESH
+            let currentToken = localStorage.getItem('supabase.auth.token');
+            const refreshToken = localStorage.getItem('supabase.auth.refresh_token');
+
+            if (!currentToken) {
+                window.location.href = '/login.html';
+                return;
+            }
+
+            try {
+                // Initialize Supabase to handle token refresh if expired
+                const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                const { data, error } = await supabase.auth.setSession({
+                    access_token: currentToken,
+                    refresh_token: refreshToken || ''
+                });
+
+                if (data?.session?.access_token) {
+                    // Update to fresh token
+                    currentToken = data.session.access_token;
+                    // Update storage so we stay fresh
+                    localStorage.setItem('supabase.auth.token', currentToken);
+                    if (data.session.refresh_token) {
+                        localStorage.setItem('supabase.auth.refresh_token', data.session.refresh_token);
+                    }
+                    console.log("Session restored and refreshed.");
+                } else if (error) {
+                    console.warn("Session Refresh Failed:", error);
+                    // If critical, might redirect, but let's try the key we have first
+                }
+            } catch (e) {
+                console.error("Auth Init Error:", e);
+            }
 
             const jobGrid = document.getElementById('job-grid');
             const loading = document.getElementById('loading-state');
@@ -186,7 +224,7 @@
             async function loadJobs() {
                 try {
                     const res = await fetch('/api/jobs', {
-                        headers: { 'Authorization': `Bearer ${token}` }
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
                     });
                     if (!res.ok) throw new Error("Failed to load jobs");
 
