@@ -262,7 +262,7 @@
                 const actionEl = document.getElementById(`action-${idSuffix}`);
 
                 // Allow access if credits > 0 OR Unlimited
-                const hasAccess = isUnlimited || credits > 0;
+                const hasAccess = isUnlimited || credits > 0 || (userData.credits && userData.credits > 0);
 
                 if (hasAccess) {
                     statusEl.textContent = isUnlimited ? "Unlimited Access" : `${credits} Credit${credits > 1 ? 's' : ''} Available`;

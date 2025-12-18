@@ -320,7 +320,7 @@
                 userEmail = user.email;
 
                 // Check Specific Credit
-                const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0);
+                const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0) || (user.credits && user.credits > 0);
 
                 if (hasCredit) {
                     unlockOverlay.classList.add('hidden');

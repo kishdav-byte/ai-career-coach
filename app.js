@@ -16,7 +16,7 @@ function verifyInterviewAccess(session) {
     // Safety check if elements exist (might not be on app page)
     if (!lockedState || !activeState) return;
 
-    const credits = session.interview_credits || 0; // Fixed: Use interview_credits (legacy) or sim_credits
+    const credits = (session.interview_credits || 0) + (session.credits || 0); // Include Universal Credits
     const isUnlimited = session.is_unlimited || false;
 
     // Logic: 
@@ -1735,7 +1735,7 @@ if (document.getElementById('generate-plan-btn')) {
     document.getElementById('rb-generate-btn').addEventListener('click', async () => {
         // CREDIT CHECK
         const session = getSession();
-        if (!session || (session.rewrite_credits || 0) < 1) {
+        if (!session || ((session.rewrite_credits || 0) + (session.credits || 0)) < 1) {
             if (confirm("You need 1 Rewrite Credit to generate. Unlock Executive Rewrite for $9.99?")) {
                 // Trigger Checkout
                 const btn = document.getElementById('unlock-rewrite-btn');

@@ -22,7 +22,7 @@ from supabase import create_client, Client
 SUPABASE_URL = os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
 # Support both standard naming conventions
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_SERVICE_KEY')
+SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('SUPABASE_SERVICE_ROLE') or os.environ.get('SERVICE_ROLE_KEY')
 
 supabase: Client = None
 supabase_admin: Client = None
@@ -2408,7 +2408,7 @@ def stripe_webhook():
                 if not user_id and metadata.get('user_email'):
                     m_email = metadata.get('user_email')
                     trace(f"Fallback lookup by metadata email: {m_email}")
-                    res = db_client.table('users').select('*').eq('email', m_email).execute()
+                    res = db_client.table('users').select('*').ilike('email', m_email).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
@@ -2417,7 +2417,7 @@ def stripe_webhook():
                 # 3. Final Fallback: Find by Stripe Customer Email
                 if not user_id and customer_email:
                     trace(f"Final fallback lookup by customer email: {customer_email}")
-                    res = db_client.table('users').select('*').eq('email', customer_email).execute()
+                    res = db_client.table('users').select('*').ilike('email', customer_email).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
