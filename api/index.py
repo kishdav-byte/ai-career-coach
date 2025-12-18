@@ -57,9 +57,10 @@ API_KEY = os.environ.get('OPENAI_API_KEY_')
 # ==========================================
 def log_db_activity(email, feature, metadata=None):
     """Log user activity to Supabase."""
-    if not supabase: return
+    admin_client = supabase_admin if supabase_admin else supabase
+    if not admin_client: return
     try:
-        supabase.table('activity_logs').insert({
+        admin_client.table('activity_logs').insert({
             "user_email": email,
             "feature": feature,
             "metadata": metadata or {}
@@ -69,9 +70,10 @@ def log_db_activity(email, feature, metadata=None):
 
 def log_db_error(email, error_type, details):
     """Log system error to Supabase."""
-    if not supabase: return
+    admin_client = supabase_admin if supabase_admin else supabase
+    if not admin_client: return
     try:
-        supabase.table('error_logs').insert({
+        admin_client.table('error_logs').insert({
             "user_email": email, # Can be 'system' or None
             "error_type": error_type,
             "details": str(details)
