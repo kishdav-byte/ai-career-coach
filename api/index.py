@@ -2344,135 +2344,128 @@ def stripe_webhook():
     payload = request.get_data(as_text=True)
     sig_header = request.headers.get('Stripe-Signature')
 
+    # Trace logging to DB for cross-environment debugging
+    def trace(msg, log_type="Webhook_Trace"):
+        print(f"WEBHOOK TRACE: {msg}")
+        log_db_error('system', log_type, msg)
+
     try:
         event = stripe.Webhook.construct_event(
             payload, sig_header, stripe_webhook_secret
         )
     except ValueError as e:
+        trace(f"Invalid payload: {e}", "Webhook_Error")
         return jsonify({'error': 'Invalid payload'}), 400
     except stripe.error.SignatureVerificationError as e:
+        trace(f"Invalid signature: {e}", "Webhook_Error")
         return jsonify({'error': 'Invalid signature'}), 400
     except Exception as e:
+        trace(f"Event Construction Error: {e}", "Webhook_Error")
         return jsonify({'error': str(e)}), 400
 
     if not event:
         return jsonify({'error': 'Event construction failed'}), 400
 
-    print(f"Received Stripe event: {event['type']}")
+    trace(f"Processing Event: {event['type']}")
 
     if not supabase:
-        print("CRITICAL: Supabase not configured in Webhook.")
+        trace("Supabase Client Missing", "Webhook_Error")
         return jsonify({'error': 'Database error'}), 500
         
-    # Use Admin Client for Updates to bypass RLS
     db_client = supabase_admin if supabase_admin else supabase
+    if not supabase_admin:
+        trace("Supabase Admin Missing - Using Anon Client (RLS may fail)", "Webhook_Warning")
 
     try:
         # HANDLE SUBSCRIPTION CREATED / CHECKOUT COMPLETED
         if event['type'] == 'checkout.session.completed':
             try:
                 session = event['data']['object']
-                
                 customer_email = session.get('customer_details', {}).get('email')
                 client_reference_id = session.get('client_reference_id')
                 metadata = session.get('metadata', {})
-                # NEW: Get Price ID from line_items check (or simple single-item checkout assumption)
-                # However, metadata is easier. We will rely on Metadata passed from Frontend Checkout Creation. 
-                # If plan_type is passed in metadata, use it.
-                # BUT, for direct links, we might need to match Price ID.
-                # Let's simplify: Checkout Session creation MUST pass metadata 'plan_type' matching our keys.
-                # Fallback: Check lines if needed? 
-                # For now, let's trust metadata or simple Price ID match if available in session (session usually has line_items expanded)
-                # We'll stick to metadata 'plan_type' OR 'feature' as primary signal.
-                
                 plan_type = metadata.get('plan_type', 'basic') 
-                # Also check direct Price ID if needed?
-                # session.line_items requires expansion.
                 
-                print(f"WEBHOOK DEBUG: Email={customer_email}, Plan={plan_type}, RefID={client_reference_id}")
-                print(f"WEBHOOK DEBUG: Full Metadata: {metadata}")
-                print(f"WEBHOOK DEBUG: Supabase Admin Active? {'YES' if supabase_admin else 'NO - Using Anon Client'}")
+                trace(f"Session Data: Email={customer_email}, RefID={client_reference_id}, Plan={plan_type}")
 
                 user_id = None
                 user_data = None
 
                 # 1. Try finding user by Client Reference ID (Supabase UUID)
                 if client_reference_id:
-                    print(f"WEBHOOK: Attempting lookup by client_reference_id: {client_reference_id}")
+                    trace(f"Lookup by client_reference_id: {client_reference_id}")
                     res = db_client.table('users').select('*').eq('id', client_reference_id).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
-                        print(f"WEBHOOK SUCCESS: Found user by ID: {user_id}")
+                        trace(f"Found user by ID: {user_id}")
+                    else:
+                        trace(f"No user found by ID: {client_reference_id}")
 
                 # 2. Fallback: Find by Metadata Email
                 if not user_id and metadata.get('user_email'):
                     m_email = metadata.get('user_email')
-                    print(f"WEBHOOK: Fallback lookup by metadata email: {m_email}")
+                    trace(f"Fallback lookup by metadata email: {m_email}")
                     res = db_client.table('users').select('*').eq('email', m_email).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
-                        print(f"WEBHOOK SUCCESS: Found user by Metadata Email: {m_email} -> ID: {user_id}")
+                        trace(f"Found by Metadata Email: {m_email} -> ID: {user_id}")
 
                 # 3. Final Fallback: Find by Stripe Customer Email
                 if not user_id and customer_email:
-                    print(f"WEBHOOK: Final fallback lookup by customer email: {customer_email}")
+                    trace(f"Final fallback lookup by customer email: {customer_email}")
                     res = db_client.table('users').select('*').eq('email', customer_email).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
-                        print(f"WEBHOOK SUCCESS: Found user by Stripe Email: {customer_email} -> ID: {user_id}")
+                        trace(f"Found by Stripe Email: {customer_email} -> ID: {user_id}")
 
                 if user_id:
                     update_data = {}
-                    current_credits = user_data.get('credits', 0) or 0 # Universal Credit
+                    current_credits = user_data.get('credits', 0) or 0
 
                     if plan_type == 'pro':
                         update_data['is_unlimited'] = True
                         update_data['subscription_status'] = 'active'
-                        print("Granting UNLIMITED access.")
+                        trace("Adding UNLIMITED flags")
 
-                    # GLOBAL CHECK: Feature = Rewrite (Now consumes 1 Universal Credit)
-                    # We grant +1 Credit for purchase
-                    elif metadata.get('feature') == 'rewrite':
+                    elif metadata.get('feature') == 'rewrite' or plan_type == 'rewrite':
                         update_data['credits'] = current_credits + 1
-                        print(f"Granting +1 Credit (Rewrite). New Total: {update_data['credits']}")
+                        trace(f"Adding +1 credit for Rewrite. New: {update_data['credits']}")
                     
                     elif plan_type == 'complete':
                         update_data['credits'] = current_credits + 2
-                        print(f"Granting Complete Package (+2 Credits).")
+                        trace("+2 credits for Complete")
 
                     elif plan_type == 'strategy_bundle':
                         update_data['credits'] = current_credits + 5
-                        print("Granting STRATEGY BUNDLE (+5 Credits).")
+                        trace("+5 credits for Bundle")
 
-                    # Single Strategy Tool Purchases = +1 Credit
                     elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
                         update_data['credits'] = current_credits + 1
-                        print(f"Granting +1 Credit for {plan_type}")
+                        trace(f"+1 credit for {plan_type}")
 
-                    elif plan_type == 'invoice_payment':
-                        pass
-                        
-                    # BONUS RESET LOGIC
                     if plan_type in ['pro', 'strategy_bundle', 'interview']:
                         update_data['role_reversal_count'] = 0
-                        print(f"BONUS: Reset Role Reversal Count for {plan_type}")
+                        trace("Reset Role Reversal Count")
 
                     if update_data:
-                        # EXECUTE UPDATE
-                        response = db_client.table('users').update(update_data).eq('id', user_id).execute()
-                        print(f"WEBHOOK DEBUG: Update Response: {response.data if hasattr(response, 'data') else 'No Data'}")
-                        print(f"Successfully fulfilled order for user {user_id}")
+                        trace(f"Executing Update: {update_data}")
+                        try:
+                            response = db_client.table('users').update(update_data).eq('id', user_id).execute()
+                            trace(f"Update Success: {response.data if hasattr(response, 'data') else 'No Result Data'}")
+                        except Exception as update_err:
+                            trace(f"DB UPDATE FAILED: {update_err}", "Webhook_Error")
+                    else:
+                        trace("No update_data generated for this plan_type", "Webhook_Warning")
 
                 else:
-                    print(f"CRITICAL WEBHOOK FAILURE: User not found for Email={customer_email}, MetEmail={metadata.get('user_email')}, ID={client_reference_id}")
+                    trace(f"USER NOT FOUND. Checkout cannot be fulfilled.", "Webhook_Error")
             
             except Exception as e:
                 import traceback
-                print(f"CRITICAL WEBHOOK ERROR (Checkout): {str(e)}")
-                print(traceback.format_exc())
+                trace(f"Checkout Handling Crash: {e}\n{traceback.format_exc()}", "Webhook_Error")
                 return jsonify({'error': str(e)}), 500
 
         # HANDLE SUBSCRIPTION CANCELLATION / DELETION
