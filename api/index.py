@@ -2509,7 +2509,7 @@ def stripe_webhook():
                         elif plan_type == 'strategy_followup':
                              update_data['credits_followup'] = (user_data.get('credits_followup', 0) or 0) + 1
 
-                    if plan_type in ['pro', 'strategy_bundle', 'interview']:
+                    if plan_type in ['pro', 'strategy_bundle', 'interview', 'strategy_interview_sim']:
                         update_data['role_reversal_count'] = 0
                         trace("Reset Role Reversal Count")
 
