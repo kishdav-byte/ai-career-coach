@@ -56,8 +56,15 @@
             z-index: 1000;
             background: rgba(15, 23, 42, 0.95);
             backdrop-filter: blur(10px);
-            padding: 1rem 2rem;
+            padding: 1rem 1.5rem;
+            /* Reduced padding for mobile spacing */
             transition: all 0.3s ease;
+        }
+
+        @media (min-width: 1024px) {
+            .nav {
+                padding: 1rem 2rem;
+            }
         }
 
         .nav-container {
@@ -151,11 +158,13 @@
         }
 
         .hero h1 {
-            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-size: clamp(2rem, 8vw, 4rem);
+            /* Improved scaling for small/large mobile */
             font-weight: 800;
             color: var(--white);
             margin-bottom: 1.5rem;
-            line-height: 1.1;
+            line-height: 1.2;
+            /* Better spacing for wrapped text */
         }
 
         .hero h1 span {
@@ -772,12 +781,17 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             position: relative;
             z-index: 10;
+            display: flex;
+            /* Ensure centering or alignment works */
+            justify-content: center;
         }
 
         .marquee-content {
             display: inline-block;
             white-space: nowrap;
             animation: scroll 40s linear infinite;
+            padding-left: 20px;
+            /* Base padding */
         }
 
         .marquee-item {
