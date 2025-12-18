@@ -142,6 +142,44 @@ def call_openai(messages, json_mode=False):
     result = response.json()
     return result['choices'][0]['message']['content']
 
+def transcribe_audio_openai(base64_audio):
+    """Transcribes audio using OpenAI Whisper API."""
+    try:
+        # 1. Decode base64 to binary
+        if "base64," in base64_audio:
+            base64_audio = base64_audio.split("base64,")[1]
+        
+        audio_data = base64.b64decode(base64_audio)
+        
+        # 2. Use io.BytesIO to create a file-like object
+        buffer = io.BytesIO(audio_data)
+        buffer.name = "audio.mp3" # Whisper needs a filename/extension
+        
+        # 3. Call Whisper API
+        headers = {
+            "Authorization": f"Bearer {API_KEY}"
+        }
+        
+        files = {
+            "file": (buffer.name, buffer, "audio/mpeg")
+        }
+        data = {
+            "model": "whisper-1"
+        }
+        
+        response = requests.post(
+            "https://api.openai.com/v1/audio/transcriptions",
+            headers=headers,
+            files=files,
+            data=data
+        )
+        response.raise_for_status()
+        
+        return response.json().get('text', '')
+    except Exception as e:
+        print(f"OpenAI transcription error: {e}")
+        return None
+
 @app.route('/api/generate-model-answer', methods=['POST'])
 def generate_model_answer():
     if not API_KEY:
@@ -416,7 +454,7 @@ def api():
     # ---------------------------------------------------------
     # ACCESS CONTROL & MONETIZATION CHECK (Phase 13)
     # ---------------------------------------------------------
-    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize']
+    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize', 'transcribe']
     
     if action in PAID_ACTIONS:
         # Get email from request data OR try to infer it if possible
@@ -753,8 +791,14 @@ def api():
         }}
         """
         messages = [{"role": "user", "content": prompt}]
-        messages = [{"role": "user", "content": prompt}]
         
+    elif action == 'transcribe':
+        audio = data.get('audio')
+        if not audio:
+            return jsonify({"error": "Audio data missing"}), 400
+        transcript = transcribe_audio_openai(audio)
+        return jsonify({"transcript": transcript})
+
     elif action == 'interview_chat':
         message = data.get('message', '')
         job_posting = data.get('jobPosting', '')
@@ -768,7 +812,7 @@ def api():
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Prepare to ask relevant interview questions."
         
-        system_instruction = f"You are a strict hiring manager. DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
+        system_instruction = f"You are a strict hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method (Situation, Task, Action, Result). DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
         
         if is_start:
             welcome_msg = "Welcome to the interview! ... This interview consists of 5 questions. ... When answering each question, please think of a specific time when you experienced the situation or task, the specific actions that you took, and the result of your actions. ... The first question that I have for you is: [Your Question]"
@@ -797,11 +841,45 @@ def api():
 
             if question_count < 5:
                 # Normal Case: Eval current -> Ask Next
-                user_prompt = f"User: {message}\n\nEvaluate the answer to Question {question_count}. You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTIONS:\n1. Start 'feedback' with: \"I would score this answer a [score] because...\".\n2. IF SCORE IS 5: Set 'improved_sample' to null. Do NOT provide a better answer.\n3. IF SCORE < 5: Provide a better answer in 'improved_sample'.\n\nAfter feedback, IMMEDIATELY ask the {next_ordinal} interview question.\n\nReturn STRICT JSON: {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because...\", \"score\": 0, \"improved_sample\": \"... (or null if score is 5)\", \"next_question\": \"The {next_ordinal} question that I have for you is: ...\"}}"
+                user_prompt = f"""
+User Answer: {message}
+
+Evaluate the answer to Question {question_count} using the STRICT STAR SCORING RUBRIC:
+1-2 (Fail/Weak): Missing S, A, or R. (Hard Constraint: Max 2 if any component is missing).
+3 (Pass/Average): S, A, R present but generic/low detail.
+4 (Strong): Complete STAR answer AND highly specific to the Target Job.
+5 (Unicorn/Perfect): Complete STAR, Job-Specific AND includes Measurable Metrics (numbers, %, $).
+
+CRITICAL INSTRUCTIONS:
+1. Start 'feedback' with: "I would score this answer a [score] because...".
+2. In 'feedback', explicitly state which components (S, A, R) were present or missing.
+3. IF SCORE < 5: Provide a specific "Metric Injection" recommendation in 'improved_sample' showing how to turn it into a 5.
+4. TONE: Coaching and constructive. Focus on "Gap Analysis".
+
+After feedback, IMMEDIATELY ask the {next_ordinal} interview question.
+
+Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "..."}}
+"""
             
             else:
                 # Final Case: Eval Q5 -> End
-                user_prompt = f"User: {message}\n\nEvaluate the answer to the final question (Question 5). You MUST provide a SCORE (0-5).\n\nCRITICAL INSTRUCTIONS:\n1. Start 'feedback' with: \"I would score this answer a [score] because...\".\n2. IF SCORE IS 5: Set 'improved_sample' to null.\n3. IF SCORE < 5: Provide a better answer.\n\nThis was the final question. End the interview professionally.\n\nReturn STRICT JSON: {{\"transcript\": \"{message}\", \"feedback\": \"I would score this answer a [score] because...\", \"score\": 0, \"improved_sample\": \"... (or null if score is 5)\", \"next_question\": \"That concludes our interview. Thank you for your time.\"}}"
+                user_prompt = f"""
+User Answer: {message}
+
+Evaluate the answer to the final question (Question 5) using the STRICT STAR SCORING RUBRIC:
+1-2 (Fail/Weak): Missing S, A, or R. (Hard Constraint: Max 2 if any component is missing).
+3 (Pass/Average): S, A, R present but generic.
+4 (Strong): Complete STAR answer AND job-specific.
+5 (Unicorn/Perfect): Complete STAR, job-specific AND includes Measurable Metrics.
+
+CRITICAL INSTRUCTIONS:
+1. Start 'feedback' with: "I would score this answer a [score] because...".
+2. TONE: Coaching. Summarize gaps.
+
+This was the final question. End the interview professionally.
+
+Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "That concludes our interview. Thank you for your time."}}
+"""
         
         messages = [
             {"role": "system", "content": system_instruction},
@@ -896,19 +974,22 @@ When you recommend a solution that requires deep work (writing, simulation, nego
         history = data.get('history', [])
         json_mode = True
         prompt = f"""
-        Generate a Final Interview Report based on the following interview history.
+        Generate an "Executive Coaching Report" based on the following interview history.
         
-        History:
-        {json.dumps(history)}
+        History: {json.dumps(history)}
         
-        Create a professional HTML report (NO markdown, just HTML content) that includes:
-        1.  **Performance Summary**: A brief paragraph summarizing the candidate's overall performance.
-        2.  **Question Breakdown**: A table with columns: Question, Score (0-5), and Key Feedback.
-        3.  **Recommended Improvements**: A bulleted list of specific, actionable steps to improve.
+        The report must be an HTML document (no markdown) with a premium, coaching-oriented tone.
         
-        Style the HTML with simple inline CSS for readability (e.g., borders for table, bold text for headers).
+        REQUIRED SECTIONS:
+        1. **Executive Summary**: A high-level overview of the candidate's performance.
+        2. **Question Breakdown**: Use a table to show the score (1-5) for each question.
+        3. **Gap Analysis (The STAR Filter)**: For each question, specifically identify which STAR components (Situation, Action, Result) were strong and which were weak/missing. Use constructive coaching language (e.g., "You identified the Situation, but your Action was vague. Use 'I' statements instead of 'We'.").
+        4. **Metric Injection Strategy**: For any responses that scored below 5, provide a specific example of how the candidate could have used numbers (time saved, revenue increased, %, $) to move to a 'Unicorn' score.
+        5. **Final Coaching Roadmap**: 3 actionable steps for the next interview.
+
+        STYLE: Use inline CSS for a clean, modern look. Dark text on light background, professional borders, and clear headings.
         
-        Return JSON: {{ "report": "<html>...</html>" }}
+        Return JSON structure: {{ "report": "<html>...</html>" }}
         """
         messages = [{"role": "user", "content": prompt}]
     

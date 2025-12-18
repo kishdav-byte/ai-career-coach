@@ -250,78 +250,41 @@ let interviewHistory = [];
 let currentQuestionText = "";
 
 async function sendVoiceMessage(base64Audio) {
-    // Ensure addMessage is available (it's exposed from init)
     if (!window.addMessage) {
         console.error("addMessage not found");
         return;
     }
 
-    const loadingId = window.addMessage('Processing audio...', 'system');
-    const jobPosting = document.getElementById('interview-job-posting').value;
-    const { voice, speed } = getVoiceSettings();
-
-    questionCount++;
+    const loadingId = window.addMessage('Transcribing...', 'system');
 
     try {
         const session = getSession();
         const email = session ? session.email : null;
 
-        const response = await fetch('/api', {
+        // 1. STT: Transcribe Audio
+        const transResponse = await fetch('/api', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'interview_chat',
+                action: 'transcribe',
                 audio: base64Audio,
-                jobPosting: jobPosting,
-                voice: voice,
-                speed: speed,
-                email: email,
-                questionCount: questionCount,
-                ghostMode: localStorage.getItem('admin_ghost_mode') === 'true'
+                email: email
             })
         });
-        const result = await response.json();
+        const transResult = await transResponse.json();
         document.getElementById(loadingId).remove();
 
-        if (result.data && typeof result.data === 'object') {
-            // Handle structured voice response
-            window.addMessage(`(Transcript): ${result.data.transcript}`, 'user');
+        if (transResult.transcript) {
+            // Show transcript immediately
+            window.addMessage(transResult.transcript, 'user');
 
-            let systemMsg = '';
-            if (result.data.score !== undefined && result.data.score !== null) {
-                systemMsg += `<div style="background-color: #fff3cd; color: #856404; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-bottom: 10px; font-weight: bold;">
-                    Score: ${result.data.score}/5
-                </div><br>`;
-            }
-            systemMsg += `<strong>Feedback:</strong> ${result.data.feedback}`;
-            if (result.data.improved_sample) {
-                systemMsg += `<div class="improved-answer-box" style="background-color: #e8f5e9; padding: 10px; margin: 10px 0; border-left: 4px solid #28a745; border-radius: 4px;">
-                    <strong>✨ Better Answer:</strong><br>
-                    ${result.data.improved_sample}
-                </div>`;
-            }
-            systemMsg += `<br><br><strong>Next Question:</strong> ${result.data.next_question}`;
-
-            window.addMessage(systemMsg, 'system', true);
-
-            // Play Audio
-            if (result.data.audio) {
-                const audioPlayer = document.getElementById('ai-audio-player');
-                audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
-                audioPlayer.style.display = 'block';
-                audioPlayer.play().catch(e => {
-                    console.error("Audio playback error:", e);
-                    alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
-                });
-            }
-        } else if (result.data) {
-            // Fallback for text-only
-            window.addMessage(result.data, 'system');
+            // 2. Chat: Send transcript to AI for analysis
+            await sendChatMessage(transResult.transcript, false, true); // true = skipUI
         } else {
-            window.addMessage('Error: ' + (result.error || 'Unknown error'), 'system');
+            window.addMessage('Error: ' + (transResult.error || 'Transcription failed'), 'system');
         }
     } catch (e) {
-        document.getElementById(loadingId).remove();
+        if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
         window.addMessage('Error: ' + e.message, 'system');
     }
 }
@@ -1081,7 +1044,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null, isStart = false) {
+    async function sendChatMessage(msg = null, isStart = false, skipUI = false) {
         const message = msg || chatInput.value;
         if (!message) return;
 
@@ -1089,7 +1052,7 @@ function init() {
         // To make it better, we could grab the last few messages from the DOM.
 
         // Skip adding message to UI if it's the hidden start command
-        if (!isStart) {
+        if (!isStart && !skipUI) {
             // Add user message
             addMessage(message, 'user');
         }
@@ -1218,12 +1181,11 @@ function init() {
     }
 
     async function generateInterviewReport() {
-        const loadingId = addMessage('Generating Final Interview Report...', 'system');
+        const loadingId = addMessage('Generating Final Executive Coaching Report...', 'system');
 
         try {
             const session = getSession();
             const email = session ? session.email : null;
-
             const jobPosting = document.getElementById('interview-job-posting').value;
 
             const response = await fetch('/api', {
@@ -1236,6 +1198,8 @@ function init() {
                     jobPosting: jobPosting
                 })
             });
+            const result = await response.json();
+
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) loadingEl.remove();
 
@@ -1252,120 +1216,15 @@ function init() {
             const recordBtn = document.getElementById('record-btn');
             if (recordBtn) recordBtn.disabled = true;
 
-            // Calculate overall score
-            let totalScore = 0;
-            let scoreCount = 0;
-            interviewHistory.forEach(item => {
-                if (item.score !== undefined && item.score !== null) {
-                    totalScore += item.score;
-                    scoreCount++;
-                }
-            });
-            const avgScore = scoreCount > 0 ? (totalScore / scoreCount).toFixed(1) : 'N/A';
+            if (result.data && result.data.report) {
+                // RENDER THE EXECUTIVE REPORT FROM AI
+                addMessage(result.data.report, 'system', true);
 
-            // Determine conditional message based on score
-            let motivationMessage = '';
-            if (avgScore >= 4.5) {
-                motivationMessage = 'Great score! One more session will make you interview-ready.';
-            } else if (avgScore < 3.0) {
-                motivationMessage = 'Practice makes perfect. Most users improve significantly with each session.';
+                // Add a small return link after the report
+                addMessage('<div class="mt-4"><a href="/dashboard.html" class="text-blue-500 hover:underline">← Return to Dashboard</a></div>', 'system', true);
             } else {
-                motivationMessage = 'Most users need 2-3 practice sessions to consistently score 4+ and feel confident for their real interview.';
+                addMessage("Error: Could not generate structured report. Please check your connection.", 'system');
             }
-
-            // Build question breakdown HTML
-            let questionBreakdown = '';
-            interviewHistory.forEach((item, idx) => {
-                const score = item.score !== undefined ? item.score : 'N/A';
-                // Get first sentence of feedback
-                const briefFeedback = item.feedback ? item.feedback.split('.')[0] + '.' : 'Feedback not available.';
-                questionBreakdown += `<div class="result-question-item">✓ Question ${idx + 1}: <strong>${score}/5</strong> - ${briefFeedback}</div>`;
-            });
-
-            console.log('Building results with', interviewHistory.length, 'scored answers');
-            console.log('Average score calculated:', avgScore);
-
-            // Only include strengths/improvements sections if we have meaningful data
-            // For now, we'll skip these sections since we don't have reliable data
-            let strengthsSection = '';
-            let improvementsSection = '';
-
-            // If AI report contains structured data, we could parse it here
-            // For now, these sections are hidden to avoid showing placeholder content
-
-            // Build the full results + upsell HTML
-            const resultsHtml = `
-            <div class="interview-results-container">
-                <div class="results-section">
-                    <div class="results-header">
-                        <span class="results-icon">🎯</span>
-                        <h3>INTERVIEW COMPLETE - YOUR RESULTS</h3>
-                    </div>
-
-                    <div class="overall-score">
-                        <span class="score-label">Overall Score:</span>
-                        <span class="score-value">${avgScore}/5</span>
-                    </div>
-
-                    <div class="question-breakdown">
-                        <h4>Question Breakdown:</h4>
-                        ${questionBreakdown || '<p>No question data available.</p>'}
-                    </div>
-                    ${strengthsSection}
-                    ${improvementsSection}
-                </div>
-
-                <div class="upsell-section">
-                    <div class="upsell-header">
-                        <span class="upsell-icon">💡</span>
-                        <h3>READY TO IMPROVE YOUR SCORE?</h3>
-                    </div>
-
-                    <p class="upsell-motivation">${motivationMessage}</p>
-
-                    <div class="score-comparison">
-                        <span>Your current score: <strong>${avgScore}/5</strong></span>
-                        <span>Target score: <strong>4.5+/5</strong></span>
-                    </div>
-
-                    <p class="upsell-cta-text">Keep practicing to master your interview answers.</p>
-
-                    <div class="upsell-cards">
-                        <div class="upsell-card">
-                            <div class="card-icon">🔁</div>
-                            <h4>PRACTICE 5 MORE QUESTIONS</h4>
-                            <div class="price">$9.99 - Additional Session</div>
-                            <ul class="features">
-                                <li>5 new interview questions</li>
-                                <li>Same voice-based scoring</li>
-                                <li>STAR format feedback</li>
-                                <li>Track your improvement</li>
-                            </ul>
-                            <button class="upsell-btn" onclick="showPaymentAlert()">Practice Again - $9.99</button>
-                        </div>
-
-                        <div class="upsell-card featured">
-                            <div class="best-value-badge">BEST VALUE</div>
-                            <div class="card-icon">♾️</div>
-                            <h4>UNLIMITED PRACTICE</h4>
-                            <div class="price">$49/month</div>
-                            <ul class="features">
-                                <li>Unlimited interview sessions</li>
-                                <li>Practice until you're ready</li>
-                                <li>Track improvement over time</li>
-                                <li>All question types included</li>
-                                <li>Cancel anytime</li>
-                            </ul>
-                            <button class="upsell-btn featured" onclick="showPaymentAlert()">Get Unlimited Access - $49/mo</button>
-                        </div>
-                    </div>
-
-                    <a href="/app" class="return-link">← Return to Dashboard</a>
-                </div>
-            </div>
-            `;
-
-            addMessage(resultsHtml, 'system', true);
 
         } catch (e) {
             const loadingEl = document.getElementById(loadingId);
