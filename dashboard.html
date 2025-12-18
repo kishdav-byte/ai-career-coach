@@ -786,16 +786,17 @@
 
 
                 // 4. Get Plan Details & Credits
-                const { data: profile } = await supabase.from('profiles')
-                    .select('plan_tier, credits_remaining')
+                const { data: profile } = await supabase.from('users')
+                    .select('subscription_status, credits, is_unlimited')
                     .eq('id', user.id)
                     .single();
 
                 if (profile) {
-                    document.getElementById('plan-name').textContent = profile.plan_tier || 'Free Plan';
-                    document.getElementById('credit-count').textContent = `${profile.credits_remaining} Credits`;
+                    const planText = profile.is_unlimited ? 'Pro Plan' : (profile.subscription_status || 'Free Plan');
+                    document.getElementById('plan-name').textContent = planText;
+                    document.getElementById('credit-count').textContent = `${profile.credits || 0} Credits`;
                     // Assume 100 is max credits for visual bar
-                    const pct = Math.min((profile.credits_remaining || 0), 100);
+                    const pct = profile.is_unlimited ? 100 : Math.min((profile.credits || 0), 100);
                     document.getElementById('credit-bar').style.width = `${pct}%`;
                 }
 
@@ -852,9 +853,9 @@
             const now = new Date();
             const diffInSeconds = Math.floor((now - date) / 1000);
             if (diffInSeconds < 60) return 'Just now';
-            if (diffInSeconds < 3600) return `\${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `\${Math.floor(diffInSeconds / 3600)}h ago`;
-            return `\${Math.floor(diffInSeconds / 86400)}d ago`;
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
         }
 
         async function initDashboard() {

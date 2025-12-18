@@ -337,18 +337,24 @@ def create_checkout_session():
         success_url = data.get('successUrl')
         cancel_url = data.get('cancelUrl')
         email = data.get('email')
-        plan_type = data.get('plan_type') # 'strategy_plan', 'strategy_bundle', etc.
-        feature = data.get('feature') # Fix: Define feature variable
+        
+        # Robustness: Handle 'plan_type', 'plan', or 'feature'
+        plan_type = data.get('plan_type') or data.get('plan')
+        feature = data.get('feature')
 
         # Determine Price ID
-        if plan_type:
+        if plan_type and plan_type in PRICE_IDS:
             price_id = PRICE_IDS.get(plan_type)
-        elif feature == 'rewrite':
+        elif feature == 'rewrite' or plan_type == 'rewrite':
             price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
+            feature = 'rewrite' # Standardize
         
-        # Fallback if still no price_id
+        # Fallback for direct Price IDs passed or other matches
+        if not price_id and not plan_type and not feature:
+             return jsonify({'error': 'Missing Plan or Feature selection.'}), 400
+        
         if not price_id:
-             return jsonify({'error': f'Missing Price ID for plan: {plan_type} or feature: {feature}'}), 400
+             return jsonify({'error': f'Invalid or missing Price Configuration for: {plan_type or feature}'}), 400
 
         # Defaults if not provided (Simplifies frontend)
         if not success_url:
@@ -441,9 +447,10 @@ def api():
 
                     is_unlimited = user.get('is_unlimited', False)
                     # Get Specific Credits (Phase 19)
-                    resume_credits = user.get('resume_credits', 0)
-                    interview_credits = user.get('interview_credits', 0)
-                    rewrite_credits = user.get('rewrite_credits', 0)
+                    resume_credits = user.get('resume_credits', 0) or 0
+                    interview_credits = user.get('interview_credits', 0) or 0
+                    rewrite_credits = user.get('rewrite_credits', 0) or 0
+                    universal_credits = user.get('credits', 0) or 0
                     
                     # Log Check
                     print(f"Auth Check for {email}: Unlimited={is_unlimited}, R_Cred={resume_credits}, I_Cred={interview_credits}, Action={action}")
@@ -505,35 +512,45 @@ def api():
                                     print(f"Tracking Error (Analysis): {e}")
 
                         elif action == 'optimize_resume':
-                            if resume_credits > 0:
+                            if resume_credits > 0 or universal_credits > 0:
                                 has_access = True
                                 # Deduct immediately (unless unlimited, which is handled above)
                                 if should_deduct:
-                                    new_credits = resume_credits - 1
                                     supabase_upd = supabase_admin if supabase_admin else supabase
-                                    supabase_upd.table('users').update({'resume_credits': new_credits}).eq('email', email).execute()
-                                    print(f"Deducted 1 RESUME credit. Remaining: {new_credits}")
+                                    if resume_credits > 0:
+                                        new_credits = resume_credits - 1
+                                        supabase_upd.table('users').update({'resume_credits': new_credits}).eq('email', email).execute()
+                                        print(f"Deducted 1 RESUME credit. Remaining: {new_credits}")
+                                    else:
+                                        new_credits = universal_credits - 1
+                                        supabase_upd.table('users').update({'credits': new_credits}).eq('email', email).execute()
+                                        print(f"Deducted 1 UNIVERSAL credit for Resume. Remaining: {new_credits}")
 
                         elif action == 'optimize':
                             # V2 REWRITE CREDIT CHECK
-                            if rewrite_credits > 0:
+                            if rewrite_credits > 0 or universal_credits > 0:
                                 has_access = True
                                 if should_deduct:
-                                    new_credits = rewrite_credits - 1
                                     supabase_upd = supabase_admin if supabase_admin else supabase
-                                    supabase_upd.table('users').update({'rewrite_credits': new_credits}).eq('email', email).execute()
-                                    print(f"Deducted 1 REWRITE credit. Remaining: {new_credits}")
+                                    if rewrite_credits > 0:
+                                        new_credits = rewrite_credits - 1
+                                        supabase_upd.table('users').update({'rewrite_credits': new_credits}).eq('email', email).execute()
+                                        print(f"Deducted 1 REWRITE credit. Remaining: {new_credits}")
+                                    else:
+                                        new_credits = universal_credits - 1
+                                        supabase_upd.table('users').update({'credits': new_credits}).eq('email', email).execute()
+                                        print(f"Deducted 1 UNIVERSAL credit for Rewrite. Remaining: {new_credits}")
                             else:
-                                 print(f"Blocked: Insufficient Rewrite Credits ({rewrite_credits})")
+                                 print(f"Blocked: Insufficient credits for Rewrite (Rewrite: {rewrite_credits}, Universal: {universal_credits})")
                                  has_access = False
                         
                         elif action in ['interview_chat', 'generate_report']:
                             if action == 'generate_report':
                                  # DEDUCTION LOGIC (Post-Generation)
                                  # We check here but deduct later
-                                 if interview_credits > 0:
+                                 if interview_credits > 0 or universal_credits > 0:
                                      has_access = True
-                                     print(f"Skipping immediate deduction for {action}. Will deduct from interview_credits after success.")
+                                     print(f"Skipping immediate deduction for {action}. Will deduct from interview_credits/credits after success.")
                             
                             elif action == 'interview_chat':
                                 # INTERVIEW DEDUCTION LOGIC
@@ -547,16 +564,20 @@ def api():
                                 
                                 # 2. Is it the First Response? -> PAY TO PLAY
                                 elif q_count == 1:
-                                    if interview_credits > 0:
+                                    if interview_credits > 0 or universal_credits > 0:
                                         has_access = True
                                         if should_deduct:
-                                            new_credits = interview_credits - 1
-                                            if supabase:
-                                                 supabase_upd = supabase_admin if supabase_admin else supabase
-                                                 supabase_upd.table('users').update({'interview_credits': new_credits}).eq('email', email).execute()
-                                                 print(f"DEDUCTED 1 INTERVIEW CREDIT. Remaining: {new_credits}")
+                                            supabase_upd = supabase_admin if supabase_admin else supabase
+                                            if interview_credits > 0:
+                                                new_credits = interview_credits - 1
+                                                supabase_upd.table('users').update({'interview_credits': new_credits}).eq('email', email).execute()
+                                                print(f"DEDUCTED 1 INTERVIEW CREDIT. Remaining: {new_credits}")
                                             else:
-                                                 print("DEV: Mock Deduction")
+                                                new_credits = universal_credits - 1
+                                                supabase_upd.table('users').update({'credits': new_credits}).eq('email', email).execute()
+                                                print(f"DEDUCTED 1 UNIVERSAL credit for Interview. Remaining: {new_credits}")
+                                        else:
+                                             print("DEV: Mock Deduction")
                                     else:
                                         has_access = False
                                         print("Blocked: Insufficient Interview Credits")
@@ -1304,14 +1325,19 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                 email = data.get('email')
                 if email and supabase:
                     try:
-                        user_res = supabase.table('users').select('is_unlimited, interview_credits').eq('email', email).execute()
+                        user_res = supabase.table('users').select('is_unlimited, interview_credits, credits').eq('email', email).execute()
                         if user_res.data:
                             user = user_res.data[0]
                             # Only deduct if NOT unlimited
-                            if not user.get('is_unlimited', False) and user.get('interview_credits', 0) > 0:
-                                new_credits = user.get('interview_credits') - 1
-                                supabase.table('users').update({'interview_credits': max(0, new_credits)}).eq('email', email).execute()
-                                print(f"SUCCESS: Deducted 1 INTERVIEW credit for Report. New balance: {new_credits}")
+                            if not user.get('is_unlimited', False):
+                                if user.get('interview_credits', 0) > 0:
+                                    new_credits = user.get('interview_credits') - 1
+                                    supabase.table('users').update({'interview_credits': max(0, new_credits)}).eq('email', email).execute()
+                                    print(f"SUCCESS: Deducted 1 INTERVIEW credit for Report. New balance: {new_credits}")
+                                elif user.get('credits', 0) > 0:
+                                    new_credits = user.get('credits') - 1
+                                    supabase.table('users').update({'credits': max(0, new_credits)}).eq('email', email).execute()
+                                    print(f"SUCCESS: Deducted 1 UNIVERSAL credit for Report. New balance: {new_credits}")
                     except Exception as credit_err:
                         print(f"Error deducting credit after report: {credit_err}")
                         # Do NOT block the report return
@@ -1999,7 +2025,7 @@ def login():
              
         # 2. Fetch Profile from 'users' table
         # Explicitly select columns to ensure we don't accidentally get ghost columns or issues
-        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, role').eq('id', user.id).execute()
+        profile_res = supabase.table('users').select('id, email, name, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, role').eq('id', user.id).execute()
         
         print(f"DEBUG: Login query for ID {user.id} returned: {len(profile_res.data) if profile_res.data else 0} rows")
 
@@ -2034,6 +2060,7 @@ def login():
             "is_unlimited": profile_data.get("is_unlimited", False),
             "resume_credits": profile_data.get("resume_credits", 0),
             "interview_credits": profile_data.get("interview_credits", 0),
+            "credits": profile_data.get("credits", 0),
             "role": profile_data.get("role", "user")
         }
         
@@ -2343,11 +2370,6 @@ def stripe_webhook():
             try:
                 session = event['data']['object']
                 
-                # ... existing logic ...
-                # (We are replacing the WHOLE function or just appending? 
-                #  The instruction implied replacing the block, but replace_file_content replaces a chunk.
-                #  I will include the existing checkout logic here to be safe and ensure continuity)
-                
                 customer_email = session.get('customer_details', {}).get('email')
                 client_reference_id = session.get('client_reference_id')
                 metadata = session.get('metadata', {})
@@ -2387,58 +2409,55 @@ def stripe_webhook():
                         user_id = user_data['id']
                         print(f"Found user by Email: {customer_email} -> ID: {user_id}")
 
-                    if user_id:
-                        update_data = {}
-                        current_credits = user_data.get('credits', 0) # Universal Credit
+                if user_id:
+                    update_data = {}
+                    current_credits = user_data.get('credits', 0) or 0 # Universal Credit
 
-                        if plan_type == 'pro':
-                            update_data['is_unlimited'] = True
-                            update_data['subscription_status'] = 'active'
-                            print("Granting UNLIMITED access.")
+                    if plan_type == 'pro':
+                        update_data['is_unlimited'] = True
+                        update_data['subscription_status'] = 'active'
+                        print("Granting UNLIMITED access.")
 
-                        # GLOBAL CHECK: Feature = Rewrite (Now consumes 1 Universal Credit)
-                        # We grant +1 Credit for purchase
-                        elif metadata.get('feature') == 'rewrite':
-                             update_data['credits'] = current_credits + 1
-                             print(f"Granting +1 Credit (Rewrite). New Total: {update_data['credits']}")
+                    # GLOBAL CHECK: Feature = Rewrite (Now consumes 1 Universal Credit)
+                    # We grant +1 Credit for purchase
+                    elif metadata.get('feature') == 'rewrite':
+                        update_data['credits'] = current_credits + 1
+                        print(f"Granting +1 Credit (Rewrite). New Total: {update_data['credits']}")
+                    
+                    elif plan_type == 'complete':
+                        # Legacy: Maybe Convert to +2 Credits? Or Keep separate?
+                        # User said "Exec Rewrite consumes 1 Credit".
+                        # Let's grant +2 Credits (1 for Resume, 1 for Interview)
+                        update_data['credits'] = current_credits + 2
+                        print(f"Granting Complete Package (+2 Credits).")
+
+                    elif plan_type == 'strategy_bundle':
+                        # Grant 5 Universal Credits
+                        update_data['credits'] = current_credits + 5
+                        print("Granting STRATEGY BUNDLE (+5 Credits).")
+
+                    # Single Strategy Tool Purchases = +1 Credit
+                    elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
+                        update_data['credits'] = current_credits + 1
+                        print(f"Granting +1 Credit for {plan_type}")
+
+                    elif plan_type == 'invoice_payment':
+                        pass
                         
-                        elif plan_type == 'complete':
-                            # Legacy: Maybe Convert to +2 Credits? Or Keep separate?
-                            # User said "Exec Rewrite consumes 1 Credit".
-                            # Let's grant +2 Credits (1 for Resume, 1 for Interview)
-                            update_data['credits'] = current_credits + 2
-                            print(f"Granting Complete Package (+2 Credits).")
+                    # BONUS RESET LOGIC (Qualified Purchases reset Free Role Reversal Count)
+                    # Triggers: Monthly Unlimited ('pro'), Strategy Bundle ('strategy_bundle'), Interview Lab ('interview')
+                    if plan_type in ['pro', 'strategy_bundle', 'interview']:
+                        update_data['role_reversal_count'] = 0
+                        print(f"BONUS BONUS: Reset Role Reversal Count to 0 for {plan_type} purchase.")
 
-                        elif plan_type == 'strategy_bundle':
-                             # Grant 5 Universal Credits
-                             update_data['credits'] = current_credits + 5
-                             print("Granting STRATEGY BUNDLE (+5 Credits).")
-
-                        # Single Strategy Tool Purchases = +1 Credit
-                        elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
-                             update_data['credits'] = current_credits + 1
-                             print(f"Granting +1 Credit for {plan_type}")
-
-                        elif plan_type == 'invoice_payment':
-                             pass
-                             
-                        # BONUS RESET LOGIC (Qualified Purchases reset Free Role Reversal Count)
-                        # Triggers: Monthly Unlimited ('pro'), Strategy Bundle ('strategy_bundle'), Interview Lab ('interview')
-                        if plan_type in ['pro', 'strategy_bundle', 'interview']:
-                             update_data['role_reversal_count'] = 0
-                             print(f"BONUS BONUS: Reset Role Reversal Count to 0 for {plan_type} purchase.")
-
-                        if update_data:
-                             db_client.table('users').update(update_data).eq('id', user_id).execute()
-                             print(f"User {user_id} updated successfully: {update_data}")
-
-                    # EXECUTE UPDATE
-                    response = db_client.table('users').update(update_data).eq('id', user_id).execute()
-                    print(f"WEBHOOK DEBUG: Update Response: {response.data if hasattr(response, 'data') else 'No Data'}")
-                    print(f"Successfully updated user {user_id}")
+                    if update_data:
+                        # EXECUTE UPDATE
+                        response = db_client.table('users').update(update_data).eq('id', user_id).execute()
+                        print(f"WEBHOOK DEBUG: Update Response: {response.data if hasattr(response, 'data') else 'No Data'}")
+                        print(f"Successfully updated user {user_id} with data: {update_data}")
 
                 else:
-                    print(f"WARNING: User not found for email {customer_email}. Cannot fulfill order.")
+                    print(f"WARNING: User not found for email {customer_email} or ID {client_reference_id}. Cannot fulfill order.")
             
             except Exception as e:
                 import traceback

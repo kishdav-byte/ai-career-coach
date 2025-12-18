@@ -602,7 +602,7 @@
                     if (sessionStr) {
                         const session = JSON.parse(sessionStr);
                         email = session.email;
-                        userId = session.user?.id || session.id; // Handle various session shapes
+                        userId = session.user_id || session.user?.id || session.id; // Handle various session shapes
                     }
                 } catch (e) { }
 
@@ -777,9 +777,8 @@
                     const sessionStr = localStorage.getItem(APP_SESSION_KEY);
                     if (sessionStr) {
                         const s = JSON.parse(sessionStr);
-                        // Access credits - might be stored flat or in user object depending on app.js version
-                        // Based on app.js: session.rewrite_credits or session.user.rewrite_credits
-                        credits = s.rewrite_credits || (s.user ? s.user.rewrite_credits : 0) || 0;
+                        // Access credits - prioritize universal 'credits' then specific 'rewrite_credits'
+                        credits = s.credits || s.rewrite_credits || (s.user ? (s.user.credits || s.user.rewrite_credits) : 0) || 0;
                     }
                 } catch (e) { }
 

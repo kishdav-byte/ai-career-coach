@@ -48,9 +48,9 @@ const Dashboard = () => {
                     .select('*', { count: 'exact', head: true })
                     .eq('user_id', user.id);
 
-                // 3. Get Plan Details
-                const { data: profile } = await supabase.from('profiles')
-                    .select('plan_tier, credits_remaining')
+                // 3. Get Plan Details (Updated: Query 'users' table)
+                const { data: profile } = await supabase.from('users')
+                    .select('subscription_status, credits, is_unlimited')
                     .eq('id', user.id)
                     .single();
 
@@ -76,8 +76,8 @@ const Dashboard = () => {
                 setStats({
                     resumeScore: resumes?.[0]?.overall_score || 0,
                     activeJobs: jobCount || 0,
-                    credits: profile?.credits_remaining || 0,
-                    plan: profile?.plan_tier || 'Free',
+                    credits: profile?.credits || 0,
+                    plan: profile?.is_unlimited ? 'Pro Plan' : (profile?.subscription_status || 'Free Plan'),
                     interviewAvg: interviews && interviews.length ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1) : 0
                 });
 
