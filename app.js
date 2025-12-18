@@ -279,7 +279,7 @@ async function sendVoiceMessage(base64Audio) {
             window.addMessage(transResult.transcript, 'user');
 
             // 2. Chat: Send transcript to AI for analysis
-            await sendChatMessage(transResult.transcript, false, true); // true = skipUI
+            await window.sendChatMessage(transResult.transcript, false, true); // true = skipUI
         } else {
             window.addMessage('Error: ' + (transResult.error || 'Transcription failed'), 'system');
         }
@@ -1258,8 +1258,10 @@ function init() {
         div.scrollIntoView({ behavior: 'smooth' });
         return div.id;
     }
-    // Expose addMessage to global scope for sendVoiceMessage
+    // Expose functions to global scope for sendVoiceMessage and button handlers
     window.addMessage = addMessage;
+    window.sendChatMessage = sendChatMessage;
+    window.generateInterviewReport = generateInterviewReport;
 } // End of Interview Page (Resume Analysis + Interview Coach)
 
 
