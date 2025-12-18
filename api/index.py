@@ -2372,6 +2372,17 @@ def webhook_debug():
             test_write = f"Failed: {str(e)}"
     
     status['admin_write_test'] = test_write
+    
+    # NEW: Fetch logs to see if Stripe is hitting us
+    logs = []
+    if supabase_admin:
+        try:
+            res = supabase_admin.table('error_logs').select('*').order('created_at', desc=True).limit(10).execute()
+            logs = res.data
+        except Exception as e:
+            logs = [f"Fetch error: {str(e)}"]
+    
+    status['recent_logs'] = logs
     return jsonify(status)
 
 @app.route('/api/stripe-webhook', methods=['POST'])
