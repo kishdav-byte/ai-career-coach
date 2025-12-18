@@ -460,7 +460,7 @@ function init() {
                 body: JSON.stringify({
                     plan_type: planType,
                     email: email,
-                    userId: session.user_id || session.id || session.user?.id, // Ensure ID is passed
+                    userId: (typeof session !== 'undefined' ? (session.user_id || session.id || session.user?.id) : (getSession()?.user_id || getSession()?.id || getSession()?.user?.id)), // Ensure ID is passed
                     successUrl: window.location.origin + '/app.html?status=success#interview', // redirect back to interview tab
                     cancelUrl: window.location.href
                 })
@@ -847,6 +847,7 @@ function init() {
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({
                                     email: session ? session.email : null,
+                                    userId: session ? (session.user_id || session.id || session.user?.id) : null,
                                     feature: 'rewrite', // Use backend env var
                                     successUrl: window.location.origin + '/app.html?status=success#resume-builder',
                                     cancelUrl: window.location.href
@@ -1747,6 +1748,7 @@ if (document.getElementById('generate-plan-btn')) {
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 email: session ? session.email : null,
+                                userId: session ? (session.user_id || session.id || session.user?.id) : null,
                                 feature: 'rewrite',
                                 successUrl: window.location.origin + '/app.html?status=success#resume-builder',
                                 cancelUrl: window.location.href

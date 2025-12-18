@@ -255,6 +255,7 @@
             const statusDot = document.getElementById('status-dot');
 
             let userEmail = '';
+            let user = null;
 
             // 1. Check Credits matches 30-60-90 logic
             try {
@@ -268,7 +269,7 @@
 
                 if (!res.ok) throw new Error("Failed to fetch profile");
 
-                const user = await res.json();
+                user = await res.json();
                 userEmail = user.email;
 
                 // Check Specific Credit
@@ -344,11 +345,11 @@
                     const res = await fetch('/api/create-checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ 
-                            plan_type: planType, 
-                            email: email, 
+                        body: JSON.stringify({
+                            plan_type: planType,
+                            email: email,
                             userId: user.id, // Pass ID
-                            successUrl: window.location.href 
+                            successUrl: window.location.href
                         })
                     });
                     const json = await res.json();

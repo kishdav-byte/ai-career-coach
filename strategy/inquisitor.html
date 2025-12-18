@@ -252,6 +252,7 @@
             const statusDot = document.getElementById('status-dot');
 
             let userEmail = '';
+            let user = null;
 
             // 1. Check Credits
             try {
@@ -265,7 +266,7 @@
 
                 if (!res.ok) throw new Error("Failed to fetch profile");
 
-                const user = await res.json();
+                user = await res.json();
                 userEmail = user.email;
 
                 // Check Specific Credit
