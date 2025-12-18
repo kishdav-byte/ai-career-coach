@@ -798,6 +798,16 @@
                     // Assume 100 is max credits for visual bar
                     const pct = profile.is_unlimited ? 100 : Math.min((profile.credits || 0), 100);
                     document.getElementById('credit-bar').style.width = `${pct}%`;
+
+                    // SYNC TO LOCAL SESSION (For app.js/legacy tools)
+                    const currentSession = getSession();
+                    if (currentSession) {
+                        currentSession.credits = profile.credits || 0;
+                        currentSession.is_unlimited = profile.is_unlimited || false;
+                        currentSession.subscription_status = profile.subscription_status || 'free';
+                        localStorage.setItem(APP_SESSION_KEY, JSON.stringify(currentSession));
+                        console.log("Local session synchronized with latest credits:", currentSession.credits);
+                    }
                 }
 
                 // 5. Get Interview Avg (Last 30 days)

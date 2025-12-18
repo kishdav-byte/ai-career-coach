@@ -2221,6 +2221,7 @@ def get_user_data_route():
                     "credits_30_60_90": user.get('credits_30_60_90', 0),
                     "credits_cover_letter": user.get('credits_cover_letter', 0),
                     "credits_interview_sim": user.get('credits_interview_sim', 0),
+                    "credits": user.get('credits', 0),
                     "is_unlimited": user.get('is_unlimited', False),
                     "subscription_status": user.get('subscription_status', 'free'),
                     "role": user.get('role', 'user')
@@ -2491,6 +2492,22 @@ def stripe_webhook():
                     elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
                         update_data['credits'] = current_credits + 1
                         trace(f"+1 credit for {plan_type}")
+                        
+                        # SYNC LEGACY COLUMNS for backward compatibility / User Sanity
+                        if plan_type == 'strategy_interview_sim' or plan_type == 'interview':
+                            update_data['interview_credits'] = (user_data.get('interview_credits', 0) or 0) + 1
+                        elif plan_type == 'resume':
+                            update_data['resume_credits'] = (user_data.get('resume_credits', 0) or 0) + 1
+                        elif plan_type == 'strategy_plan':
+                             update_data['credits_30_60_90'] = (user_data.get('credits_30_60_90', 0) or 0) + 1
+                        elif plan_type == 'strategy_cover':
+                             update_data['credits_cover_letter'] = (user_data.get('credits_cover_letter', 0) or 0) + 1
+                        elif plan_type == 'strategy_negotiation':
+                             update_data['credits_negotiation'] = (user_data.get('credits_negotiation', 0) or 0) + 1
+                        elif plan_type == 'strategy_inquisitor':
+                             update_data['credits_inquisitor'] = (user_data.get('credits_inquisitor', 0) or 0) + 1
+                        elif plan_type == 'strategy_followup':
+                             update_data['credits_followup'] = (user_data.get('credits_followup', 0) or 0) + 1
 
                     if plan_type in ['pro', 'strategy_bundle', 'interview']:
                         update_data['role_reversal_count'] = 0
