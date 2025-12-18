@@ -434,7 +434,7 @@ def api():
             if db_client:
                 # Check User Status (Updated Phase 34 + Free Tier Tracking)
                 # NOTE: Removed analysis_count from here to prevent crash if SQL not run yet. We fetch it safely below.
-                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, monthly_voice_usage').eq('email', email).execute()
+                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage').eq('email', email).execute()
                 
                 if user_res.data:
                     user = user_res.data[0]
@@ -2340,6 +2340,35 @@ def create_portal_session():
     except Exception as e:
         print(f"Error creating portal session: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/api/webhook-debug', methods=['GET'])
+def webhook_debug():
+    """Diagnostic endpoint to check if the server is ready for webhooks."""
+    status = {
+        'stripe_configured': stripe.api_key is not None,
+        'webhook_secret_present': stripe_webhook_secret is not None,
+        'supabase_url_present': SUPABASE_URL is not None,
+        'supabase_admin_ready': supabase_admin is not None,
+        'supabase_anon_ready': supabase is not None,
+        'env_vars_checked': [
+            'SUPABASE_SERVICE_ROLE_KEY', 'STRIPE_WEBHOOK_SECRET', 'OPENAI_API_KEY_'
+        ]
+    }
+    
+    # Try a test write to error_logs using the admin client
+    test_write = "Not attempted"
+    if supabase_admin:
+        try:
+            supabase_admin.table('error_logs').insert({
+                'error_type': 'Diagnostic_Ping',
+                'details': f'Manual ping from debug endpoint'
+            }).execute()
+            test_write = "Success"
+        except Exception as e:
+            test_write = f"Failed: {str(e)}"
+    
+    status['admin_write_test'] = test_write
+    return jsonify(status)
 
 @app.route('/api/stripe-webhook', methods=['POST'])
 def stripe_webhook():
