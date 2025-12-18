@@ -328,7 +328,11 @@
                 const response = await fetch('/api/create-checkout-session', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: email, plan: planType })
+                    body: JSON.stringify({
+                        email: email,
+                        plan: planType,
+                        userId: session.user_id || session.id || session.user?.id // Pass ID
+                    })
                 });
 
                 const data = await response.json();

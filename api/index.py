@@ -337,6 +337,7 @@ def create_checkout_session():
         success_url = data.get('successUrl')
         cancel_url = data.get('cancelUrl')
         email = data.get('email')
+        user_id = data.get('userId') # Crucial for fulfillment
         
         # Robustness: Handle 'plan_type', 'plan', or 'feature'
         plan_type = data.get('plan_type') or data.get('plan')
@@ -371,8 +372,10 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             customer_email=email,
+            client_reference_id=user_id, # Set ID for Webhook
             metadata={
                 'user_email': email, 
+                'user_id': user_id,
                 'feature': feature or plan_type, # ensure webhook sees something
                 'plan_type': plan_type or 'custom'
             }
@@ -2393,21 +2396,33 @@ def stripe_webhook():
                 user_id = None
                 user_data = None
 
-                # 1. Try finding user by Client Reference ID
+                # 1. Try finding user by Client Reference ID (Supabase UUID)
                 if client_reference_id:
+                    print(f"WEBHOOK: Attempting lookup by client_reference_id: {client_reference_id}")
                     res = db_client.table('users').select('*').eq('id', client_reference_id).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
-                        print(f"Found user by ID: {user_id}")
+                        print(f"WEBHOOK SUCCESS: Found user by ID: {user_id}")
 
-                # 2. Fallback: Find by Email
+                # 2. Fallback: Find by Metadata Email
+                if not user_id and metadata.get('user_email'):
+                    m_email = metadata.get('user_email')
+                    print(f"WEBHOOK: Fallback lookup by metadata email: {m_email}")
+                    res = db_client.table('users').select('*').eq('email', m_email).execute()
+                    if res.data:
+                        user_data = res.data[0]
+                        user_id = user_data['id']
+                        print(f"WEBHOOK SUCCESS: Found user by Metadata Email: {m_email} -> ID: {user_id}")
+
+                # 3. Final Fallback: Find by Stripe Customer Email
                 if not user_id and customer_email:
+                    print(f"WEBHOOK: Final fallback lookup by customer email: {customer_email}")
                     res = db_client.table('users').select('*').eq('email', customer_email).execute()
                     if res.data:
                         user_data = res.data[0]
                         user_id = user_data['id']
-                        print(f"Found user by Email: {customer_email} -> ID: {user_id}")
+                        print(f"WEBHOOK SUCCESS: Found user by Stripe Email: {customer_email} -> ID: {user_id}")
 
                 if user_id:
                     update_data = {}
@@ -2425,14 +2440,10 @@ def stripe_webhook():
                         print(f"Granting +1 Credit (Rewrite). New Total: {update_data['credits']}")
                     
                     elif plan_type == 'complete':
-                        # Legacy: Maybe Convert to +2 Credits? Or Keep separate?
-                        # User said "Exec Rewrite consumes 1 Credit".
-                        # Let's grant +2 Credits (1 for Resume, 1 for Interview)
                         update_data['credits'] = current_credits + 2
                         print(f"Granting Complete Package (+2 Credits).")
 
                     elif plan_type == 'strategy_bundle':
-                        # Grant 5 Universal Credits
                         update_data['credits'] = current_credits + 5
                         print("Granting STRATEGY BUNDLE (+5 Credits).")
 
@@ -2444,20 +2455,19 @@ def stripe_webhook():
                     elif plan_type == 'invoice_payment':
                         pass
                         
-                    # BONUS RESET LOGIC (Qualified Purchases reset Free Role Reversal Count)
-                    # Triggers: Monthly Unlimited ('pro'), Strategy Bundle ('strategy_bundle'), Interview Lab ('interview')
+                    # BONUS RESET LOGIC
                     if plan_type in ['pro', 'strategy_bundle', 'interview']:
                         update_data['role_reversal_count'] = 0
-                        print(f"BONUS BONUS: Reset Role Reversal Count to 0 for {plan_type} purchase.")
+                        print(f"BONUS: Reset Role Reversal Count for {plan_type}")
 
                     if update_data:
                         # EXECUTE UPDATE
                         response = db_client.table('users').update(update_data).eq('id', user_id).execute()
                         print(f"WEBHOOK DEBUG: Update Response: {response.data if hasattr(response, 'data') else 'No Data'}")
-                        print(f"Successfully updated user {user_id} with data: {update_data}")
+                        print(f"Successfully fulfilled order for user {user_id}")
 
                 else:
-                    print(f"WARNING: User not found for email {customer_email} or ID {client_reference_id}. Cannot fulfill order.")
+                    print(f"CRITICAL WEBHOOK FAILURE: User not found for Email={customer_email}, MetEmail={metadata.get('user_email')}, ID={client_reference_id}")
             
             except Exception as e:
                 import traceback

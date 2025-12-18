@@ -460,6 +460,7 @@ function init() {
                 body: JSON.stringify({
                     plan_type: planType,
                     email: email,
+                    userId: session.user_id || session.id || session.user?.id, // Ensure ID is passed
                     successUrl: window.location.origin + '/app.html?status=success#interview', // redirect back to interview tab
                     cancelUrl: window.location.href
                 })

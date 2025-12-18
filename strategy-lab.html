@@ -291,7 +291,8 @@
                         },
                         body: JSON.stringify({
                             plan_type: planType,
-                            email: userData.email
+                            email: userData.email,
+                            userId: userData.id // Pass ID
                         })
                     });
                     const json = await res.json();

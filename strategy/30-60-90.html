@@ -344,7 +344,12 @@
                     const res = await fetch('/api/create-checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({ plan_type: planType, email: email, successUrl: window.location.href })
+                        body: JSON.stringify({ 
+                            plan_type: planType, 
+                            email: email, 
+                            userId: user.id, // Pass ID
+                            successUrl: window.location.href 
+                        })
                     });
                     const json = await res.json();
                     if (json.url) window.location.href = json.url;
