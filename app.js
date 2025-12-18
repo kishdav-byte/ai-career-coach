@@ -1130,7 +1130,8 @@ function init() {
             const result = await response.json();
 
             // Remove loading
-            document.getElementById(loadingId).remove();
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) loadingEl.remove();
 
             if (result.data) {
                 // Check if it's a JSON string (sometimes happens if mixed mode) or just text
@@ -1210,7 +1211,8 @@ function init() {
                 addMessage('Error: ' + (result.error || 'Unknown error'), 'system');
             }
         } catch (e) {
-            document.getElementById(loadingId).remove();
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) loadingEl.remove();
             addMessage('Error: ' + e.message, 'system');
         }
     }
@@ -1222,18 +1224,33 @@ function init() {
             const session = getSession();
             const email = session ? session.email : null;
 
+            const jobPosting = document.getElementById('interview-job-posting').value;
+
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'generate_report', email: email, history: interviewHistory })
+                body: JSON.stringify({
+                    action: 'generate_report',
+                    email: email,
+                    history: interviewHistory,
+                    jobPosting: jobPosting
+                })
             });
-            document.getElementById(loadingId).remove();
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) loadingEl.remove();
 
             // Disable input to prevent further messages
-            document.getElementById('chat-input').disabled = true;
-            document.getElementById('chat-input').placeholder = "Interview Complete";
-            document.getElementById('send-btn').disabled = true;
-            document.getElementById('record-btn').disabled = true;
+            const chatInputEl = document.getElementById('chat-input');
+            if (chatInputEl) {
+                chatInputEl.disabled = true;
+                chatInputEl.placeholder = "Interview Complete";
+            }
+
+            const sendBtn = document.getElementById('send-chat-btn');
+            if (sendBtn) sendBtn.disabled = true;
+
+            const recordBtn = document.getElementById('record-btn');
+            if (recordBtn) recordBtn.disabled = true;
 
             // Calculate overall score
             let totalScore = 0;
@@ -1351,7 +1368,8 @@ function init() {
             addMessage(resultsHtml, 'system', true);
 
         } catch (e) {
-            document.getElementById(loadingId).remove();
+            const loadingEl = document.getElementById(loadingId);
+            if (loadingEl) loadingEl.remove();
             addMessage("Error generating report: " + e.message, 'system');
         }
     }

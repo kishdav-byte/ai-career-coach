@@ -438,7 +438,7 @@ def api():
             if db_client:
                 # Check User Status (Updated Phase 34 + Free Tier Tracking)
                 # NOTE: Removed analysis_count from here to prevent crash if SQL not run yet. We fetch it safely below.
-                user_res = db_client.table('users').select('subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage').eq('email', email).execute()
+                user_res = db_client.table('users').select('role, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage').eq('email', email).execute()
                 
                 if user_res.data:
                     user = user_res.data[0]
@@ -1325,34 +1325,46 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                 if text.endswith('```'): text = text[:-3]
                 
                 # ---------------------------------------------------------
-                # POST-GENERATION CREDIT DEDUCTION (Phase 15/19)
+                # SAVE INTERVIEW TO DATABASE (New Fix)
                 # ---------------------------------------------------------
-                # Only deduct if successful JSON parse
-                report_data = json.loads(text)
-                
-                # Check if we need to deduct (using same logic as gate)
-                email = data.get('email')
-                if email and supabase:
+                # 1. Resolve User ID
+                user_id = None
+                if email and supabase_admin:
+                    u_res = supabase_admin.table('users').select('id').eq('email', email).execute()
+                    if u_res.data:
+                        user_id = u_res.data[0]['id']
+
+                if user_id and report_data:
                     try:
-                        user_res = supabase.table('users').select('is_unlimited, interview_credits, credits').eq('email', email).execute()
-                        if user_res.data:
-                            user = user_res.data[0]
-                            # Only deduct if NOT unlimited
-                            if not user.get('is_unlimited', False):
-                                if user.get('interview_credits', 0) > 0:
-                                    new_credits = user.get('interview_credits') - 1
-                                    supabase.table('users').update({'interview_credits': max(0, new_credits)}).eq('email', email).execute()
-                                    print(f"SUCCESS: Deducted 1 INTERVIEW credit for Report. New balance: {new_credits}")
-                                elif user.get('credits', 0) > 0:
-                                    new_credits = user.get('credits') - 1
-                                    supabase.table('users').update({'credits': max(0, new_credits)}).eq('email', email).execute()
-                                    print(f"SUCCESS: Deducted 1 UNIVERSAL credit for Report. New balance: {new_credits}")
-                    except Exception as credit_err:
-                        print(f"Error deducting credit after report: {credit_err}")
-                        # Do NOT block the report return
+                        # 2. Calculate Average Score from history
+                        # history schema: [{question, answer, score, feedback}, ...]
+                        history = data.get('history', [])
+                        scores = [h.get('score', 0) for h in history if h.get('score') is not None]
+                        avg_score = sum(scores) / len(scores) if scores else 0
                         
+                        # 3. Extract Job Title (if provided in job_posting or history)
+                        job_title = "General Interview"
+                        # Try to infer it from the data
+                        if data.get('jobPosting'):
+                            # Very crude extraction of the first line if it looks like a title
+                            first_line = data.get('jobPosting').strip().split('\n')[0]
+                            if len(first_line) < 50: job_title = first_line
+
+                        # 4. Insert into 'interviews' table
+                        interview_record = {
+                            "user_id": user_id,
+                            "overall_score": round(avg_score * 2, 1),
+                            "job_title": job_title,
+                            "content": report_data.get('report', ''), # The HTML report
+                            "status": "completed"
+                        }
+                        supabase_admin.table('interviews').insert(interview_record).execute()
+                        print(f"SUCCESS: Saved Interview for {user_id} with score {avg_score}")
+                    except Exception as save_err:
+                        print(f"Error saving interview: {save_err}")
+
                 # LOG ACTIVITY
-                log_db_activity(email, 'career_plan')
+                log_db_activity(email, 'interview_coach')
                 return jsonify({"data": report_data})
             except Exception as e:
                 return jsonify({"data": text})
