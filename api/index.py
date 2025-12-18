@@ -454,7 +454,10 @@ def api():
     # ---------------------------------------------------------
     # ACCESS CONTROL & MONETIZATION CHECK (Phase 13)
     # ---------------------------------------------------------
-    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize']
+    PAID_ACTIONS = [
+        'interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize',
+        'career_plan', 'cover_letter', 'negotiation_script', 'value_followup', 'inquisitor', 'linkedin_optimize'
+    ]
     
     if action in PAID_ACTIONS:
         # Get email from request data OR try to infer it if possible
@@ -476,7 +479,10 @@ def api():
             if db_client:
                 # Check User Status (Updated Phase 34 + Free Tier Tracking)
                 # NOTE: Removed analysis_count from here to prevent crash if SQL not run yet. We fetch it safely below.
-                user_res = db_client.table('users').select('role, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage').eq('email', email).execute()
+                user_res = db_client.table('users').select(
+                    'role, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage, '
+                    'credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
+                ).eq('email', email).execute()
                 
                 if user_res.data:
                     user = user_res.data[0]
@@ -590,6 +596,35 @@ def api():
                             else:
                                  print(f"Blocked: Insufficient credits for Rewrite (Rewrite: {rewrite_credits}, Universal: {universal_credits})")
                                  has_access = False
+
+                        elif action in ['career_plan', 'cover_letter', 'negotiation_script', 'value_followup', 'inquisitor', 'linkedin_optimize']:
+                            # Determine specific credit column
+                            credit_col = {
+                                'career_plan': 'credits_30_60_90',
+                                'cover_letter': 'credits_cover_letter',
+                                'negotiation_script': 'credits_negotiation',
+                                'value_followup': 'credits_followup',
+                                'inquisitor': 'credits_inquisitor',
+                                'linkedin_optimize': 'credits' # Uses universal directly
+                            }.get(action)
+                            
+                            specific_credits = user.get(credit_col, 0) or 0
+                            
+                            if specific_credits > 0 or universal_credits > 0:
+                                has_access = True
+                                if should_deduct:
+                                    supabase_upd = supabase_admin if supabase_admin else supabase
+                                    if specific_credits > 0 and credit_col != 'credits':
+                                        new_val = specific_credits - 1
+                                        supabase_upd.table('users').update({credit_col: new_val}).eq('email', email).execute()
+                                        print(f"Deducted 1 {action} credit from {credit_col}. New: {new_val}")
+                                    else:
+                                        new_val = universal_credits - 1
+                                        supabase_upd.table('users').update({'credits': new_val}).eq('email', email).execute()
+                                        print(f"Deducted 1 UNIVERSAL credit for {action}. New: {new_val}")
+                            else:
+                                has_access = False
+                                print(f"Blocked: Insufficient credits for {action}")
                         
                         elif action in ['interview_chat', 'generate_report']:
                             if action == 'generate_report':
@@ -2575,36 +2610,42 @@ def stripe_webhook():
                         trace("Adding UNLIMITED flags")
 
                     elif metadata.get('feature') == 'rewrite' or plan_type == 'rewrite':
-                        update_data['credits'] = current_credits + 1
+                        update_data['credits'] = (user_data.get('credits', 0) or 0) + 1
                         trace(f"Adding +1 credit for Rewrite. New: {update_data['credits']}")
                     
                     elif plan_type == 'complete':
-                        update_data['credits'] = current_credits + 2
+                        update_data['credits'] = (user_data.get('credits', 0) or 0) + 2
                         trace("+2 credits for Complete")
 
                     elif plan_type == 'strategy_bundle':
-                        update_data['credits'] = current_credits + 5
+                        update_data['credits'] = (user_data.get('credits', 0) or 0) + 5
                         trace("+5 credits for Bundle")
 
                     elif plan_type in ['strategy_plan', 'strategy_cover', 'strategy_negotiation', 'strategy_inquisitor', 'strategy_followup', 'strategy_interview_sim', 'resume', 'interview']:
-                        update_data['credits'] = current_credits + 1
-                        trace(f"+1 credit for {plan_type}")
+                        # SINGLE TOOL: Increment ONLY legacy column (no universal credit)
+                        trace(f"Processing SINGLE TOOL: {plan_type}")
                         
-                        # SYNC LEGACY COLUMNS for backward compatibility / User Sanity
                         if plan_type == 'strategy_interview_sim' or plan_type == 'interview':
                             update_data['interview_credits'] = (user_data.get('interview_credits', 0) or 0) + 1
+                            trace("+1 Interview Credit")
                         elif plan_type == 'resume':
                             update_data['resume_credits'] = (user_data.get('resume_credits', 0) or 0) + 1
+                            trace("+1 Resume Credit")
                         elif plan_type == 'strategy_plan':
                              update_data['credits_30_60_90'] = (user_data.get('credits_30_60_90', 0) or 0) + 1
+                             trace("+1 30-60-90 Credit")
                         elif plan_type == 'strategy_cover':
                              update_data['credits_cover_letter'] = (user_data.get('credits_cover_letter', 0) or 0) + 1
+                             trace("+1 Cover Letter Credit")
                         elif plan_type == 'strategy_negotiation':
                              update_data['credits_negotiation'] = (user_data.get('credits_negotiation', 0) or 0) + 1
+                             trace("+1 Negotiation Credit")
                         elif plan_type == 'strategy_inquisitor':
                              update_data['credits_inquisitor'] = (user_data.get('credits_inquisitor', 0) or 0) + 1
+                             trace("+1 Inquisitor Credit")
                         elif plan_type == 'strategy_followup':
                              update_data['credits_followup'] = (user_data.get('credits_followup', 0) or 0) + 1
+                             trace("+1 Follow-up Credit")
 
                     if plan_type in ['pro', 'strategy_bundle', 'interview', 'strategy_interview_sim']:
                         update_data['role_reversal_count'] = 0
