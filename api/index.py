@@ -844,17 +844,18 @@ def api():
                 user_prompt = f"""
 User Answer: {message}
 
-Evaluate the answer to Question {question_count} using the STRICT STAR SCORING RUBRIC:
-1-2 (Fail/Weak): Missing S, A, or R. (Hard Constraint: Max 2 if any component is missing).
-3 (Pass/Average): S, A, R present but generic/low detail.
-4 (Strong): Complete STAR answer AND highly specific to the Target Job.
-5 (Unicorn/Perfect): Complete STAR, Job-Specific AND includes Measurable Metrics (numbers, %, $).
+Evaluate the answer to Question {question_count} using the HYPER-STRICT STAR SCORING RUBRIC (+25% Specificity Requirement):
+1-2 (Fail/Weak): Missing S, A, or R. (HARD CONSTRAINT: Max 2 if any component is missing).
+3 (Average): S, A, R present. Contains at least 1-2 specific details (names, tools) but lacks hard outcomes.
+4 (Strong): Complete STAR. High technical specificity. Uses job-specific keywords. Must include a clear outcome or impact.
+5 (Unicorn): Complete STAR. Highly specific AND includes MULTIPLE measurable metrics (%, $, time SAVED, scale).
 
 CRITICAL INSTRUCTIONS:
-1. Start 'feedback' with: "I would score this answer a [score] because...".
-2. In 'feedback', explicitly state which components (S, A, R) were present or missing.
-3. IF SCORE < 5: Provide a specific "Metric Injection" recommendation in 'improved_sample' showing how to turn it into a 5.
-4. TONE: Coaching and constructive. Focus on "Gap Analysis".
+1. SPECIFICITY AUDIT: If the answer is vague or lacks concrete nouns/actions, PENALIZE the score.
+2. Start 'feedback' with: "I would score this answer a [score] because...".
+3. In 'feedback', explicitly state which STAR components were present.
+4. IF SCORE < 5: Provide a "Metric Injection" in 'improved_sample' showing exactly how to move to a 5.
+5. TONE: Coaching. Summarize gaps.
 
 After feedback, IMMEDIATELY ask the {next_ordinal} interview question.
 
@@ -866,13 +867,16 @@ Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "
                 user_prompt = f"""
 User Answer: {message}
 
-Evaluate the answer to the final question (Question 5) using the STRICT STAR SCORING RUBRIC:
-1-2 (Fail/Weak): Missing S, A, or R. (Hard Constraint: Max 2 if any component is missing).
-3 (Pass/Average): S, A, R present but generic.
-4 (Strong): Complete STAR answer AND job-specific.
-5 (Unicorn/Perfect): Complete STAR, job-specific AND includes Measurable Metrics.
+Evaluate the answer to the final question (Question 5) using the HYPER-STRICT STAR SCORING RUBRIC (+25% Specificity):
+1-2 (Fail/Weak): Missing S, A, or R. (HARD CONSTRAINT: Max 2 if any component is missing).
+3 (Average): S, A, R present. Contains specific details but lacks hard outcomes.
+4 (Strong): Complete STAR. High technical specificity and job-specific.
+5 (Unicorn): Complete STAR, job-specific AND includes MULTIPLE measurable metrics.
 
 CRITICAL INSTRUCTIONS:
+1. SPECIFICITY AUDIT: Penalize vague answers.
+2. Start 'feedback' with: "I would score this answer a [score] because...".
+3. TONE: Coaching. Summarize overall performance vs STAR standards.
 1. Start 'feedback' with: "I would score this answer a [score] because...".
 2. TONE: Coaching. Summarize gaps.
 
