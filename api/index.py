@@ -454,7 +454,7 @@ def api():
     # ---------------------------------------------------------
     # ACCESS CONTROL & MONETIZATION CHECK (Phase 13)
     # ---------------------------------------------------------
-    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize', 'transcribe']
+    PAID_ACTIONS = ['interview_chat', 'generate_report', 'analyze_resume', 'optimize_resume', 'optimize']
     
     if action in PAID_ACTIONS:
         # Get email from request data OR try to infer it if possible
