@@ -46,6 +46,10 @@ if SUPABASE_URL:
 
 app = Flask(__name__)
 
+@app.route('/')
+def health_check():
+    return "API is running. Use /api/webhook-debug for diagnostic details."
+
 # CONSTANTS
 VOICE_CAP = 50
 
