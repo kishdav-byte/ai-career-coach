@@ -892,7 +892,10 @@ CRITICAL INSTRUCTIONS:
 4. IF SCORE < 5: Provide a "Metric Injection" in 'improved_sample' showing exactly how to move to a 5.
 5. TONE: Coaching. Summarize gaps.
 
-After feedback, IMMEDIATELY ask the {next_ordinal} interview question.
+NEXT QUESTION PHRASING:
+- You are now asking question {next_q_num}.
+- You MUST start the 'next_question' field with exactly: "The next question that I have for you" if it's questions 2, 3, or 4.
+- If it's question 5, you MUST start the 'next_question' field with exactly: "the last question I have for you is".
 
 Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "..."}}
 """
@@ -912,8 +915,6 @@ CRITICAL INSTRUCTIONS:
 1. SPECIFICITY AUDIT: Penalize vague answers.
 2. Start 'feedback' with: "I would score this answer a [score] because...".
 3. TONE: Coaching. Summarize overall performance vs STAR standards.
-1. Start 'feedback' with: "I would score this answer a [score] because...".
-2. TONE: Coaching. Summarize gaps.
 
 This was the final question. End the interview professionally.
 
@@ -1440,9 +1441,20 @@ When you recommend a solution that requires deep work (writing, simulation, nego
 
         elif action == 'generate_report':
             try:
-                if text.startswith('```json'): text = text[7:]
-                if text.startswith('```'): text = text[3:]
-                if text.endswith('```'): text = text[:-3]
+                clean_text = text.strip()
+                if clean_text.startswith('```json'): clean_text = clean_text[7:]
+                elif clean_text.startswith('```'): clean_text = clean_text[3:]
+                if clean_text.endswith('```'): clean_text = clean_text[:-3]
+                
+                try:
+                    report_data = json.loads(clean_text)
+                except:
+                    # Fallback for weird formatting
+                    match = re.search(r"\{.*\}", clean_text, re.DOTALL)
+                    if match:
+                        report_data = json.loads(match.group(0))
+                    else:
+                        raise ValueError("Could not parse report JSON")
                 
                 # ---------------------------------------------------------
                 # SAVE INTERVIEW TO DATABASE (New Fix)
