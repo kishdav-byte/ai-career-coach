@@ -51,7 +51,7 @@ const Dashboard = () => {
 
                 // 3. Get Plan Details (Updated: Query 'users' table)
                 const { data: profile } = await supabase.from('users')
-                    .select('subscription_status, credits, is_unlimited')
+                    .select('subscription_status, credits, is_unlimited, subscription_period_end')
                     .eq('id', user.id)
                     .single();
 
@@ -82,6 +82,7 @@ const Dashboard = () => {
                     activeJobs: jobCount || 0,
                     credits: profile?.credits || 0,
                     isUnlimited: isUnlimited,
+                    subscriptionPeriodEnd: profile?.subscription_period_end,
                     plan: isUnlimited ? 'PRO PLAN' : (profile?.subscription_status || 'Free Plan'),
                     interviewAvg: interviews && interviews.length ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1) : 0
                 });
@@ -223,7 +224,10 @@ const Dashboard = () => {
                         ) : (
                             <div className="flex justify-between w-full text-sm">
                                 <span className="text-white font-bold">{stats.isUnlimited ? 'Unlimited Access' : `${stats.credits} Credits`}</span>
-                                {!stats.isUnlimited && <span className="text-gray-500">Left</span>}
+                                {stats.subscriptionPeriodEnd ? (() => {
+                                    const days = Math.ceil((new Date(stats.subscriptionPeriodEnd) - new Date()) / (1000 * 60 * 60 * 24));
+                                    return days > 0 ? <span className="text-gray-500">Resets in {days} days</span> : <span className="text-gray-500">Left</span>;
+                                })() : <span className="text-gray-500">Left</span>}
                             </div>
                         )}
                     </div>

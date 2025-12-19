@@ -2576,9 +2576,10 @@ def stripe_webhook():
                 customer_email = session.get('customer_details', {}).get('email')
                 client_reference_id = session.get('client_reference_id')
                 metadata = session.get('metadata', {})
-                plan_type = metadata.get('plan_type', 'basic') 
+                plan_type = metadata.get('plan_type', 'basic')
+                subscription_id = session.get('subscription')
                 
-                trace(f"Session Data: Email={customer_email}, RefID={client_reference_id}, Plan={plan_type}")
+                trace(f"Session Data: Email={customer_email}, RefID={client_reference_id}, Plan={plan_type}, SubID={subscription_id}")
 
                 user_id = None
                 user_data = None
@@ -2664,6 +2665,20 @@ def stripe_webhook():
                     if plan_type in ['pro', 'strategy_bundle', 'interview', 'strategy_interview_sim']:
                         update_data['role_reversal_count'] = 0
                         trace("Reset Role Reversal Count")
+
+                    # Handle Subscription Renewal Date (NEW)
+                    if subscription_id:
+                        try:
+                            sub_obj = stripe.Subscription.retrieve(subscription_id)
+                            # Convert Unix timestamp to ISO for Supabase
+                            import datetime
+                            period_end_dt = datetime.datetime.fromtimestamp(sub_obj.current_period_end, datetime.timezone.utc)
+                            update_data['subscription_period_end'] = period_end_dt.isoformat()
+                            if not user_data.get('stripe_customer_id') and session.get('customer'):
+                                update_data['stripe_customer_id'] = session.get('customer')
+                            trace(f"Captured Renewal Date: {update_data['subscription_period_end']}")
+                        except Exception as sub_err:
+                            trace(f"Failed to fetch subscription end date: {sub_err}", "Webhook_Warning")
 
                     if update_data:
                         trace(f"Executing Update: {update_data}")
@@ -2757,11 +2772,24 @@ def stripe_webhook():
                     # 3. Apply Update
                     if user_data:
                         print(f"Resetting usage for user {user_data.get('email')}")
-                        db_client.table('users').update({
+                        update_payload = {
                             'monthly_voice_usage': 0,
                             'subscription_status': 'active',
                             'is_unlimited': True # Ensure it's on
-                        }).eq('id', user_data['id']).execute()
+                        }
+                        
+                        # Update Renewal Date on renewal too
+                        if subscription_id:
+                            try:
+                                sub_obj = stripe.Subscription.retrieve(subscription_id)
+                                import datetime
+                                period_end_dt = datetime.datetime.fromtimestamp(sub_obj.current_period_end, datetime.timezone.utc)
+                                update_payload['subscription_period_end'] = period_end_dt.isoformat()
+                                trace(f"Updated Renewal Date on Invoice: {update_payload['subscription_period_end']}")
+                            except Exception as sub_err:
+                                trace(f"Failed to fetch subscription end date on invoice: {sub_err}", "Webhook_Warning")
+
+                        db_client.table('users').update(update_payload).eq('id', user_data['id']).execute()
                         print("Voice Usage Reset to 0. Subscription Active.")
                     else:
                         print(f"User not found for Invoice {invoice.get('id')}")

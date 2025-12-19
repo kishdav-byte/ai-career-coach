@@ -419,7 +419,7 @@
                             </div>
                             <div class="flex justify-between w-full text-xs">
                                 <span id="credit-count" class="text-white font-bold">-- Credits</span>
-                                <span class="text-gray-500">Left</span>
+                                <span id="reset-countdown" class="text-gray-500 hidden">Resets in -- days</span>
                             </div>
                         </div>
                     </div>
@@ -767,7 +767,7 @@
 
                 // 4. Get Plan Details & Credits
                 const { data: profile } = await supabase.from('users')
-                    .select('subscription_status, credits, is_unlimited')
+                    .select('subscription_status, credits, is_unlimited, subscription_period_end')
                     .eq('id', user.id)
                     .single();
 
@@ -790,12 +790,30 @@
                         document.getElementById('credit-bar').style.width = `${pct}%`;
                     }
 
+                    // Reset Countdown (NEW)
+                    const resetEl = document.getElementById('reset-countdown');
+                    if (profile.subscription_period_end) {
+                        const end = new Date(profile.subscription_period_end);
+                        const now = new Date();
+                        const diff = end - now;
+                        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+                        if (days > 0 && resetEl) {
+                            resetEl.textContent = `Resets in ${days} days`;
+                            resetEl.classList.remove('hidden');
+                        } else if (resetEl) {
+                            resetEl.classList.add('hidden');
+                        }
+                    } else if (resetEl) {
+                        resetEl.classList.add('hidden');
+                    }
+
                     // SYNC TO LOCAL SESSION (For app.js/legacy tools)
                     const currentSession = getSession();
                     if (currentSession) {
                         currentSession.credits = credits;
                         currentSession.is_unlimited = isUnlimited;
                         currentSession.subscription_status = profile.subscription_status || 'free';
+                        currentSession.subscription_period_end = profile.subscription_period_end;
                         localStorage.setItem(APP_SESSION_KEY, JSON.stringify(currentSession));
                     }
                 }
