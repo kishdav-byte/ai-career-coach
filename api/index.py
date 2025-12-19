@@ -714,10 +714,13 @@ def api():
         4. Detect formatting inconsistencies (dates, punctuation, layout).
         5. Identify missing high-frequency keywords from the JD.
 
-        CRITICAL RULES:
+        CRITICAL RULES (OPTIMIZATION PROTOCOL):
         - NO INVENTED METRICS: Use "[X]%" or "[X]$".
         - EXACT QUOTES ONLY: Reference specific bullets from the resume.
         - HYPER-SPECIFICITY: Actionable feedback, not generic advice.
+        - BRIDGE LANGUAGE (SENIORITY CHECK): If the candidate is a Leader (Manager, Director, VP) and the keyword is technical (e.g. Python, ETL, AWS), suggest "Directed strategy for X" or "Managed migration of X" instead of hands-on "Implemented X".
+        - CONTEXTUAL TRANSLATION: Inject keywords into existing resume bullets instead of replacing them. (e.g., "Modernized systems by transitioning to Cloud Architecture" instead of just "Built Cloud Architecture").
+        - CERTIFICATION NUDGE: If the gap is a hard credential (e.g. AWS Certified), the 'fix' must be an ACTION ITEM: "Do not add this yet. Action: Enroll in [Course] and list as (In Progress)".
         
         Return valid JSON with this EXACT structure:
         {{
@@ -736,14 +739,14 @@ def api():
             "improvements": [
                 {{
                     "title": "Protocol Title", 
-                    "suggestion": "Deep strategic advice for this specific resume.",
+                    "suggestion": "Deep strategic advice. Include Rule-based bridge language if applicable.",
                     "current": "[Exact quote from resume]", 
-                    "better": "[Hypothetically optimized version with [X] metrics]"
+                    "better": "[Hypothetically optimized version using Bridge Language and Metrics]"
                 }}
             ],
             "keywords": {{
                 "missing": [
-                    {{"word": "Keyword", "advice": "How to integrate it"}}
+                    {{"word": "Keyword", "advice": "How to integrate it using Bridge Language or Action Item if a credential."}}
                 ]
             }},
             "ats_compatibility": {{
