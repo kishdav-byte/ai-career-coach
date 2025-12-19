@@ -831,7 +831,7 @@ CONVERSATIONAL RULES:
 Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"""
         
         if is_start:
-            welcome_msg = "Welcome to the interview! I've reviewed the job details, and going to ask you five questions. <break time=\"2.0s\" /> Please provide specific examples of how you've handled key situations, and I encourage you to use the STAR method when providing your answers. <break time=\"2.0s\" /> You'll want to share a specific Situation or Task, the Action or Actions you took, and the Result of your Actions. <break time=\"2.0s\" /> The first question that I have for you is... <break time=\"1.0s\" />"
+            welcome_msg = "Welcome to the interview! I've reviewed the job details, and I'm going to ask you five questions. <break time=\"2.0s\" /> When answering, please provide specific examples of how you've handled key situations, and I encourage you to use the STAR method when providing your answers. <break time=\"2.0s\" /> You'll want to share a specific Situation or Task, the Action or Actions you took, and the Result of your Actions. <break time=\"2.0s\" /> The first question that I have for you is... <break time=\"1.0s\" />"
             
             user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Immediately after the final <break time=\"1.0s\" />, append the First Question.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg} [Your First Question]\"}}"
             
