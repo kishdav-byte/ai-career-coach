@@ -594,22 +594,18 @@
 
         // Function to trigger Stripe Checkout
         async function buyCredits(priceId) {
-            console.log('Initiating purchase for:', priceId);
+            console.log('Buying:', priceId);
 
-            // 1. Call your Supabase Edge Function (or Backend endpoint)
-            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                body: { price_id: priceId }
-            });
+            try {
+                const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                    body: { price_id: priceId, return_url: window.location.href }
+                });
 
-            if (error) {
-                console.error('Purchase Error:', error);
-                alert('Could not initiate checkout. Please contact support.');
-                return;
-            }
-
-            // 2. Redirect to Stripe 
-            if (data?.url) {
-                window.location.href = data.url;
+                if (error) throw error;
+                if (data?.url) window.location.href = data.url;
+            } catch (error) {
+                console.error('Checkout Error:', error);
+                alert('Checkout failed to initialize.');
             }
         }
 
@@ -735,45 +731,31 @@
         async function handlePortal(event) {
             if (event) event.preventDefault();
             const btn = event?.target || document.querySelector('[onclick="handlePortal(event)"]');
-            const originalText = btn.innerText;
+            const originalText = btn?.innerText || 'Manage Billing';
 
-            const session = getSession();
-            if (!session || !session.email) {
-                alert("Session error. Please log in again.");
-                return;
+            if (btn) {
+                btn.innerText = 'Loading...';
+                btn.style.opacity = '0.7';
+                btn.style.pointerEvents = 'none';
             }
 
-            btn.innerText = 'Loading...';
-            btn.style.opacity = '0.7';
-            btn.style.pointerEvents = 'none';
-
             try {
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'create-portal-session',
-                        email: session.email
-                    })
+                // USE SUPABASE FUNCTION, NOT FETCH
+                const { data, error } = await supabase.functions.invoke('create-portal-session', {
+                    body: { returnUrl: window.location.href }
                 });
 
-                const result = await response.json();
-                if (!response.ok) {
-                    throw new Error(result.error || 'Portal creation failed');
+                if (error) throw error;
+                if (data?.url) window.location.href = data.url;
+            } catch (error) {
+                console.error('Portal Error:', error);
+                alert('Could not open billing settings. Please contact support.');
+            } finally {
+                if (btn) {
+                    btn.innerText = originalText;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
                 }
-
-                const data = result.data || result;
-                if (data.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("No portal URL received");
-                }
-            } catch (e) {
-                console.error('Portal Error:', e);
-                alert('Could not open billing portal. ' + e.message);
-                btn.innerText = originalText;
-                btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
             }
         }
 
