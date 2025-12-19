@@ -81,51 +81,57 @@ function getSession() {
     }
 }
 
-async function checkAccess() {
-    console.log('Checking access via Supabase SDK...');
+async function checkAccess(requiredType = 'interview_credits') {
+    console.log('Checking access via Supabase SDK (Waterfall Logic)...');
 
     // 1. Get Current User
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
         console.error('User not logged in');
-        const path = window.location.pathname;
-        if (path === '/app.html' || path === '/app' || path.includes('admin')) {
-            window.location.href = '/login.html';
-        }
+        window.location.href = '/login.html';
         return false;
     }
 
-    // 2. Check Credits in 'users' table (note: using 'users' not 'profiles')
-    const { data: profile, error: dbError } = await supabase
+    // 2. Get User Data from the 'users' table
+    const { data: userData, error } = await supabase
         .from('users')
-        .select('credits, subscription_status, is_unlimited, role')
+        .select('*')
         .eq('id', user.id)
         .single();
 
-    if (dbError) {
-        console.error('Error fetching profile:', dbError);
-        alert('Could not verify credits. Please refresh.');
+    if (error || !userData) {
+        console.error('User Data Load Error:', error);
+        alert('Could not verify account. Please refresh.');
         return false;
     }
 
-    console.log('Profile data:', profile);
+    console.log('User data loaded:', userData);
+
+    // 3. The Waterfall Logic (Specific → Universal → Subscription)
+    const specificBalance = userData[requiredType] || 0;
+    const universalBalance = userData.credits || 0;
+    const isSubscribed = userData.subscription_status === 'active' || userData.is_unlimited;
+
+    console.log(`Checking: Specific(${specificBalance}) | Universal(${universalBalance}) | Sub(${isSubscribed})`);
 
     // Update local session for compatibility
     let session = getSession() || {};
     session.email = user.email;
     session.name = user.user_metadata?.name || user.email;
-    session.subscription_status = profile.subscription_status;
-    session.is_unlimited = profile.is_unlimited;
-    session.credits = profile.credits;
-    session.role = profile.role;
+    session.subscription_status = userData.subscription_status;
+    session.is_unlimited = userData.is_unlimited;
+    session.credits = universalBalance;
+    session.interview_credits = userData.interview_credits || 0;
+    session.resume_credits = userData.resume_credits || 0;
+    session.rewrite_credits = userData.rewrite_credits || 0;
+    session.role = userData.role;
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
     // Update credit display
     updateCreditDisplay(session);
 
     // ADMIN CHECK: Reveal Hidden Tools
-    if (profile.role === 'admin') {
+    if (userData.role === 'admin') {
         console.log("👑 Admin Access Detected: Unhiding Tools");
         const adminTools = document.getElementById('admin-tools-container');
         if (adminTools) {
@@ -154,12 +160,12 @@ async function checkAccess() {
         }
     }
 
-    // 3. Logic Gate
-    if (profile.subscription_status === 'active' || profile.is_unlimited || profile.credits > 0) {
-        console.log('Access Granted. Credits:', profile.credits);
+    // 4. Decision Gate (Waterfall: Subscription > Specific > Universal)
+    if (isSubscribed || specificBalance > 0 || universalBalance > 0) {
+        console.log('✅ Access Granted');
         return true;
     } else {
-        alert('You have 0 credits remaining. Please upgrade to continue.');
+        alert('Not enough credits. Please upgrade.');
         window.location.href = '/dashboard.html';
         return false;
     }
