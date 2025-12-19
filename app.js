@@ -1884,26 +1884,36 @@ if (document.getElementById('generate-followup-btn')) {
 }
 
 // -------------------------------------------------------------
-// CHECK PAYMENT SUCCESS (Resume Rewrite)
+// CHECK PAYMENT SUCCESS (Dynamic based on Hash)
 // -------------------------------------------------------------
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.get('status') === 'success') {
-    console.log("Payment Successful! Unlocking Rewrite...");
+    const hash = window.location.hash;
+    let featureName = "Resume Rewrite";
+    let storageKey = "has_unlocked_rewrite";
+
+    if (hash.includes('interview')) {
+        featureName = "Interview Lab";
+        storageKey = "has_unlocked_interview";
+    } else if (hash.includes('linkedin')) {
+        featureName = "LinkedIn Optimizer";
+        storageKey = "has_unlocked_linkedin";
+    }
+
+    console.log(`Payment Successful! Unlocking ${featureName}...`);
+
     // 1. Show Success Message
-    alert("Payment Successful! Resume Rewrite Unlocked. 🚀");
+    alert(`Payment Successful! ${featureName} Unlocked. 🚀`);
 
     // 2. Unlock Feature (Visual)
-    // We can set a global flag or localStorage to persist this state
-    localStorage.setItem('has_unlocked_rewrite', 'true');
+    localStorage.setItem(storageKey, 'true');
 
     // Refresh User Data (Credits)
     checkAccess().then(() => {
         console.log("Credits refreshed.");
     });
 
-    // 3. Switch to Resume Builder Tab (if not already there by hash)
-    // The hash #resume-builder handles structure, but we ensure active class
-    // We might want to remove the query param so a refresh doesn't trigger again
+    // 3. Clear Query Params but keep hash
     window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
 }
 
