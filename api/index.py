@@ -809,7 +809,7 @@ def api():
             return jsonify({
                 "data": {
                     "score": 0,
-                    "feedback": "No answer provided.",
+                    "feedback": "",
                     "improved_sample": "",
                     "text": "I didn't catch that response. Could you please repeat your answer?",
                     "next_question": "I didn't catch that response. Could you please repeat your answer?"
@@ -833,14 +833,19 @@ Keep responses concise and professional. This interview consists of 5 questions.
         if is_start:
             welcome_msg = "Welcome to the interview! I've reviewed the job details, and I'm going to ask you five questions. <break time=\"2.0s\" /> When answering, please provide specific examples of how you've handled key situations, and I encourage you to use the STAR method when providing your answers. <break time=\"2.0s\" /> You'll want to share a specific Situation or Task, the Action or Actions you took, and the Result of your Actions. <break time=\"2.0s\" /> The first question that I have for you is... <break time=\"1.0s\" />"
             
-            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Immediately after the final <break time=\"1.0s\" />, append the First Question.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg} [Your First Question]\"}}"
-            
-            # EXTRACT JOB TITLE (Simple Heuristic or Ask AI)
-            # Since we are starting, we can ask AI to identify the role in the 'feedback' or invisible field?
-            # Better: Just log what we have. If job_posting is long, maybe truncate?
-            # Best: Add a "job_title" field to the Return JSON instruction above for the AI to fill.
-            
-            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nLook at the Job Context provided. Identify the 'Job Title' being interviewed for.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"job_title\": \"[Extracted Job Title]\", \"next_question\": \"Welcome to the interview! ...\"}}"
+            user_prompt = f"""User: {message}
+
+Start the interview. You MUST start your response with exactly: '{welcome_msg}'.
+Immediately after the final <break time="1.0s" />, append the FIRST INTERVIEW QUESTION based on the Job Context provided.
+
+JSON Template:
+{{
+  "transcript": "{message}",
+  "feedback": "",
+  "improved_sample": null,
+  "job_title": "[Extract Job Title from Context]",
+  "next_question": "{welcome_msg} [Insert Question 1 Here]"
+}}"""
         
         else:
             # CONTINUATION: Evaluate previous answer, Ask next question
@@ -849,9 +854,8 @@ Keep responses concise and professional. This interview consists of 5 questions.
             # Input question_count is the one just answered.
             # So if count=1, we are evaluating 1 and asking 2.
             next_q_num = question_count + 1
-            next_q_num = question_count + 1
-            if next_q_num == 5:
-                next_ordinal = "last"
+            if next_q_num >= 5:
+                next_ordinal = "final"
             else:
                 next_ordinal = "next"
 
@@ -878,7 +882,7 @@ CRITICAL INSTRUCTIONS:
    - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
 5. TONE: Coaching. Summarize gaps.
 
-Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "..."}}
+Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "..."}}
 """
             
             else:
@@ -903,7 +907,7 @@ CRITICAL INSTRUCTIONS:
    - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
 4. TONE: Coaching. Summarize overall performance vs STAR standards.
 
-Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "[Acknowledge their final answer naturally and end the interview professionally]"}}
+Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "[Acknowledge their final answer naturally and end the interview professionally]"}}
 """
         
         messages = [

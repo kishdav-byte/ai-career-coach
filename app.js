@@ -1141,8 +1141,8 @@ function init() {
                         systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
                     } else if (questionCount >= 5) {
                         systemMsg += `<br><br><strong>Conclusion:</strong> ${result.data.next_question || result.data.text || ''}`;
-                        // Trigger Report Generation
-                        setTimeout(generateInterviewReport, 2000);
+                        // Trigger Report Generation with a longer delay for final audio to finish
+                        setTimeout(generateInterviewReport, 5000);
                     } else {
                         systemMsg += `<br><br>${result.data.next_question || result.data.text || ''}`;
                     }
