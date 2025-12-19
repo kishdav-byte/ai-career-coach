@@ -222,16 +222,35 @@
 
             <script>
                 function toggleGroup(id) {
-                    const group = document.getElementById('group-' + id);
-                    const icon = document.getElementById('icon-' + id);
-
-                    if (group.classList.contains('hidden')) {
-                        group.classList.remove('hidden');
-                        icon.style.transform = 'rotate(90deg)';
-                    } else {
-                        group.classList.add('hidden');
-                        icon.style.transform = 'rotate(0deg)';
+                    const group = document.getElementById(`group-${id}`);
+                    const icon = document.getElementById(`icon-${id}`);
+                    if (group) {
+                        group.classList.toggle('hidden');
+                        if (icon) {
+                            icon.classList.toggle('rotate-90');
+                        }
                     }
+                }
+
+                function toggleSidebar() {
+                    const sidebar = document.getElementById('sidebar');
+                    const overlay = document.getElementById('mobile-overlay');
+                    if (sidebar && overlay) {
+                        const isOpen = !sidebar.classList.contains('-translate-x-full');
+                        if (isOpen) {
+                            sidebar.classList.add('-translate-x-full');
+                            overlay.classList.add('hidden');
+                        } else {
+                            sidebar.classList.remove('-translate-x-full');
+                            overlay.classList.remove('hidden');
+                        }
+                    }
+                }
+
+                function signOut() {
+                    localStorage.removeItem('supabase.auth.token');
+                    localStorage.removeItem('aceinterview_session');
+                    window.location.href = '/login.html';
                 }
 
                 function initSidebar() {
@@ -411,16 +430,17 @@
                         <!-- Left Column: Trend (Span 2) -->
                         <div class="lg:col-span-2 glass-card rounded-2xl p-6 min-h-[300px] flex flex-col">
                             <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-lg font-bold text-white">Performance History</h3>
+                                <h3 class="text-lg font-bold text-white">Performance Summary</h3>
                                 <div class="flex gap-2">
-                                    <span class="text-xs text-teal bg-teal/10 px-2 py-1 rounded">Interviews</span>
-                                    <span
-                                        class="text-xs text-gray-500 hover:text-white cursor-pointer px-2 py-1">Resume</span>
+                                    <span id="toggle-interviews"
+                                        class="text-xs text-teal bg-teal/10 px-2 py-1 rounded cursor-pointer border border-teal/20 transition-all">Interviews</span>
+                                    <span id="toggle-resumes"
+                                        class="text-xs text-gray-500 hover:text-white cursor-pointer px-2 py-1 transition-all">Resume</span>
                                 </div>
                             </div>
 
                             <!-- Chart Placeholder (Pure CSS) -->
-                            <div
+                            <div id="performance-chart"
                                 class="flex-grow flex items-end justify-between gap-4 px-4 pb-2 border-b border-white/5 relative">
                                 <!-- Y-Axis Grid Lines -->
                                 <div
@@ -431,127 +451,87 @@
                                     <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
                                 </div>
 
-                                <!-- Bars -->
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[40%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        4/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[55%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        5.5/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[50%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        5/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[70%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        7/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[65%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        6.5/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[80%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        8/10</div>
-                                </div>
-                                <div
-                                    class="w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all h-[75%] relative group cursor-pointer">
-                                    <div
-                                        class="absolute -top-6 left-1/2 -translate-x-1/2 text-xs text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                        7.5/10</div>
-                                </div>
+                                <!-- Bars are injected by JS -->
                             </div>
-                            <div class="flex justify-between mt-2 text-xs text-gray-500 uppercase tracking-widest">
-                                <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
-                            </div>
+
                         </div>
+                        <div class="flex justify-between mt-2 text-xs text-gray-500 uppercase tracking-widest">
+                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                        </div>
+                    </div>
 
-                        <!-- Right Column: Action Center -->
-                        <div class="glass-card rounded-2xl p-6 flex flex-col">
-                            <h3 class="text-lg font-bold text-white mb-6">Recommended Actions</h3>
+                    <!-- Right Column: Action Center -->
+                    <div class="glass-card rounded-2xl p-6 flex flex-col">
+                        <h3 class="text-lg font-bold text-white mb-6">Recommended Actions</h3>
 
-                            <div class="flex-grow space-y-4">
-                                <!-- Action 1 -->
-                                <a href="/resume-analyzer.html"
-                                    class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                    <div class="flex justify-between items-start">
-                                        <h4 class="font-semibold text-white group-hover:text-teal text-sm">Optimize
-                                            Resume</h4>
-                                        <span
-                                            class="text-[10px] bg-teal text-black font-bold px-1.5 py-0.5 rounded uppercase">High
-                                            Impact</span>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2">Your 'Experience' section needs active verbs.
-                                        Fix it
-                                        now.</p>
-                                </a>
-
-                                <!-- Action 2 -->
-                                <a href="/role-reversal.html"
-                                    class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                    <div class="flex justify-between items-start">
-                                        <h4 class="font-semibold text-white group-hover:text-teal text-sm">Mock
-                                            Interview</h4>
-                                    </div>
-                                    <p class="text-xs text-gray-400 mt-2">Practice "Tell me about yourself" to boost
-                                        confidence.
-                                    </p>
-                                </a>
-                            </div>
-
+                        <div class="flex-grow space-y-4">
+                            <!-- Action 1 -->
                             <a href="/resume-analyzer.html"
-                                class="w-full mt-6 py-3 bg-teal text-black font-bold text-sm rounded-xl hover:bg-[#1aa179] transition-colors text-center block">
-                                Start New Session
+                                class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-semibold text-white group-hover:text-teal text-sm">Optimize
+                                        Resume</h4>
+                                    <span
+                                        class="text-[10px] bg-teal text-black font-bold px-1.5 py-0.5 rounded uppercase">High
+                                        Impact</span>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">Your 'Experience' section needs active verbs.
+                                    Fix it
+                                    now.</p>
+                            </a>
+
+                            <!-- Action 2 -->
+                            <a href="/role-reversal.html"
+                                class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
+                                <div class="flex justify-between items-start">
+                                    <h4 class="font-semibold text-white group-hover:text-teal text-sm">Mock
+                                        Interview</h4>
+                                </div>
+                                <p class="text-xs text-gray-400 mt-2">Practice "Tell me about yourself" to boost
+                                    confidence.
+                                </p>
                             </a>
                         </div>
+
+                        <a href="/resume-analyzer.html"
+                            class="w-full mt-6 py-3 bg-teal text-black font-bold text-sm rounded-xl hover:bg-[#1aa179] transition-colors text-center block">
+                            Start New Session
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 3. Bottom Section: Recent Activity -->
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold text-white">Recent Activity</h3>
+                        <button class="text-xs text-teal hover:text-white transition-colors">View All</button>
                     </div>
 
-                    <!-- 3. Bottom Section: Recent Activity -->
-                    <div class="glass-card rounded-2xl p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-white">Recent Activity</h3>
-                            <button class="text-xs text-teal hover:text-white transition-colors">View All</button>
-                        </div>
-
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
-                                        <th class="pb-3 font-medium pl-2">Project Name</th>
-                                        <th class="pb-3 font-medium">Type</th>
-                                        <th class="pb-3 font-medium">Score</th>
-                                        <th class="pb-3 font-medium">Date</th>
-                                        <th class="pb-3 font-medium">Status</th>
-                                        <th class="pb-3 font-medium text-right pr-2">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recent-activity-table" class="divide-y divide-white/5 text-sm">
-                                    <!-- Dynamic Content -->
-                                    <tr>
-                                        <td colspan="6" class="py-10 text-center text-gray-500">Loading activity...</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
+                                    <th class="pb-3 font-medium pl-2">Project Name</th>
+                                    <th class="pb-3 font-medium">Type</th>
+                                    <th class="pb-3 font-medium">Score</th>
+                                    <th class="pb-3 font-medium">Date</th>
+                                    <th class="pb-3 font-medium">Status</th>
+                                    <th class="pb-3 font-medium text-right pr-2">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recent-activity-table" class="divide-y divide-white/5 text-sm">
+                                <!-- Dynamic Content -->
+                                <tr>
+                                    <td colspan="6" class="py-10 text-center text-gray-500">Loading activity...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
+                </div>
 
-                </div> <!-- End Max-W-7xl -->
-            </main>
-        </div>
+        </div> <!-- End Max-W-7xl -->
+        </main>
+    </div>
     </div>
 
     <!-- Hidden Drop Zone -->
@@ -853,10 +833,87 @@
                     tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-gray-500">No activity found.</td></tr>';
                 }
 
+
+                // 7. Initialize Graph (Interviews by default)
+                updatePerformanceChart('interviews', user.id);
+
             } catch (err) {
                 console.error("Error fetching dashboard data:", err);
             }
         }
+
+        async function updatePerformanceChart(type, userId) {
+            console.log(`Updating chart: ${type}`);
+            const chart = document.getElementById('performance-chart');
+            const btnInterviews = document.getElementById('toggle-interviews');
+            const btnResumes = document.getElementById('toggle-resumes');
+
+            // UI Feedback
+            if (type === 'interviews') {
+                btnInterviews.classList.add('text-teal', 'bg-teal/10', 'border-teal/20');
+                btnInterviews.classList.remove('text-gray-500');
+                btnResumes.classList.add('text-gray-500');
+                btnResumes.classList.remove('text-teal', 'bg-teal/10', 'border-teal/20');
+            } else {
+                btnResumes.classList.add('text-teal', 'bg-teal/10', 'border-teal/20');
+                btnResumes.classList.remove('text-gray-500');
+                btnInterviews.classList.add('text-gray-500');
+                btnInterviews.classList.remove('text-teal', 'bg-teal/10', 'border-teal/20');
+            }
+
+            try {
+                const table = type === 'interviews' ? 'interviews' : 'resumes';
+                const scoreField = type === 'interviews' ? 'overall_score' : 'overall_score'; // Both use overall_score
+
+                const { data, error } = await supabase.from(table)
+                    .select(`created_at, ${scoreField}`)
+                    .eq('user_id', userId)
+                    .order('created_at', { ascending: true })
+                    .limit(7);
+
+                if (error) throw error;
+
+                // Clear existing bars (keep grid lines)
+                const existingBars = chart.querySelectorAll('.bar-item');
+                existingBars.forEach(b => b.remove());
+
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        const score = item[scoreField] || 0;
+                        const height = (score / 10) * 100;
+                        const date = new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+                        const bar = document.createElement('div');
+                        bar.className = 'bar-item w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all relative group cursor-pointer';
+                        bar.style.height = `${height}%`;
+                        bar.innerHTML = `
+                            <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 border border-white/10 text-white text-[10px] p-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                Score: ${score}/10<br>${date}
+                            </div>
+                        `;
+                        chart.appendChild(bar);
+                    });
+                } else {
+                    const noData = document.createElement('div');
+                    noData.className = 'bar-item absolute inset-0 flex items-center justify-center text-gray-500 text-xs italic';
+                    noData.textContent = `No ${type} sessions recorded yet.`;
+                    chart.appendChild(noData);
+                }
+            } catch (err) {
+                console.error("Chart Error:", err);
+            }
+        }
+
+        // Global listeners for toggles
+        document.getElementById('toggle-interviews')?.addEventListener('click', async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) updatePerformanceChart('interviews', user.id);
+        });
+
+        document.getElementById('toggle-resumes')?.addEventListener('click', async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) updatePerformanceChart('resumes', user.id);
+        });
 
         function timeAgo(dateString) {
             const date = new Date(dateString);

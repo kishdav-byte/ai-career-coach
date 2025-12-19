@@ -12,6 +12,7 @@ const Dashboard = () => {
     });
     const [recentActivity, setRecentActivity] = useState([]);
     const [graphData, setGraphData] = useState([]);
+    const [graphType, setGraphType] = useState('interviews'); // 'interviews' or 'resumes'
     const [loading, setLoading] = useState(true);
     const [userProfile, setUserProfile] = useState({ name: 'David Kish', initials: 'DK' });
 
@@ -61,7 +62,8 @@ const Dashboard = () => {
                     .gte('created_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString());
 
                 // --- ADDITIONAL DATA FOR UI (Graph & Activity) to prevent blank sections ---
-                const { data: graph } = await supabase.from('interviews')
+                const table = graphType === 'interviews' ? 'interviews' : 'resumes';
+                const { data: graph } = await supabase.from(table)
                     .select('created_at, overall_score')
                     .eq('user_id', user.id)
                     .order('created_at', { ascending: true })
@@ -92,7 +94,14 @@ const Dashboard = () => {
         }
 
         fetchDashboardData();
-    }, []);
+    }, [graphType]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('aceinterview_session');
+        window.location.href = '/login.html';
+    };
 
     const timeAgo = (dateString) => {
         const date = new Date(dateString);
@@ -118,9 +127,13 @@ const Dashboard = () => {
                 </h1>
                 <div className="flex items-center gap-4">
                     {loading ? <Skeleton className="w-24 h-4" /> : <span className="text-sm text-gray-400">{userProfile.name}</span>}
-                    <div className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-[#20C997] font-bold border border-[#20C997]/30">
+                    <button
+                        onClick={handleLogout}
+                        title="Sign Out"
+                        className="w-10 h-10 rounded-full bg-teal-500/20 flex items-center justify-center text-[#20C997] font-bold border border-[#20C997]/30 hover:bg-teal-500/30 hover:border-[#20C997]/60 transition-all cursor-pointer"
+                    >
                         {userProfile.initials}
-                    </div>
+                    </button>
                 </div>
             </header>
 
@@ -217,7 +230,21 @@ const Dashboard = () => {
                     {/* Left: Trend Graph */}
                     <div className="lg:col-span-2 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6 flex flex-col">
                         <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-lg font-bold text-white">Performance Trend (Last 7 Sessions)</h3>
+                            <h3 className="text-lg font-bold text-white">Performance Summary</h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setGraphType('interviews')}
+                                    className={`text-xs px-2 py-1 rounded transition-all ${graphType === 'interviews' ? 'bg-teal-500/10 text-[#20C997] border border-[#20C997]/20 font-bold' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Interviews
+                                </button>
+                                <button
+                                    onClick={() => setGraphType('resumes')}
+                                    className={`text-xs px-2 py-1 rounded transition-all ${graphType === 'resumes' ? 'bg-teal-500/10 text-[#20C997] border border-[#20C997]/20 font-bold' : 'text-gray-500 hover:text-white'}`}
+                                >
+                                    Resume
+                                </button>
+                            </div>
                         </div>
                         <div className="h-64 flex items-end justify-between gap-2 px-2 pb-2 border-b border-white/5 relative flex-1">
                             {loading ? (
