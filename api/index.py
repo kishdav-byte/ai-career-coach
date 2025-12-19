@@ -48,7 +48,7 @@ if SUPABASE_URL:
 
 app = Flask(__name__)
 
-@app.route('/')
+@app.route('/health')
 def health_check():
     return "API is running. Use /api/webhook-debug for diagnostic details."
 
@@ -405,6 +405,7 @@ def optimize_resume_content():
 
 
 @app.route('/api', methods=['POST', 'OPTIONS'])
+@app.route('/', methods=['POST', 'OPTIONS'])
 def api():
     # CORS Preflight
     if request.method == 'OPTIONS':
