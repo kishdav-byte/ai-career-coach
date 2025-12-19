@@ -2091,8 +2091,11 @@ def validate_email(email):
     pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
     return re.match(pattern, email) is not None
 
-@app.route('/api/auth/signup', methods=['POST'])
+@app.route('/api/auth/signup', methods=['POST', 'OPTIONS'])
+@app.route('/auth/signup', methods=['POST', 'OPTIONS'])
 def signup():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
     """Create a new user account using Supabase Auth."""
     try:
         if not supabase:
@@ -2145,8 +2148,11 @@ def signup():
         print(f"Signup error: {e}")
         return jsonify({"error": f"Signup failed: {str(e)}"}), 500
 
-@app.route('/api/auth/login', methods=['POST'])
+@app.route('/api/auth/login', methods=['POST', 'OPTIONS'])
+@app.route('/auth/login', methods=['POST', 'OPTIONS'])
 def login():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
     """Authenticate user using Supabase Auth."""
     try:
         if not supabase:
@@ -2224,8 +2230,11 @@ def login():
         print(f"Login error: {e}")
         return jsonify({"error": f"Login failed: {str(e)}"}), 500
 
-@app.route('/api/auth/forgot-password', methods=['POST'])
+@app.route('/api/auth/forgot-password', methods=['POST', 'OPTIONS'])
+@app.route('/auth/forgot-password', methods=['POST', 'OPTIONS'])
 def forgot_password():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
     """Trigger Password Reset Email via Supabase."""
     try:
         if not supabase:
@@ -2257,8 +2266,11 @@ def forgot_password():
         print(f"Forgot PW Error: {e}")
         return jsonify({"error": "Failed to send reset link."}), 500
 
-@app.route('/api/auth/update-password', methods=['POST'])
+@app.route('/api/auth/update-password', methods=['POST', 'OPTIONS'])
+@app.route('/auth/update-password', methods=['POST', 'OPTIONS'])
 def update_password():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
     """Update password using a token (Hybrid: Client usually handles this directly).
        However, since we are doing server-side python, this endpoint is tricky without the session.
        
@@ -2375,8 +2387,11 @@ def get_user_data_route():
         print(f"Error in /api/auth/user: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/auth/update-status', methods=['POST'])
+@app.route('/api/auth/update-status', methods=['POST', 'OPTIONS'])
+@app.route('/auth/update-status', methods=['POST', 'OPTIONS'])
 def update_user_status():
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
     """Update user payment status (for admin use)."""
     try:
         if not supabase:

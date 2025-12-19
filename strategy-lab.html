@@ -211,16 +211,27 @@
             // Fetch User Data
             let userData = null;
             try {
-                const res = await fetch('/api/user-profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                userData = await res.json();
+                // Try fetching from localStorage session first
+                const sessionStr = localStorage.getItem('aceinterview_session');
+                if (sessionStr) {
+                    userData = JSON.parse(sessionStr);
+                } else {
+                    // Fallback to API if session not found
+                    const res = await fetch('/api/auth/user', {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    const result = await res.json();
+                    userData = result.user || result;
+                }
             } catch (e) {
                 console.error("Error fetching profile:", e);
-                return;
+                // Don't return, try to proceed if we have a token
             }
 
-            if (!userData) return;
+            if (!userData) {
+                console.error("No user data found");
+                return;
+            }
 
             // -- CHECK CREDITS --
             const creditsPlan = userData.credits_30_60_90 || 0;
@@ -245,9 +256,9 @@
             // 3. Negotiation (Closer)
             renderCard('negotiation', creditsNeg, '/strategy/closer', 'strategy_negotiation', isUnlimited);
             // 4. Inquisitor
-            renderCard('inquisitor', creditsInq, '/strategy/inquisitor', 'strategy_inquisitor', isUnlimited); // Note: Price ID mapping needed in API if buying individually
+            renderCard('inquisitor', creditsInq, '/strategy/inquisitor', 'strategy_inquisitor', isUnlimited);
             // 5. Follow-Up
-            renderCard('followup', creditsFollow, '/strategy/follow-up', 'strategy_followup', isUnlimited); // Price ID mapping needed? 
+            renderCard('followup', creditsFollow, '/strategy/follow-up', 'strategy_followup', isUnlimited);
 
             // -- BUNDLE CLICK --
             document.getElementById('btn-buy-bundle').addEventListener('click', () => {
@@ -283,22 +294,25 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
                 try {
-                    const res = await fetch('/api/create-checkout-session', {
+                    const res = await fetch('/api', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({
-                            plan_type: planType,
+                            action: 'create-checkout-session',
+                            plan: planType,
                             email: userData.email,
-                            userId: userData.id // Pass ID
+                            userId: userData.id || userData.user_id // Pass ID
                         })
                     });
-                    const json = await res.json();
-                    if (json.error) throw new Error(json.error);
-
-                    window.location.href = json.url;
+                    const result = await res.json();
+                    const data = result.data || result;
+                    if (data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        throw new Error(result.error || "No redirect URL received");
+                    }
 
                 } catch (e) {
                     alert("Checkout Error: " + e.message);
