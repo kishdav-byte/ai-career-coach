@@ -465,23 +465,27 @@
                             </div>
 
                             <!-- Chart Placeholder (Pure CSS) -->
-                            <div id="performance-chart"
-                                class="flex-grow flex items-end justify-between gap-2 px-4 pb-2 border-b border-white/5 relative overflow-hidden">
-                                <!-- Y-Axis Grid Lines -->
-                                <div
-                                    class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
-                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                    <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                </div>
+                            <div class="flex-grow flex flex-col min-h-0">
+                                <div id="performance-chart"
+                                    class="flex-1 flex items-end justify-between gap-2 px-4 pb-2 border-b border-white/5 relative overflow-hidden pt-8">
+                                    <!-- Y-Axis Grid Lines -->
+                                    <div
+                                        class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
+                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
+                                    </div>
 
-                                <!-- Bars are injected by JS -->
+                                    <!-- Bars are injected by JS -->
+                                </div>
+                                <!-- X-Axis Labels (Dynamic) -->
+                                <div id="chart-labels"
+                                    class="flex justify-between gap-2 px-4 mt-3 text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                                    <!-- Labels injected by JS -->
+                                </div>
                             </div>
 
-                        </div>
-                        <div class="flex justify-between mt-2 text-xs text-gray-500 uppercase tracking-widest">
-                            <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
                         </div>
                     </div>
 
@@ -898,6 +902,7 @@
         async function updatePerformanceChart(type, userId) {
             console.log(`Updating chart: ${type}`);
             const chart = document.getElementById('performance-chart');
+            const labelContainer = document.getElementById('chart-labels');
             const btnInterviews = document.getElementById('toggle-interviews');
             const btnResumes = document.getElementById('toggle-resumes');
 
@@ -916,7 +921,7 @@
 
             try {
                 const table = type === 'interviews' ? 'interviews' : 'resumes';
-                const scoreField = type === 'interviews' ? 'overall_score' : 'overall_score'; // Both use overall_score
+                const scoreField = 'overall_score';
 
                 const { data, error } = await supabase.from(table)
                     .select(`created_at, ${scoreField}`)
@@ -926,9 +931,9 @@
 
                 if (error) throw error;
 
-                // Clear existing bars (keep grid lines)
-                const existingBars = chart.querySelectorAll('.bar-item');
-                existingBars.forEach(b => b.remove());
+                // Clear existing
+                chart.querySelectorAll('.bar-item').forEach(b => b.remove());
+                if (labelContainer) labelContainer.innerHTML = '';
 
                 if (data && data.length > 0) {
                     data.forEach(item => {
@@ -937,21 +942,27 @@
                         const height = (score / maxScore) * 100;
                         const date = new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
+                        // Bar
                         const bar = document.createElement('div');
                         bar.className = 'bar-item flex-1 max-w-[40px] bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all relative group cursor-pointer';
-                        bar.style.height = `${Math.min(height, 100)}%`;
+                        bar.style.height = `${Math.max(height, 5)}%`; // Min height for visibility
                         bar.innerHTML = `
-                            <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 border border-white/10 text-white text-[10px] p-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                                Score: ${score}/10<br>${date}
+                            <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-teal font-black text-[10px] whitespace-nowrap drop-shadow-md">
+                                ${score}${type === 'resumes' ? '' : '/10'}
                             </div>
                         `;
                         chart.appendChild(bar);
+
+                        // Label
+                        if (labelContainer) {
+                            const lbl = document.createElement('span');
+                            lbl.className = 'flex-1 text-center max-w-[40px]';
+                            lbl.textContent = date;
+                            labelContainer.appendChild(lbl);
+                        }
                     });
                 } else {
-                    const noData = document.createElement('div');
-                    noData.className = 'bar-item absolute inset-0 flex items-center justify-center text-gray-500 text-xs italic';
-                    noData.textContent = `No ${type} sessions recorded yet.`;
-                    chart.appendChild(noData);
+                    chart.innerHTML += `<div class="bar-item absolute inset-0 flex items-center justify-center text-gray-500 text-xs italic">No ${type} data recorded.</div>`;
                 }
             } catch (err) {
                 console.error("Chart Error:", err);
