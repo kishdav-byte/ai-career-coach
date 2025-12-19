@@ -402,70 +402,7 @@ def optimize_resume_content():
         print(f"Error calling OpenAI: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/create-checkout-session', methods=['POST', 'OPTIONS'])
-@app.route('/create-checkout-session', methods=['POST', 'OPTIONS'])
-def create_checkout_session():
-    # CORS Preflight
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
 
-    data = request.json
-    try:
-        # Allow frontend to pass priceId, OR use Env Var for specific features
-        price_id = data.get('priceId')
-        success_url = data.get('successUrl')
-        cancel_url = data.get('cancelUrl')
-        email = data.get('email')
-        user_id = data.get('userId') # Crucial for fulfillment
-        
-        # Robustness: Handle 'plan_type', 'plan', or 'feature'
-        plan_type = data.get('plan_type') or data.get('plan')
-        feature = data.get('feature')
-
-        # Determine Price ID
-        if plan_type and plan_type in PRICE_IDS:
-            price_id = PRICE_IDS.get(plan_type)
-        elif feature == 'rewrite' or plan_type == 'rewrite':
-            price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
-            feature = 'rewrite' # Standardize
-        
-        # Fallback for direct Price IDs passed or other matches
-        if not price_id and not plan_type and not feature:
-             return jsonify({'error': 'Missing Plan or Feature selection.'}), 400
-        
-        if not price_id:
-             return jsonify({'error': f'Invalid or missing Price Configuration for: {plan_type or feature}'}), 400
-
-        # Defaults if not provided (Simplifies frontend)
-        if not success_url:
-            success_url = f"{app_domain}/strategy-lab.html?success=true"
-        if not cancel_url:
-            cancel_url = f"{app_domain}/strategy-lab.html?canceled=true"
-
-        checkout_session = stripe.checkout.Session.create(
-            line_items=[{
-                'price': price_id,
-                'quantity': 1,
-            }],
-            mode='payment',
-            success_url=success_url,
-            cancel_url=cancel_url,
-            customer_email=email,
-            client_reference_id=user_id, # Set ID for Webhook
-            metadata={
-                'user_email': email, 
-                'user_id': user_id,
-                'feature': feature or plan_type, # ensure webhook sees something
-                'plan_type': plan_type or 'custom'
-            }
-        )
-        return jsonify({'url': checkout_session.url})
-    except Exception as e:
-        print(f"Stripe Error: {e}")
-        return jsonify({'error': str(e)}), 500
-    except Exception as e:
-        print(f"Stripe Error: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api', methods=['POST', 'OPTIONS'])
 def api():
@@ -479,7 +416,7 @@ def api():
     data = request.json
     action = data.get('action')
 
-    # STRIPE CHECKOUT INTEGRATION (Integrated bypass for routing robustness)
+    # STRIPE INTEGRATIONS (Integrated bypass for routing robustness)
     if action == 'create-checkout-session':
         try:
             price_id = data.get('priceId')
@@ -520,6 +457,25 @@ def api():
             return jsonify({"data": {'url': checkout_session.url}})
         except Exception as e:
             print(f"Unified Checkout Error: {e}")
+            return jsonify({"error": str(e)}), 500
+
+    if action == 'create-portal-session':
+        try:
+            email = data.get('email')
+            if not email:
+                return jsonify({'error': 'Email is required'}), 400
+            customers = stripe.Customer.list(email=email, limit=1)
+            if not customers.data:
+                return jsonify({'error': 'No billing account found for this email.'}), 404
+            customer = customers.data[0]
+            return_url = f"{app_domain}/dashboard.html"
+            portal_session = stripe.billing_portal.Session.create(
+                customer=customer.id,
+                return_url=return_url,
+            )
+            return jsonify({"data": {"url": portal_session.url}})
+        except Exception as e:
+            print(f"Unified Portal Error: {e}")
             return jsonify({"error": str(e)}), 500
 
     messages = []
@@ -2498,42 +2454,7 @@ PRICE_IDS = {
 
 
 
-@app.route('/api/create-portal-session', methods=['POST', 'OPTIONS'])
-@app.route('/create-portal-session', methods=['POST', 'OPTIONS'])
-def create_portal_session():
-    """Create a Stripe Customer Portal session."""
-    # CORS Preflight
-    if request.method == 'OPTIONS':
-        return jsonify({'status': 'ok'}), 200
 
-    try:
-        data = request.json
-        email = data.get('email')
-        
-        if not email:
-            return jsonify({'error': 'Email is required'}), 400
-
-        # 1. Find Customer by Email
-        customers = stripe.Customer.list(email=email, limit=1)
-        if not customers.data:
-            return jsonify({'error': 'No billing account found for this email.'}), 404
-        
-        customer = customers.data[0]
-        
-        # 2. Create Portal Session
-        # Return to dashboard after they are done
-        return_url = f"{app_domain}/dashboard.html"
-        
-        portal_session = stripe.billing_portal.Session.create(
-            customer=customer.id,
-            return_url=return_url,
-        )
-        
-        return jsonify({'url': portal_session.url})
-        
-    except Exception as e:
-        print(f"Error creating portal session: {e}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/api/webhook-debug', methods=['GET'])
 def webhook_debug():

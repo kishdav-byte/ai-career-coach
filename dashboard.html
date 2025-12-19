@@ -242,6 +242,15 @@
                         </svg>
                         <span>Add Credits</span>
                     </a>
+                    <a href="#" onclick="handlePortal(event)"
+                        class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect width="20" height="14" x="2" y="5" rx="2" />
+                            <line x1="2" x2="22" y1="10" y2="10" />
+                        </svg>
+                        <span>Manage Billing</span>
+                    </a>
                 </div>
             </nav>
 
@@ -690,6 +699,51 @@
                 return session;
             } catch (e) {
                 return null;
+            }
+        }
+
+        async function handlePortal(event) {
+            if (event) event.preventDefault();
+            const btn = event?.target || document.querySelector('[onclick="handlePortal(event)"]');
+            const originalText = btn.innerText;
+
+            const session = getSession();
+            if (!session || !session.email) {
+                alert("Session error. Please log in again.");
+                return;
+            }
+
+            btn.innerText = 'Loading...';
+            btn.style.opacity = '0.7';
+            btn.style.pointerEvents = 'none';
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'create-portal-session',
+                        email: session.email
+                    })
+                });
+
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || 'Portal creation failed');
+                }
+
+                const data = result.data || result;
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error("No portal URL received");
+                }
+            } catch (e) {
+                console.error('Portal Error:', e);
+                alert('Could not open billing portal. ' + e.message);
+                btn.innerText = originalText;
+                btn.style.opacity = '1';
+                btn.style.pointerEvents = 'auto';
             }
         }
 
