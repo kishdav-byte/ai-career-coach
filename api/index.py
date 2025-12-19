@@ -467,8 +467,12 @@ def create_checkout_session():
         print(f"Stripe Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api', methods=['POST'])
+@app.route('/api', methods=['POST', 'OPTIONS'])
 def api():
+    # CORS Preflight
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
     if not API_KEY:
         return jsonify({"error": "Server configuration error: API Key missing"}), 500
 

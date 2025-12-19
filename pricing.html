@@ -337,19 +337,28 @@
                 });
 
                 const result = await response.json();
-                const data = result.data || result; // Handle both wrapper and raw
 
+                if (!response.ok) {
+                    console.error('Checkout API Error:', result);
+                    alert(`Error starting checkout (${response.status}): ` + (result.error || 'Check console for details.'));
+                    btn.innerText = originalText;
+                    btn.style.opacity = '1';
+                    btn.style.pointerEvents = 'auto';
+                    return;
+                }
+
+                const data = result.data || result;
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Error starting checkout: ' + (data.error || 'Check server logs. Did you set the Price IDs?'));
+                    alert('Error starting checkout: No redirect URL received. ' + (result.error || ''));
                     btn.innerText = originalText;
                     btn.style.opacity = '1';
                     btn.style.pointerEvents = 'auto';
                 }
             } catch (e) {
-                console.error(e);
-                alert('Connection error. Please try again.');
+                console.error('Checkout Exception:', e);
+                alert('Connection error. Please check your internet or try a hard refresh (Cmd+Shift+R).');
                 btn.innerText = originalText;
                 btn.style.opacity = '1';
                 btn.style.pointerEvents = 'auto';
