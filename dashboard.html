@@ -33,6 +33,13 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
+        // Supabase Initialization
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
+        // Initialize Supabase Client
+        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         // Auth Logic Pre-check
         const SESSION_KEY = 'supabase.auth.token';
         const token = localStorage.getItem(SESSION_KEY);
@@ -224,15 +231,15 @@
                     <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                         Upgrade Hub
                     </div>
-                    <a href="/pricing.html#unlimited-plan"
+                    <button onclick="buyCredits('price_1Sbq1WIH1WTKNasqXrlCBDSD')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-teal rounded-lg hover:bg-teal/10 transition-all group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                         </svg>
-                        <span>Monthly Unlimited</span>
-                    </a>
-                    <a href="/pricing.html#credits-bundle"
+                        <span>Monthly Package ($49.99)</span>
+                    </button>
+                    <button onclick="buyCredits('price_1SeKmwIH1WTKNasq8mkEnDXu')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -240,8 +247,8 @@
                             <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
                             <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
                         </svg>
-                        <span>Add Credits</span>
-                    </a>
+                        <span>Executive Rewrite ($9.99)</span>
+                    </button>
                     <a href="#" onclick="handlePortal(event)"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
@@ -583,6 +590,29 @@
     </div>
 
     <script>
+        // Supabase Initialization moved to head
+
+        // Function to trigger Stripe Checkout
+        async function buyCredits(priceId) {
+            console.log('Initiating purchase for:', priceId);
+
+            // 1. Call your Supabase Edge Function (or Backend endpoint)
+            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                body: { price_id: priceId }
+            });
+
+            if (error) {
+                console.error('Purchase Error:', error);
+                alert('Could not initiate checkout. Please contact support.');
+                return;
+            }
+
+            // 2. Redirect to Stripe 
+            if (data?.url) {
+                window.location.href = data.url;
+            }
+        }
+
         // PDF Parsing Logic (Retained from original)
         const dropZone = document.getElementById('resume-drop-zone');
         const fileInput = document.getElementById('resume-file-input');
@@ -756,27 +786,7 @@
             window.location.href = '/?logout=success';
         }
 
-        // SUPABASE INIT
-        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-
-        let supabase = null;
-
-        // Wait for Supabase to load
-        // The CDN exposes 'supabase' as a global object, which contains 'createClient'.
-        if (window.supabase && window.supabase.createClient) {
-            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } else {
-            console.error("Supabase object not found on window. Waiting for load...");
-        }
-
-        // Retry logic if script is async/defer
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!supabase && window.supabase && window.supabase.createClient) {
-                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-                console.log("Supabase initialized via DOMContentLoaded");
-            }
-        });
+        // Supabase Init was moved to top of script
 
 
         async function fetchDashboardData(userEmail) {
