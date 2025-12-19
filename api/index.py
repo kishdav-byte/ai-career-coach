@@ -755,7 +755,6 @@ def api():
             ]
         }}
         """
-        """
         messages = [{"role": "user", "content": prompt}]
         
     elif action == 'transcribe':
