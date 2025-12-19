@@ -402,8 +402,13 @@ def optimize_resume_content():
         print(f"Error calling OpenAI: {e}")
         return jsonify({"error": str(e)}), 500
 
-@app.route('/api/create-checkout-session', methods=['POST'])
+@app.route('/api/create-checkout-session', methods=['POST', 'OPTIONS'])
+@app.route('/create-checkout-session', methods=['POST', 'OPTIONS'])
 def create_checkout_session():
+    # CORS Preflight
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
     data = request.json
     try:
         # Allow frontend to pass priceId, OR use Env Var for specific features
@@ -2446,9 +2451,14 @@ PRICE_IDS = {
 
 
 
-@app.route('/api/create-portal-session', methods=['POST'])
+@app.route('/api/create-portal-session', methods=['POST', 'OPTIONS'])
+@app.route('/create-portal-session', methods=['POST', 'OPTIONS'])
 def create_portal_session():
     """Create a Stripe Customer Portal session."""
+    # CORS Preflight
+    if request.method == 'OPTIONS':
+        return jsonify({'status': 'ok'}), 200
+
     try:
         data = request.json
         email = data.get('email')
