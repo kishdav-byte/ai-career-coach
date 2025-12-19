@@ -2620,7 +2620,8 @@ def stripe_webhook():
                     if plan_type == 'pro':
                         update_data['is_unlimited'] = True
                         update_data['subscription_status'] = 'active'
-                        trace("Adding UNLIMITED flags")
+                        update_data['credits'] = 50 # Buffer for UI/scaling
+                        trace("Adding UNLIMITED flags and 50 credit buffer")
 
                     elif metadata.get('feature') == 'rewrite' or plan_type == 'rewrite':
                         update_data['credits'] = (user_data.get('credits', 0) or 0) + 1

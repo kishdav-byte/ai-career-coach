@@ -74,12 +74,15 @@ const Dashboard = () => {
                     .eq('user_id', user.id)
                     .limit(5);
 
+                const isUnlimited = profile?.is_unlimited || profile?.subscription_status === 'pro';
+
                 // UPDATE STATE
                 setStats({
                     resumeScore: resumes?.[0]?.overall_score || 0,
                     activeJobs: jobCount || 0,
                     credits: profile?.credits || 0,
-                    plan: profile?.is_unlimited ? 'Pro Plan' : (profile?.subscription_status || 'Free Plan'),
+                    isUnlimited: isUnlimited,
+                    plan: isUnlimited ? 'PRO PLAN' : (profile?.subscription_status || 'Free Plan'),
                     interviewAvg: interviews && interviews.length ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1) : 0
                 });
 
@@ -209,15 +212,18 @@ const Dashboard = () => {
                             <Skeleton className="w-full h-3 mb-3" />
                         ) : (
                             <div className="w-full bg-slate-700 h-3 rounded-full overflow-hidden mb-3">
-                                <div className="bg-[#20C997] h-full rounded-full" style={{ width: `${Math.min(stats.credits, 100)}%` }}></div>
+                                <div
+                                    className={`bg-[#20C997] h-full rounded-full transition-all duration-500 ${stats.isUnlimited ? 'shadow-[0_0_10px_rgba(32,201,151,0.5)]' : ''}`}
+                                    style={{ width: `${stats.isUnlimited ? 100 : Math.min((stats.credits / 50) * 100, 100)}%` }}
+                                ></div>
                             </div>
                         )}
                         {loading ? (
                             <div className="flex justify-between w-full"><Skeleton className="w-10 h-4" /><Skeleton className="w-10 h-4" /></div>
                         ) : (
                             <div className="flex justify-between w-full text-sm">
-                                <span className="text-white font-bold">{stats.credits} Credits</span>
-                                <span className="text-gray-500">Left</span>
+                                <span className="text-white font-bold">{stats.isUnlimited ? 'Unlimited Access' : `${stats.credits} Credits`}</span>
+                                {!stats.isUnlimited && <span className="text-gray-500">Left</span>}
                             </div>
                         )}
                     </div>
