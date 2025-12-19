@@ -1,3 +1,16 @@
+// SAFE INITIALIZATION PATTERN
+const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
+// Check if Supabase library is loaded, then create client
+if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient === 'function') {
+    // Library loaded from CDN, create client
+    window.supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+    window.supabase = window.supabaseClient;
+} else if (!window.supabase) {
+    console.error('Supabase library not loaded! Add CDN script to app.html');
+}
+
 // Helper functions (Global Scope)
 function getVoiceSettings() {
     const voice = document.getElementById('voice-select').value;
@@ -82,17 +95,15 @@ function getSession() {
 }
 
 async function checkAccess(requiredType = 'interview_credits') {
-    console.log('Checking access via Supabase SDK (Waterfall Logic)...');
-
-    // 1. Get Current User
     const { data: { user } } = await supabase.auth.getUser();
+
+    // 1. Handle "Not Logged In"
     if (!user) {
-        console.error('User not logged in');
         window.location.href = '/login.html';
         return false;
     }
 
-    // 2. Get User Data from the 'users' table
+    // 2. Get Data from 'users' table
     const { data: userData, error } = await supabase
         .from('users')
         .select('*')
@@ -100,19 +111,16 @@ async function checkAccess(requiredType = 'interview_credits') {
         .single();
 
     if (error || !userData) {
-        console.error('User Data Load Error:', error);
-        alert('Could not verify account. Please refresh.');
+        console.error('Data Load Error:', error);
         return false;
     }
 
-    console.log('User data loaded:', userData);
-
-    // 3. The Waterfall Logic (Specific → Universal → Subscription)
+    // 3. Waterfall Logic (Check Specific -> Then Universal)
     const specificBalance = userData[requiredType] || 0;
-    const universalBalance = userData.credits || 0;
-    const isSubscribed = userData.subscription_status === 'active' || userData.is_unlimited;
+    const universalBalance = userData.credits || 0; // Fallback to generic credits
+    const isSubscribed = userData.subscription_status === 'active';
 
-    console.log(`Checking: Specific(${specificBalance}) | Universal(${universalBalance}) | Sub(${isSubscribed})`);
+    console.log(`User: ${user.email} | Specific: ${specificBalance} | Universal: ${universalBalance}`);
 
     // Update local session for compatibility
     let session = getSession() || {};
@@ -160,13 +168,14 @@ async function checkAccess(requiredType = 'interview_credits') {
         }
     }
 
-    // 4. Decision Gate (Waterfall: Subscription > Specific > Universal)
+    // 4. Decision Gate
     if (isSubscribed || specificBalance > 0 || universalBalance > 0) {
-        console.log('✅ Access Granted');
         return true;
     } else {
-        alert('Not enough credits. Please upgrade.');
-        window.location.href = '/dashboard.html';
+        // Prompt user to upgrade
+        if (confirm('You have 0 credits. Would you like to upgrade now?')) {
+            window.location.href = '/dashboard.html';
+        }
         return false;
     }
 }
