@@ -59,6 +59,14 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                 { name: '30-60-90 Plan', path: '/strategy/30-60-90.html' },
                 { name: 'Salary Negotiation', path: '/strategy/closer.html' }
             ]
+        },
+        {
+            name: 'Upgrade Hub',
+            isHeader: true,
+            submenu: [
+                { name: 'Go Unlimited', path: '/pricing.html#unlimited-plan', isSpecial: true },
+                { name: 'Add Credits', path: '/pricing.html#credits-bundle' }
+            ]
         }
     ];
 
@@ -89,6 +97,29 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
                 <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scrollbar">
                     {navItems.map((item, index) => {
                         const Icon = item.icon;
+
+                        // 3. Header Section (e.g., Upgrade Hub)
+                        if (item.isHeader) {
+                            return (
+                                <div key={index} className="pt-4 mt-4 border-t border-white/5">
+                                    <div className="px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                                        {item.name}
+                                    </div>
+                                    <div className="space-y-1">
+                                        {item.submenu.map((sub, subIndex) => (
+                                            <a
+                                                key={subIndex}
+                                                href={sub.path}
+                                                className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group
+                          ${sub.isSpecial ? 'bg-teal-500/10 text-[#20C997] font-bold border border-[#20C997]/20' : 'text-slate-400 hover:text-white hover:bg-white/5 font-medium'}`}
+                                            >
+                                                <span>{sub.name}</span>
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        }
 
                         // 1. Leaf Node (No Submenu)
                         if (!item.submenu) {
