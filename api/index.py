@@ -8,6 +8,8 @@ import time
 import base64
 import io
 import ast
+import asyncio
+import edge_tts
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 import stripe
@@ -116,6 +118,34 @@ def generate_audio_openai(text, voice_id):
     except Exception as e:
         print(f"OpenAI TTS error: {e}")
         return None
+
+def generate_audio_edge(text, voice_id):
+    """Generates audio using Edge TTS for MS voices and SSML support."""
+    try:
+        async def _generate():
+            communicate = edge_tts.Communicate(text, voice_id)
+            mp3_fp = io.BytesIO()
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    mp3_fp.write(chunk["data"])
+            return base64.b64encode(mp3_fp.getvalue()).decode('utf-8')
+        
+        return asyncio.run(_generate())
+    except Exception as e:
+        print(f"Edge TTS error: {e}")
+        return None
+
+def generate_audio(text, voice_id):
+    """Router for audio generation based on voice_id."""
+    openai_voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+    if voice_id in openai_voices:
+        return generate_audio_openai(text, voice_id)
+    else:
+        # Default to Edge TTS for better support of Microsoft voices and SSML
+        # Use standard en-US-AriaNeural if the voice_id is generic or unrecognized
+        if not voice_id or voice_id == 'alloy': # fallback handling
+            voice_id = "en-US-AriaNeural"
+        return generate_audio_edge(text, voice_id)
 
 def call_openai(messages, json_mode=False):
     """Helper function to call OpenAI API."""
@@ -801,9 +831,9 @@ CONVERSATIONAL RULES:
 Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"""
         
         if is_start:
-            welcome_msg = "Welcome to the interview! I've reviewed the job details, and I'm looking for specific examples of how you've handled key challenges using the STAR method (Situation, Task, Action, Result). We'll go through 5 questions today. [Your First Question]?"
+            welcome_msg = "Welcome to the interview! I've reviewed the job details, and going to ask you five questions. <break time=\"2.0s\" /> Please provide specific examples of how you've handled key situations, and I encourage you to use the STAR method when providing your answers. <break time=\"2.0s\" /> You'll want to share a specific Situation or Task, the Action or Actions you took, and the Result of your Actions. <break time=\"2.0s\" /> The first question that I have for you is... <break time=\"1.0s\" />"
             
-            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg}\"}}"
+            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'. Immediately after the final <break time=\"1.0s\" />, append the First Question.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg} [Your First Question]\"}}"
             
             # EXTRACT JOB TITLE (Simple Heuristic or Ask AI)
             # Since we are starting, we can ask AI to identify the role in the 'feedback' or invisible field?
@@ -1348,7 +1378,9 @@ When you recommend a solution that requires deep work (writing, simulation, nego
                 
                 if not speech_text:
                     speech_text = "I am ready. Let's continue."
-                audio_base64 = generate_audio_openai(speech_text, voice)
+                
+                # Switch to unified audio generator
+                audio_base64 = generate_audio(speech_text, voice)
                 
                 if audio_base64:
                     response_data['audio'] = audio_base64
