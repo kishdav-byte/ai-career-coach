@@ -804,15 +804,16 @@ def api():
         question_count = data.get('questionCount', 1)
         json_mode = True
 
-        # 1. SILENCE DETECTION (Stop Hallucinating)
-        if not is_start and len(message.strip().split()) < 5:
+        # 1. SILENCE & "THINKING..." DETECTION (Anti-Hallucination Trap)
+        user_input_clean = message.strip()
+        if not is_start and (user_input_clean.lower() == "thinking..." or len(user_input_clean.split()) < 5):
             return jsonify({
                 "data": {
                     "score": 0,
                     "feedback": "",
                     "improved_sample": "",
-                    "text": "I didn't catch that response. Could you please repeat your answer?",
-                    "next_question": "I didn't catch that response. Could you please repeat your answer?"
+                    "text": "I am waiting for your response.",
+                    "next_question": "I am waiting for your response."
                 }
             })
         
@@ -820,10 +821,11 @@ def api():
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Prepare to ask relevant interview questions."
         
-        system_instruction = f"""You are a strict but conversational hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method. 
+System Instructions:
+You are a strict but conversational hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method. 
 
 CONVERSATIONAL RULES:
-1. STOP ANNOUNCING: Never use phrases like "The next question is...", "My next inquiry is...", or "Moving on...". Just ask the question directly.
+1. STOP ANNOUNCING: You are FORBIDDEN from using the words "question," "next," or "first" in the opening sentence of your turn. Just ask the question directly.
 2. USE NATURAL BRIDGES: Briefly acknowledge the user's previous answer before pivoting (e.g., "That sounds like a tough situation. Speaking of conflict...").
 3. DIRECT INTERROGATION: Always phrase questions as direct sentences ending in a question mark.
 4. SINGLE SENTENCE: The 'next_question' MUST be a single, complete sentence. Do not add any preamble.
@@ -874,12 +876,9 @@ CRITICAL INSTRUCTIONS:
 1. SPECIFICITY AUDIT: If the answer is vague or lacks concrete nouns/actions, PENALIZE the score.
 2. Start 'feedback' with: "I would score this answer a [score] because...".
 3. In 'feedback', explicitly state which STAR components were present. The numeric score in the 'score' field MUST match the written explanation. If the user provides no substance, the Score is 0 and the feedback is "No answer provided."
-4. IMPROVED ANSWER ("Plus-One" Method):
-   - IF SCORE < 5: Update 'improved_sample' to show exactly how to move to a 5.
-   - GUIDELINE: Retain the user's original voice, story, and phrasing. Do not rewrite the whole thing if the story was good.
-   - METHOD: Only inject the missing component (usually the specific metric or result) into the end of the user's existing response.
-   - CONVERSATIONAL TONE: Use spoken transitions (e.g., "And that actually meant...", "The result was pretty immediate.", "And in terms of real business impact...").
-   - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
+4. BETTER ANSWER LOGIC SPLIT:
+   - IF SCORE is 3 or 4: Use the "Plus-One" method. Retain the user's original voice/text and only inject the missing metric/result into the end. Use conversational transitions like "And that actually meant...".
+   - IF SCORE is 1 or 2 (or user was unsure): Ignore the user's text entirely. Generate a FRESH, PERFECT example answer from scratch. Start with exactly: "Since you were unsure, here is an example of what a perfect answer sounds like: '[Insert Full STAR Story]'"
 5. TONE: Coaching. Summarize gaps.
 
 Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "..."}}
@@ -899,12 +898,9 @@ Evaluate the answer to the final question (Question 5) using the HYPER-STRICT ST
 CRITICAL INSTRUCTIONS:
 1. SPECIFICITY AUDIT: Penalize vague answers.
 2. Start 'feedback' with: "I would score this answer a [score] because...". The numeric score in the 'score' field MUST match the written explanation.
-3. IMPROVED ANSWER ("Plus-One" Method):
-   - IF SCORE < 5: Update 'improved_sample' to show exactly how to move to a 5.
-   - GUIDELINE: Retain the user's original voice, story, and phrasing. Do not rewrite the whole thing if the story was good.
-   - METHOD: Only inject the missing component (usually the specific metric or result) into the end of the user's existing response.
-   - CONVERSATIONAL TONE: Use spoken transitions (e.g., "And that actually meant...", "The result was pretty immediate.", "And in terms of real business impact...").
-   - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
+3. BETTER ANSWER LOGIC SPLIT:
+   - IF SCORE is 3 or 4: Use the "Plus-One" method. Retain user voice/text and inject the missing metric into the end.
+   - IF SCORE is 1 or 2: Ignore user text. Generate a FRESH, PERFECT example answer from scratch. Start with exactly: "Since you were unsure, here is an example of what a perfect answer sounds like: '[Insert Full STAR Story]'"
 4. TONE: Coaching. Summarize overall performance vs STAR standards.
 
 Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "[Acknowledge their final answer naturally and end the interview professionally]"}}
