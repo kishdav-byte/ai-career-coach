@@ -325,17 +325,19 @@
             btn.style.pointerEvents = 'none';
 
             try {
-                const response = await fetch('/api/create-checkout-session', {
+                const response = await fetch('/api', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        action: 'create-checkout-session',
                         email: email,
                         plan: planType,
                         userId: session.user_id || session.id || session.user?.id // Pass ID
                     })
                 });
 
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || result; // Handle both wrapper and raw
 
                 if (data.url) {
                     window.location.href = data.url;

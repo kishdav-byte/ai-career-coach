@@ -474,7 +474,50 @@ def api():
 
     data = request.json
     action = data.get('action')
-    
+
+    # STRIPE CHECKOUT INTEGRATION (Integrated bypass for routing robustness)
+    if action == 'create-checkout-session':
+        try:
+            price_id = data.get('priceId')
+            success_url = data.get('successUrl')
+            cancel_url = data.get('cancelUrl')
+            email = data.get('email')
+            user_id = data.get('userId')
+            
+            plan_type = data.get('plan_type') or data.get('plan')
+            feature = data.get('feature')
+
+            if plan_type and plan_type in PRICE_IDS:
+                price_id = PRICE_IDS.get(plan_type)
+            elif feature == 'rewrite' or plan_type == 'rewrite':
+                price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
+                feature = 'rewrite'
+
+            if not price_id and not plan_type and not feature:
+                 return jsonify({'error': 'Missing Plan or Feature selection.'}), 400
+            
+            if not price_id:
+                 return jsonify({'error': f'Invalid or missing Price Configuration for: {plan_type or feature}'}), 400
+
+            if not success_url:
+                success_url = f"{app_domain}/strategy-lab.html?success=true"
+            if not cancel_url:
+                cancel_url = f"{app_domain}/strategy-lab.html?canceled=true"
+
+            checkout_session = stripe.checkout.Session.create(
+                line_items=[{'price': price_id, 'quantity': 1}],
+                mode='payment',
+                success_url=success_url,
+                cancel_url=cancel_url,
+                customer_email=email,
+                client_reference_id=user_id,
+                metadata={'user_email': email, 'user_id': user_id, 'feature': feature or plan_type}
+            )
+            return jsonify({"data": {'url': checkout_session.url}})
+        except Exception as e:
+            print(f"Unified Checkout Error: {e}")
+            return jsonify({"error": str(e)}), 500
+
     messages = []
     json_mode = False
 
