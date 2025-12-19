@@ -41,30 +41,20 @@
         <a href="/" class="back-link">← Back to Home</a>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-        const SESSION_KEY = 'supabase.auth.token';
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
         const form = document.getElementById('login-form');
         const alertEl = document.getElementById('alert');
         const submitBtn = document.getElementById('submit-btn');
 
-        // Check if coming from signup
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('signup') === 'success') {
             showAlert('Account created successfully! Please log in.', 'success');
         }
-
-        // Check if already logged in - DISABLED TO PREVENT LOOPS
-        /*
-        const existingSession = localStorage.getItem(SESSION_KEY);
-        if (existingSession) {
-            try {
-                const session = JSON.parse(existingSession);
-                if (session.email) {
-                    window.location.href = '/dashboard';
-                }
-            } catch (e) { }
-        }
-        */
 
         function showAlert(message, type) {
             alertEl.textContent = message;
@@ -91,51 +81,51 @@
             submitBtn.textContent = 'Logging in...';
 
             try {
-                const response = await fetch('/api/auth/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
+                // Use Supabase SDK directly
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
                 });
 
-                const result = await response.json();
-
-                if (response.ok) {
-                    const sessionData = result.session || result;
-                    const token = sessionData.access_token;
-                    const refreshToken = sessionData.refresh_token;
-
-                    if (token) {
-                        // 1. Save Raw Tokens (For Dashboard Auth Guard)
-                        localStorage.setItem('supabase.auth.token', token);
-                        if (refreshToken) {
-                            localStorage.setItem('supabase.auth.refresh_token', refreshToken);
-                        }
-
-                        // 2. Save Full Session (For App Logic/Credits/Email)
-                        // CRITICAL: Add logged_in_at for expiry check in dashboard
-                        sessionData.logged_in_at = Date.now();
-                        localStorage.setItem('aceinterview_session', JSON.stringify(sessionData));
-
-                        console.log("Tokens and Session saved.");
-
-                        // Check Role and Redirect
-                        if (sessionData.role === 'admin') {
-                            window.location.href = '/admin.html';
-                        } else {
-                            window.location.href = '/dashboard.html';
-                        }
-                    } else {
-                        console.error("No token found");
-                        showAlert('Login failed: No access token.', 'error');
-                        submitBtn.disabled = false;
-                    }
-                } else {
-                    showAlert(result.error || 'Invalid email or password', 'error');
+                if (error) {
+                    console.error('Login Error:', error.message);
+                    showAlert(error.message, 'error');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Login';
+                    return;
                 }
-            } catch (error) {
-                console.error('Login error:', error);
+
+                console.log('Login Successful', data);
+
+                if (data.session) {
+                    const session = data.session;
+                    const user = data.user;
+
+                    // Legacy session sync for existing dashboard logic
+                    localStorage.setItem('supabase.auth.token', session.access_token);
+                    localStorage.setItem('supabase.auth.refresh_token', session.refresh_token);
+
+                    const sessionData = {
+                        ...user,
+                        access_token: session.access_token,
+                        refresh_token: session.refresh_token,
+                        logged_in_at: Date.now()
+                    };
+                    localStorage.setItem('aceinterview_session', JSON.stringify(sessionData));
+
+                    // Redirect
+                    if (user.user_metadata?.role === 'admin' || user.email === 'david@aceinterview.ai') {
+                        window.location.href = '/admin.html';
+                    } else {
+                        window.location.href = '/dashboard.html';
+                    }
+                } else {
+                    showAlert('Session not created. Please try again.', 'error');
+                    submitBtn.disabled = false;
+                }
+
+            } catch (err) {
+                console.error('Unexpected error:', err);
                 showAlert('Login failed. Please try again.', 'error');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Login';
