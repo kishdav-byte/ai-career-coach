@@ -1,6 +1,14 @@
 {
     "rewrites": [
         {
+            "source": "/api/auth/login",
+            "destination": "/api/index.py"
+        },
+        {
+            "source": "/api/auth/signup",
+            "destination": "/api/index.py"
+        },
+        {
             "source": "/api/auth/user",
             "destination": "/api/index.py"
         },

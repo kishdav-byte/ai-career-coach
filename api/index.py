@@ -46,7 +46,11 @@ if SUPABASE_URL:
     else:
         print("WARNING: SUPABASE_SERVICE_ROLE_KEY not found. Webhooks may fail RLS.")
 
+from flask_cors import CORS
+
 app = Flask(__name__)
+app.url_map.strict_slashes = False
+CORS(app)
 
 @app.route('/health')
 def health_check():
@@ -407,6 +411,7 @@ def optimize_resume_content():
 @app.route('/api', methods=['POST', 'OPTIONS'])
 @app.route('/', methods=['POST', 'OPTIONS'])
 def api():
+    print(f"Incoming request to /api: {request.path} [{request.method}]")
     # CORS Preflight
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), 200
