@@ -246,104 +246,103 @@ const Dashboard = () => {
                                 </button>
                             </div>
                         </div>
-                        <div className="h-64 flex items-end justify-between gap-2 px-2 pb-2 border-b border-white/5 relative flex-1">
+                        <div className="h-64 flex items-end justify-between gap-2 px-2 pb-2 border-b border-white/5 relative flex-1 overflow-hidden">
                             {loading ? (
-                                <div className="w-full h-full flex items-end gap-2">
-                                    {[1, 2, 3, 4, 5, 6, 7].map(i => <Skeleton key={i} className="w-full h-[50%]" />)}
-                                </div>
-                            ) : graphData.length === 0 ? (
-                                <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                    No Data Yet
-                                </div>
-                            ) : (
-                                graphData.map((item, i) => {
-                                    const height = `${Math.min((item.overall_score || 0) * 10, 100)}%`;
-                                    const dateLabel = new Date(item.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                                <Skeleton className="absolute inset-0 m-4" />
+                            ) : graphData.length > 0 ? (
+                                graphData.map((item, idx) => {
+                                    const maxScore = graphType === 'resumes' ? 100 : 10;
+                                    const heightPerc = Math.min((item.overall_score / maxScore) * 100, 100);
+                                    const dateLabel = new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                                     return (
-                                        <div key={i} className="w-full flex flex-col justify-end items-center gap-2 h-full group">
-                                            <div className="w-full bg-[#20C997]/20 hover:bg-[#20C997]/40 rounded-t-sm transition-all relative flex flex-col justify-end" style={{ height: '100%' }}>
-                                                <div style={{ height: height }} className="bg-[#20C997] w-full relative group-hover:bg-[#1aa179] transition-colors rounded-t-sm">
-                                                    <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-black border border-white/10 text-white text-xs p-2 rounded whitespace-nowrap z-10 pointer-events-none transition-opacity">
-                                                        Score: {item.overall_score}/10<br />{dateLabel}
-                                                    </div>
-                                                </div>
+                                        <div
+                                            key={idx}
+                                            className="flex-1 max-w-[40px] bg-gradient-to-t from-[#20C997]/10 to-[#20C997]/40 hover:to-[#20C997]/60 rounded-t-sm transition-all relative group cursor-pointer"
+                                            style={{ height: `${heightPerc}%` }}
+                                        >
+                                            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 border border-white/10 text-white text-[10px] p-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                                                Score: {item.overall_score}/{maxScore}<br />
+                                                {dateLabel}
                                             </div>
-                                            <span className="text-[10px] text-gray-500">{dateLabel}</span>
                                         </div>
-                                    )
+                                    );
                                 })
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm italic">
+                                    No data recorded yet.
+                                </div>
                             )}
                         </div>
                     </div>
-
-                    {/* Right: Actions */}
-                    <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-6">Recommended Actions</h3>
-                        <div className="space-y-4">
-                            <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#20C997]/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start">
-                                    <h4 className="font-semibold text-white group-hover:text-[#20C997]">Optimize Resume</h4>
-                                    <span className="text-xs bg-[#20C997] text-black font-bold px-2 py-0.5 rounded">High Impact</span>
-                                </div>
-                                <p className="text-sm text-gray-400 mt-1">Check your latest score.</p>
-                            </div>
-                            <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#20C997]/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                <div className="flex justify-between items-start">
-                                    <h4 className="font-semibold text-white group-hover:text-[#20C997]">Mock Interview</h4>
-                                </div>
-                                <p className="text-sm text-gray-400 mt-1">Practice makes perfect.</p>
-                            </div>
-                        </div>
-                        <button className="w-full mt-6 py-3 bg-[#20C997] text-black font-bold rounded-xl hover:bg-[#1aa179] transition-colors">
-                            Start New Session
-                        </button>
-                    </div>
                 </div>
 
-                {/* 3. Recent Activity */}
+                {/* Right: Actions */}
                 <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-6">Recent Activity</h3>
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-white/5 text-gray-500 text-sm">
-                                    <th className="pb-3 font-medium">Project Name</th>
-                                    <th className="pb-3 font-medium">Type</th>
-                                    <th className="pb-3 font-medium">Score</th>
-                                    <th className="pb-3 font-medium">Date</th>
-                                    <th className="pb-3 font-medium">Status</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {loading ? (
-                                    [1, 2, 3].map(i => (
-                                        <tr key={i}>
-                                            <td className="py-4"><Skeleton className="w-32 h-4" /></td>
-                                            <td className="py-4"><Skeleton className="w-20 h-4" /></td>
-                                            <td className="py-4"><Skeleton className="w-10 h-4" /></td>
-                                            <td className="py-4"><Skeleton className="w-20 h-4" /></td>
-                                            <td className="py-4"><Skeleton className="w-16 h-4" /></td>
-                                        </tr>
-                                    ))
-                                ) : recentActivity.length === 0 ? (
-                                    <tr><td colSpan="5" className="py-4 text-center text-gray-500">No activity found.</td></tr>
-                                ) : (
-                                    recentActivity.map((a, i) => (
-                                        <tr key={i} className="group hover:bg-white/5 transition-colors">
-                                            <td className="py-4 font-medium text-white">{a.project_name || 'Untitled'}</td>
-                                            <td className="py-4 text-gray-400">{a.type}</td>
-                                            <td className="py-4 text-white font-bold">{a.score || '-'}</td>
-                                            <td className="py-4 text-gray-500">{timeAgo(a.created_at)}</td>
-                                            <td className="py-4"><span className="px-2 py-1 rounded text-xs font-bold bg-[#20C997]/20 text-[#20C997]">{a.status || 'Completed'}</span></td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </table>
+                    <h3 className="text-lg font-bold text-white mb-6">Recommended Actions</h3>
+                    <div className="space-y-4">
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#20C997]/50 hover:bg-white/10 transition-all cursor-pointer group">
+                            <div className="flex justify-between items-start">
+                                <h4 className="font-semibold text-white group-hover:text-[#20C997]">Optimize Resume</h4>
+                                <span className="text-xs bg-[#20C997] text-black font-bold px-2 py-0.5 rounded">High Impact</span>
+                            </div>
+                            <p className="text-sm text-gray-400 mt-1">Check your latest score.</p>
+                        </div>
+                        <div className="p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#20C997]/50 hover:bg-white/10 transition-all cursor-pointer group">
+                            <div className="flex justify-between items-start">
+                                <h4 className="font-semibold text-white group-hover:text-[#20C997]">Mock Interview</h4>
+                            </div>
+                            <p className="text-sm text-gray-400 mt-1">Practice makes perfect.</p>
+                        </div>
                     </div>
+                    <button className="w-full mt-6 py-3 bg-[#20C997] text-black font-bold rounded-xl hover:bg-[#1aa179] transition-colors">
+                        Start New Session
+                    </button>
                 </div>
-
             </div>
+
+            {/* 3. Recent Activity */}
+            <div className="bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+                <h3 className="text-lg font-bold text-white mb-6">Recent Activity</h3>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-white/5 text-gray-500 text-sm">
+                                <th className="pb-3 font-medium">Project Name</th>
+                                <th className="pb-3 font-medium">Type</th>
+                                <th className="pb-3 font-medium">Score</th>
+                                <th className="pb-3 font-medium">Date</th>
+                                <th className="pb-3 font-medium">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                            {loading ? (
+                                [1, 2, 3].map(i => (
+                                    <tr key={i}>
+                                        <td className="py-4"><Skeleton className="w-32 h-4" /></td>
+                                        <td className="py-4"><Skeleton className="w-20 h-4" /></td>
+                                        <td className="py-4"><Skeleton className="w-10 h-4" /></td>
+                                        <td className="py-4"><Skeleton className="w-20 h-4" /></td>
+                                        <td className="py-4"><Skeleton className="w-16 h-4" /></td>
+                                    </tr>
+                                ))
+                            ) : recentActivity.length === 0 ? (
+                                <tr><td colSpan="5" className="py-4 text-center text-gray-500">No activity found.</td></tr>
+                            ) : (
+                                recentActivity.map((a, i) => (
+                                    <tr key={i} className="group hover:bg-white/5 transition-colors">
+                                        <td className="py-4 font-medium text-white">{a.project_name || 'Untitled'}</td>
+                                        <td className="py-4 text-gray-400">{a.type}</td>
+                                        <td className="py-4 text-white font-bold">{a.score || '-'}</td>
+                                        <td className="py-4 text-gray-500">{timeAgo(a.created_at)}</td>
+                                        <td className="py-4"><span className="px-2 py-1 rounded text-xs font-bold bg-[#20C997]/20 text-[#20C997]">{a.status || 'Completed'}</span></td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
     );
 };

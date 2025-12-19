@@ -441,7 +441,7 @@
 
                             <!-- Chart Placeholder (Pure CSS) -->
                             <div id="performance-chart"
-                                class="flex-grow flex items-end justify-between gap-4 px-4 pb-2 border-b border-white/5 relative">
+                                class="flex-grow flex items-end justify-between gap-2 px-4 pb-2 border-b border-white/5 relative overflow-hidden">
                                 <!-- Y-Axis Grid Lines -->
                                 <div
                                     class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
@@ -880,12 +880,13 @@
                 if (data && data.length > 0) {
                     data.forEach(item => {
                         const score = item[scoreField] || 0;
-                        const height = (score / 10) * 100;
+                        const maxScore = type === 'resumes' ? 100 : 10;
+                        const height = (score / maxScore) * 100;
                         const date = new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 
                         const bar = document.createElement('div');
-                        bar.className = 'bar-item w-full bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all relative group cursor-pointer';
-                        bar.style.height = `${height}%`;
+                        bar.className = 'bar-item flex-1 max-w-[40px] bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all relative group cursor-pointer';
+                        bar.style.height = `${Math.min(height, 100)}%`;
                         bar.innerHTML = `
                             <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 border border-white/10 text-white text-[10px] p-2 rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-10">
                                 Score: ${score}/10<br>${date}
