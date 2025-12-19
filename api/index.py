@@ -1023,9 +1023,10 @@ When you recommend a solution that requires deep work (writing, simulation, nego
         REQUIRED SECTIONS:
         1. **Executive Summary**: A high-level overview of the candidate's performance.
         2. **Question Breakdown**: Use a table to show the score (1-5) for each question.
-        3. **Gap Analysis (The STAR Filter)**: For each question, specifically identify which STAR components (Situation, Action, Result) were strong and which were weak/missing. Use constructive coaching language (e.g., "You identified the Situation, but your Action was vague. Use 'I' statements instead of 'We'.").
-        4. **Metric Injection Strategy**: For any responses that scored below 5, provide a specific example of how the candidate could have used numbers (time saved, revenue increased, %, $) to move to a 'Unicorn' score.
-        5. **Final Coaching Roadmap**: 3 actionable steps for the next interview.
+        3. **Aggregate Performance Insight**: Identify the most common recurring gap across all answers (e.g., "In 4 of the 5 questions, you scored lower due to missing or weak 'Result' components"). This section should tell the user exactly what ONE thing they should focus on practicing the most.
+        4. **Gap Analysis (The STAR Filter)**: For each question, specifically identify which STAR components (Situation, Action, Result) were strong and which were weak/missing.
+        5. **Metric Injection Strategy**: For any responses that scored below 5, provide a specific example of how the candidate could have used numbers (time saved, revenue increased, %, $) to move to a 'Unicorn' score.
+        6. **Final Coaching Roadmap**: 3 actionable steps for the next interview.
 
         STYLE: Use inline CSS for a clean, modern look. Dark text on light background, professional borders, and clear headings.
         
