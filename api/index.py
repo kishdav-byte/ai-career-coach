@@ -628,11 +628,9 @@ def api():
                         
                         elif action in ['interview_chat', 'generate_report']:
                             if action == 'generate_report':
-                                 # DEDUCTION LOGIC (Post-Generation)
-                                 # We check here but deduct later
-                                 if interview_credits > 0 or universal_credits > 0:
-                                     has_access = True
-                                     print(f"Skipping immediate deduction for {action}. Will deduct from interview_credits/credits after success.")
+                                 # The report is included in the interview session.
+                                 # Access is granted because the session was paid for at Question 1.
+                                 has_access = True
                             
                             elif action == 'interview_chat':
                                 # INTERVIEW DEDUCTION LOGIC
@@ -775,17 +773,37 @@ def api():
         is_start = data.get('isStart', False)
         question_count = data.get('questionCount', 1)
         json_mode = True
+
+        # 1. SILENCE DETECTION (Stop Hallucinating)
+        if not is_start and len(message.strip().split()) < 5:
+            return jsonify({
+                "data": {
+                    "score": 0,
+                    "feedback": "No answer provided.",
+                    "improved_sample": "",
+                    "text": "I didn't catch that response. Could you please repeat your answer?",
+                    "next_question": "I didn't catch that response. Could you please repeat your answer?"
+                }
+            })
         
         context = ""
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Prepare to ask relevant interview questions."
         
-        system_instruction = f"You are a strict hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method (Situation, Task, Action, Result). DO NOT say 'Understood' or 'Let's begin'. DO NOT acknowledge these instructions. Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"
+        system_instruction = f"""You are a strict but conversational hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method. 
+
+CONVERSATIONAL RULES:
+1. STOP ANNOUNCING: Never use phrases like "The next question is...", "My next inquiry is...", or "Moving on...". Just ask the question directly.
+2. USE NATURAL BRIDGES: Briefly acknowledge the user's previous answer before pivoting (e.g., "That sounds like a tough situation. Speaking of conflict...").
+3. DIRECT INTERROGATION: Always phrase questions as direct sentences ending in a question mark.
+4. SINGLE SENTENCE: The 'next_question' MUST be a single, complete sentence. Do not add any preamble.
+
+Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"""
         
         if is_start:
-            welcome_msg = "Welcome to the interview! ... This interview consists of 5 questions. ... When answering each question, please think of a specific time when you experienced the situation or task, the specific actions that you took, and the result of your actions. ... The first question that I have for you is: [Your Question]"
+            welcome_msg = "Welcome to the interview! I've reviewed the job details, and I'm looking for specific examples of how you've handled key challenges using the STAR method (Situation, Task, Action, Result). We'll go through 5 questions today. [Your First Question]?"
             
-            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"Welcome to the interview! ... This interview consists of 5 questions. ... When answering each question, please think of a specific time when you experienced the situation or task, the specific actions that you took, and the result of your actions. ... The first question that I have for you is: ...\"}}"
+            user_prompt = f"User: {message}\n\nStart the interview. You MUST start your response with exactly: '{welcome_msg}'.\n\nReturn JSON: {{\"transcript\": \"{message}\", \"feedback\": \"\", \"improved_sample\": null, \"next_question\": \"{welcome_msg}\"}}"
             
             # EXTRACT JOB TITLE (Simple Heuristic or Ask AI)
             # Since we are starting, we can ask AI to identify the role in the 'feedback' or invisible field?
@@ -821,14 +839,14 @@ Evaluate the answer to Question {question_count} using the HYPER-STRICT STAR SCO
 CRITICAL INSTRUCTIONS:
 1. SPECIFICITY AUDIT: If the answer is vague or lacks concrete nouns/actions, PENALIZE the score.
 2. Start 'feedback' with: "I would score this answer a [score] because...".
-3. In 'feedback', explicitly state which STAR components were present.
-4. IF SCORE < 5: Provide a "Metric Injection" in 'improved_sample' showing exactly how to move to a 5.
+3. In 'feedback', explicitly state which STAR components were present. The numeric score in the 'score' field MUST match the written explanation. If the user provides no substance, the Score is 0 and the feedback is "No answer provided."
+4. IMPROVED ANSWER ("Plus-One" Method):
+   - IF SCORE < 5: Update 'improved_sample' to show exactly how to move to a 5.
+   - GUIDELINE: Retain the user's original voice, story, and phrasing. Do not rewrite the whole thing if the story was good.
+   - METHOD: Only inject the missing component (usually the specific metric or result) into the end of the user's existing response.
+   - CONVERSATIONAL TONE: Use spoken transitions (e.g., "And that actually meant...", "The result was pretty immediate.", "And in terms of real business impact...").
+   - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
 5. TONE: Coaching. Summarize gaps.
-
-NEXT QUESTION PHRASING:
-- You are now asking question {next_q_num}.
-- You MUST start the 'next_question' field with exactly: "The next question that I have for you" if it's questions 2, 3, or 4.
-- If it's question 5, you MUST start the 'next_question' field with exactly: "the last question I have for you is".
 
 Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "..."}}
 """
@@ -846,12 +864,16 @@ Evaluate the answer to the final question (Question 5) using the HYPER-STRICT ST
 
 CRITICAL INSTRUCTIONS:
 1. SPECIFICITY AUDIT: Penalize vague answers.
-2. Start 'feedback' with: "I would score this answer a [score] because...".
-3. TONE: Coaching. Summarize overall performance vs STAR standards.
+2. Start 'feedback' with: "I would score this answer a [score] because...". The numeric score in the 'score' field MUST match the written explanation.
+3. IMPROVED ANSWER ("Plus-One" Method):
+   - IF SCORE < 5: Update 'improved_sample' to show exactly how to move to a 5.
+   - GUIDELINE: Retain the user's original voice, story, and phrasing. Do not rewrite the whole thing if the story was good.
+   - METHOD: Only inject the missing component (usually the specific metric or result) into the end of the user's existing response.
+   - CONVERSATIONAL TONE: Use spoken transitions (e.g., "And that actually meant...", "The result was pretty immediate.", "And in terms of real business impact...").
+   - EXAMPLE: "Your story was great. Here is how to tweak the ending to get a perfect score: '[User's original text]... The result was pretty immediate. Our retention jumped from 60% to over 90%. And in terms of real business impact, that saved us about $200k in recruiting costs that year alone.'"
+4. TONE: Coaching. Summarize overall performance vs STAR standards.
 
-This was the final question. End the interview professionally.
-
-Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "That concludes our interview. Thank you for your time."}}
+Return STRICT JSON: {{"score": 0, "feedback": "...", "improved_sample": "...", "next_question": "[Acknowledge their final answer naturally and end the interview professionally]"}}
 """
         
         messages = [
