@@ -82,132 +82,89 @@ function getSession() {
 }
 
 async function checkAccess() {
-    console.log("Checking access...");
-    console.log("Checking access...");
-    let session = getSession();
+    console.log('Checking access via Supabase SDK...');
 
-    // RECOVERY LOGIC (Matches Dashboard)
-    if (!session) {
-        const token = localStorage.getItem('supabase.auth.token');
-        if (token) {
-            console.log("Session missing but Token found. Attempting recovery...");
-            try {
-                const parts = token.split('.');
-                if (parts.length === 3) {
-                    const base64Url = parts[1];
-                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const payloadStr = atob(base64);
-                    const payload = JSON.parse(payloadStr);
+    // 1. Get Current User
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-                    if (payload.email) {
-                        session = {
-                            email: payload.email,
-                            name: payload.user_metadata?.name || 'User',
-                            logged_in_at: Date.now(),
-                            account_status: 'active', // Default to active to allow entry, verify later
-                            resume_credits: 3,
-                            interview_credits: 3,
-                            rewrite_credits: 3 // Default for recovered session
-                        };
-                        localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-                        console.log("Session Recovered in App!");
-                    }
-                }
-            } catch (e) {
-                console.error("Recovery Error: " + e.message);
-            }
-        }
-    }
-
-    if (!session) {
-        // Allow public pages? No, force login for app
-        // But maybe we are on /app.html which should be protected
-        // If we are on index.html or pricing.html, no need to redirect.
+    if (authError || !user) {
+        console.error('User not logged in');
         const path = window.location.pathname;
         if (path === '/app.html' || path === '/app' || path.includes('admin')) {
-            // Updated: Don't clear session aggresively, just redirect.
-            // localStorage.removeItem(SESSION_KEY);
-            // localStorage.removeItem('supabase.auth.token');
-            console.warn("Access denied. Redirecting to login.");
             window.location.href = '/login.html';
         }
-        return;
+        return false;
     }
 
-    // Verify status with server (optional optimization: trust local storage first to avoid delay, then verify async)
-    // But requirement says: "ALLOW IF: subscription_status === 'active' OR credits > 0."
-    // We should fetch fresh status to be accurate.
-    try {
-        const response = await fetch('/api/auth/user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: session.email })
-        });
-        const result = await response.json();
+    // 2. Check Credits in 'users' table (note: using 'users' not 'profiles')
+    const { data: profile, error: dbError } = await supabase
+        .from('users')
+        .select('credits, subscription_status, is_unlimited, role')
+        .eq('id', user.id)
+        .single();
 
-        if (result.success && result.user) {
-            // New Schema: subscription_status, is_unlimited
-            const status = result.user.subscription_status;
-            const unlimited = result.user.is_unlimited;
+    if (dbError) {
+        console.error('Error fetching profile:', dbError);
+        alert('Could not verify credits. Please refresh.');
+        return false;
+    }
 
-            // Only update local session
-            session.subscription_status = status;
-            session.is_unlimited = unlimited;
-            session.resume_credits = result.user.resume_credits;
-            session.interview_credits = result.user.interview_credits;
-            session.rewrite_credits = result.user.rewrite_credits; // Store new credit type
+    console.log('Profile data:', profile);
 
-            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-            updateCreditDisplay(session); // Update UI immediately
+    // Update local session for compatibility
+    let session = getSession() || {};
+    session.email = user.email;
+    session.name = user.user_metadata?.name || user.email;
+    session.subscription_status = profile.subscription_status;
+    session.is_unlimited = profile.is_unlimited;
+    session.credits = profile.credits;
+    session.role = profile.role;
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
-            // ADMIN CHECK: Reveal Hidden Tools
-            if (result.user.role === 'admin') {
-                console.log("👑 Admin Access Detected: Unhiding Tools");
-                const adminTools = document.getElementById('admin-tools-container');
-                if (adminTools) {
-                    adminTools.style.display = 'block';
+    // Update credit display
+    updateCreditDisplay(session);
 
-                    // Logic to exclusively show the requested admin tool
-                    const hash = window.location.hash;
-                    const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
+    // ADMIN CHECK: Reveal Hidden Tools
+    if (profile.role === 'admin') {
+        console.log("👑 Admin Access Detected: Unhiding Tools");
+        const adminTools = document.getElementById('admin-tools-container');
+        if (adminTools) {
+            adminTools.style.display = 'block';
 
-                    if (hash && adminHashes.includes(hash)) {
-                        // Hide all other admin sections first
-                        adminHashes.forEach(id => {
-                            const el = document.querySelector(id);
-                            if (el) el.classList.remove('active');
-                        });
+            // Logic to exclusively show the requested admin tool
+            const hash = window.location.hash;
+            const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
 
-                        // Show target
-                        setTimeout(() => {
-                            const target = document.querySelector(hash);
-                            if (target) {
-                                target.classList.add('active');
-                                target.scrollIntoView({ behavior: 'smooth' });
-                            }
-                        }, 100);
+            if (hash && adminHashes.includes(hash)) {
+                // Hide all other admin sections first
+                adminHashes.forEach(id => {
+                    const el = document.querySelector(id);
+                    if (el) el.classList.remove('active');
+                });
+
+                // Show target
+                setTimeout(() => {
+                    const target = document.querySelector(hash);
+                    if (target) {
+                        target.classList.add('active');
+                        target.scrollIntoView({ behavior: 'smooth' });
                     }
-                }
+                }, 100);
             }
-
-            // Phase 20: Split Credits (LEGACY - NOW CONSOLIDATED)
-            let credits = result.user.credits || 0; // Universal Credits
-
-            // Legacy fallbacks (display only if you want, but logic uses 'credits')
-            // For UI transition, we map Universal Credits to 'rewrite_credits' for older UI parts if needed
-            session.credits = credits;
-
-            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-            updateCreditDisplay(session); // UI Update
-            verifyInterviewAccess(session); // Check Interview Tab Access
-
-            console.log(`Session refreshed. Credits=${credits}`);
-
         }
-    } catch (e) {
-        console.log("Error checking access", e);
+    }
+
+    // 3. Logic Gate
+    if (profile.subscription_status === 'active' || profile.is_unlimited || profile.credits > 0) {
+        console.log('Access Granted. Credits:', profile.credits);
+        return true;
+    } else {
+        alert('You have 0 credits remaining. Please upgrade to continue.');
+        window.location.href = '/dashboard.html';
+        return false;
     }
 }
+
 
 
 function updateCreditDisplay(session) {
@@ -414,24 +371,21 @@ function init() {
         btn.innerHTML = 'Processing...';
 
         try {
-            const res = await fetch('/api/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-                },
-                body: JSON.stringify({
-                    plan_type: planType,
-                    email: email,
-                    userId: (typeof session !== 'undefined' ? (session.user_id || session.id || session.user?.id) : (getSession()?.user_id || getSession()?.id || getSession()?.user?.id)), // Ensure ID is passed
-                    successUrl: window.location.origin + '/app.html?status=success#interview', // redirect back to interview tab
-                    cancelUrl: window.location.href
-                })
-            });
-            const json = await res.json();
-            if (json.error) throw new Error(json.error);
+            // Map plan types to price IDs
+            const priceMap = {
+                'strategy_interview_sim': 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
+                'rewrite': 'price_1SeKmwIH1WTKNasq8mkEnDXu' // Executive Rewrite
+            };
 
-            window.location.href = json.url;
+            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                body: {
+                    price_id: priceMap[planType] || planType,
+                    return_url: window.location.origin + '/app.html?status=success#interview'
+                }
+            });
+
+            if (error) throw error;
+            if (data?.url) window.location.href = data.url;
 
         } catch (e) {
             alert("Checkout Error: " + e.message);
@@ -804,24 +758,15 @@ function init() {
                         checkoutBtn.disabled = true;
                         checkoutBtn.textContent = "Processing...";
                         try {
-                            const session = getSession();
-                            const response = await fetch('/api/create-checkout-session', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    email: session ? session.email : null,
-                                    userId: session ? (session.user_id || session.id || session.user?.id) : null,
-                                    feature: 'rewrite', // Use backend env var
-                                    successUrl: window.location.origin + '/app.html?status=success#resume-builder',
-                                    cancelUrl: window.location.href
-                                })
+                            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                                body: {
+                                    price_id: 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
+                                    return_url: window.location.origin + '/app.html?status=success#resume-builder'
+                                }
                             });
-                            const result = await response.json();
-                            if (result.url) {
-                                window.location.href = result.url;
-                            } else {
-                                alert("Checkout Error: " + (result.error || "Unknown"));
-                            }
+
+                            if (error) throw error;
+                            if (data?.url) window.location.href = data.url;
                         } catch (e) {
                             console.error(e);
                             alert("Checkout failed.");
@@ -1622,19 +1567,15 @@ if (document.getElementById('generate-plan-btn')) {
                 else {
                     // Fallback if button hidden
                     try {
-                        const response = await fetch('/api/create-checkout-session', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                email: session ? session.email : null,
-                                userId: session ? (session.user_id || session.id || session.user?.id) : null,
-                                feature: 'rewrite',
-                                successUrl: window.location.origin + '/app.html?status=success#resume-builder',
-                                cancelUrl: window.location.href
-                            })
+                        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                            body: {
+                                price_id: 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
+                                return_url: window.location.origin + '/app.html?status=success#resume-builder'
+                            }
                         });
-                        const res = await response.json();
-                        if (res.url) window.location.href = res.url;
+
+                        if (error) throw error;
+                        if (data?.url) window.location.href = data.url;
                     } catch (err) { alert("Checkout Error"); }
                 }
             }
