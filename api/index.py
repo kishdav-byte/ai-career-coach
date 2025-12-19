@@ -692,138 +692,69 @@ def api():
 
     if action == 'analyze_resume':
         resume = data.get('resume', '')
+        job_desc = data.get('job_description', '')
+        
+        # Calculate robust word count
+        word_count = len(re.findall(r'\w+', resume))
+        
         json_mode = True
         prompt = f"""
-        You are an expert Executive Career Coach (rate $200/hr). Analyze this resume.
+        You are an expert Executive Career Coach (rate $1000/hr). Analyze this resume meticulously.
         
         RESUME CONTENT:
         {resume}
         
-        INSTRUCTION:
-        First, read the resume and identify the "Target Job Title" if explicitly stated or inferred.
-        Return it in the JSON as "job_title".
+        TARGET JOB DESCRIPTION:
+        {job_desc if job_desc else "General executive-level optimization requested."}
         
-        CRITICAL RULES FOR ANALYSIS (VIOLATIONS = FAILURE):
-        1. **NO INVENTED METRICS**: Never invent a number. If a metric is missing, use a placeholder like "[X]%" or "$[X]k".
-        2. **EXACT QUOTES ONLY**: When referencing "Current Bullet", "Found", or "Example", you MUST quote the resume word-for-word. Do not summarize.
-        3. **REALITY CHECK**: Only suggest keywords for bullets that ACTUALLY exist.
-        4. **HYPER-SPECIFICITY**: 
-           - ATS: Give exact counts ("appears 5x") and synonyms.
-           - Formatting: Show "Found: [A] vs [B]" and "Fix: [Instruction]".
-           - Action Plan: Reference specific roles and bullets ("Add size to 'Manager' role").
+        INSTRUCTION:
+        1. Identify the target job title from the JD or resume.
+        2. Provide an overall match score (0-100) based on the JD.
+        3. Provide EXACTLY 5 detailed optimization protocols.
+        4. Detect formatting inconsistencies (dates, punctuation, layout).
+        5. Identify missing high-frequency keywords from the JD.
+
+        CRITICAL RULES:
+        - NO INVENTED METRICS: Use "[X]%" or "[X]$".
+        - EXACT QUOTES ONLY: Reference specific bullets from the resume.
+        - HYPER-SPECIFICITY: Actionable feedback, not generic advice.
         
         Return valid JSON with this EXACT structure:
         {{
             "job_title": "Senior Product Manager",
             "overall_score": 85,
-            "summary": "Brief 1-sentence summary of where they stand.",
+            "word_count": {word_count},
+            "summary": "Brief 1-sentence summary.",
             "benchmark": {{
-                "level": "Mid-Senior",
-                "percentile": "Top 20%",
-                "user_score": 85,
-                "avg_score": 68,
-                "top_10_score": 92,
-                "text": "Status: You're stronger than 75% of candidates.",
-                "ahead_reasons": ["Specific strength from THEIR resume", "Specific strength from THEIR resume"],
-                "gap_reasons": ["Specific weakness from THEIR resume", "Specific weakness from THEIR resume"]
+                "level": "Executive",
+                "percentile": "Top 10%",
+                "text": "Status: Stronger than 90% of candidates for this specific role."
             }},
             "red_flags": [
-                {{
-                    "title": "Duplicate Bullet Points",
-                    "issue": "Your 'Manager' and 'Director' roles have identical bullets.",
-                    "examples": ["'Managed team of 10...' (appears in both roles)"],
-                    "fix": "Rewrite the Director role to focus on strategy and the Manager role on execution."
-                }},
-                 {{
-                    "title": "Missing Metrics in Recent Role",
-                    "issue": "Your most recent role (2022-Present) has zero numbers.",
-                    "examples": ["'Responsible for project delivery' (too vague)"],
-                    "fix": "Add team size, budget, or % improvement."
-                }}
-            ],
-            "strengths": [
-                {{"title": "Strength 1", "description": "Why it is good..."}},
-                {{"title": "Strength 2", "description": "Why it is good..."}},
-                {{"title": "Strength 3", "description": "Why it is good..."}}
+                {{"title": "Issue", "issue": "Detail", "fix": "Specific fix"}}
             ],
             "improvements": [
                 {{
-                    "priority": "HIGH", 
-                    "title": "Clarify Impact", 
-                    "suggestion": "Quantify your achievements...",
-                    "current": "Managed a team...", 
-                    "better": "Managed a team of [X] (add count), increasing productivity by [X]%...", 
-                    "why": "Recruiters need numbers...", 
-                    "how_to": "Review your last 2 roles..."
+                    "title": "Protocol Title", 
+                    "suggestion": "Deep strategic advice for this specific resume.",
+                    "current": "[Exact quote from resume]", 
+                    "better": "[Hypothetically optimized version with [X] metrics]"
                 }}
             ],
             "keywords": {{
-                "good": [
-                    {{"word": "Leadership", "count": 5, "context": "Used in executive bullets"}}, 
-                    {{"word": "Project Management", "count": 4, "context": "Used in project descriptions"}}
-                ],
                 "missing": [
-                    {{"word": "Stakeholder Management", "advice": "Add to 'Senior Manager' role bullets about alignment."}}, 
-                    {{"word": "Change Management", "advice": "Add to leadership bullets."}}
-                ],
-                "overused": [
-                    {{"word": "Managed", "count": 8, "alternatives": ["Led", "Directed", "Oversaw"]}}
-                ],
-                "advice": "Add missing keywords to your most recent experience."
-            }},
-            "rewrites": [
-                {{
-                    "type": "Leadership", 
-                    "original": "[EXACT text from resume]", 
-                    "rewritten": "Directed [X]-person team... achieved [X]% improvement...", 
-                    "explanation": "Added team size and specific metric.",
-                    "metric_question": "What was your team size and actual % improvement?"
-                }}
-            ],
-            "role_gaps": [
-                {{
-                    "role": "Role Title", 
-                    "missing_keywords": ["Strategy", "Budgeting"], 
-                    "fixes": [
-                        {{
-                            "existing_bullet": "[Exact quote of bullet]",
-                            "enhanced_bullet": "[Rewritten bullet with keyword]",
-                            "added_keywords": ["Strategy"],
-                            "reason": "Required for senior roles."
-                        }}
-                    ]
-                }}
-            ],
-            "ats_compatibility": {{
-                "score": 8,
-                "issues": [
-                    "<b>Action Verb Repetition:</b> 'Managed' appears 8 times. <br>→ Alternatives: Led, Directed, Orchestrated. <br>→ Example: Replace 'Managed team' with 'Directed team'.",
-                    "<b>Generic Phrases:</b> 'Responsible for' found in 3 bullets. <br>→ Fix: Start with the verb directly (e.g., 'Delivered...')."
-                ],
-                "recommendation": "Varied vocabulary significantly improves ATS scoring."
-            }},
-            "formatting": [
-                {{
-                    "issue": "Date Consistency", 
-                    "fix": "<b>Found:</b> '2024-Present' and '2022 - 2024'. <br><b>Fix:</b> Standardize all dates to 'Month Year - Month Year' format." 
-                }},
-                {{
-                    "issue": "Bullet Punctuation",
-                    "fix": "<b>Found:</b> Some bullets end with periods, others do not. <br><b>Fix:</b> Add periods to all bullets for consistency."
-                }}
-            ],
-            "action_plan": {{
-                "quick_wins": [
-                    "Replace 'Managed' with 'Led' in 'Senior Manager' role bullets.",
-                    "Add team size metric to your 'Director' role."
-                ],
-                "medium_effort": [
-                    "Rewrite 'Project Manager' bullets to focus on outcomes (Budget/Timeline) rather than tasks.",
-                    "Standardize date formatting across all roles."
+                    {{"word": "Keyword", "advice": "How to integrate it"}}
                 ]
             }},
-            "interview_tip": "Practice using the STAR method."
+            "ats_compatibility": {{
+                "score": 8,
+                "issues": ["Issue 1 with fix", "Issue 2 with fix"]
+            }},
+            "formatting": [
+                {{"issue": "Consistency Problem", "fix": "<b>Found:</b> [A] vs [B]. <br><b>Fix:</b> [Instruction]"}}
+            ]
         }}
+        """
         """
         messages = [{"role": "user", "content": prompt}]
         

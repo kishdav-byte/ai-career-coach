@@ -727,17 +727,29 @@
                     <span class="text-white font-bold text-xs bg-blue-500/20 px-2 py-0.5 rounded text-blue-400">${atsScore}/10</span>
                 </li>`;
 
-                const fmtIssues = data.formatting ? data.formatting.length : 0;
-                const statusColor = fmtIssues === 0 ? 'text-green-400 bg-green-500/20' : 'text-yellow-400 bg-yellow-500/20';
+                const fmtItems = data.formatting || [];
+                const fmtIssuesCount = fmtItems.length;
+                const statusColor = fmtIssuesCount === 0 ? 'text-green-400 bg-green-500/20' : 'text-yellow-400 bg-yellow-500/20';
                 html += `
                 <li class="flex items-center justify-between">
                     <span>Layout Integrity</span>
-                    <span class="text-white font-bold text-xs px-2 py-0.5 rounded ${statusColor}">${fmtIssues === 0 ? 'Optimal' : fmtIssues + ' Alerts'}</span>
+                    <span class="text-white font-bold text-xs px-2 py-0.5 rounded ${statusColor}">${fmtIssuesCount === 0 ? 'Optimal' : fmtIssuesCount + ' Alerts'}</span>
                 </li>`;
 
-                const wordCount = currentFileText.split(/\s+/).length;
+                // Detailed Formatting Items
+                if (fmtIssuesCount > 0) {
+                    fmtItems.forEach(item => {
+                        html += `
+                        <li class="mt-2 pl-4 border-l border-slate-700">
+                            <p class="text-[10px] font-bold text-slate-300 uppercase leading-none mb-1">${item.issue}</p>
+                            <p class="text-[10px] text-slate-500 leading-tight">${item.fix}</p>
+                        </li>`;
+                    });
+                }
+
+                const wordCount = data.word_count || currentFileText.split(/\s+/).length || 0;
                 html += `
-                <li class="flex items-center justify-between opacity-80">
+                <li class="flex items-center justify-between mt-4 pt-4 border-t border-white/5 opacity-80">
                     <span>Word Count</span>
                     <span class="text-white font-bold text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${wordCount} words</span>
                 </li>`;
@@ -750,7 +762,7 @@
             if (planContainer) {
                 planContainer.innerHTML = '';
                 const improvements = data.improvements || [];
-                improvements.slice(0, 3).forEach((imp, idx) => {
+                improvements.slice(0, 5).forEach((imp, idx) => {
                     const num = String(idx + 1).padStart(2, '0');
                     // Rich text formatting: Convert newlines to breaks or ensure bullet points render nicely
                     // Increased contrast text-slate-200
@@ -762,7 +774,8 @@
                             <div class="text-xs text-slate-300 leading-relaxed font-medium">
                                 ${imp.suggestion.replace(/\n/g, '<br>')}
                             </div>
-                            ${imp.better ? `<div class="mt-3 text-xs bg-blue-900/20 p-3 rounded border-l-2 border-blue-500 text-blue-300 font-mono">"${imp.better}"</div>` : ''}
+                            ${imp.current ? `<div class="mt-3 text-[10px] text-slate-500 italic"><span class="font-bold uppercase text-red-500/50 mr-1">Found:</span> "${imp.current}"</div>` : ''}
+                            ${imp.better ? `<div class="mt-2 text-xs bg-blue-900/20 p-3 rounded border-l-2 border-blue-500 text-blue-300 font-mono"><span class="font-bold text-blue-400 mr-1">FIX:</span> "${imp.better}"</div>` : ''}
                         </div>
                     </div>`;
                 });
