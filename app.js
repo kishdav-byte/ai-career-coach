@@ -379,33 +379,58 @@ function init() {
     }
 
     // Helper to reuse checkout logic
-    async function initiateCheckout(planType, email) {
-        const btn = event.target;
-        const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerHTML = 'Processing...';
+    async function initiateCheckout(productKey, userEmail) {
+        console.log('Initiating checkout for:', productKey);
+
+        // 1. Get the button (Fixes the "event is not defined" crash)
+        // We check for both common IDs just in case
+        const btn = document.getElementById('btn-unlock-interview') || document.querySelector('.btn-unlock');
+        const originalText = btn ? btn.innerText : 'Unlock';
+
+        if (btn) {
+            btn.innerText = 'Redirecting...';
+            btn.disabled = true;
+        }
 
         try {
-            // Map plan types to price IDs
+            // 2. PRICING MAP (Strictly enforced)
             const priceMap = {
-                'strategy_interview_sim': 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
-                'rewrite': 'price_1SeKmwIH1WTKNasq8mkEnDXu' // Executive Rewrite
+                // This maps the Interview Unlock to the $9.99 Price ID
+                'strategy_interview_sim': 'price_1SeKmwIH1WTKNasq8mkEnDXu',
+
+                // Monthly Plan ($49.99)
+                'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'
             };
 
+            // Get the correct ID or default to the key if not found
+            const actualPriceId = priceMap[productKey] || productKey;
+            console.log('Using Stripe Price ID:', actualPriceId);
+
+            // 3. Call the backend
             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                 body: {
-                    price_id: priceMap[planType] || planType,
-                    return_url: window.location.origin + '/app.html?status=success#interview'
+                    price_id: actualPriceId,
+                    return_url: window.location.href, // Returns user to the app after paying
+                    email: userEmail
                 }
             });
 
             if (error) throw error;
-            if (data?.url) window.location.href = data.url;
 
-        } catch (e) {
-            alert("Checkout Error: " + e.message);
-            btn.disabled = false;
-            btn.innerHTML = originalText;
+            // 4. Redirect to Stripe
+            if (data?.url) {
+                window.location.href = data.url;
+            } else {
+                throw new Error('Stripe did not return a checkout URL.');
+            }
+
+        } catch (err) {
+            console.error('Checkout Failed:', err);
+            alert('Could not start payment. Please try again.');
+            if (btn) {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
         }
     }
 
