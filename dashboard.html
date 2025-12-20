@@ -840,16 +840,23 @@
                 }
 
 
-                // 4. Get Plan Details & Credits
-                const { data: profile } = await supabase.from('users')
-                    .select('subscription_status, credits, is_unlimited, subscription_period_end')
+                // 4. Get Plan Details & Credits (Safe Fetch - Select All Columns)
+                const { data: profile, error: profileError } = await supabase.from('users')
+                    .select('*')  // <--- This prevents the 400 Error
                     .eq('id', user.id)
                     .single();
 
+                if (profileError) {
+                    console.error('Data Load Error:', profileError);
+                    // Handle missing data gracefully without crashing
+                }
+
                 if (profile) {
+                    // Use fallbacks in case columns are missing
                     const isUnlimited = profile.is_unlimited || profile.subscription_status === 'pro';
-                    const planText = isUnlimited ? 'PRO PLAN' : (profile.subscription_status || 'Free Plan');
-                    const credits = profile.credits || 0;
+                    const credits = profile.credits || profile.credits_remaining || 0;
+                    const subStatus = profile.subscription_status || 'free';
+                    const planText = isUnlimited ? 'PRO PLAN' : (subStatus === 'active' ? 'ACTIVE' : 'Free Plan');
 
                     document.getElementById('plan-name').textContent = planText;
 
