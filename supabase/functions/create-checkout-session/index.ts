@@ -6,12 +6,14 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
     httpClient: Stripe.createFetchHttpClient(),
 })
 
+// 1. DEFINE CORS HEADERS
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
+    // 2. HANDLE THE PREFLIGHT (The "Bouncer" Check)
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
