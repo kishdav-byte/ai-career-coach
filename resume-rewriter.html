@@ -448,12 +448,30 @@
 
     </main>
 
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
-        // --- AUTH ---
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
+    <!-- Marked JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
+    <script>
+        // --- AUTH & CONFIG ---
         const SESSION_KEY = 'supabase.auth.token';
         const APP_SESSION_KEY = 'aceinterview_session';
+        const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3Q-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
+        // Initialize Supabase safely
+        const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
         (function checkAuth() {
-            if (!localStorage.getItem(SESSION_KEY)) window.location.href = '/login.html';
+            if (!localStorage.getItem(SESSION_KEY) && !supabase) window.location.href = '/login.html';
         })();
 
         // --- GLOBAL DATA STORE ---
@@ -505,10 +523,12 @@
             }
         });
 
-        // --- AUTH & CREDIT CHECK (Added Gating Logic) ---
+        // --- AUTH & CREDIT CHECK (Refactored for Supabase SDK) ---
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) window.location.href = '/login.html';
+            if (!supabase) {
+                console.error("Supabase client not initialized - missing CDN?");
+                return;
+            }
 
             const unlockOverlay = document.getElementById('unlock-overlay');
             const btnGenerate = document.getElementById('generate-btn');
@@ -519,62 +539,62 @@
             if (btnGenerate) btnGenerate.disabled = true;
 
             try {
-                const res = await fetch('/api/user-profile', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
+                // 1. Get User
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    window.location.href = '/login.html';
+                    return;
+                }
 
-                if (!res.ok) throw new Error("Failed to fetch profile");
+                // 2. Get Profile Data (Select * for safety)
+                const { data: profile, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
 
-                const user = await res.json();
+                if (error) throw error;
 
-                // Check Access (Unlimited OR Credits)
-                // For Rewrite, we check general 'credits' or a specific rewrite subscription/credit if it existed.
-                // Assuming Universal Credits for now as per dashboard logic.
-                const hasAccess = user.is_unlimited || (user.credits_rewrite && user.credits_rewrite > 0) || (user.credits && user.credits > 0);
+                // 3. Check Access
+                // Unlimited OR (Specific Credits > 0) OR (Universal Credits > 0)
+                const hasAccess = profile.is_unlimited ||
+                    (profile.subscription_status === 'pro') ||
+                    (profile.rewrite_credits && profile.rewrite_credits > 0) ||
+                    (profile.credits && profile.credits > 0);
 
                 if (hasAccess) {
                     if (unlockOverlay) unlockOverlay.classList.add('hidden');
                     if (btnGenerate) {
                         btnGenerate.disabled = false;
                         // Update button text to reflect cost status
-                        const costText = user.is_unlimited ? 'UNLIMITED' : '1 CREDIT';
+                        const costText = profile.is_unlimited ? 'UNLIMITED' : '1 CREDIT';
                         // Keep the icon and structure, just append text if needed, or leave as simple "GENERATE"
                         // btnGenerate.querySelector('span').textContent = `GENERATE & OPTIMIZE (${costText})`;
                     }
                 } else {
-                    // Locked Logic
+                    // Locked Logic -> Wire Unlock Button
                     if (btnUnlock) {
-                        // Use 'strategy_interview_sim' price ID as placeholder or specific price ID if defined.
-                        // Based on dashboard, rewrite is $9.99. 
-                        // We use initiateCheckout from app.js if available, or fetch directly.
-                        // NOTE: app.js contains initiateCheckout. resume-rewriter.html does NOT import app.js in the visible code!
-                        // Wait, previous file view didn't show script imports at bottom. 
-                        // Assuming we need self-contained logic like 30-60-90 or replicate initiateCheckout.
-
                         btnUnlock.onclick = async () => {
                             const btn = btnUnlock;
                             const oldText = btn.textContent;
-                            btn.textContent = 'Processing...';
+                            btn.textContent = 'Redirecting...';
                             btn.disabled = true;
 
                             try {
-                                const res = await fetch('/api', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                                    body: JSON.stringify({
-                                        action: 'create-checkout-session',
-                                        plan_type: 'rewrite', // Correct plan type for Universal Credit
-                                        email: user.email,
-                                        userId: user.id,
-                                        successUrl: window.location.href
-                                    })
+                                const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                                    body: {
+                                        price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY', // Executive Rewrite ($12.99 One-Time)
+                                        return_url: window.location.href,
+                                        email: user.email
+                                    }
                                 });
-                                const json = await res.json();
-                                if (json.data && json.data.url) window.location.href = json.data.url;
-                                else if (json.url) window.location.href = json.url;
-                                else throw new Error(json.error || "Checkout failed");
+
+                                if (error) throw error;
+                                if (data?.url) window.location.href = data.url;
+                                else throw new Error("No checkout URL returned");
                             } catch (e) {
-                                alert(e.message);
+                                console.error("Checkout Failed:", e);
+                                alert("Checkout failed: " + e.message);
                                 btn.textContent = oldText;
                                 btn.disabled = false;
                             }
