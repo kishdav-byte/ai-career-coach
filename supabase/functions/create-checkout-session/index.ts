@@ -18,8 +18,26 @@ serve(async (req) => {
     }
 
     try {
-        // 2. PARSE REQUEST
-        const { price_id, return_url } = await req.json()
+        // 2. PARSE REQUEST & GET USER
+        const { price_id, return_url, mode, plan_type, user_id: body_user_id, email: body_email } = await req.json()
+
+        // Get User from Auth Header (Secure)
+        const authHeader = req.headers.get('Authorization')!
+        const token = authHeader.replace('Bearer ', '')
+        const userRes = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                apikey: Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+            },
+        })
+        const userData = await userRes.json()
+        const user = userData.user
+
+        // Prioritize Auth User, fallback to Body (Sent by trusted app.js)
+        const userId = user?.id || body_user_id
+        const userEmail = user?.email || body_email
+
+        console.log(`Creating session for User: ${userId} (${userEmail}) - Plan: ${plan_type}`)
 
         // 3. CREATE SESSION
         const session = await stripe.checkout.sessions.create({
@@ -30,9 +48,16 @@ serve(async (req) => {
                     quantity: 1,
                 },
             ],
-            mode: 'payment', // or 'subscription' if price_id is recurring
+            mode: mode || 'payment',
             success_url: return_url || 'https://tryaceinterview.com/dashboard.html',
             cancel_url: return_url || 'https://tryaceinterview.com/dashboard.html',
+            client_reference_id: userId,
+            customer_email: userEmail,
+            metadata: {
+                user_id: userId,
+                user_email: userEmail,
+                plan_type: plan_type
+            }
         })
 
         // 4. RETURN SUCCESS (With Headers!)

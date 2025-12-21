@@ -173,8 +173,15 @@ async function checkAccess(requiredType = 'interview_credits') {
         return true;
     } else {
         // Prompt user to upgrade
-        if (confirm('You have 0 credits. Would you like to upgrade now?')) {
-            window.location.href = '/dashboard.html';
+        if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                initiateCheckout('strategy_interview_sim', user.email, user.id);
+            } else {
+                // Fallback to session
+                const session = getSession();
+                initiateCheckout('strategy_interview_sim', session ? session.email : null, session ? session.user_id : null);
+            }
         }
         return false;
     }
@@ -258,6 +265,90 @@ async function sendVoiceMessage(base64Audio) {
     } catch (e) {
         if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
         window.addMessage('Error: ' + e.message, 'system');
+    }
+}
+
+// Helper to reuse checkout logic (Global Scope)
+// Helper to reuse checkout logic (Global Scope)
+async function initiateCheckout(productKey, userEmail, userId) {
+    console.log('Initiating checkout for:', productKey);
+
+    const btn = document.querySelector('.btn-unlock');
+    // Optional: Simple UI feedback without crashing if button doesn't exist or isn't passed
+    if (btn) {
+        btn.innerText = 'Redirecting...';
+        btn.disabled = true;
+    }
+
+    try {
+        // 1. STRICT PRICING MAP
+        const priceMap = {
+            'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', // $9.99
+            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'            // $49.99
+        };
+
+        const actualPriceId = priceMap[productKey];
+
+        if (!actualPriceId) {
+            console.error("Invalid Product Key:", productKey);
+            alert("Error: invalid product selection.");
+            if (btn) {
+                btn.innerText = 'Unlock';
+                btn.disabled = false;
+            }
+            return;
+        }
+
+        // Determine Mode (Subscription vs Payment)
+        const isSubscription = actualPriceId === 'price_1Sbq1WIH1WTKNasqXrlCBDSD'; // Monthly Plan ID
+        const mode = isSubscription ? 'subscription' : 'payment';
+
+        console.log('Using Stripe Price ID:', actualPriceId, 'Mode:', mode);
+
+        // 2. Call Supabase Edge Function (STRICTLY)
+        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+            body: {
+                price_id: actualPriceId,
+                return_url: window.location.href,
+                email: userEmail,
+                user_id: userId,
+                mode: mode,
+                plan_type: productKey
+            }
+        });
+
+        if (error) {
+            let msg = error.message || 'Unknown error';
+            // Check if we can parse the response body for more details
+            if (error.context && typeof error.context.json === 'function') {
+                try {
+                    const body = await error.context.json();
+                    if (body && body.error) {
+                        msg = body.error; // Use the specific error from backend
+                    } else {
+                        msg += ' - ' + JSON.stringify(body);
+                    }
+                } catch (e) {
+                    console.warn('Could not parse error body:', e);
+                }
+            }
+            throw new Error(msg);
+        }
+
+        if (data?.url) {
+            window.location.href = data.url;
+        } else {
+            throw new Error('Stripe did not return a checkout URL.');
+        }
+
+    } catch (err) {
+        console.error('Checkout Failed Detail:', err);
+        alert('Payment Error: ' + (err.message || err));
+
+        if (btn) {
+            btn.innerText = 'Unlock';
+            btn.disabled = false;
+        }
     }
 }
 
@@ -378,61 +469,8 @@ function init() {
         });
     }
 
-    // Helper to reuse checkout logic
-    async function initiateCheckout(productKey, userEmail) {
-        console.log('Initiating checkout for:', productKey);
 
-        // 1. Get the button (Fixes the "event is not defined" crash)
-        // We check for both common IDs just in case
-        const btn = document.getElementById('btn-unlock-interview') || document.querySelector('.btn-unlock');
-        const originalText = btn ? btn.innerText : 'Unlock';
 
-        if (btn) {
-            btn.innerText = 'Redirecting...';
-            btn.disabled = true;
-        }
-
-        try {
-            // 2. PRICING MAP (Strictly enforced)
-            const priceMap = {
-                // This maps the Interview Unlock to the $9.99 Price ID
-                'strategy_interview_sim': 'price_1SeKmwIH1WTKNasq8mkEnDXu',
-
-                // Monthly Plan ($49.99)
-                'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'
-            };
-
-            // Get the correct ID or default to the key if not found
-            const actualPriceId = priceMap[productKey] || productKey;
-            console.log('Using Stripe Price ID:', actualPriceId);
-
-            // 3. Call the backend
-            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                body: {
-                    price_id: actualPriceId,
-                    return_url: window.location.href, // Returns user to the app after paying
-                    email: userEmail
-                }
-            });
-
-            if (error) throw error;
-
-            // 4. Redirect to Stripe
-            if (data?.url) {
-                window.location.href = data.url;
-            } else {
-                throw new Error('Stripe did not return a checkout URL.');
-            }
-
-        } catch (err) {
-            console.error('Checkout Failed:', err);
-            alert('Could not start payment. Please try again.');
-            if (btn) {
-                btn.innerText = originalText;
-                btn.disabled = false;
-            }
-        }
-    }
 
     // Handle Deep Linking on Load
     function handleDeepLink() {
@@ -800,7 +838,7 @@ function init() {
                         try {
                             const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                                 body: {
-                                    price_id: 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
+                                    price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
                                     return_url: window.location.origin + '/app.html?status=success#resume-builder'
                                 }
                             });
@@ -1609,7 +1647,7 @@ if (document.getElementById('generate-plan-btn')) {
                     try {
                         const { data, error } = await supabase.functions.invoke('create-checkout-session', {
                             body: {
-                                price_id: 'price_1SeKmwIH1WTKNasq8mkEnDXu', // Executive Rewrite
+                                price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
                                 return_url: window.location.origin + '/app.html?status=success#resume-builder'
                             }
                         });

@@ -1,24 +1,36 @@
 {
     "rewrites": [
         {
+            "source": "/api/health",
+            "destination": "/api/health.py"
+        },
+        {
+            "source": "/api/init-debug",
+            "destination": "/api/app.py"
+        },
+        {
             "source": "/api/auth/login",
-            "destination": "/api/index.py"
+            "destination": "/api/app.py"
         },
         {
             "source": "/api/auth/signup",
-            "destination": "/api/index.py"
+            "destination": "/api/app.py"
         },
         {
             "source": "/api/auth/user",
-            "destination": "/api/index.py"
+            "destination": "/api/app.py"
+        },
+        {
+            "source": "/api/create-checkout-session",
+            "destination": "/api/app.py"
         },
         {
             "source": "/api/(.*)",
-            "destination": "/api/index.py"
+            "destination": "/api/app.py"
         },
         {
             "source": "/api",
-            "destination": "/api/index.py"
+            "destination": "/api/app.py"
         },
         {
             "source": "/signup",

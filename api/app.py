@@ -1,66 +1,86 @@
 from flask import Flask, request, jsonify
-import re
-import os
-import requests
-import json
-import time
+import sys
+import traceback
 
-import base64
-import io
-import ast
-import asyncio
-import edge_tts
-from datetime import datetime, timedelta
-from dotenv import load_dotenv
-import stripe
-
-load_dotenv()
-
-# ==========================================
-# INITIALIZATION (MOVED TO TOP)
-# ==========================================
-from supabase import create_client, Client
-
-SUPABASE_URL = os.environ.get('SUPABASE_URL')
-SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
-# Support both standard naming conventions
-SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY') or os.environ.get('SUPABASE_SERVICE_KEY') or os.environ.get('SUPABASE_SERVICE_ROLE') or os.environ.get('SERVICE_ROLE_KEY')
-
-supabase: Client = None
-supabase_admin: Client = None
-
-if SUPABASE_URL:
-    if SUPABASE_KEY:
-        try:
-            supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
-            print("Supabase client initialized successfully")
-        except Exception as e:
-            print(f"Error initializing Supabase: {e}")
-    
-    if SUPABASE_SERVICE_KEY:
-        try:
-            supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
-            print("Supabase ADMIN client initialized successfully")
-        except Exception as e:
-            print(f"Error initializing Supabase Admin: {e}")
-    else:
-        print("WARNING: SUPABASE_SERVICE_ROLE_KEY not found. Webhooks may fail RLS.")
-
-from flask_cors import CORS
-
+# 1. EARLY INITIALIZATION to catch import errors
 app = Flask(__name__)
-app.url_map.strict_slashes = False
-CORS(app)
+INIT_ERROR = None
 
-@app.route('/health')
-def health_check():
-    return "API is running. Use /api/webhook-debug for diagnostic details."
+try:
+    import re
+    import os
+    import requests
+    import json
+    import time
+    import base64
+    import io
+    import ast
+    import asyncio
+    import edge_tts
+    from datetime import datetime, timedelta
+    from dotenv import load_dotenv
+    import stripe
+    from flask_cors import CORS
+    from supabase import create_client, Client
 
-# CONSTANTS
-VOICE_CAP = 50
+    load_dotenv()
+    CORS(app)
 
-# API Key from Environment Variable
-API_KEY = os.environ.get('OPENAI_API_KEY_')
+    # ==========================================
+    # INITIALIZATION
+    # ==========================================
+    SUPABASE_URL = os.environ.get('SUPABASE_URL')
+    SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
+    SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
+
+    supabase: Client = None
+    supabase_admin: Client = None
+
+    if SUPABASE_URL:
+        if SUPABASE_KEY:
+            try:
+                supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+                print("Supabase client initialized successfully")
+            except Exception as e:
+                print(f"Error initializing Supabase: {e}")
+        
+        if SUPABASE_SERVICE_KEY:
+            try:
+                supabase_admin = create_client(SUPABASE_URL, SUPABASE_SERVICE_KEY)
+                print("Supabase ADMIN client initialized successfully")
+            except Exception as e:
+                print(f"Error initializing Supabase Admin: {e}")
+        else:
+            print("WARNING: SUPABASE_SERVICE_ROLE_KEY not found. Webhooks may fail RLS.")
+    
+    # Configure App
+    app.url_map.strict_slashes = False
+
+    # CONSTANTS
+    VOICE_CAP = 50
+    API_KEY = os.environ.get('OPENAI_API_KEY_')
+
+    # Initialize Stripe (Moved inside try)
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+    stripe_price_id = os.environ.get('STRIPE_PRICE_ID')
+    stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+    app_domain = os.environ.get('APP_DOMAIN', 'http://localhost:3000')
+
+except Exception as e:
+    INIT_ERROR = f"Startup Error: {str(e)}\n{traceback.format_exc()}"
+    print(INIT_ERROR)
+
+@app.route('/api/init-debug')
+def init_status():
+    """Diagnostic route to check if app started cleanly."""
+    if INIT_ERROR:
+        return jsonify({"fatal_error": INIT_ERROR}), 500
+    
+    return jsonify({
+        "status": "clean_start", 
+        "supabase": "ready" if 'supabase' in globals() and supabase else "not_configured"
+    })
+
 
 # ==========================================
 # LOGGING HELPERS
@@ -91,11 +111,7 @@ def log_db_error(email, error_type, details):
     except Exception as e:
         print(f"Error Log Failed: {e}")
 
-# Initialize Stripe
-stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
-stripe_price_id = os.environ.get('STRIPE_PRICE_ID')
-stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
-app_domain = os.environ.get('APP_DOMAIN', 'http://localhost:3000')
+
 
 def generate_audio_openai(text, voice_id):
     """Generates audio using OpenAI TTS API."""
@@ -412,6 +428,7 @@ def optimize_resume_content():
 @app.route('/', methods=['POST', 'OPTIONS'])
 def api():
     print(f"Incoming request to /api: {request.path} [{request.method}]")
+
     # CORS Preflight
     if request.method == 'OPTIONS':
         return jsonify({'status': 'ok'}), 200
@@ -835,7 +852,7 @@ def api():
         if job_posting:
             context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Prepare to ask relevant interview questions."
         
-System Instructions:
+        system_prompt = f"""System Instructions:
 You are a strict but conversational hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method. 
 
 CONVERSATIONAL RULES:
@@ -921,7 +938,7 @@ Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved
 """
         
         messages = [
-            {"role": "system", "content": system_instruction},
+            {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
         ]
 
@@ -1855,6 +1872,16 @@ def user_profile():
         print(f"User Profile Fetch CRITICAL Error: {e}")
         import traceback
         traceback.print_exc()
+        # Log to DB for debugging
+        try:
+            if supabase_admin:
+                supabase_admin.table('error_logs').insert({
+                    'error_type': 'UserProfile_Crash',
+                    'details': f"Error: {str(e)}",
+                    'user_email': email if 'email' in locals() else 'unknown'
+                }).execute()
+        except:
+            pass
         return jsonify({"error": str(e)}), 500
 
 @app.route('/api/generate-strategy-tool', methods=['POST'])
@@ -2611,8 +2638,8 @@ def stripe_webhook():
                         trace("Adding UNLIMITED flags and 50 credit buffer")
 
                     elif metadata.get('feature') == 'rewrite' or plan_type == 'rewrite':
-                        update_data['credits'] = (user_data.get('credits', 0) or 0) + 1
-                        trace(f"Adding +1 credit for Rewrite. New: {update_data['credits']}")
+                        update_data['rewrite_credits'] = (user_data.get('rewrite_credits', 0) or 0) + 1
+                        trace(f"Adding +1 credit for Rewrite. New: {update_data['rewrite_credits']}")
                     
                     elif plan_type == 'complete':
                         update_data['credits'] = (user_data.get('credits', 0) or 0) + 2

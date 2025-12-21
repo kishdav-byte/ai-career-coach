@@ -6,33 +6,43 @@ const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
     httpClient: Stripe.createFetchHttpClient(),
 })
 
-// 1. DEFINE CORS HEADERS
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
 serve(async (req) => {
-    // 2. HANDLE THE PREFLIGHT (The "Bouncer" Check)
+    // LOGGING: Check if request hits the server
+    console.log(`[create-portal-session] Request received: ${req.method} ${req.url}`)
+
+    // 2. FIX CORS (CRITICAL): Handle OPTIONS request
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
-        const { returnUrl } = await req.json()
+        const body = await req.json()
+        const { returnUrl } = body
 
-        // Get the user's email from the auth header
-        const authHeader = req.headers.get('Authorization')!
+        console.log('[create-portal-session] Body parsed:', body)
+
+        const authHeader = req.headers.get('Authorization')
+        if (!authHeader) {
+            throw new Error('Missing Authorization header')
+        }
+
         const token = authHeader.replace('Bearer ', '')
-        const { data } = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
-            headers: { Authorization: `Bearer ${token}` },
-        }).then(res => res.json())
+        const { data: userData, error: userError } = await fetch(`${Deno.env.get('SUPABASE_URL')}/auth/v1/user`, {
+            headers: { Authorization: `Bearer ${token}`, apiKey: Deno.env.get('SUPABASE_ANON_KEY') || '' },
+        }).then(res => res.json().then(data => ({ data, error: null })).catch(error => ({ data: null, error })))
 
-        const userEmail = data?.user?.email
-
-        if (!userEmail) {
+        if (userError || !userData?.user?.email) {
+            console.error('[create-portal-session] User fetch error:', userError)
             throw new Error('User not authenticated')
         }
+
+        const userEmail = userData.user.email
+        console.log(`[create-portal-session] User authenticated: ${userEmail}`)
 
         // Find or create Stripe customer
         const customers = await stripe.customers.list({
@@ -41,21 +51,25 @@ serve(async (req) => {
         })
 
         let customerId: string
-
         if (customers.data.length > 0) {
             customerId = customers.data[0].id
         } else {
+            console.log(`[create-portal-session] Creating new Stripe customer for ${userEmail}`)
             const customer = await stripe.customers.create({
                 email: userEmail,
             })
             customerId = customer.id
         }
 
-        // Create billing portal session
+        console.log(`[create-portal-session] Using Customer ID: ${customerId}`)
+
+        // 1. DEPLOY EDGE FUNCTION & 3. Create Session
         const session = await stripe.billingPortal.sessions.create({
             customer: customerId,
             return_url: returnUrl || `${Deno.env.get('APP_DOMAIN')}/dashboard.html`,
         })
+
+        console.log(`[create-portal-session] Session created: ${session.url}`)
 
         return new Response(
             JSON.stringify({ url: session.url }),
@@ -65,6 +79,7 @@ serve(async (req) => {
             },
         )
     } catch (error) {
+        console.error('[create-portal-session] Error:', error.message)
         return new Response(
             JSON.stringify({ error: error.message }),
             {

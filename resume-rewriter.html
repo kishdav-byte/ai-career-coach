@@ -4,12 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Resume Builder - Strategy Lab</title>
+    <title>Executive Rewrite - Strategy Lab</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -182,8 +183,8 @@
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
                     LAB</h1>
-                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">RESUME<span
-                        class="text-blue-500">_BUILDER</span></div>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">EXECUTIVE<span
+                        class="text-blue-500">_REWRITE</span></div>
             </div>
             <a href="/dashboard.html"
                 class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
@@ -411,6 +412,22 @@
         <!-- Preview Area -->
         <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
             id="preview-scroll-area">
+
+            <!-- Unlock Overlay -->
+            <div id="unlock-overlay"
+                class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                    <i class="fas fa-lock text-2xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
+                <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get instant
+                    access with a single credit.</p>
+                <button id="btn-unlock"
+                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                    Unlock Tool ($9.99)
+                </button>
+            </div>
             <div class="resume-wrapper">
                 <div id="resume-preview" class="resume-paper modern">
                     <!-- Placeholder Content -->
@@ -485,6 +502,87 @@
                         localStorage.removeItem('strategy_context');
                     }
                 } catch (e) { console.error("Bad Context", e); }
+            }
+        });
+
+        // --- AUTH & CREDIT CHECK (Added Gating Logic) ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('supabase.auth.token');
+            if (!token) window.location.href = '/login.html';
+
+            const unlockOverlay = document.getElementById('unlock-overlay');
+            const btnGenerate = document.getElementById('generate-btn');
+            const btnUnlock = document.getElementById('btn-unlock');
+
+            // Initial Lock State
+            if (unlockOverlay) unlockOverlay.classList.remove('hidden');
+            if (btnGenerate) btnGenerate.disabled = true;
+
+            try {
+                const res = await fetch('/api/user-profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!res.ok) throw new Error("Failed to fetch profile");
+
+                const user = await res.json();
+
+                // Check Access (Unlimited OR Credits)
+                // For Rewrite, we check general 'credits' or a specific rewrite subscription/credit if it existed.
+                // Assuming Universal Credits for now as per dashboard logic.
+                const hasAccess = user.is_unlimited || (user.credits_rewrite && user.credits_rewrite > 0) || (user.credits && user.credits > 0);
+
+                if (hasAccess) {
+                    if (unlockOverlay) unlockOverlay.classList.add('hidden');
+                    if (btnGenerate) {
+                        btnGenerate.disabled = false;
+                        // Update button text to reflect cost status
+                        const costText = user.is_unlimited ? 'UNLIMITED' : '1 CREDIT';
+                        // Keep the icon and structure, just append text if needed, or leave as simple "GENERATE"
+                        // btnGenerate.querySelector('span').textContent = `GENERATE & OPTIMIZE (${costText})`;
+                    }
+                } else {
+                    // Locked Logic
+                    if (btnUnlock) {
+                        // Use 'strategy_interview_sim' price ID as placeholder or specific price ID if defined.
+                        // Based on dashboard, rewrite is $9.99. 
+                        // We use initiateCheckout from app.js if available, or fetch directly.
+                        // NOTE: app.js contains initiateCheckout. resume-rewriter.html does NOT import app.js in the visible code!
+                        // Wait, previous file view didn't show script imports at bottom. 
+                        // Assuming we need self-contained logic like 30-60-90 or replicate initiateCheckout.
+
+                        btnUnlock.onclick = async () => {
+                            const btn = btnUnlock;
+                            const oldText = btn.textContent;
+                            btn.textContent = 'Processing...';
+                            btn.disabled = true;
+
+                            try {
+                                const res = await fetch('/api', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                                    body: JSON.stringify({
+                                        action: 'create-checkout-session',
+                                        plan_type: 'rewrite', // Correct plan type for Universal Credit
+                                        email: user.email,
+                                        userId: user.id,
+                                        successUrl: window.location.href
+                                    })
+                                });
+                                const json = await res.json();
+                                if (json.data && json.data.url) window.location.href = json.data.url;
+                                else if (json.url) window.location.href = json.url;
+                                else throw new Error(json.error || "Checkout failed");
+                            } catch (e) {
+                                alert(e.message);
+                                btn.textContent = oldText;
+                                btn.disabled = false;
+                            }
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error("Auth check failed", e);
             }
         });
 

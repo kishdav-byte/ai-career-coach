@@ -231,7 +231,8 @@
                     <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                         Upgrade Hub
                     </div>
-                    <button onclick="buyCredits('price_1Sbq1WIH1WTKNasqXrlCBDSD')"
+                    <!-- Monthly Plan (Subscription) -->
+                    <button onclick="buyCredits('price_1Sbq1WIH1WTKNasqXrlCBDSD', 'subscription')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-teal rounded-lg hover:bg-teal/10 transition-all group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -239,7 +240,8 @@
                         </svg>
                         <span>Monthly Package ($49.99)</span>
                     </button>
-                    <button onclick="buyCredits('price_1SeKmwIH1WTKNasq8mkEnDXu')"
+                    <!-- Executive Rewrite (Payment) -->
+                    <button onclick="buyCredits('price_1SeRRnIH1WTKNasqQFCJDxH5', 'payment')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -270,6 +272,32 @@
                         if (icon) {
                             icon.classList.toggle('rotate-90');
                         }
+                    }
+                }
+
+                // Function to trigger Stripe Checkout
+                async function buyCredits(priceId, mode = 'payment') {
+                    console.log('Buying:', priceId, 'Mode:', mode);
+
+                    try {
+                        // Use Supabase Edge Function strictly
+                        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                            body: {
+                                price_id: priceId,
+                                return_url: window.location.href,
+                                mode: mode
+                            }
+                        });
+
+                        if (error) throw error;
+                        if (data?.url) {
+                            window.location.href = data.url;
+                        } else {
+                            throw new Error("No URL returned from checkout session");
+                        }
+                    } catch (error) {
+                        console.error('Checkout Error:', error);
+                        alert('Checkout failed to initialize. ' + (error.message || ''));
                     }
                 }
 
@@ -597,12 +625,20 @@
             console.log('Buying:', priceId);
 
             try {
+                // Use Supabase Edge Function strictly
                 const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                    body: { price_id: priceId, return_url: window.location.href }
+                    body: {
+                        price_id: priceId,
+                        return_url: window.location.href
+                    }
                 });
 
                 if (error) throw error;
-                if (data?.url) window.location.href = data.url;
+                if (data?.url) {
+                    window.location.href = data.url;
+                } else {
+                    throw new Error("No URL returned from checkout session");
+                }
             } catch (error) {
                 console.error('Checkout Error:', error);
                 alert('Checkout failed to initialize.');
