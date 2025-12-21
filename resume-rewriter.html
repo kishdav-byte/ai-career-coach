@@ -468,10 +468,10 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3Q-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
 
         // Initialize Supabase safely
-        const supabase = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+        const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
 
         (function checkAuth() {
-            if (!localStorage.getItem(SESSION_KEY) && !supabase) window.location.href = '/login.html';
+            if (!localStorage.getItem(SESSION_KEY) && !supabaseClient) window.location.href = '/login.html';
         })();
 
         // --- GLOBAL DATA STORE ---
@@ -525,7 +525,7 @@
 
         // --- AUTH & CREDIT CHECK (Refactored for Supabase SDK) ---
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!supabase) {
+            if (!supabaseClient) {
                 console.error("Supabase client not initialized - missing CDN?");
                 return;
             }
@@ -540,14 +540,14 @@
 
             try {
                 // 1. Get User
-                const { data: { user } } = await supabase.auth.getUser();
+                const { data: { user } } = await supabaseClient.auth.getUser();
                 if (!user) {
                     window.location.href = '/login.html';
                     return;
                 }
 
                 // 2. Get Profile Data (Select * for safety)
-                const { data: profile, error } = await supabase
+                const { data: profile, error } = await supabaseClient
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
@@ -581,7 +581,7 @@
                             btn.disabled = true;
 
                             try {
-                                const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                                const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
                                     body: {
                                         price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY', // Executive Rewrite ($12.99 One-Time)
                                         return_url: window.location.href,
