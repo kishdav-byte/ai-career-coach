@@ -106,6 +106,115 @@
             }
         }
 
+        /* Enhancement Page Styles */
+        .enhancement-page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.6;
+        }
+
+        /* Markdown Styles for Overview */
+        .enhancement-page h1 {
+            font-size: 22pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+
+        .enhancement-page h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #334155;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .enhancement-page h3 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .enhancement-page p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .enhancement-page ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .enhancement-page li {
+            margin-bottom: 0.25rem;
+        }
+
+        .enhancement-page strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .enhancement-page {
+                width: 100%;
+                box-shadow: none;
+                padding: 20px;
+                min-height: auto;
+            }
+        }
+
+        @media print {
+            @page {
+                margin: 0;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            aside,
+            .toolbar,
+            #unlock-overlay,
+            .glass-panel {
+                display: none !important;
+            }
+
+            main {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .resume-wrapper {
+                overflow: visible !important;
+            }
+
+            .enhancement-page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                page-break-after: always;
+                break-after: page;
+            }
+
+            .resume-paper {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+            }
+        }
+
         /* Modern Template Styles */
         .modern h1 {
             font-size: 24pt;
@@ -425,10 +534,13 @@
                     access with a single credit.</p>
                 <button id="btn-unlock"
                     class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
-                    Unlock Tool ($9.99)
+                    Unlock Tool ($12.99)
                 </button>
             </div>
             <div class="resume-wrapper">
+                <!-- NEW: Enhancement Overview Page -->
+                <div id="enhancement-preview" class="enhancement-page hidden"></div>
+
                 <div id="resume-preview" class="resume-paper modern">
                     <!-- Placeholder Content -->
                     <div class="text-center mt-32 text-gray-400">
@@ -583,7 +695,8 @@
                             try {
                                 const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
                                     body: {
-                                        price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY', // Executive Rewrite ($12.99 One-Time)
+                                        price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY',
+                                        plan_type: 'rewrite', // CRITICAL: Required for Webhook to fulfill credits
                                         return_url: window.location.href,
                                         email: user.email
                                     }
@@ -699,214 +812,92 @@
 
         // --- FUNCTIONS ---
 
-        // 1. SMART PARSE (Heuristic Text Scanner)
-        // Updated to accept text argument, defaults to manual input if null
-        // 1. SMART PARSE (Heuristic Text Scanner)
-        // Updated to accept text argument, defaults to manual input if null
+        // 1. SMART PARSE (AI-Powered)
         async function smartParse(inputText = null) {
             let text = inputText;
 
-            // Fallback to manual input if no argument passed
             if (!text) {
                 text = document.getElementById('source-resume').value;
             }
 
             if (!text) return alert("Please provide resume text or upload a file.");
 
-            // UI Feedback fallback
+            // UI Feedback
             const btn = document.querySelector('button[onclick="smartParse()"]');
-            let original = "";
+            let originalText = "Analyze & Fill";
             if (btn) {
-                original = btn.innerHTML;
-                btn.textContent = "Analyzing...";
+                originalText = btn.innerHTML;
+                btn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    AI Analyzing...
+                `;
                 btn.disabled = true;
             }
 
             try {
-                const lines = text.split(/\n+/).map(l => l.trim()).filter(l => l.length > 0);
-
-                // --- 1. CONTACT INFO EXTRACTION ---
-                const emailRegex = /([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/;
-                const phoneRegex = /(\+?1?[-.]?\s?\(?\d{3}\)?[-.]?\s?\d{3}[-.]?\s?\d{4})/;
-                // urlRegex to catch linkedin or portfolio links to exclude from summary
-                const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(linkedin\.com[^\s]+)/i;
-
-                let email = "";
-                let phone = "";
-                let name = "";
-                let location = "";
-
-                // Find Contact Info & Name
-                // We assume Name is the very first non-empty line that isn't contact info
-                let nameFound = false;
-
-                // Pre-process lines to extract specific info and mark them for skipping
-                const processedLines = lines.map(line => {
-                    let isContact = false;
-
-                    // Email
-                    const emailMatch = line.match(emailRegex);
-                    if (emailMatch) {
-                        if (!email) email = emailMatch[0];
-                        isContact = true;
-                    }
-
-                    // Phone
-                    const phoneMatch = line.match(phoneRegex);
-                    if (phoneMatch) {
-                        if (!phone) phone = phoneMatch[0];
-                        isContact = true;
-                    }
-
-                    // Link/Location-ish
-                    if (urlRegex.test(line) || line.includes('|') || line.includes('•')) {
-                        // Likely a header line with contact info delimeters
-                        // Check if it's strictly just contact info
-                        if (line.length < 100 && (line.includes('@') || /\d{3}/.test(line))) {
-                            isContact = true;
-                        }
-                    }
-
-                    // NAME DETECTION: 
-                    // First line that is NOT contact info and has no numbers is likely the Name
-                    if (!nameFound && !isContact && !/\d/.test(line) && line.length < 40 && !line.includes(':')) {
-                        name = line;
-                        nameFound = true;
-                        return { text: line, type: 'name' }; // Mark as name
-                    }
-
-                    return { text: line, type: isContact ? 'contact' : 'content' };
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'parse_resume',
+                        resume_text: text
+                    })
                 });
 
-                // Set Contact UI
-                if (name) document.getElementById('rb-name').value = name;
-                if (email) document.getElementById('rb-email').value = email;
-                if (phone) document.getElementById('rb-phone').value = phone;
+                const result = await response.json();
 
+                if (result.error) throw new Error(result.error);
+                if (!result.data) throw new Error("No data returned from AI");
 
-                // --- 2. SECTION SPLITTING ---
-                let currentSection = null; // Don't start in summary immediately
-                let sections = { summary: [], experience: [], education: [], skills: [] };
+                // Parse the nested JSON string from OpenAI
+                const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
 
-                const keywords = {
-                    summary: /summary|profile|objective|about me|professional profile/i,
-                    experience: /experience|work history|employment|history|professional background/i,
-                    education: /education|academic|university|degree|qualifications/i,
-                    skills: /skills|competencies|technologies|core competencies|technical skills/i,
-                    projects: /projects/i
-                };
-
-                for (let i = 0; i < processedLines.length; i++) {
-                    const lineObj = processedLines[i];
-                    if (lineObj.type === 'name' || lineObj.type === 'contact') continue; // Skip header stuff
-
-                    const line = lineObj.text;
-
-                    // Header Detection
-                    let isHeader = false;
-                    for (const [key, regex] of Object.entries(keywords)) {
-                        // Strict header check: Short line, matches keyword
-                        if (regex.test(line) && line.length < 50) {
-                            currentSection = key;
-                            isHeader = true;
-                            break;
-                        }
-                    }
-
-                    if (!isHeader) {
-                        // If no section defined yet, and it's a long block of text early on, assume Summary
-                        if (!currentSection && i < 15 && line.length > 50) {
-                            currentSection = 'summary';
-                        }
-
-                        if (currentSection && sections[currentSection]) {
-                            sections[currentSection].push(line);
-                        }
-                    }
+                // Populate Personal Info
+                if (data.personal) {
+                    if (data.personal.name) document.getElementById('rb-name').value = data.personal.name;
+                    if (data.personal.email) document.getElementById('rb-email').value = data.personal.email;
+                    if (data.personal.phone) document.getElementById('rb-phone').value = data.personal.phone;
                 }
 
-                // --- 3. POPULATE FIELDS ---
-
-                // Summary: Join lines, but ensure we don't grab garbage.
-                const summaryText = sections.summary.join('\n');
-                document.getElementById('rb-summary').value = summaryText;
-
-                // Skills
-                if (sections.skills.length > 0) {
-                    document.getElementById('rb-skills').value = sections.skills.join(', ');
+                // Populate Experience
+                if (data.experience && Array.isArray(data.experience)) {
+                    // Use helper variable to handle scoping if needed, or direct
+                    const expList = document.getElementById('rb-experience-list');
+                    expList.innerHTML = '';
+                    data.experience.forEach(item => {
+                        addExperience(item);
+                    });
                 }
 
-                // Experience Parsing (Improved)
-                const dateRegex = /((19|20)\d{2}|Present|Current|Now)/i;
-                let currentExp = null;
-                const expContainer = document.getElementById('rb-experience-list');
-                expContainer.innerHTML = '';
+                // Populate Education
+                if (data.education && Array.isArray(data.education)) {
+                    const eduList = document.getElementById('rb-education-list');
+                    eduList.innerHTML = '';
+                    data.education.forEach(item => {
+                        addEducation(item);
+                    });
+                }
 
-                sections.experience.forEach(line => {
-                    // Start of new job often has a date
-                    if (dateRegex.test(line) && line.length < 80) {
-                        if (currentExp) addExperience(currentExp);
-                        currentExp = {
-                            company: '',
-                            role: '',
-                            dates: line.trim(),
-                            description: ''
-                        };
-                    } else if (currentExp) {
-                        // Heuristic: Short line -> Role or Company. Long line -> Description.
-                        if (!currentExp.role) {
-                            currentExp.role = line;
-                        } else if (!currentExp.company && line.length < 60) {
-                            currentExp.company = line;
-                        } else {
-                            currentExp.description += line + '\n';
-                        }
-                    }
-                });
-                if (currentExp) addExperience(currentExp);
+                // Show Success
+                const uploadSuccess = document.getElementById('upload-success');
+                if (uploadSuccess) {
+                    uploadSuccess.classList.remove('hidden');
+                    const idle = document.getElementById('upload-idle');
+                    if (idle) idle.classList.add('hidden');
+                }
 
-                // Education Parsing
-                const eduContainer = document.getElementById('rb-education-list');
-                eduContainer.innerHTML = '';
-                let currentEdu = null;
+                // Auto-scroll
+                document.getElementById('manual-input-container').scrollIntoView({ behavior: 'smooth' });
 
-                sections.education.forEach(line => {
-                    // Detect degree keywords or common universities
-                    if (/Bachelor|Master|PhD|B\.?S|M\.?S|Associate|Diploma|MBA|University|College/i.test(line) || /\b20\d{2}\b/.test(line)) {
-                        if (currentEdu && (currentEdu.degree || currentEdu.school)) addEducation(currentEdu);
-
-                        // New entry
-                        currentEdu = { school: '', degree: '', dates: '' };
-
-                        if (/University|College|Institute|School/i.test(line)) {
-                            currentEdu.school = line;
-                        } else {
-                            currentEdu.degree = line;
-                        }
-
-                    } else if (currentEdu) {
-                        if (!currentEdu.school && /University|College|Institute|School/i.test(line)) {
-                            currentEdu.school = line;
-                        } else if (!currentEdu.dates && /\d{4}/.test(line)) {
-                            currentEdu.dates = line;
-                        } else {
-                            // If we have school/degree already, maybe just append
-                            if (!currentEdu.degree) currentEdu.degree = line;
-                        }
-                    }
-                });
-                if (currentEdu) addEducation(currentEdu);
-
-
-                // Expand sections for visibility
-                document.querySelectorAll('details').forEach(el => el.open = true);
-
-            } catch (e) {
-                console.error("Smart Parse Error:", e);
-                alert("Auto-fill encountered an issue. You may need to edit fields manually.");
+            } catch (err) {
+                console.error("AI Parse Error:", err);
+                alert("AI Parsing Failed: " + err.message + ". Please fill details manually.");
             } finally {
                 if (btn) {
-                    btn.textContent = original;
+                    btn.innerHTML = originalText;
                     btn.disabled = false;
                 }
             }
@@ -1023,7 +1014,17 @@
 
         function renderPreview(result, originalData) {
             const container = document.getElementById('resume-preview');
+            const overviewContainer = document.getElementById('enhancement-preview');
             const data = result;
+
+            // 1. Render Overview (If available)
+            if (data.enhancement_overview && overviewContainer) {
+                overviewContainer.classList.remove('hidden');
+                // Use Marked.js to parse the markdown
+                overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
+            } else if (overviewContainer) {
+                overviewContainer.classList.add('hidden');
+            }
 
             // Fallbacks
             const p = data.personal || originalData.personal;

@@ -1163,7 +1163,22 @@ When you recommend a solution that requires deep work (writing, simulation, nego
 
     elif action == 'parse_resume':
         resume_text = data.get('resume_text', '')
-        system_msg = "You are a data extraction assistant. Parse the provided resume text and return a JSON object with these keys: personal (name, email, phone, location, linkedin, summary), skills (array of strings), experience (array of objects with role, company, dates, description), education (array of objects with degree, school, dates). Return ONLY valid JSON."
+        system_msg = """You are a precise Resume Parsing Engine. Convert raw PDF text into structured JSON.
+        
+        CRITICAL RULES:
+        1. Fix Merged Text: PDF extraction often merges Title and Date (e.g., "Senior ManagerMarch 2024"). You MUST split these into Role and Date.
+        2. Ignore Artifacts: Do not parse lines like "Verizon logo" or repetitive headers as content.
+        3. Infer Missing Formatting: Capitalize names, fix spacing.
+        
+        RETURN JSON SCHEMA:
+        {
+            "personal": {"name": "", "email": "", "phone": "", "location": "", "linkedin": "", "summary": ""},
+            "skills": ["skill1", "skill2"],
+            "experience": [{"role": "", "company": "", "dates": "", "description": ""}],
+            "education": [{"degree": "", "school": "", "dates": ""}]
+        }
+        Return ONLY valid JSON.
+        """
         user_msg = f"Resume Text:\n{resume_text}"
         messages = [
             {"role": "system", "content": system_msg},
@@ -1230,9 +1245,14 @@ When you recommend a solution that requires deep work (writing, simulation, nego
         {json.dumps(user_data)}
 
         Return ONLY valid JSON matching the input structure. 
-        Return ONLY valid JSON matching the input structure. 
-        Do not add new fields (except 'job_title'). only update summary, experience descriptions, and skills.
-        Add a top-level field "job_title" with the inferred target role.
+        Do not add new fields (except 'job_title' and 'enhancement_overview'). 
+        
+        REQUIRED OUTPUT FIELDS:
+        1. "job_title": The inferred target role.
+        2. "enhancement_overview": A detailed Markdown summary (2-3 paragraphs) explaining the key changes made to align the resume with the Job Description. Highlight specific keywords added, tone shifts, and strategic improvements.
+        3. The rest of the resume structure (personal, experience, etc.) with optimized content.
+        
+        Update summary, experience descriptions, and skills to be result-oriented.
         """
         
         try:
