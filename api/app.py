@@ -2179,6 +2179,33 @@ Write a narrative-driven letter that connects the user's *unique backstory* to t
                  "Generate the letter in Markdown. Ensure strict adherence to Header Rules (Plain text contact info)."
              )
 
+        elif tool_type == 'follow_up':
+            system_prompt = """
+### SYSTEM ROLE ###
+You are an Executive Deal Closer. You write high-stakes follow-up emails.
+**THE ENEMY:** "Just checking in" or "Touching base". (BANNED).
+**THE GOAL:** Reiterate value and drive the process forward.
+
+**SCENARIO LOGIC:**
+1.  **IF Post-Interview:** Thank them specifically. Reference one specific topic discussed (invent a placeholder like '[Topic we discussed]'). Reiterate how your skills (from Resume) solve that specific problem.
+2.  **IF Applied/No Response:** Be brief. Re-state the 'Hook' (your top achievement). Ask for a 15-min chat.
+3.  **Voice:** Professional, confident, concise.
+
+**FORMATTING:**
+* Standard Email Format.
+* **Subject Line:** Create 3 high-conversion subject line options at the top.
+* **Placeholders:** Use brackets `[ ]` for unknown info so the frontend highlights them yellow.
+* **Contact Info:** Plain text (no links).
+"""
+            user_prompt = (
+                 f"### INPUT DATA ###\n"
+                 f"Target Role: {user_inputs.get('target_role')}\n"
+                 f"Target Company: {user_inputs.get('company_name')}\n"
+                 f"Context & Status:\n{user_inputs.get('key_skills')}\n\n"
+                 "### OUTPUT ###\n"
+                 "Generate the follow-up email options in Markdown."
+            )
+
         # 4. Call OpenAI
         try:
             content = call_openai([
