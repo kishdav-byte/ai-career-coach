@@ -127,7 +127,7 @@
 
 <body class="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-teal selection:text-black">
 
-    <div class="flex h-screen bg-slate-950">
+    <div class="flex md:h-screen min-h-screen bg-slate-950 relative flex-col md:flex-row">
 
         <!-- MOBILE HEADER (Visible < lg) -->
         <div
@@ -378,7 +378,8 @@
                 </div>
 
                 <!-- KANBAN BOARD (Flex grow to fill rest of screen) -->
-                <div class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory">
+                <div
+                    class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory min-h-[600px] md:min-h-0">
                     <div class="flex gap-4 h-full px-1">
 
                         <!-- COLUMN 1: TARGETS -->
