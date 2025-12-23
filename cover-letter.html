@@ -289,7 +289,7 @@
 
             // Check Credits
             const { data: profile } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
-            const credits = (profile?.credits_coverletter || 0) + (profile?.credits || 0); // Assuming credits_coverletter exists or just generic
+            const credits = (profile?.credits_cover_letter || 0) + (profile?.credits || 0); // Corrected Column Name
             const isUnlimited = profile?.is_unlimited || false;
 
             // GATEKEEPING LOGIC
