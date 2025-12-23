@@ -532,7 +532,11 @@ function init() {
     const optimizeLinkedinBtn = document.getElementById('optimize-linkedin-btn');
     if (optimizeLinkedinBtn) {
         optimizeLinkedinBtn.addEventListener('click', async () => {
-            const input = document.getElementById('linkedin-input').value;
+            const inputEl = document.getElementById('linkedin-input');
+            const input = inputEl ? inputEl.value : '';
+
+            console.log("Capturing LinkedIn Input:", input.substring(0, 50) + "..."); // Debug Log
+
             if (!input.trim()) return alert("Please paste your 'About' section content.");
 
             // UI Loading State
@@ -555,7 +559,7 @@ function init() {
                     body: JSON.stringify({
                         action: 'linkedin_optimize',
                         email: email,
-                        profile_text: input
+                        aboutMe: input
                     })
                 });
 
