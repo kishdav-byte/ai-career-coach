@@ -2079,6 +2079,18 @@ def generate_strategy_tool():
         # Any tool costs 1 Credit
         current_credits = user.get('credits', 0)
         has_credit = current_credits > 0
+        
+        # Tool-Specific Credit Overrides
+        if tool_type == 'cover_letter' and user.get('credits_cover_letter', 0) > 0:
+            has_credit = True
+        elif tool_type == 'plan' and user.get('credits_30_60_90', 0) > 0:
+             has_credit = True
+        elif tool_type == 'closer' and user.get('credits_negotiation', 0) > 0:
+             has_credit = True
+        elif tool_type == 'inquisitor' and user.get('credits_inquisitor', 0) > 0:
+             has_credit = True
+        elif tool_type == 'followup' and user.get('credits_followup', 0) > 0:
+             has_credit = True
 
         # Unlimited Override (Pro Plan)
         if user.get('is_unlimited', False):
@@ -2152,11 +2164,46 @@ def generate_strategy_tool():
              return jsonify({"error": f"AI Generation Failed: {str(ai_err)}"}), 500
 
         # 5. Deduct Credit (if not unlimited)
-        # 5. Deduct Credit (if not unlimited)
-        if not user.get('is_unlimited', False) and current_credits > 0:
-            new_val = current_credits - 1
-            db.table('users').update({'credits': new_val}).eq('email', user_email).execute()
-            print(f"Deducted 1 Universal Credit for {tool_type} from {user_email}")
+        # 5. Deduct Credit (Specific > Universal)
+        if not user.get('is_unlimited', False):
+            deducted = False
+            
+            # Specific Tool Deduction
+            if tool_type == 'cover_letter':
+                 val = user.get('credits_cover_letter', 0)
+                 if val > 0:
+                     db.table('users').update({'credits_cover_letter': val - 1}).eq('email', user_email).execute()
+                     deducted = True
+                     
+            elif tool_type == 'plan':
+                 val = user.get('credits_30_60_90', 0)
+                 if val > 0:
+                     db.table('users').update({'credits_30_60_90': val - 1}).eq('email', user_email).execute()
+                     deducted = True
+
+            elif tool_type == 'closer':
+                 val = user.get('credits_negotiation', 0)
+                 if val > 0:
+                     db.table('users').update({'credits_negotiation': val - 1}).eq('email', user_email).execute()
+                     deducted = True
+            
+            elif tool_type == 'inquisitor':
+                 val = user.get('credits_inquisitor', 0)
+                 if val > 0:
+                     db.table('users').update({'credits_inquisitor': val - 1}).eq('email', user_email).execute()
+                     deducted = True
+                     
+            elif tool_type == 'followup':
+                 val = user.get('credits_followup', 0)
+                 if val > 0:
+                     db.table('users').update({'credits_followup': val - 1}).eq('email', user_email).execute()
+                     deducted = True
+
+            # Universal Fallback (if specific not used)
+            if not deducted and current_credits > 0:
+                new_val = current_credits - 1
+                db.table('users').update({'credits': new_val}).eq('email', user_email).execute()
+                print(f"Deducted 1 Universal Credit for {tool_type} from {user_email}")
 
         return jsonify({"success": True, "content": content})
 
