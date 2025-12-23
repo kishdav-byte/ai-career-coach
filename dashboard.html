@@ -99,6 +99,28 @@
             transform: rotate(-90deg);
             transform-origin: 50% 50%;
         }
+
+        /* Action Chips */
+        .action-chip {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .action-chip:hover {
+            background: rgba(32, 201, 151, 0.1);
+            border-color: rgba(32, 201, 151, 0.4);
+            color: #20C997;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 
@@ -162,9 +184,6 @@
                         <a href="/cover-letter.html"
                             class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/cover-letter.html">Cover Letter Architect</a>
-                        <a href="/follow-up.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
-                            data-path="/follow-up.html">Strategic Follow-Up</a>
                     </div>
                 </div>
 
@@ -210,6 +229,9 @@
                         <a href="/strategy/closer.html"
                             class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/strategy/closer.html">Salary Negotiation</a>
+                        <a href="/follow-up.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            data-path="/follow-up.html">Strategic Follow-Up</a>
                     </div>
                 </div>
 
@@ -343,8 +365,8 @@
                         <div
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20"></div>
-                            <h3 id="plan-name" class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">
-                                Plan</h3>
+                            <h3 id="plan-type-label"
+                                class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Plan</h3>
                             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
                                 <div id="credit-bar" class="bg-teal h-full rounded-full" style="width: 0%"></div>
                             </div>
@@ -574,6 +596,28 @@
             const resClass = resScore > 80 ? 'text-green-500' : (resScore > 0 ? 'text-amber-500' : 'text-slate-600');
             const resIcon = resScore > 80 ? 'fa-check-circle' : 'fa-circle';
 
+            // CONTEXT-AWARE Quick Actions
+            let quickActions = '';
+
+            if (currentStatus === 'Identified' || currentStatus === 'Applied') {
+                quickActions = `
+                    <a href="/resume-analyzer.html" class="action-chip"><i class="fas fa-search-dollar"></i> Scan</a>
+                    <a href="/cover-letter.html" class="action-chip"><i class="fas fa-feather-alt"></i> CV</a>
+                    <a href="/app.html#linkedin" class="action-chip"><i class="fab fa-linkedin"></i> LI</a>
+                `;
+            } else if (currentStatus === 'Interviewing') {
+                quickActions = `
+                    <a href="/app.html#interview" class="action-chip"><i class="fas fa-microphone"></i> Mock</a>
+                    <a href="/star-drill.html" class="action-chip"><i class="fas fa-star"></i> STAR</a>
+                    <a href="/follow-up.html" class="action-chip"><i class="fas fa-paper-plane"></i> Reply</a>
+                `;
+            } else if (currentStatus === 'Offer') {
+                quickActions = `
+                    <a href="/strategy/closer.html" class="action-chip"><i class="fas fa-handshake"></i> Offer</a>
+                    <a href="/strategy/30-60-90.html" class="action-chip"><i class="fas fa-chart-line"></i> Plan</a>
+                `;
+            }
+
             return `
             <div class="mission-card bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col relative group hover:border-slate-600">
                 <div class="flex justify-between items-start mb-3">
@@ -603,7 +647,7 @@
                     </div>
                 </div>
 
-                <div class="flex gap-2">
+                <div class="flex gap-2 mb-3">
                      <button onclick="window.openWarRoom('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
                         WAR ROOM
                     </button>
@@ -611,6 +655,10 @@
                         class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Quick Plan">
                         <i class="fas fa-road text-[10px]"></i>
                     </button>
+                </div>
+                
+                <div class="flex flex-wrap gap-2">
+                    ${quickActions}
                 </div>
             </div>
             `;
@@ -716,19 +764,62 @@
 
                     const isPro = profile.subscription_status === 'active';
                     document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
-                    document.getElementById('plan-name').innerText = isPro ? 'Pro Plan' : 'Free Plan';
 
-                    // Credits
+                    // Plan & Credits Logic
                     const creds = profile.credits || 0;
-                    document.getElementById('credit-count').innerText = `${creds} Credits`;
-                    // Simple logic for bar
-                    const pct = Math.min(100, (creds / 10) * 100);
-                    document.getElementById('credit-bar').style.width = `${pct}%`;
+                    const planLabel = document.getElementById('plan-type-label');
+                    const creditLabel = document.getElementById('credit-count');
+                    const bar = document.getElementById('credit-bar');
+
+                    if (profile.is_unlimited) {
+                        planLabel.innerText = "Monthly Unlimited";
+                        creditLabel.innerText = "Unlimited Interviews";
+                        bar.style.width = '100%';
+                        bar.classList.add('bg-purple-500'); // Special color for unlimited
+                    } else if (profile.plan_tier === 'strategy_bundle') {
+                        planLabel.innerText = "Strategy Bundle";
+                        creditLabel.innerText = `${creds} Credits Left`;
+                        bar.style.width = `${Math.min(100, (creds / 20) * 100)}%`;
+                    } else {
+                        planLabel.innerText = "Free Plan";
+                        creditLabel.innerText = `${creds} Credits Left`;
+                        bar.style.width = `${Math.min(100, (creds / 10) * 100)}%`;
+                    }
+
                     if (isPro) document.getElementById('credit-bar').classList.add('bg-purple-500');
 
-                    // Resume Score Ring (Placeholder logic or fetch latest scan)
-                    if (profile.resume_score_avg) {
-                        setRing(profile.resume_score_avg);
+                    // --- REAL-TIME STATS FETCHING ---
+
+                    // 1. Resume Health (Last Scan)
+                    const { data: resumeData } = await supabase
+                        .from('resume_scans')
+                        .select('score')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (resumeData) {
+                        setRing(resumeData.score);
+                    } else {
+                        setRing(0);
+                    }
+
+                    // 2. Interview Score (Last Interview Average)
+                    // Note: 'interviews' table usually has 'average_score' or 'score' column. 
+                    // I will check for 'average_score' based on previous context or fallback to 0.
+                    const { data: interviewData } = await supabase
+                        .from('interviews')
+                        .select('average_score')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .single();
+
+                    if (interviewData && interviewData.average_score) {
+                        document.getElementById('interview-score').innerHTML = `${interviewData.average_score}<span class="text-gray-500 text-xl">/10</span>`;
+                    } else {
+                        document.getElementById('interview-score').innerHTML = `0<span class="text-gray-500 text-xl">/10</span>`;
                     }
                 }
             } catch (e) {
