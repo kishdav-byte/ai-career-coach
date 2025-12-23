@@ -2153,6 +2153,14 @@ You are an Executive Ghostwriter for high-level leaders. You DO NOT write standa
 ### THE GOAL ###
 Write a narrative-driven letter that connects the user's *unique backstory* to the company's *hardest problems*.
 
+### STRICT HEADER RULES:
+1.  **Contact Info:** Output the User's Email and Phone as PLAIN TEXT.
+    * **Bad:** `[Email: user@test.com](mailto:...)`
+    * **Bad:** `Email: user@test.com`
+    * **Good:** `user@test.com`
+2.  **Placeholders:** For unknown info (Date, Hiring Manager, Company Address), use simple square brackets: `[Date]`, `[Hiring Manager Name]`, `[Company Address]`.
+3.  **No Markdown Links:** Do not turn emails or numbers into clickable links.
+
 ### STRICT INSTRUCTIONS ###
 1.  **The Hook (Paragraph 1):** DO NOT mention the job title in the first sentence. Start with a philosophy or a specific story from the user's resume (e.g., "Operations isn't about spreadsheets; it's about people..."). If the user has a "grit" story (e.g., "started in a restaurant" or "manual labor"), YOU MUST LEAD WITH THAT.
 2.  **The Bridge (Paragraph 2):** Connect that gritty past to their current executive success. (e.g., "That early experience taught me X, which I used at Verizon to save $1M.").
@@ -2168,7 +2176,7 @@ Write a narrative-driven letter that connects the user's *unique backstory* to t
                  f"Hiring Manager: {manager}\n\n"
                  f"User's Resume & Context:\n{user_inputs.get('key_skills')}\n\n"
                  "### OUTPUT ###\n"
-                 "Generate the letter in Markdown."
+                 "Generate the letter in Markdown. Ensure strict adherence to Header Rules (Plain text contact info)."
              )
 
         # 4. Call OpenAI
