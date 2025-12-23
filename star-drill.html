@@ -101,6 +101,17 @@
                         class="w-full h-full min-h-[300px] bg-slate-900/60 border border-slate-700/60 rounded-xl p-6 text-base text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
                         placeholder="Example: I had to deal with a conflict in my team last year. Two engineers were arguing about the architecture..."></textarea>
 
+                    <!-- Mic Button -->
+                    <button id="mic-btn" onclick="toggleRecording()"
+                        class="absolute bottom-4 left-4 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all shadow-lg group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                        title="Dictate Story">
+                        <svg id="mic-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
+                            </path>
+                        </svg>
+                    </button>
+
                     <div id="word-count"
                         class="absolute bottom-4 right-4 text-[10px] text-slate-600 font-mono tracking-wider transition-colors">
                         0 Words
@@ -335,6 +346,78 @@
             navigator.clipboard.writeText(full);
             document.getElementById('copy-msg').classList.remove('hidden');
             setTimeout(() => document.getElementById('copy-msg').classList.add('hidden'), 2000);
+        }
+
+        // --- SPEECH TO TEXT ---
+        let recognition = null;
+        let isRecording = false;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function () {
+                isRecording = true;
+                const btn = document.getElementById('mic-btn');
+                const icon = document.getElementById('mic-icon');
+
+                // Visual State: Recording (Red Pulse)
+                btn.classList.remove('bg-slate-800', 'text-slate-400');
+                btn.classList.add('bg-red-500/20', 'text-red-500', 'animate-pulse');
+                btn.setAttribute('title', 'Stop Recording');
+
+                textarea.placeholder = "Listening...";
+            };
+
+            recognition.onend = function () {
+                isRecording = false;
+                const btn = document.getElementById('mic-btn');
+
+                // Reset Visual State
+                btn.classList.add('bg-slate-800', 'text-slate-400');
+                btn.classList.remove('bg-red-500/20', 'text-red-500', 'animate-pulse');
+                btn.setAttribute('title', 'Dictate Story');
+
+                textarea.placeholder = "Example: I had to deal with a conflict in my team last year...";
+            };
+
+            recognition.onresult = function (event) {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript + ' ';
+                    }
+                }
+
+                if (finalTranscript) {
+                    // Append to existing text
+                    textarea.value += finalTranscript;
+                    // Trigger input event to update word count
+                    textarea.dispatchEvent(new Event('input'));
+                }
+            };
+
+            recognition.onerror = function (event) {
+                console.error("Speech Error:", event.error);
+                if (event.error === 'not-allowed') {
+                    alert("Microphone access denied. Please allow microphone permissions to use dictation.");
+                }
+                isRecording = false;
+            };
+        } else {
+            console.log("Web Speech API not supported.");
+            document.getElementById('mic-btn').style.display = 'none';
+        }
+
+        function toggleRecording() {
+            if (!recognition) return alert("Your browser does not support voice dictation. Try Chrome or Safari.");
+
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
         }
     </script>
 </body>
