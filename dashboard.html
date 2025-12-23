@@ -504,6 +504,60 @@
         </div>
     </div>
 
+    <!-- Mission Dossier Slide-Over -->
+    <div id="mission-dossier"
+        class="fixed inset-y-0 right-0 w-full md:w-[600px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        <div class="p-6 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
+            <div>
+                <h2 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">MISSION DOSSIER</h2>
+                <h3 id="dossier-title" class="text-xl font-bold text-white truncate w-80">Job Title</h3>
+                <p id="dossier-company" class="text-sm text-slate-400">Company Name</p>
+            </div>
+            <button onclick="closeDossier()" class="text-slate-500 hover:text-white transition-colors"><i
+                    class="fas fa-times text-xl"></i></button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+
+            <div class="space-y-3">
+                <label class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-user-secret"></i> Interviewer Intel & Notes
+                </label>
+                <textarea id="dossier-notes"
+                    class="w-full h-32 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-600"
+                    placeholder="Example: VP of Ops hates buzzwords. Mention the 'Project Alpha' win. They use Asana for project management..."></textarea>
+            </div>
+
+            <div class="space-y-3">
+                <label class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-file-alt"></i> Role Requirements (JD)
+                </label>
+                <textarea id="dossier-jd"
+                    class="w-full h-64 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-xs leading-relaxed custom-scroll"
+                    placeholder="Paste the full Job Description here..."></textarea>
+            </div>
+
+            <div class="space-y-3">
+                <label class="text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-money-bill-wave"></i> Salary Target / Offer
+                </label>
+                <input type="text" id="dossier-salary"
+                    class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                    placeholder="e.g. $150k Base + 20% Bonus">
+            </div>
+
+        </div>
+
+        <div class="p-6 border-t border-slate-700 bg-slate-950 flex justify-end gap-3">
+            <button onclick="closeDossier()"
+                class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
+            <button onclick="saveDossier()"
+                class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2">
+                <i class="fas fa-save"></i> SAVE INTEL
+            </button>
+        </div>
+    </div>
+
     <!-- Hidden PDF Logic (Retained for compatibility if needed in future, but hidden from UI) -->
     <div id="resume-drop-zone" style="display:none;"></div>
 
