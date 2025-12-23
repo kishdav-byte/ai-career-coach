@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cover Letter Architect | AI Career Coach</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <!-- Marked JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+        }
+
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        .resume-paper {
+            box-sizing: border-box;
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            .resume-wrapper {
+                overflow-x: scroll;
+            }
+
+            .resume-paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+        }
+
+        .markdown-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .markdown-content h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            margin-bottom: 0.5em;
+            color: #0f172a;
+        }
+
+        .markdown-content h2 {
+            font-size: 14pt;
+            font-weight: 600;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 5px;
+        }
+
+        .markdown-content p {
+            margin-bottom: 1em;
+            color: #334155;
+        }
+
+        .markdown-content ul {
+            list-style-type: disc;
+            margin-left: 1.5em;
+            margin-bottom: 1em;
+        }
+
+        .markdown-content li {
+            margin-bottom: 0.5em;
+        }
+    </style>
+</head>
+
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+
+    <!-- LEFT PANEL: INPUTS (35%) -->
+    <aside
+        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Header -->
+        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">THE
+                    CLINIC</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">COVER_LETTER<span
+                        class="text-blue-500">_ARCHITECT</span></div>
+            </div>
+            <a href="dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+        </div>
+
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
+
+            <!-- Input 1: Resume Upload -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Your Resume
+                </label>
+                <div id="dropzone"
+                    class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-8 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                    <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                    <div id="upload-idle">
+                        <div
+                            class="w-12 h-12 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                            <i class="fas fa-cloud-upload-alt text-xl text-slate-400 group-hover:text-blue-400"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase">Parses context & skills</p>
+                    </div>
+                    <div id="upload-success" class="hidden">
+                        <div
+                            class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <i class="fas fa-check text-green-400"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-white truncate px-2" id="filename-display">resume.pdf</p>
+                        <button onclick="resetUpload(event)"
+                            class="text-[9px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-2 font-bold transition-colors">Change
+                            File</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2: Job Description -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    2. Target Job Description
+                </label>
+                <div class="relative group">
+                    <textarea id="job-description"
+                        class="w-full h-48 bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                        placeholder="Paste the Job Description here... AND tell me a bit about your background (or paste your resume)."></textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+            <!-- This button text will update based on lock state -->
+            <button id="generate-btn" onclick="generateCoverLetter()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                <span>DRAFT COVER LETTER</span>
+                <i class="fas fa-pen-nib"></i>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- RIGHT PANEL: PREVIEW (65%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                Review & Edit
+            </h2>
+            <button onclick="copyContent()"
+                class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                <i class="fas fa-copy"></i> COPY TEXT
+            </button>
+        </div>
+
+        <!-- Preview Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+            id="preview-scroll-area">
+
+            <!-- LOCK OVERLAY -->
+            <div id="unlock-overlay"
+                class="hidden absolute inset-0 bg-slate-950/90 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8 rounded-xl">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                    <i class="fas fa-lock text-2xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Unlock Cover Letter Architect</h2>
+                <p class="text-slate-400 mb-6 max-w-sm">Premium AI-driven writing requires access. Get instant result
+                    with a single credit.</p>
+                <button id="btn-unlock-overlay"
+                    class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20">
+                    Unlock Tool ($6.99)
+                </button>
+            </div>
+
+            <div id="loader" class="hidden text-center mt-32">
+                <div
+                    class="w-16 h-16 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin mx-auto mb-4">
+                </div>
+                <p class="text-blue-400 animate-pulse font-bold tracking-widest text-xs">CRAFTING NARRATIVE...</p>
+            </div>
+
+            <div id="result-container" class="resume-wrapper hidden">
+                <div class="resume-paper">
+                    <div id="markdown-output" class="markdown-content"></div>
+                </div>
+            </div>
+
+            <div id="empty-state" class="text-center mt-32 text-slate-600">
+                <div
+                    class="w-20 h-20 bg-slate-900/50 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800">
+                    <span class="text-4xl">📝</span>
+                </div>
+                <h3 class="text-lg font-bold text-slate-400 mb-2">Ready to Write</h3>
+                <p class="text-sm text-slate-500 max-w-xs mx-auto">Upload your resume and paste the job description to
+                    generate a tailored cover letter.</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- AUTH & CONFIG ---
+        const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+        const supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
+
+        // Global State
+        let extractedResumeText = "";
+        let isLocked = true; // Default locked until checked
+        let userEmail = null;
+        let userId = null;
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!supabaseClient) { window.location.href = 'login.html'; return; }
+
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) { window.location.href = 'login.html'; return; }
+            userEmail = user.email;
+            userId = user.id;
+
+            // Check Credits
+            const { data: profile } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
+            const credits = (profile?.credits_coverletter || 0) + (profile?.credits || 0); // Assuming credits_coverletter exists or just generic
+            const isUnlimited = profile?.is_unlimited || false;
+
+            // GATEKEEPING LOGIC
+            const overlay = document.getElementById('unlock-overlay');
+            const genBtn = document.getElementById('generate-btn');
+
+            if (isUnlimited || credits > 0) {
+                isLocked = false;
+                overlay.classList.add('hidden');
+                genBtn.innerHTML = '<span>DRAFT COVER LETTER</span><i class="fas fa-pen-nib"></i>';
+            } else {
+                isLocked = true;
+                overlay.classList.remove('hidden');
+                genBtn.innerHTML = '<span>UNLOCK ($6.99)</span><i class="fas fa-lock"></i>';
+            }
+
+            // Bind Unlock Button
+            document.getElementById('btn-unlock-overlay').onclick = triggerCheckout;
+        });
+
+        async function triggerCheckout() {
+            const btn = document.getElementById('btn-unlock-overlay');
+            btn.innerHTML = 'Redirecting...';
+            try {
+                // Use reuseable map logic if we had shared app.js, but here we inline or use generic
+                const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
+                    body: {
+                        price_id: 'price_1ShWBJIH1WTKNasqd7p9VA5f', // Reusing LinkedIn Price $6.99 as per request logic similarity
+                        plan_type: 'cover_letter', // New Type
+                        return_url: window.location.href,
+                        email: userEmail,
+                        user_id: userId
+                    }
+                });
+                if (data?.url) window.location.href = data.url;
+                else alert("Error creating checkout session");
+            } catch (e) {
+                console.error(e);
+                alert("Checkout Error");
+            }
+        }
+
+        // --- DRAG & DROP ---
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-upload');
+        const uploadIdle = document.getElementById('upload-idle');
+        const uploadSuccess = document.getElementById('upload-success');
+        const filenameDisplay = document.getElementById('filename-display');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.add('drag-active'), false));
+        ['dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.remove('drag-active'), false));
+        dropzone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        async function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                filenameDisplay.textContent = file.name;
+                try {
+                    if (file.type === "application/pdf") {
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const tc = await page.getTextContent();
+                            fullText += tc.items.map(s => s.str).join(' ');
+                        }
+                        extractedResumeText = fullText;
+                    } else {
+                        extractedResumeText = await file.text();
+                    }
+                    uploadIdle.classList.add('hidden');
+                    uploadSuccess.classList.remove('hidden');
+                    dropzone.classList.remove('border-dashed', 'border-blue-500/30');
+                    dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+                } catch (e) {
+                    console.error(e);
+                    alert("File Parse Error");
+                }
+            }
+        }
+        window.resetUpload = (e) => {
+            e.stopPropagation();
+            fileInput.value = '';
+            extractedResumeText = "";
+            uploadIdle.classList.remove('hidden');
+            uploadSuccess.classList.add('hidden');
+            dropzone.classList.add('border-dashed', 'border-blue-500/30');
+            dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80', 'drag-active');
+        }
+
+        // --- GENERATE ---
+        async function generateCoverLetter() {
+            if (isLocked) {
+                // If button clicked while locked, trigger checkout
+                if (confirm("Unlock Cover Letter Architect for $6.99?")) triggerCheckout();
+                return;
+            }
+
+            const jd = document.getElementById('job-description').value;
+            if (!extractedResumeText) return alert("Please upload a resume.");
+            if (!jd) return alert("Please paste the job description.");
+
+            const loader = document.getElementById('loader');
+            const resultContainer = document.getElementById('result-container');
+            const emptyState = document.getElementById('empty-state');
+            const outputDiv = document.getElementById('markdown-output');
+            const btn = document.getElementById('generate-btn');
+
+            btn.disabled = true;
+            emptyState.classList.add('hidden');
+            resultContainer.classList.add('hidden');
+            loader.classList.remove('hidden');
+
+            try {
+                // NOTE: Using token for consistency with other backend calls if needed, 
+                // but supabaseClient is initialized differently. 
+                // We'll try to use the simple /api/generate-strategy-tool endpoint with the token from storage if available
+                // Use SDK to get fresh token (Robust Fix)
+                const { data: sessionData } = await supabaseClient.auth.getSession();
+                const token = sessionData.session?.access_token;
+
+                if (!token) {
+                    throw new Error("Session expired. Please log in again.");
+                }
+
+                const res = await fetch('/api/generate-strategy-tool', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        email: userEmail, // from auth init
+                        tool_type: 'cover_letter',
+                        inputs: {
+                            target_role: "Role",
+                            company_name: "Company",
+                            key_skills: `RESUME:\n${extractedResumeText.substring(0, 3000)}\n\nJOB:\n${jd.substring(0, 3000)}`
+                        }
+                    })
+                });
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                outputDiv.innerHTML = marked.parse(data.content);
+                resultContainer.classList.remove('hidden');
+
+            } catch (e) {
+                alert("Error: " + e.message);
+                emptyState.classList.remove('hidden');
+            } finally {
+                loader.classList.add('hidden');
+                btn.disabled = false;
+            }
+        }
+
+        window.copyContent = () => {
+            const text = document.getElementById('markdown-output').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Copied!");
+        }
+
+    </script>
+</body>
+
+</html>
