@@ -131,7 +131,7 @@
 
         <!-- MOBILE HEADER (Visible < lg) -->
         <div
-            class="lg:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
+            class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
             <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
             <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
                 <i class="fas fa-bars"></i>
@@ -140,7 +140,7 @@
 
         <!-- SIDEBAR (Fixed Left) -->
         <aside id="sidebar"
-            class="fixed inset-y-0 left-0 w-[250px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full lg:translate-x-0 lg:static">
+            class="fixed inset-y-0 left-0 w-[250px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
 
             <!-- Logo Area -->
             <div class="h-20 flex items-center px-8 mt-4 lg:mt-0">
@@ -280,11 +280,11 @@
         <div class="flex-1 flex flex-col min-w-0 lg:ml-0 overflow-hidden relative">
 
             <!-- Mobile Overlay -->
-            <div id="mobile-overlay" class="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+            <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
                 onclick="toggleSidebar()"></div>
 
             <!-- Top Spacer for Mobile Header -->
-            <div class="h-16 lg:hidden flex-shrink-0"></div>
+            <div class="h-16 md:hidden flex-shrink-0"></div>
 
             <!-- Scrollable Content Area -->
             <main
@@ -308,7 +308,7 @@
                     </div>
 
                     <!-- 1. Key Metrics Row (4 Columns) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
 
                         <!-- Metric 1: Resume Health -->
                         <a href="/resume-analyzer.html"
@@ -378,12 +378,12 @@
                 </div>
 
                 <!-- KANBAN BOARD (Flex grow to fill rest of screen) -->
-                <div class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6">
-                    <div class="flex gap-6 h-full min-w-[1000px] px-1">
+                <div class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory">
+                    <div class="flex gap-4 h-full px-1">
 
                         <!-- COLUMN 1: TARGETS -->
                         <div
-                            class="flex-1 flex flex-col min-w-[300px] bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
                             <div
                                 class="p-4 border-b border-slate-700/50 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
                                 <h3
@@ -401,7 +401,7 @@
 
                         <!-- COLUMN 2: APPLIED -->
                         <div
-                            class="flex-1 flex flex-col min-w-[300px] bg-blue-900/10 rounded-xl border border-dashed border-blue-900/30">
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-blue-900/10 rounded-xl border border-dashed border-blue-900/30">
                             <div
                                 class="p-4 border-b border-blue-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
                                 <h3
@@ -420,7 +420,7 @@
 
                         <!-- COLUMN 3: INTERVIEWING -->
                         <div
-                            class="flex-1 flex flex-col min-w-[300px] bg-purple-900/10 rounded-xl border border-dashed border-purple-900/30">
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-purple-900/10 rounded-xl border border-dashed border-purple-900/30">
                             <div
                                 class="p-4 border-b border-purple-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
                                 <h3
@@ -439,7 +439,7 @@
 
                         <!-- COLUMN 4: OFFER / CLOSED -->
                         <div
-                            class="flex-1 flex flex-col min-w-[300px] bg-green-900/10 rounded-xl border border-dashed border-green-900/30">
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-green-900/10 rounded-xl border border-dashed border-green-900/30">
                             <div
                                 class="p-4 border-b border-green-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
                                 <h3
