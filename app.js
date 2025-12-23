@@ -528,6 +528,70 @@ function init() {
         });
     }
 
+    // Bind Optimize LinkedIn Action
+    const optimizeLinkedinBtn = document.getElementById('optimize-linkedin-btn');
+    if (optimizeLinkedinBtn) {
+        optimizeLinkedinBtn.addEventListener('click', async () => {
+            const input = document.getElementById('linkedin-input').value;
+            if (!input.trim()) return alert("Please paste your 'About' section content.");
+
+            // UI Loading State
+            const originalText = optimizeLinkedinBtn.innerHTML;
+            optimizeLinkedinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OPTIMIZING...';
+            optimizeLinkedinBtn.disabled = true;
+
+            const resultsArea = document.getElementById('linkedin-results-area');
+            const placeholder = document.getElementById('linkedin-placeholder');
+            const recommendationsEl = document.getElementById('linkedin-recommendations');
+            const refinedEl = document.getElementById('linkedin-refined-sample');
+
+            try {
+                const session = getSession();
+                const email = session ? session.email : null;
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'linkedin_optimize',
+                        email: email,
+                        profile_text: input
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    alert('Error: ' + result.error);
+                    if (result.redirect) window.location.href = result.redirect;
+                } else {
+                    // Success: Show Results
+                    placeholder.classList.add('hidden');
+                    resultsArea.classList.remove('hidden');
+
+                    // Render Recommendations
+                    if (result.recommendations && Array.isArray(result.recommendations)) {
+                        recommendationsEl.innerHTML = result.recommendations.map(rec =>
+                            `<div class="flex gap-2 items-start"><span class="text-blue-500">•</span> <p>${rec}</p></div>`
+                        ).join('');
+                    } else {
+                        recommendationsEl.innerHTML = '<p>Profile analyzed. See refined version below.</p>';
+                    }
+
+                    // Render Refined Text
+                    refinedEl.textContent = result.refined_content || "Optimization complete.";
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert('Connection Error: ' + error.message);
+            } finally {
+                optimizeLinkedinBtn.innerHTML = originalText;
+                optimizeLinkedinBtn.disabled = false;
+            }
+        });
+    }
+
 
 
 
