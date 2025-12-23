@@ -1220,8 +1220,14 @@ If input is present, generate the profile now. Verify every number against the i
             response_text = response_text[:-3]
 
         try:
+            # LOG ACTIVITY: Record that the user optimized their profile
+            log_db_activity(data.get('email', 'unknown'), 'linkedin_optimize', {"status": "success"})
+            
             return jsonify(json.loads(response_text))
         except:
+            # LOG ACTIVITY: Record success even if JSON parsing had to fallback (still "worked")
+            log_db_activity(data.get('email', 'unknown'), 'linkedin_optimize', {"status": "fallback_string"})
+            
             # Fallback if AI returns bad JSON
             # Return raw text in refined_content so user sees SOMETHING
             return jsonify({"recommendations": [], "refined_content": response_text})
