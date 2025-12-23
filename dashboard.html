@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Executive Hub - AceInterview</title>
-    <!-- Tailwind CSS (via CDN for immediate utility usage as requested) -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -20,12 +20,17 @@
                     },
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
                     }
                 }
             }
         }
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        rel="stylesheet">
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
@@ -51,7 +56,6 @@
         body {
             font-family: 'Inter', sans-serif;
             background: #0f172a;
-            /* Fallback */
         }
 
         .glass-card {
@@ -62,6 +66,31 @@
 
         .glass-card:hover {
             border-color: rgba(32, 201, 151, 0.3);
+        }
+
+        /* Custom Scrollbar for Kanban */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        .mission-card {
+            transition: all 0.2s ease;
+        }
+
+        .mission-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border-color: #475569;
         }
 
         /* Custom Ring for Resume Health */
@@ -83,12 +112,7 @@
             class="lg:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
             <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
             <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="4" y1="12" x2="20" y2="12" />
-                    <line x1="4" y1="6" x2="20" y2="6" />
-                    <line x1="4" y1="18" x2="20" y2="18" />
-                </svg>
+                <i class="fas fa-bars"></i>
             </button>
         </div>
 
@@ -110,27 +134,8 @@
                 <a href="/dashboard.html"
                     class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5"
                     data-path="/dashboard.html">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect width="7" height="9" x="3" y="3" rx="1" />
-                        <rect width="7" height="5" x="14" y="3" rx="1" />
-                        <rect width="7" height="9" x="14" y="12" rx="1" />
-                        <rect width="7" height="5" x="3" y="16" rx="1" />
-                    </svg>
+                    <i class="fas fa-columns w-5 text-center"></i>
                     <span>Dashboard</span>
-                </a>
-
-                <!-- Job Tracker (Moved) -->
-                <a href="/strategy/strategy-log.html"
-                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5"
-                    data-path="/strategy/strategy-log.html">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path
-                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                        </path>
-                    </svg>
-                    <span>Job Tracker</span>
                 </a>
 
                 <!-- The Clinic Category -->
@@ -138,39 +143,27 @@
                     <button onclick="toggleGroup('clinic')"
                         class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
                         <div class="flex items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
-                                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-                                <polyline points="14 2 14 8 20 8" />
-                                <path d="M16 13H8" />
-                                <path d="M16 17H8" />
-                                <path d="M10 9H8" />
-                            </svg>
+                            <i class="fas fa-user-md text-slate-500 group-hover:text-white w-5 text-center"></i>
                             <span>The Clinic</span>
                         </div>
-                        <svg id="icon-clinic" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            class="text-slate-500 transform transition-transform duration-200 rotate-90">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <i id="icon-clinic"
+                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
                     </button>
-                    <div id="group-clinic" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                    <div id="group-clinic" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
                         <a href="/resume-analyzer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/resume-analyzer.html">Resume Scanner</a>
                         <a href="/resume-rewriter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/resume-rewriter.html">Executive Rewrite</a>
                         <a href="/app.html#linkedin"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/app.html#linkedin">LinkedIn Optimizer</a>
                         <a href="/cover-letter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/cover-letter.html">Cover Letter Architect</a>
                         <a href="/follow-up.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/follow-up.html">Strategic Follow-Up</a>
                     </div>
                 </div>
@@ -180,31 +173,21 @@
                     <button onclick="toggleGroup('simulator')"
                         class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
                         <div class="flex items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
-                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-                                <line x1="12" x2="12" y1="19" y2="22" />
-                            </svg>
+                            <i class="fas fa-microchip text-slate-500 group-hover:text-white w-5 text-center"></i>
                             <span>The Simulator</span>
                         </div>
-                        <svg id="icon-simulator" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            class="text-slate-500 transform transition-transform duration-200 rotate-90">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <i id="icon-simulator"
+                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
                     </button>
-                    <div id="group-simulator" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                    <div id="group-simulator" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
                         <a href="/app.html#interview"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/app.html#interview">Mock Interview</a>
                         <a href="/role-reversal.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/role-reversal.html">Role Reversal</a>
                         <a href="/star-drill.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/star-drill.html">STAR Drill</a>
                     </div>
                 </div>
@@ -214,190 +197,58 @@
                     <button onclick="toggleGroup('strategy')"
                         class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
                         <div class="flex items-center gap-3">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" class="text-slate-500 group-hover:text-white">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="22" y1="12" x2="18" y2="12" />
-                                <line x1="6" y1="12" x2="2" y2="12" />
-                                <line x1="12" y1="6" x2="12" y2="2" />
-                                <line x1="12" y1="22" x2="12" y2="18" />
-                            </svg>
+                            <i class="fas fa-chess-knight text-slate-500 group-hover:text-white w-5 text-center"></i>
                             <span>Strategy</span>
                         </div>
-                        <svg id="icon-strategy" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            class="text-slate-500 transform transition-transform duration-200 rotate-90">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
+                        <i id="icon-strategy"
+                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
                     </button>
-                    <div id="group-strategy" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4">
+                    <div id="group-strategy" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
                         <a href="/strategy/30-60-90.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/strategy/30-60-90.html">30-60-90 Plan</a>
                         <a href="/strategy/closer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-all relative"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/strategy/closer.html">Salary Negotiation</a>
                     </div>
                 </div>
 
-                <!-- Upgrade Hub Category (NEW) -->
+                <!-- Upgrade Hub -->
                 <div class="nav-group pt-4 border-t border-white/5">
                     <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                         Upgrade Hub
                     </div>
-                    <!-- Monthly Plan (Subscription) -->
                     <button onclick="buyCredits('price_1Sbq1WIH1WTKNasqXrlCBDSD', 'subscription')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-teal rounded-lg hover:bg-teal/10 transition-all group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                        </svg>
+                        <i class="fas fa-crown"></i>
                         <span>Monthly Package ($49.99)</span>
                     </button>
-                    <!-- Executive Rewrite (Payment) -->
                     <button onclick="buyCredits('price_1SeRRnIH1WTKNasqQFCJDxH5', 'payment')"
                         class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 12V7H5a2 2 0 0 1 0-4h14v4" />
-                            <path d="M3 5v14a2 2 0 0 0 2 2h16v-5" />
-                            <path d="M18 12a2 2 0 0 0 0 4h4v-4Z" />
-                        </svg>
+                        <i class="fas fa-bolt"></i>
                         <span>Executive Rewrite ($9.99)</span>
                     </button>
-                    <a href="#" onclick="handlePortal(event)"
-                        class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect width="20" height="14" x="2" y="5" rx="2" />
-                            <line x1="2" x2="22" y1="10" y2="10" />
-                        </svg>
-                        <span>Manage Billing</span>
-                    </a>
                 </div>
             </nav>
 
-            <script>
-                function toggleGroup(id) {
-                    const group = document.getElementById(`group-${id}`);
-                    const icon = document.getElementById(`icon-${id}`);
-                    if (group) {
-                        group.classList.toggle('hidden');
-                        if (icon) {
-                            icon.classList.toggle('rotate-90');
-                        }
-                    }
-                }
-
-                // Function to trigger Stripe Checkout
-                async function buyCredits(priceId, mode = 'payment') {
-                    console.log('Buying:', priceId, 'Mode:', mode);
-
-                    try {
-                        // Use Supabase Edge Function strictly
-                        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                            body: {
-                                price_id: priceId,
-                                return_url: window.location.href,
-                                mode: mode
-                            }
-                        });
-
-                        if (error) throw error;
-                        if (data?.url) {
-                            window.location.href = data.url;
-                        } else {
-                            throw new Error("No URL returned from checkout session");
-                        }
-                    } catch (error) {
-                        console.error('Checkout Error:', error);
-                        alert('Checkout failed to initialize. ' + (error.message || ''));
-                    }
-                }
-
-                function toggleSidebar() {
-                    const sidebar = document.getElementById('sidebar');
-                    const overlay = document.getElementById('mobile-overlay');
-                    if (sidebar && overlay) {
-                        const isOpen = !sidebar.classList.contains('-translate-x-full');
-                        if (isOpen) {
-                            sidebar.classList.add('-translate-x-full');
-                            overlay.classList.add('hidden');
-                        } else {
-                            sidebar.classList.remove('-translate-x-full');
-                            overlay.classList.remove('hidden');
-                        }
-                    }
-                }
-
-                function signOut() {
-                    localStorage.removeItem('supabase.auth.token');
-                    localStorage.removeItem('aceinterview_session');
-                    window.location.href = '/login.html';
-                }
-
-                function initSidebar() {
-                    const path = window.location.pathname;
-                    const hash = window.location.hash;
-                    const fullPath = path + hash;
-
-                    // 1. Highlight Active Link
-                    const links = document.querySelectorAll('.nav-sub-item, .nav-item');
-                    links.forEach(link => {
-                        const linkPath = link.getAttribute('data-path');
-                        // Simple match or startsWith for deeper
-                        if (fullPath.includes(linkPath) || (linkPath === '/dashboard.html' && path === '/dashboard.html')) {
-                            // Active Style
-                            link.classList.remove('text-slate-400');
-                            link.classList.add('text-[#20C997]', 'bg-[#20C997]/5');
-
-                            // Add indicator
-                            const indicator = document.createElement('div');
-                            indicator.className = 'absolute -left-[9px] top-1/2 -translate-y-1/2 w-1 h-4 bg-[#20C997] rounded-full shadow-[0_0_8px_#20C997]';
-                            link.appendChild(indicator);
-
-                            // Expand Parent Group
-                            const parentGroup = link.closest('.nav-group');
-                            if (parentGroup) {
-                                // Find the button inside to trigger toggle or manually toggle
-                                const btn = parentGroup.querySelector('button');
-                                const onclickAttr = btn.getAttribute('onclick');
-                                const groupIdMatch = onclickAttr.match(/toggleGroup\('(.+)'\)/);
-                                if (groupIdMatch) {
-                                    toggleGroup(groupIdMatch[1]);
-                                }
-                            }
-                        }
-                    });
-                }
-
-                document.addEventListener('DOMContentLoaded', initSidebar);
-            </script>
-
-            <!-- Footer / User Profile -->
+            <!-- User Footer -->
             <div class="p-4 border-t border-white/5">
                 <div
                     class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
                     <div class="flex items-center gap-3">
                         <div
                             class="w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center text-teal text-xs font-bold border border-teal/30">
-                            <span id="user-initials">DK</span>
+                            <span id="user-initials">--</span>
                         </div>
                         <div class="flex flex-col">
                             <span id="user-display-sidebar"
                                 class="text-sm font-medium text-white group-hover:text-teal transition-colors">User</span>
-                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Free Plan</span>
+                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Plan: <span
+                                    id="user-plan-status">Free</span></span>
                         </div>
                     </div>
-                    <button onclick="logout()" class="text-gray-500 hover:text-white transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                            <polyline points="16 17 21 12 16 7" />
-                            <line x1="21" x2="9" y1="12" y2="12" />
-                        </svg>
+                    <button onclick="signOut()" class="text-gray-500 hover:text-white transition-colors">
+                        <i class="fas fa-sign-out-alt"></i>
                     </button>
                 </div>
             </div>
@@ -415,11 +266,11 @@
 
             <!-- Scrollable Content Area -->
             <main
-                class="flex-1 overflow-y-auto p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black">
+                class="flex-1 flex flex-col p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black overflow-hidden">
 
-                <div class="max-w-7xl mx-auto">
-                    <!-- Original Header Content (Title) moved here as Page Title -->
-                    <div class="flex justify-between items-center mb-10">
+                <div class="max-w-7xl mx-auto w-full flex-shrink-0">
+                    <!-- Header -->
+                    <div class="flex justify-between items-center mb-8">
                         <div>
                             <h1
                                 class="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
@@ -428,13 +279,14 @@
                             <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
                                     class="text-teal">Candidate</span>?</p>
                         </div>
-                        <!-- Could add top-right actions here if needed, but nav is now in sidebar -->
+                        <button onclick="openModal()"
+                            class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                            <i class="fas fa-plus"></i> ADD TARGET
+                        </button>
                     </div>
 
-                    <!-- Main Grid Content (From previous step) -->
-
                     <!-- 1. Key Metrics Row (4 Columns) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
 
                         <!-- Metric 1: Resume Health -->
                         <a href="/resume-analyzer.html"
@@ -443,8 +295,6 @@
                             </div>
                             <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Resume Health
                             </h3>
-
-                            <!-- Ring Visualization -->
                             <div class="relative w-24 h-24">
                                 <svg class="w-full h-full" viewBox="0 0 100 100">
                                     <circle class="text-slate-700 stroke-current" stroke-width="8" cx="50" cy="50"
@@ -453,7 +303,6 @@
                                         class="text-teal progress-ring__circle stroke-current ring-circle"
                                         stroke-width="8" stroke-linecap="round" cx="50" cy="50" r="40"
                                         fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
-                                    <!-- Dynamic -->
                                 </svg>
                                 <div class="absolute top-0 left-0 w-full h-full flex items-center justify-center">
                                     <span id="resume-score" class="text-2xl font-bold text-white">--</span>
@@ -461,7 +310,7 @@
                             </div>
                         </a>
 
-                        <!-- Metric 2: Avg Interview Score (Dynamic Placeholder) -->
+                        <!-- Metric 2: Avg Interview Score -->
                         <a href="/role-reversal.html"
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
@@ -469,17 +318,15 @@
                             <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg. Interview
                                 Score</h3>
                             <div id="interview-score" class="text-4xl font-bold text-white mb-2">--<span
-                                    class="text-gray-500 text-xl">/10</span>
-                            </div>
+                                    class="text-gray-500 text-xl">/10</span></div>
                             <div
                                 class="flex items-center text-teal text-xs font-bold bg-teal/10 px-2 py-1 rounded-full">
-                                <span>--</span>
-                                <span class="ml-1 opacity-70">Last 30 days</span>
+                                <span>Active</span>
                             </div>
                         </a>
 
                         <!-- Metric 3: Strategy Log -->
-                        <a href="/strategy/strategy-log.html"
+                        <div
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
@@ -490,7 +337,7 @@
                                 <span id="strategy-count" class="text-4xl font-bold text-white">--</span>
                             </div>
                             <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
-                        </a>
+                        </div>
 
                         <!-- Metric 4: Credits -->
                         <div
@@ -498,725 +345,447 @@
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20"></div>
                             <h3 id="plan-name" class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">
                                 Plan</h3>
-                            <!-- Progress Bar -->
                             <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
                                 <div id="credit-bar" class="bg-teal h-full rounded-full" style="width: 0%"></div>
                             </div>
                             <div class="flex justify-between w-full text-xs">
                                 <span id="credit-count" class="text-white font-bold">-- Credits</span>
-                                <span id="reset-countdown" class="text-gray-500 hidden">Resets in -- days</span>
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    <!-- 2. Main Content Area (2:1 Ratio) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- KANBAN BOARD (Flex grow to fill rest of screen) -->
+                <div class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6">
+                    <div class="flex gap-6 h-full min-w-[1000px] px-1">
 
-                        <!-- Left Column: Trend (Span 2) -->
-                        <div class="lg:col-span-2 glass-card rounded-2xl p-6 min-h-[300px] flex flex-col">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="text-lg font-bold text-white">Performance Summary</h3>
-                                <div class="flex gap-2">
-                                    <span id="toggle-interviews"
-                                        class="text-xs text-teal bg-teal/10 px-2 py-1 rounded cursor-pointer border border-teal/20 transition-all">Interviews</span>
-                                    <span id="toggle-resumes"
-                                        class="text-xs text-gray-500 hover:text-white cursor-pointer px-2 py-1 transition-all">Resume</span>
-                                </div>
+                        <!-- COLUMN 1: TARGETS -->
+                        <div
+                            class="flex-1 flex flex-col min-w-[300px] bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
+                            <div
+                                class="p-4 border-b border-slate-700/50 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3
+                                    class="text-xs font-bold font-mono tracking-widest text-slate-400 uppercase flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-slate-500"></span>
+                                    Targets
+                                </h3>
+                                <span id="count-identified"
+                                    class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
                             </div>
-
-                            <!-- Chart Placeholder (Pure CSS) -->
-                            <div class="flex-grow flex flex-col min-h-0">
-                                <div id="performance-chart"
-                                    class="flex-1 flex items-end justify-between gap-2 px-4 pb-2 border-b border-white/5 relative overflow-hidden pt-8">
-                                    <!-- Y-Axis Grid Lines -->
-                                    <div
-                                        class="absolute inset-0 flex flex-col justify-between pointer-events-none opacity-20">
-                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                        <div class="border-t border-dashed border-gray-400 w-full h-0"></div>
-                                    </div>
-
-                                    <!-- Bars are injected by JS -->
-                                </div>
-                                <!-- X-Axis Labels (Dynamic) -->
-                                <div id="chart-labels"
-                                    class="flex justify-between gap-2 px-4 mt-3 text-[10px] text-gray-500 uppercase tracking-widest font-bold">
-                                    <!-- Labels injected by JS -->
-                                </div>
+                            <div id="col-identified" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+                                <!-- Cards injected here -->
                             </div>
-
                         </div>
-                    </div>
 
-                    <!-- Right Column: Action Center -->
-                    <div class="glass-card rounded-2xl p-6 flex flex-col">
-                        <h3 class="text-lg font-bold text-white mb-6">Recommended Actions</h3>
-
-                        <div class="flex-grow space-y-4">
-                            <!-- Action 1 -->
-                            <a href="/resume-analyzer.html"
-                                class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                <div class="flex justify-between items-start">
-                                    <h4 class="font-semibold text-white group-hover:text-teal text-sm">Optimize
-                                        Resume</h4>
+                        <!-- COLUMN 2: APPLIED -->
+                        <div
+                            class="flex-1 flex flex-col min-w-[300px] bg-blue-900/10 rounded-xl border border-dashed border-blue-900/30">
+                            <div
+                                class="p-4 border-b border-blue-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3
+                                    class="text-xs font-bold font-mono tracking-widest text-blue-400 uppercase flex items-center gap-2">
                                     <span
-                                        class="text-[10px] bg-teal text-black font-bold px-1.5 py-0.5 rounded uppercase">High
-                                        Impact</span>
-                                </div>
-                                <p class="text-xs text-gray-400 mt-2">Your 'Experience' section needs active verbs.
-                                    Fix it
-                                    now.</p>
-                            </a>
-
-                            <!-- Action 2 -->
-                            <a href="/role-reversal.html"
-                                class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
-                                <div class="flex justify-between items-start">
-                                    <h4 class="font-semibold text-white group-hover:text-teal text-sm">Mock
-                                        Interview</h4>
-                                </div>
-                                <p class="text-xs text-gray-400 mt-2">Practice "Tell me about yourself" to boost
-                                    confidence.
-                                </p>
-                            </a>
+                                        class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></span>
+                                    Applied
+                                </h3>
+                                <span id="count-applied"
+                                    class="bg-blue-900/30 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                            </div>
+                            <div id="col-applied" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+                                <!-- Cards injected here -->
+                            </div>
                         </div>
 
-                        <a href="/star-drill.html"
-                            class="block p-4 bg-white/5 rounded-xl border border-white/5 hover:border-teal/50 hover:bg-white/10 transition-all cursor-pointer group">
-                            <div class="flex justify-between items-start">
-                                <h4 class="font-semibold text-white group-hover:text-teal text-sm">STAR Drill</h4>
-                                <span
-                                    class="text-[10px] bg-purple-500/20 text-purple-300 font-bold px-1.5 py-0.5 rounded uppercase">New</span>
+                        <!-- COLUMN 3: INTERVIEWING -->
+                        <div
+                            class="flex-1 flex flex-col min-w-[300px] bg-purple-900/10 rounded-xl border border-dashed border-purple-900/30">
+                            <div
+                                class="p-4 border-b border-purple-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3
+                                    class="text-xs font-bold font-mono tracking-widest text-purple-400 uppercase flex items-center gap-2">
+                                    <span
+                                        class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse"></span>
+                                    War Zone
+                                </h3>
+                                <span id="count-interviewing"
+                                    class="bg-purple-900/30 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
                             </div>
-                            <p class="text-xs text-gray-400 mt-2">Structure your stories into perfect answers.</p>
-                        </a>
-                    </div>
+                            <div id="col-interviewing" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
 
-                    <a href="/resume-analyzer.html"
-                        class="w-full mt-6 py-3 bg-teal text-black font-bold text-sm rounded-xl hover:bg-[#1aa179] transition-colors text-center block">
-                        Start New Session
-                    </a>
-                    <button onclick="toggleActivityHistory()"
-                        class="w-full text-center text-xs text-gray-500 hover:text-teal mt-3 transition-colors">
-                        View Activity History
+                        <!-- COLUMN 4: OFFER / CLOSED -->
+                        <div
+                            class="flex-1 flex flex-col min-w-[300px] bg-green-900/10 rounded-xl border border-dashed border-green-900/30">
+                            <div
+                                class="p-4 border-b border-green-900/20 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3
+                                    class="text-xs font-bold font-mono tracking-widest text-green-400 uppercase flex items-center gap-2">
+                                    <span
+                                        class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+                                    Offer / Closed
+                                </h3>
+                                <span id="count-offer"
+                                    class="bg-green-900/30 text-green-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
+                            </div>
+                            <div id="col-offer" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+                                <!-- Cards injected here -->
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Add Job Modal -->
+    <div id="add-modal"
+        class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200 p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-lg rounded-xl shadow-2xl transform scale-95 transition-transform duration-200 max-h-[90vh] overflow-y-auto custom-scroll"
+            id="modal-content">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-800/50 rounded-t-xl">
+                <h3 class="text-white font-bold font-mono tracking-wide">NEW_TARGET_ACQUISITION</h3>
+                <button onclick="closeModal()" class="text-slate-500 hover:text-white transition-colors">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="add-job-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Target
+                        Company</label>
+                    <input type="text" name="company_name" required placeholder="e.g. Acme Corp"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Role
+                        Title</label>
+                    <input type="text" name="job_title" required placeholder="e.g. Senior Strategist"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Job Description
+                        / Intel</label>
+                    <textarea name="job_description" rows="5" placeholder="Paste JD or context here..."
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:border-blue-500 outline-none transition-colors placeholder-slate-600 resize-none custom-scroll"></textarea>
+                </div>
+                <div class="pt-4">
+                    <button type="submit" id="btn-save"
+                        class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-all">
+                        <span>INITIATE CAMPAIGN</span>
+                        <i class="fas fa-crosshairs"></i>
                     </button>
                 </div>
+            </form>
         </div>
-
-        <!-- 3. Bottom Section: Recent Activity -->
-        <div id="recent-activity-section" class="glass-card rounded-2xl p-6 hidden">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold text-white">Recent Activity</h3>
-                <button class="text-xs text-teal hover:text-white transition-colors">View All</button>
-            </div>
-
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-gray-500 text-xs uppercase tracking-wider border-b border-white/5">
-                            <th class="pb-3 font-medium pl-2">Project Name</th>
-                            <th class="pb-3 font-medium">Type</th>
-                            <th class="pb-3 font-medium">Score</th>
-                            <th class="pb-3 font-medium">Date</th>
-                            <th class="pb-3 font-medium">Status</th>
-                            <th class="pb-3 font-medium text-right pr-2">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recent-activity-table" class="divide-y divide-white/5 text-sm">
-                        <!-- Dynamic Content -->
-                        <tr>
-                            <td colspan="6" class="py-10 text-center text-gray-500">Loading activity...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div> <!-- End Max-W-7xl -->
-    </main>
-    </div>
     </div>
 
-    <!-- Hidden Drop Zone -->
-    <div id="resume-drop-zone" style="display:none;">
-        <input type="file" id="resume-file-input" accept=".pdf,.txt,.docx" style="display: none;">
-        <div class="cleaning-loader" id="parsing-loader" style="display: none;">
-            <div class="spinner"></div>
-            <p>Analyzing...</p>
-        </div>
-        <div class="drop-content"></div>
-    </div>
+    <!-- Hidden PDF Logic (Retained for compatibility if needed in future, but hidden from UI) -->
+    <div id="resume-drop-zone" style="display:none;"></div>
 
     <script>
-        // Supabase Initialization moved to head
+        // --- AUTH & DATA VARS ---
+        let currentToken = localStorage.getItem('supabase.auth.token');
+        let currentUser = null;
 
-        // Function to trigger Stripe Checkout
-        async function buyCredits(priceId) {
-            console.log('Buying:', priceId);
+        // --- UI REFS ---
+        const modal = document.getElementById('add-modal');
+        const modalContent = document.getElementById('modal-content');
+        const cols = {
+            'Identified': document.getElementById('col-identified'),
+            'Applied': document.getElementById('col-applied'),
+            'Interviewing': document.getElementById('col-interviewing'),
+            'Offer': document.getElementById('col-offer'),
+        };
+        const counts = {
+            'Identified': document.getElementById('count-identified'),
+            'Applied': document.getElementById('count-applied'),
+            'Interviewing': document.getElementById('count-interviewing'),
+            'Offer': document.getElementById('count-offer'),
+        };
 
-            try {
-                // Use Supabase Edge Function strictly
-                const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                    body: {
-                        price_id: priceId,
-                        return_url: window.location.href
-                    }
-                });
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!currentToken) return; // redirect handled in head
 
-                if (error) throw error;
-                if (data?.url) {
-                    window.location.href = data.url;
-                } else {
-                    throw new Error("No URL returned from checkout session");
-                }
-            } catch (error) {
-                console.error('Checkout Error:', error);
-                alert('Checkout failed to initialize.');
-            }
-        }
+            // 1. Sidebar Init
+            initSidebar();
 
-        // PDF Parsing Logic (Retained from original)
-        const dropZone = document.getElementById('resume-drop-zone');
-        const fileInput = document.getElementById('resume-file-input');
-        const parsingLoader = document.getElementById('parsing-loader');
-        const dropContent = document.querySelector('.drop-content'); // This might need adjustment if .drop-content is not directly under drop-zone
+            // 2. Fetch User & Stats
+            await loadUserProfile();
 
-        // Handle Click (only if dropZone is visible, which it isn't now)
-        if (dropZone) {
-            dropZone.addEventListener('click', () => fileInput.click());
-
-            // Handle Drag & Drop (only if dropZone is visible)
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = 'var(--success)';
-                dropZone.style.backgroundColor = 'rgba(32, 201, 151, 0.05)';
-            });
-
-            dropZone.addEventListener('dragleave', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#0A2540';
-                dropZone.style.backgroundColor = '#fff';
-            });
-
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#0A2540';
-                dropZone.style.backgroundColor = '#fff';
-
-                const files = e.dataTransfer.files;
-                if (files.length) handleFile(files[0]);
-            });
-        }
-
-        fileInput.addEventListener('change', (e) => {
-            if (e.target.files.length) handleFile(e.target.files[0]);
+            // 3. Fetch Jobs (Kanban)
+            loadJobs();
         });
 
-        async function handleFile(file) {
-            console.log("File detected:", file.name);
-            if (dropContent) dropContent.style.display = 'none';
-            if (parsingLoader) parsingLoader.style.display = 'flex';
-
+        // --- JOB LOGIC (Note: Ported from strategy-log.html) ---
+        async function loadJobs() {
             try {
-                let text = "";
-                if (file.type === "application/pdf") {
-                    text = await parsePdf(file);
-                } else {
-                    // Assume text
-                    text = await file.text();
-                }
-
-                if (text && text.length > 50) {
-                    console.log("Text extracted via Dashboard. Redirecting to App...");
-                    // Store for App to pickup
-                    localStorage.setItem('pending_resume_text', text);
-                    localStorage.setItem('pending_resume_filename', file.name);
-
-                    // Redirect
-                    window.location.href = '/resume-analyzer.html';
-                } else {
-                    console.error("Text length: " + (text ? text.length : 0));
-                    throw new Error("Could not extract meaningful text (len < 50).");
-                }
-
-            } catch (err) {
-                console.error("Parsing Error:", err);
-                alert("Could not read this file. Please try a standard text-based PDF or TXT file.");
-                if (dropContent) dropContent.style.display = 'block';
-                if (parsingLoader) parsingLoader.style.display = 'none';
-            }
-        }
-
-        // Initialize PDF.js Worker
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-        async function parsePdf(file) {
-            // Basic PDF.js implementation
-            const arrayBuffer = await file.arrayBuffer();
-            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-            let fullText = "";
-
-            for (let i = 1; i <= pdf.numPages; i++) {
-                const page = await pdf.getPage(i);
-                const textContent = await page.getTextContent();
-                const pageText = textContent.items.map(s => s.str).join(' ');
-                fullText += pageText + "\n";
-            }
-            return fullText;
-        }
-
-
-        // Main Dashboard Logic (Adapted from original)
-        const APP_SESSION_KEY = 'aceinterview_session';
-
-        // Lazy Loading State
-        let currentUserId = null;
-        let activityLoaded = false;
-        const SESSION_EXPIRY_DAYS = 7;
-
-        function getSession() {
-            const sessionStr = localStorage.getItem(APP_SESSION_KEY);
-            if (!sessionStr) return null;
-
-            try {
-                const session = JSON.parse(sessionStr);
-
-                // FIX: If logged_in_at is missing, assume it is valid (Date.now()) to prevent auto-expiry
-                const loggedInAt = session.logged_in_at || Date.now();
-                const now = Date.now();
-                const expiryMs = SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
-
-                if (now - loggedInAt > expiryMs) {
-                    console.warn("Session expired. Logging out.");
-                    localStorage.removeItem(APP_SESSION_KEY);
-                    return null;
-                }
-
-                return session;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        async function handlePortal(event) {
-            if (event) event.preventDefault();
-            const btn = event?.target || document.querySelector('[onclick="handlePortal(event)"]');
-            const originalText = btn?.innerText || 'Manage Billing';
-
-            if (btn) {
-                btn.innerText = 'Loading...';
-                btn.style.opacity = '0.7';
-                btn.style.pointerEvents = 'none';
-            }
-
-            try {
-                // USE SUPABASE FUNCTION, NOT FETCH
-                const { data, error } = await supabase.functions.invoke('create-portal-session', {
-                    body: { returnUrl: window.location.href }
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
 
-                if (error) throw error;
-                if (data?.url) window.location.href = data.url;
-            } catch (error) {
-                console.error('Portal Error:', error);
-                alert('Could not open billing settings. Please contact support.');
-            } finally {
-                if (btn) {
-                    btn.innerText = originalText;
-                    btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'auto';
-                }
+                if (!res.ok) throw new Error("Failed to load jobs");
+                const jobs = await res.json();
+
+                // Update Strategy Count Stats
+                document.getElementById('strategy-count').innerText = jobs.length;
+
+                renderBoard(jobs);
+            } catch (e) {
+                console.error("Load Jobs Error:", e);
             }
         }
 
-        function logout() {
-            localStorage.removeItem(APP_SESSION_KEY);
-            // Also remove auth tokens
-            localStorage.removeItem('supabase.auth.token');
-            localStorage.removeItem('supabase.auth.refresh_token');
-            if (window.supabase) supabase.auth.signOut();
-            window.location.href = '/?logout=success';
+        let localJobsInfo = [];
+        function renderBoard(jobs) {
+            localJobsInfo = jobs;
+            // Clear Cols
+            Object.values(cols).forEach(col => col.innerHTML = '');
+            // Track counts
+            const stats = { 'Identified': 0, 'Applied': 0, 'Interviewing': 0, 'Offer': 0 };
+
+            jobs.forEach(job => {
+                let status = job.status || 'Identified';
+                // Normalize status
+                const s = status.toLowerCase();
+                if (s.includes('offer') || s.includes('closed')) status = 'Offer';
+                else if (s.includes('interview')) status = 'Interviewing';
+                else if (s.includes('appli')) status = 'Applied';
+                else status = 'Identified';
+
+                stats[status]++;
+
+                const card = createJobCard(job, status);
+                cols[status].insertAdjacentHTML('beforeend', card);
+            });
+
+            // Update Header Counts
+            Object.keys(counts).forEach(key => {
+                counts[key].textContent = stats[key];
+            });
         }
 
-        // Supabase Init was moved to top of script
+        function createJobCard(job, currentStatus) {
+            const resScore = job.resume_score || 0;
+            const resClass = resScore > 80 ? 'text-green-500' : (resScore > 0 ? 'text-amber-500' : 'text-slate-600');
+            const resIcon = resScore > 80 ? 'fa-check-circle' : 'fa-circle';
 
+            return `
+            <div class="mission-card bg-slate-900 border border-slate-800 rounded-lg p-4 flex flex-col relative group hover:border-slate-600">
+                <div class="flex justify-between items-start mb-3">
+                    <div>
+                        <h3 class="text-white font-bold text-sm leading-tight mb-1 truncate max-w-[180px]">${job.job_title}</h3>
+                        <p class="text-blue-400 font-mono text-[10px] uppercase tracking-wider truncate max-w-[180px]">${job.company_name}</p>
+                    </div>
+                    <button onclick="deleteJob('${job.id}')" class="text-slate-700 hover:text-red-500 transition-colors p-1 opacity-0 group-hover:opacity-100">
+                        <i class="fas fa-trash-alt text-[10px]"></i>
+                    </button>
+                </div>
 
-        async function fetchDashboardData(userEmail) {
-            console.log("Fetching dashboard data for:", userEmail);
-            if (!supabase) return;
+                <div class="mb-3">
+                    <select onchange="window.updateStatus('${job.id}', this.value)" 
+                        class="w-full bg-slate-950 border border-slate-800 rounded text-[10px] font-bold text-slate-400 py-1 px-2 outline-none focus:border-blue-500 cursor-pointer hover:bg-slate-900 transition-colors">
+                        <option value="Identified" ${currentStatus === 'Identified' ? 'selected' : ''}>🎯 Identify</option>
+                        <option value="Applied" ${currentStatus === 'Applied' ? 'selected' : ''}>📝 Applied</option>
+                        <option value="Interviewing" ${currentStatus === 'Interviewing' ? 'selected' : ''}>🎤 Interviewing</option>
+                        <option value="Offer" ${currentStatus === 'Offer' ? 'selected' : ''}>🤝 Offer / Closed</option>
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-3 mb-3 border-t border-slate-800/50 pt-2">
+                    <div class="flex items-center gap-1.5" title="Resume Score">
+                        <i class="fas ${resIcon} ${resClass} text-[10px]"></i>
+                        <span class="text-[9px] text-slate-500 font-mono">RES: ${resScore > 0 ? resScore + '%' : 'N/A'}</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                     <button onclick="window.openWarRoom('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
+                        WAR ROOM
+                    </button>
+                     <button onclick="smartLaunch('${job.id}', 'strategy/30-60-90.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                        class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Quick Plan">
+                        <i class="fas fa-road text-[10px]"></i>
+                    </button>
+                </div>
+            </div>
+            `;
+        }
+
+        window.updateStatus = async (id, newStatus) => {
+            try {
+                const res = await fetch(`/api/jobs/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (!res.ok) throw new Error("Update failed");
+                loadJobs();
+            } catch (e) { alert(e.message); }
+        };
+
+        window.deleteJob = async (id) => {
+            if (!confirm("Remove this target?")) return;
+            try {
+                const res = await fetch(`/api/jobs/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                if (!res.ok) throw new Error("Failed");
+                loadJobs();
+            } catch (e) { alert(e.message); }
+        };
+
+        window.openWarRoom = (id) => {
+            const job = localJobsInfo.find(j => j.id === id);
+            if (job) smartLaunch(id, '/resume-rewriter.html', job);
+        };
+
+        window.smartLaunch = (id, url, job) => {
+            const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description };
+            localStorage.setItem('strategy_context', JSON.stringify(context));
+            window.location.href = url;
+        };
+
+        // --- MODAL LOGIC ---
+        window.openModal = () => {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalContent.classList.remove('scale-95');
+                modalContent.classList.add('scale-100');
+            }, 10);
+        }
+        window.closeModal = () => {
+            modal.classList.add('opacity-0');
+            modalContent.classList.remove('scale-100');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => modal.classList.add('hidden'), 200);
+        }
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('add-job-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-save');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'SAVING...'; btn.disabled = true;
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            data.status = 'Identified';
 
             try {
-                // 0. AUTH RESTORATION
-                // The new client doesn't automatically pick up the token from localStorage
-                // We must set it manually if it exists.
-                const token = localStorage.getItem('supabase.auth.token');
-                if (token) {
-                    // Attempt to set session. Note: This expects 'access_token' and optional 'refresh_token'.
-                    // Our legacy code stored just the token string or a JSON? 
-                    // Let's check how it was stored. Based on previous code: localStorage.setItem('supabase.auth.token', session.access_token);
-                    // If it's just the token string:
-                    const { data, error } = await supabase.auth.setSession({
-                        access_token: token,
-                        refresh_token: localStorage.getItem('supabase.auth.refresh_token') || ''
-                    });
-
-                    if (error) {
-                        console.warn("Session restore failed:", error.message);
-                        // If fail, maybe redirect or clear?
-                    }
-                }
-
-                // 1. Get User
-                const { data: { user } } = await supabase.auth.getUser();
-
-                if (!user) {
-                    console.log("No authenticated user found even after token check.");
-                    return;
-                }
-
-                console.log("Authenticated as:", user.id);
-                currentUserId = user.id; // Store for lazy loading
-
-                // 2. Get Resume Score (Latest)
-                const { data: resumes } = await supabase.from('resumes')
-                    .select('overall_score')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-
-                const resumeScore = resumes?.[0]?.overall_score || 0;
-                document.getElementById('resume-score').textContent = resumeScore;
-
-                // Update Ring
-                const circle = document.getElementById('resume-score-ring');
-                const radius = circle.r.baseVal.value;
-                const circumference = radius * 2 * Math.PI;
-                const offset = circumference - (resumeScore / 100) * circumference;
-                circle.style.strokeDashoffset = offset;
-                circle.style.stroke = resumeScore > 75 ? '#20C997' : (resumeScore > 50 ? '#fbbf24' : '#ef4444');
+                const res = await fetch('/api/jobs', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                    body: JSON.stringify(data)
+                });
+                if (!res.ok) throw new Error("Failed");
+                closeModal();
+                e.target.reset();
+                loadJobs();
+            } catch (err) { alert(err.message); }
+            finally { btn.innerHTML = originalText; btn.disabled = false; }
+        });
 
 
-                // 3. Get Strategy Count (Active Jobs)
-                // Use explicit count of 'id' as requested
-                const { count: jobCount, error: jobError } = await supabase.from('user_jobs')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('user_id', user.id);
+        // --- USER & SIDEBAR LOGIC ---
+        async function loadUserProfile() {
+            try {
+                // Get User from Supabase
+                const { data: { user } } = await supabase.auth.getUser(currentToken);
+                if (!user) throw new Error("No user");
 
-                if (jobError) {
-                    console.error("Error counting jobs:", jobError);
-                    // Optional: could show error in UI
-                } else {
-                    console.log("Jobs found (count exact):", jobCount);
-                    document.getElementById('strategy-count').textContent = jobCount || 0;
-                }
-
-
-                // 4. Get Plan Details & Credits (Safe Fetch - Select All Columns)
-                const { data: profile, error: profileError } = await supabase.from('users')
-                    .select('*')  // <--- This prevents the 400 Error
+                // Get Profile
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('*')
                     .eq('id', user.id)
                     .single();
 
-                if (profileError) {
-                    console.error('Data Load Error:', profileError);
-                    // Handle missing data gracefully without crashing
-                }
-
                 if (profile) {
-                    // Use fallbacks in case columns are missing
-                    const isUnlimited = profile.is_unlimited || profile.subscription_status === 'pro';
-                    const credits = profile.credits || profile.credits_remaining || 0;
-                    const subStatus = profile.subscription_status || 'free';
-                    const planText = isUnlimited ? 'PRO PLAN' : (subStatus === 'active' ? 'ACTIVE' : 'Free Plan');
+                    // Update UI
+                    const initials = profile.name ? profile.name.substring(0, 2).toUpperCase() : 'DK';
+                    document.getElementById('user-initials').innerText = initials;
+                    document.getElementById('user-display-sidebar').innerText = profile.name || 'User';
+                    document.getElementById('user-display-kb').innerText = (profile.name || 'Candidate').split(' ')[0];
 
-                    document.getElementById('plan-name').textContent = planText;
+                    const isPro = profile.subscription_status === 'active';
+                    document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
+                    document.getElementById('plan-name').innerText = isPro ? 'Pro Plan' : 'Free Plan';
 
-                    if (isUnlimited) {
-                        document.getElementById('credit-count').textContent = `Unlimited Access`;
-                        document.getElementById('credit-bar').style.width = `100%`;
-                        // Optional: make the bar a special color or pulse?
-                        document.getElementById('credit-bar').classList.add('shadow-[0_0_10px_rgba(32,201,151,0.5)]');
-                    } else {
-                        document.getElementById('credit-count').textContent = `${credits} Credits`;
-                        // SCALE: 50 is the "Full" watermark now.
-                        const pct = Math.min((credits / 50) * 100, 100);
-                        document.getElementById('credit-bar').style.width = `${pct}%`;
-                    }
+                    // Credits
+                    const creds = profile.credits || 0;
+                    document.getElementById('credit-count').innerText = `${creds} Credits`;
+                    // Simple logic for bar
+                    const pct = Math.min(100, (creds / 10) * 100);
+                    document.getElementById('credit-bar').style.width = `${pct}%`;
+                    if (isPro) document.getElementById('credit-bar').classList.add('bg-purple-500');
 
-                    // Reset Countdown (NEW)
-                    const resetEl = document.getElementById('reset-countdown');
-                    if (profile.subscription_period_end) {
-                        const end = new Date(profile.subscription_period_end);
-                        const now = new Date();
-                        const diff = end - now;
-                        const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                        if (days > 0 && resetEl) {
-                            resetEl.textContent = `Resets in ${days} days`;
-                            resetEl.classList.remove('hidden');
-                        } else if (resetEl) {
-                            resetEl.classList.add('hidden');
-                        }
-                    } else if (resetEl) {
-                        resetEl.classList.add('hidden');
-                    }
-
-                    // SYNC TO LOCAL SESSION (For app.js/legacy tools)
-                    const currentSession = getSession();
-                    if (currentSession) {
-                        currentSession.credits = credits;
-                        currentSession.is_unlimited = isUnlimited;
-                        currentSession.subscription_status = profile.subscription_status || 'free';
-                        currentSession.subscription_period_end = profile.subscription_period_end;
-                        localStorage.setItem(APP_SESSION_KEY, JSON.stringify(currentSession));
+                    // Resume Score Ring (Placeholder logic or fetch latest scan)
+                    if (profile.resume_score_avg) {
+                        setRing(profile.resume_score_avg);
                     }
                 }
-
-                // 5. Get Interview Avg (Last 30 days)
-                const pastDate = new Date();
-                pastDate.setDate(pastDate.getDate() - 30);
-
-                const { data: interviews } = await supabase.from('interviews')
-                    .select('overall_score')
-                    .eq('user_id', user.id)
-                    .gte('created_at', pastDate.toISOString());
-
-                const avgScore = interviews && interviews.length
-                    ? (interviews.reduce((a, b) => a + b.overall_score, 0) / interviews.length).toFixed(1)
-                    : 0;
-
-                document.getElementById('interview-score').innerHTML = `${avgScore}<span class="text-gray-500 text-xl">/10</span>`;
-
-
-                // 6. Recent Activity (Lazy Loaded via toggleActivityHistory)
-
-
-                // 7. Initialize Graph (Interviews by default)
-                updatePerformanceChart('interviews', user.id);
-
-            } catch (err) {
-                console.error("Error fetching dashboard data:", err);
+            } catch (e) {
+                console.error("Profile Load Error", e);
             }
         }
 
-        async function toggleActivityHistory() {
-            const section = document.getElementById('recent-activity-section');
-            if (!section) return;
+        function setRing(score) {
+            const circle = document.querySelector('.ring-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            const offset = circumference - (score / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+            document.getElementById('resume-score').innerText = score;
+        }
 
-            // Toggle Visibility
-            section.classList.toggle('hidden');
-
-            // If now visible and not loaded, fetch data
-            if (!section.classList.contains('hidden') && !activityLoaded && currentUserId) {
-                const tableBody = document.getElementById('recent-activity-table');
-                tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-teal">Loading recent activity...</td></tr>';
-
-                try {
-                    const { data: activity } = await supabase.from('user_recent_activity')
-                        .select('*')
-                        .eq('user_id', currentUserId)
-                        .order('created_at', { ascending: false })
-                        .limit(5);
-
-                    if (activity && activity.length > 0) {
-                        tableBody.innerHTML = activity.map(a => `
-                             <tr class="group hover:bg-white/5 transition-colors">
-                                <td class="py-4 pl-2 font-medium text-white">${a.project_name || 'Untitled'}</td>
-                                <td class="py-4 text-gray-400">${a.type}</td>
-                                <td class="py-4 text-white font-bold">${a.score || '-'}</td>
-                                <td class="py-4 text-gray-500">${timeAgo(a.created_at)}</td>
-                                <td class="py-4">
-                                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">${a.status || 'Done'}</span>
-                                </td>
-                                <td class="py-4 text-right pr-2">
-                                    <button class="text-gray-400 hover:text-white">•••</button>
-                                </td>
-                            </tr>
-                        `).join('');
-                    } else {
-                        tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-gray-500">No activity found.</td></tr>';
-                    }
-                    activityLoaded = true;
-                } catch (err) {
-                    console.error("Activity Load Error:", err);
-                    tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-red-500">Failed to load activity.</td></tr>';
+        // Sidebar Toggles
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('mobile-overlay');
+            sb.classList.toggle('-translate-x-full');
+            ov.classList.toggle('hidden');
+        }
+        function toggleGroup(id) {
+            const g = document.getElementById(`group-${id}`);
+            const i = document.getElementById(`icon-${id}`);
+            g.classList.toggle('hidden');
+            i.classList.toggle('rotate-90');
+        }
+        function initSidebar() {
+            const path = window.location.pathname;
+            const links = document.querySelectorAll('[data-path]');
+            links.forEach(link => {
+                if (link.getAttribute('data-path') === path) {
+                    link.classList.add('text-teal', 'bg-teal/5');
+                    link.classList.remove('text-slate-400');
+                    // Open parent
+                    const parent = link.closest('.pl-4');
+                    if (parent) parent.classList.remove('hidden');
                 }
-            }
-
-            // Smooth scroll to section if opening
-            if (!section.classList.contains('hidden')) {
-                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            });
         }
 
-        async function updatePerformanceChart(type, userId) {
-            console.log(`Updating chart: ${type}`);
-            const chart = document.getElementById('performance-chart');
-            const labelContainer = document.getElementById('chart-labels');
-            const btnInterviews = document.getElementById('toggle-interviews');
-            const btnResumes = document.getElementById('toggle-resumes');
-
-            // UI Feedback
-            if (type === 'interviews') {
-                btnInterviews.classList.add('text-teal', 'bg-teal/10', 'border-teal/20');
-                btnInterviews.classList.remove('text-gray-500');
-                btnResumes.classList.add('text-gray-500');
-                btnResumes.classList.remove('text-teal', 'bg-teal/10', 'border-teal/20');
-            } else {
-                btnResumes.classList.add('text-teal', 'bg-teal/10', 'border-teal/20');
-                btnResumes.classList.remove('text-gray-500');
-                btnInterviews.classList.add('text-gray-500');
-                btnInterviews.classList.remove('text-teal', 'bg-teal/10', 'border-teal/20');
-            }
-
-            try {
-                const table = type === 'interviews' ? 'interviews' : 'resumes';
-                const scoreField = 'overall_score';
-
-                const { data, error } = await supabase.from(table)
-                    .select(`created_at, ${scoreField}`)
-                    .eq('user_id', userId)
-                    .order('created_at', { ascending: true })
-                    .limit(7);
-
-                if (error) throw error;
-
-                // Clear existing
-                chart.querySelectorAll('.bar-item').forEach(b => b.remove());
-                if (labelContainer) labelContainer.innerHTML = '';
-
-                if (data && data.length > 0) {
-                    data.forEach(item => {
-                        const score = item[scoreField] || 0;
-                        const maxScore = type === 'resumes' ? 100 : 10;
-                        const height = (score / maxScore) * 100;
-                        const date = new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-
-                        // Bar
-                        const bar = document.createElement('div');
-                        bar.className = 'bar-item flex-1 max-w-[40px] bg-gradient-to-t from-teal/10 to-teal/40 hover:to-teal/60 rounded-t-sm transition-all relative group cursor-pointer';
-                        bar.style.height = `${Math.max(height, 5)}%`; // Min height for visibility
-                        bar.innerHTML = `
-                            <div class="absolute -top-7 left-1/2 -translate-x-1/2 text-teal font-black text-[10px] whitespace-nowrap drop-shadow-md">
-                                ${score}${type === 'resumes' ? '' : '/10'}
-                            </div>
-                        `;
-                        chart.appendChild(bar);
-
-                        // Label
-                        if (labelContainer) {
-                            const lbl = document.createElement('span');
-                            lbl.className = 'flex-1 text-center max-w-[40px]';
-                            lbl.textContent = date;
-                            labelContainer.appendChild(lbl);
-                        }
-                    });
-                } else {
-                    chart.innerHTML += `<div class="bar-item absolute inset-0 flex items-center justify-center text-gray-500 text-xs italic">No ${type} data recorded.</div>`;
-                }
-            } catch (err) {
-                console.error("Chart Error:", err);
-            }
+        window.buyCredits = async (priceId, mode) => {
+            // simplified
+            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                body: { price_id: priceId, return_url: window.location.href, mode: mode }
+            });
+            if (data?.url) window.location.href = data.url;
+            else alert("Payment init failed");
         }
 
-        // Global listeners for toggles
-        document.getElementById('toggle-interviews')?.addEventListener('click', async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) updatePerformanceChart('interviews', user.id);
-        });
-
-        document.getElementById('toggle-resumes')?.addEventListener('click', async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) updatePerformanceChart('resumes', user.id);
-        });
-
-        function timeAgo(dateString) {
-            const date = new Date(dateString);
-            const now = new Date();
-            const diffInSeconds = Math.floor((now - date) / 1000);
-            if (diffInSeconds < 60) return 'Just now';
-            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
-            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
-            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        window.signOut = () => {
+            localStorage.removeItem(SESSION_KEY);
+            window.location.href = '/login.html';
         }
 
-        async function initDashboard() {
-            // 1. Try to get the session normally
-            let session = getSession();
-
-            // 2. RECOVERY: If session is missing but Token exists, rebuild it!
-            if (!session) {
-                const token = localStorage.getItem('supabase.auth.token');
-                if (token) {
-                    try {
-                        const parts = token.split('.');
-                        if (parts.length === 3) {
-                            const base64Url = parts[1];
-                            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                            const payloadStr = atob(base64);
-                            const payload = JSON.parse(payloadStr);
-
-                            if (payload.email) {
-                                session = {
-                                    email: payload.email,
-                                    name: payload.user_metadata?.name || 'User',
-                                    logged_in_at: Date.now(),
-                                    account_status: 'active',
-                                    resume_credits: 3,
-                                    interview_credits: 3
-                                };
-                                localStorage.setItem(APP_SESSION_KEY, JSON.stringify(session));
-                            }
-                        }
-                    } catch (e) {
-                        console.error("Session Recovery Error:", e.message);
-                    }
-                }
-            }
-
-            // 3. Final Check
-            if (!session) {
-                // Critical: Clear artifacts to prevent Login Redirect Loop
-                localStorage.removeItem(APP_SESSION_KEY);
-                localStorage.removeItem('supabase.auth.token');
-                window.location.href = '/login.html';
-                return;
-            }
-            // Display user info
-            const displayName = session.name || session.email;
-            const shortName = displayName.split('@')[0].split(' ')[0]; // Extract first name or part before @
-
-            // Update New Sidebar & Header Elements
-            if (document.getElementById('user-display-sidebar')) document.getElementById('user-display-sidebar').textContent = shortName;
-            if (document.getElementById('user-display-kb')) document.getElementById('user-display-kb').textContent = shortName;
-
-            // Initials
-            const initials = shortName.substring(0, 2).toUpperCase();
-            if (document.getElementById('user-initials')) document.getElementById('user-initials').textContent = initials;
-
-            // Check for payment success URL param
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('payment') === 'success') {
-                // Just clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            // Show Dashboard
-            const loading = document.getElementById('loading');
-            const content = document.getElementById('dashboard-content');
-            if (loading) loading.style.display = 'none';
-            if (content) content.style.display = 'block';
-        }
-
-        // Initialize on load
-        initDashboard().then(() => {
-            // Fetch real data after generic init
-            // Recover user from session
-            const session = getSession();
-            if (session) {
-                fetchDashboardData(session.email);
-            }
-        });
     </script>
 </body>
 
