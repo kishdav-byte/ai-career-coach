@@ -76,16 +76,11 @@
         }
 
         .markdown-content {
-            white-space: pre-line;
-            /* Collapses multiple spaces but keeps newlines. Safer than pre-wrap for wrapping. */
+            white-space: normal;
             word-wrap: break-word;
-            /* Legacy support */
             overflow-wrap: break-word;
-            /* Modern standard */
             word-break: break-word;
-            /* Forces break if line is too long */
             max-width: 100%;
-            /* Ensure it respects parent padding */
         }
 
         .markdown-content h1 {
