@@ -718,39 +718,39 @@
 
             if (currentStatus === 'Identified' || currentStatus === 'Applied') {
                 quickActions = `
-                    <a href="/resume-analyzer.html" class="${btnClass}">
+                    <button onclick="launchTool('${job.id}', '/resume-analyzer.html')" class="${btnClass}">
                         <i class="fas fa-search-dollar w-4 text-center text-teal"></i> 📄 Resume Scanner
-                    </a>
-                    <a href="/resume-rewriter.html" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/resume-rewriter.html')" class="${btnClass}">
                         <i class="fas fa-magic w-4 text-center text-purple-400"></i> ✨ Executive Rewrite
-                    </a>
-                    <a href="/cover-letter.html" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/cover-letter.html')" class="${btnClass}">
                         <i class="fas fa-feather-alt w-4 text-center text-blue-400"></i> ✍️ Cover Letter Architect
-                    </a>
-                    <a href="/app.html#linkedin" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/app.html#linkedin')" class="${btnClass}">
                         <i class="fab fa-linkedin w-4 text-center text-blue-600"></i> 🔗 LinkedIn Optimizer
-                    </a>
+                    </button>
                 `;
             } else if (currentStatus === 'Interviewing') {
                 quickActions = `
-                    <a href="/lab-assistant.html" class="${btnClass}">
+                    <button onclick="launchTool('${job.id}', '/lab-assistant.html')" class="${btnClass}">
                         <i class="fas fa-microphone w-4 text-center text-teal"></i> 🎤 Mock Interview Sim
-                    </a>
-                    <a href="/star-drill.html" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/star-drill.html')" class="${btnClass}">
                         <i class="fas fa-star w-4 text-center text-amber-500"></i> ⭐ STAR Drill
-                    </a>
-                    <a href="/follow-up.html" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/follow-up.html')" class="${btnClass}">
                         <i class="fas fa-paper-plane w-4 text-center text-purple-400"></i> 📩 Strategic Follow-Up
-                    </a>
+                    </button>
                 `;
             } else if (currentStatus === 'Offer') {
                 quickActions = `
-                    <a href="/strategy/closer.html" class="${btnClass}">
+                    <button onclick="launchTool('${job.id}', '/strategy/closer.html')" class="${btnClass}">
                         <i class="fas fa-handshake w-4 text-center text-green-500"></i> 💰 Salary Negotiation
-                    </a>
-                    <a href="/strategy/30-60-90.html" class="${btnClass}">
+                    </button>
+                    <button onclick="launchTool('${job.id}', '/strategy/30-60-90.html')" class="${btnClass}">
                         <i class="fas fa-calendar-alt w-4 text-center text-blue-400"></i> 📅 30-60-90 Day Plan
-                    </a>
+                    </button>
                 `;
             }
 
@@ -787,7 +787,7 @@
                      <button onclick="window.openDossier('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
                         WAR ROOM
                     </button>
-                     <button onclick="smartLaunch('${job.id}', 'strategy/30-60-90.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                     <button onclick="launchTool('${job.id}', '/strategy/30-60-90.html')" 
                         class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Quick Plan">
                         <i class="fas fa-road text-[10px]"></i>
                     </button>
@@ -998,6 +998,29 @@
                 }
             });
         }
+
+        // --- SMART CONTEXT PASSING ---
+        window.launchTool = (jobId, destinationUrl) => {
+            const job = localJobsInfo.find(j => j.id === jobId);
+            if (!job) {
+                // Fallback if job not found (shouldn't happen)
+                window.location.href = destinationUrl;
+                return;
+            }
+
+            const context = {
+                company: job.company_name,
+                role: job.job_title,
+                jd: job.job_description,
+                notes: job.notes
+            };
+
+            // Save context for receiver tools to pick up
+            localStorage.setItem('mission_context', JSON.stringify(context));
+
+            // Redirect
+            window.location.href = destinationUrl;
+        };
 
         window.buyCredits = async (priceId, mode) => {
             // simplified

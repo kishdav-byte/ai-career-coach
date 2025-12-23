@@ -303,6 +303,17 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check Smart Context
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    const ctx = JSON.parse(missionContext);
+                    if (ctx.jd) document.getElementById('job-description').value = ctx.jd;
+                    // cover-letter.html currently only takes JD text input
+                    localStorage.removeItem('mission_context');
+                } catch (e) { console.error("Context Error", e); }
+            }
+
             if (!supabaseClient) { window.location.href = 'login.html'; return; }
 
             const { data: { user } } = await supabaseClient.auth.getUser();

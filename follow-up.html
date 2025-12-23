@@ -303,6 +303,17 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check Smart Context
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    const ctx = JSON.parse(missionContext);
+                    const statusText = `Interviewed for ${ctx.role} at ${ctx.company}.\n\nNotes:\n${ctx.notes || 'No specific notes.'}`;
+                    document.getElementById('job-description').value = statusText;
+                    localStorage.removeItem('mission_context');
+                } catch (e) { console.error("Context Error", e); }
+            }
+
             if (!supabaseClient) { window.location.href = 'login.html'; return; }
 
             const { data: { user } } = await supabaseClient.auth.getUser();

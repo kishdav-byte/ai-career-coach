@@ -205,6 +205,32 @@
         const userInput = document.getElementById('user-input');
         const sendBtn = document.getElementById('send-btn');
         let isProcessing = false;
+        let system_prompt_context = '';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    const ctx = JSON.parse(missionContext);
+                    // Update Header
+                    const headerTitle = document.querySelector('h1');
+                    if (headerTitle) {
+                        headerTitle.innerHTML = `MISSION: <span class="text-blue-500">${ctx.role} @ ${ctx.company}</span>`;
+                    }
+
+                    // Set Context
+                    system_prompt_context = `CONTEXT:\nRole: ${ctx.role}\nCompany: ${ctx.company}\nJD: ${ctx.jd}\nNotes: ${ctx.notes}`;
+
+                    localStorage.removeItem('mission_context');
+
+                    // Auto-start
+                    setTimeout(() => {
+                        userInput.value = "Start the interview based on this context.";
+                        sendMessage();
+                    }, 500);
+                } catch (e) { console.error("Context Error", e); }
+            }
+        });
 
         // -- MOCK RESPONSES --
         const mockResponses = {
@@ -251,7 +277,8 @@
                 },
                 body: JSON.stringify({
                     action: 'lab_assistant_chat',
-                    message: text
+                    message: text,
+                    context: system_prompt_context // Pass context if available
                 })
             })
                 .then(response => response.json())

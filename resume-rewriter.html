@@ -628,10 +628,21 @@
                     if (ctx.description) {
                         document.getElementById('target-job').value = ctx.description;
                         console.log("Loaded context from Strategy Log:", ctx.role);
-                        // Optional: clear if we only want one-time use
                         localStorage.removeItem('strategy_context');
                     }
                 } catch (e) { console.error("Bad Context", e); }
+            } else {
+                // Check for Mission Context (Dashboard)
+                const missionContext = localStorage.getItem('mission_context');
+                if (missionContext) {
+                    try {
+                        const ctx = JSON.parse(missionContext);
+                        if (ctx.jd) document.getElementById('target-job').value = ctx.jd;
+                        // Note: resume-rewriter doesn't have a dedicated role/company input, 
+                        // effectively just uses JD for optimization.
+                        localStorage.removeItem('mission_context');
+                    } catch (e) { console.error("Bad Mission Context", e); }
+                }
             }
         });
 

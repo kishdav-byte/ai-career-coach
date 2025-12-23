@@ -240,6 +240,18 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
+            // Check Smart Context
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    const ctx = JSON.parse(missionContext);
+                    if (ctx.role) document.querySelector('[name="role_title"]').value = ctx.role;
+                    if (ctx.company) document.querySelector('[name="company_name"]').value = ctx.company;
+                    if (ctx.jd) document.querySelector('[name="focus_area"]').value = `Start Date: ASAP\n\nJob Description:\n${ctx.jd}`;
+                    localStorage.removeItem('mission_context');
+                } catch (e) { console.error("Context Error", e); }
+            }
+
             const token = localStorage.getItem('supabase.auth.token');
             if (!token) window.location.href = '/login.html';
 
