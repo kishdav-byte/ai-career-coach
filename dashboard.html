@@ -542,6 +542,67 @@
             loadJobs();
         });
 
+        // --- DOSSIER LOGIC ---
+        let currentJobId = null;
+        const dossier = document.getElementById('mission-dossier');
+
+        window.openDossier = async (id) => {
+            currentJobId = id;
+            const job = localJobsInfo.find(j => j.id === id);
+            if (!job) return;
+
+            // Populate Fields
+            document.getElementById('dossier-title').innerText = job.job_title;
+            document.getElementById('dossier-company').innerText = job.company_name;
+            document.getElementById('dossier-jd').value = job.job_description || '';
+            document.getElementById('dossier-notes').value = job.notes || '';
+            document.getElementById('dossier-salary').value = job.salary_target || '';
+
+            // Slide In
+            dossier.classList.remove('translate-x-full');
+        };
+
+        window.closeDossier = () => {
+            dossier.classList.add('translate-x-full');
+            currentJobId = null;
+        };
+
+        window.saveDossier = async () => {
+            if (!currentJobId) return;
+            const btn = document.querySelector('button[onclick="saveDossier()"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+
+            const updates = {
+                job_description: document.getElementById('dossier-jd').value,
+                notes: document.getElementById('dossier-notes').value,
+                salary_target: document.getElementById('dossier-salary').value
+            };
+
+            try {
+                const res = await fetch(`/api/jobs/${currentJobId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+
+                if (!res.ok) throw new Error("Save failed");
+
+                // Update local data
+                const jobIndex = localJobsInfo.findIndex(j => j.id === currentJobId);
+                if (jobIndex > -1) {
+                    localJobsInfo[jobIndex] = { ...localJobsInfo[jobIndex], ...updates };
+                }
+
+                alert("Mission Dossier updated.");
+                closeDossier();
+            } catch (e) {
+                alert("Error saving dossier: " + e.message);
+            } finally {
+                btn.innerHTML = originalText;
+            }
+        };
+
         // --- JOB LOGIC (Note: Ported from strategy-log.html) ---
         async function loadJobs() {
             try {
@@ -668,7 +729,7 @@
                 </div>
 
                 <div class="flex gap-2">
-                     <button onclick="window.openWarRoom('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
+                     <button onclick="window.openDossier('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
                         WAR ROOM
                     </button>
                      <button onclick="smartLaunch('${job.id}', 'strategy/30-60-90.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 

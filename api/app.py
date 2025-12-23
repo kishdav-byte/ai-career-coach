@@ -2357,6 +2357,9 @@ def job_operations(job_id):
             if 'status' in data: update_data['status'] = data['status']
             if 'resume_score' in data: update_data['resume_score'] = data['resume_score']
             if 'interview_score' in data: update_data['interview_score'] = data['interview_score']
+            if 'job_description' in data: update_data['job_description'] = data['job_description']
+            if 'notes' in data: update_data['notes'] = data['notes']
+            if 'salary_target' in data: update_data['salary_target'] = data['salary_target']
             
             res = supabase_admin.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
             return jsonify(res.data)
