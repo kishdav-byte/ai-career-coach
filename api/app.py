@@ -1232,6 +1232,61 @@ If input is present, generate the profile now. Verify every number against the i
             # Return raw text in refined_content so user sees SOMETHING
             return jsonify({"recommendations": [], "refined_content": response_text})
 
+    elif action == 'star_drill':
+        user_input = data.get('input_text', '')
+        user_id = data.get('user_id')
+        email = data.get('email')
+
+        # 1. LIMIT CHECK
+        # Fetch user subscription and count
+        user_data = None
+        if user_id:
+            user_data = supabase.table('users').select('subscription_status, is_unlimited, star_drill_count').eq('id', user_id).single().execute()
+            if user_data and user_data.data:
+                u = user_data.data
+                is_pro = u.get('is_unlimited') or u.get('subscription_status') == 'pro'
+                count = u.get('star_drill_count', 0)
+                
+                # Free User Logic
+                if not is_pro and count >= 3:
+                     return jsonify({"error": "LIMIT_REACHED", "message": "Free limit reached (3/month). Upgrade for unlimited access."}), 403
+
+        # 2. AI GENERATION
+        messages = [
+            {"role": "system", "content": """You are an expert Interview Coach specializing in the S.T.A.R. method.
+            Your goal is to take a messy, rambling user story and structure it into a perfect S.T.A.R. format.
+            
+            OUTPUT RULES:
+            - **S (Situation):** Set the scene briefly (1-2 sentences). Context only.
+            - **T (Task):** What was the specific challenge or goal? (1 sentence).
+            - **A (Action):** What did the USER specifically do? Focus heavily here. Use active verbs (Led, Built, Negotiated). (3-4 sentences).
+            - **R (Result):** What was the outcome? Quantify it if possible ($ saved, % improved). (1-2 sentences).
+
+            RETURN JSON ONLY:
+            {
+                "S": "...",
+                "T": "...",
+                "A": "...",
+                "R": "..."
+            }
+            """},
+            {"role": "user", "content": f"Here is my raw story:\n{user_input}"}
+        ]
+        
+        response_text = call_openai(messages, json_mode=True)
+        
+        # Clean up
+        if response_text.startswith('```json'): response_text = response_text[7:]
+        if response_text.endswith('```'): response_text = response_text[:-3]
+
+        # 3. INCREMENT COUNT & LOG
+        if user_id:
+             supabase.table('users').update({'star_drill_count': count + 1}).eq('id', user_id).execute()
+        
+        log_db_activity(email, 'star_drill', {"status": "success"})
+        
+        return jsonify(json.loads(response_text))
+
     elif action == 'parse_resume':
         resume_text = data.get('resume_text', '')
         system_msg = """You are a precise Resume Parsing Engine. Convert raw PDF text into structured JSON.

@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAR Drill - Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .star-card {
+            transition: all 0.3s ease;
+        }
+
+        .star-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(59, 130, 246, 0.2);
+        }
+    </style>
+</head>
+
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+
+    <!-- LEFT PANEL: INPUT (40%) -->
+    <aside
+        class="w-full md:w-[40%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Header -->
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">THE
+                    SIMULATOR</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">STAR<span
+                        class="text-blue-500">_DRILL</span></div>
+            </div>
+            <a href="/dashboard.html"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+        </div>
+
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 flex flex-col">
+
+            <div class="mb-6">
+                <p class="text-sm text-slate-400 leading-relaxed">
+                    Convert your raw, messy stories into the perfect <span
+                        class="text-white font-bold">Situation-Task-Action-Result</span> format.
+                    Dump your thoughts below, and the AI will structure it for you.
+                </p>
+            </div>
+
+            <!-- Input Area -->
+            <div class="flex-1 flex flex-col">
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    Your Raw Story
+                </label>
+                <div class="relative group flex-1">
+                    <textarea id="user-input"
+                        class="w-full h-full min-h-[300px] bg-slate-900/60 border border-slate-700/60 rounded-xl p-6 text-base text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                        placeholder="Example: I had to deal with a conflict in my team last year. Two engineers were arguing about the architecture..."></textarea>
+
+                    <div id="word-count"
+                        class="absolute bottom-4 right-4 text-[10px] text-slate-600 font-mono tracking-wider transition-colors">
+                        0 Words
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+            <button id="run-btn" onclick="runDrill()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                <span>BUILD MY S.T.A.R. STORY</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </button>
+            <p id="credit-display" class="text-center text-[10px] text-slate-500 mt-3 font-mono">
+                USAGE: <span id="usage-count">...</span> / 3 (Free Plan)
+            </p>
+        </div>
+
+    </aside>
+
+
+    <!-- RIGHT PANEL: RESULTS (60%) -->
+    <main
+        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
+
+        <!-- CONTAINER -->
+        <div class="h-full overflow-y-auto custom-scroll relative z-10 p-6 md:p-12 flex flex-col">
+
+            <!-- STATE A: IDLE -->
+            <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center">
+                <div
+                    class="w-24 h-24 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-8 rotate-3 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+                    <span class="text-4xl">⭐</span>
+                </div>
+                <h2 class="text-xl font-bold text-white mb-2 tracking-tight">Structured Output</h2>
+                <p class="text-slate-500 max-w-sm text-sm">Your formatted story will appear here, broken down by
+                    Situation, Task, Action, and Result.</p>
+            </div>
+
+            <!-- STATE B: LOADING -->
+            <div id="state-loading" class="hidden flex-1 flex flex-col items-center justify-center animate-pulse">
+                <h3 class="text-2xl font-bold text-blue-500 uppercase tracking-widest mb-4">Structuring Story...</h3>
+                <p class="text-slate-500 text-sm">Isolating key actions and quantifying results.</p>
+            </div>
+
+            <!-- STATE C: RESULTS (The 4 Cards) -->
+            <div id="state-result" class="hidden w-full max-w-4xl mx-auto space-y-6 pb-20">
+
+                <!-- S: Situation -->
+                <div
+                    class="star-card bg-slate-900/50 border-l-4 border-blue-500 rounded-r-xl p-6 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-blue-500 pointer-events-none">
+                        S</div>
+                    <h3 class="text-blue-400 font-bold uppercase tracking-wider text-xs mb-3">Situation</h3>
+                    <p id="res-s" class="text-slate-200 leading-relaxed"></p>
+                </div>
+
+                <!-- T: Task -->
+                <div
+                    class="star-card bg-slate-900/50 border-l-4 border-purple-500 rounded-r-xl p-6 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-purple-500 pointer-events-none">
+                        T</div>
+                    <h3 class="text-purple-400 font-bold uppercase tracking-wider text-xs mb-3">Task</h3>
+                    <p id="res-t" class="text-slate-200 leading-relaxed"></p>
+                </div>
+
+                <!-- A: Action (Main Highlight) -->
+                <div
+                    class="star-card bg-gradient-to-r from-slate-900 to-slate-800 border-l-4 border-green-500 rounded-r-xl p-8 relative overflow-hidden shadow-lg transform scale-[1.02]">
+                    <div
+                        class="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-green-500 pointer-events-none">
+                        A</div>
+                    <h3 class="text-green-400 font-bold uppercase tracking-wider text-xs mb-4">Action (The Core)</h3>
+                    <p id="res-a" class="text-white text-lg leading-relaxed font-medium"></p>
+                </div>
+
+                <!-- R: Result -->
+                <div
+                    class="star-card bg-slate-900/50 border-l-4 border-yellow-500 rounded-r-xl p-6 relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 p-4 opacity-10 font-black text-6xl text-yellow-500 pointer-events-none">
+                        R</div>
+                    <h3 class="text-yellow-400 font-bold uppercase tracking-wider text-xs mb-3">Result</h3>
+                    <p id="res-r" class="text-slate-200 leading-relaxed"></p>
+                </div>
+
+                <div class="mt-8 flex justify-center">
+                    <button onclick="copyAll()"
+                        class="text-xs text-slate-500 hover:text-white uppercase tracking-widest font-bold flex items-center gap-2 transition-colors">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z">
+                            </path>
+                        </svg>
+                        Copy Full Answer
+                    </button>
+                    <span id="copy-msg" class="ml-2 text-xs text-green-500 hidden">Copied!</span>
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- LIMIT MODAL -->
+    <div id="limit-modal"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div
+            class="bg-slate-900 border border-blue-500/30 rounded-2xl max-w-md w-full p-8 text-center shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-purple-500"></div>
+            <div class="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">🔒
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-2">Free Limit Reached</h3>
+            <p class="text-slate-400 mb-8">You've used your 3 free STAR Drills for this month. Upgrade to the Monthly
+                Plan for unlimited access to all tools.</p>
+            <a href="/pricing.html"
+                class="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all mb-3 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
+                Upgrade Now ($49.99/mo)
+            </a>
+            <button onclick="document.getElementById('limit-modal').classList.add('hidden')"
+                class="text-slate-500 text-sm hover:text-white">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const textarea = document.getElementById('user-input');
+        const wordCount = document.getElementById('word-count');
+        const APP_SESSION_KEY = 'aceinterview_session';
+
+        // Word Count
+        textarea.addEventListener('input', () => {
+            const count = textarea.value.trim().split(/\s+/).filter(w => w.length > 0).length;
+            wordCount.textContent = `${count} Words`;
+        });
+
+        // --- MAIN LOGIC ---
+        async function runDrill() {
+            const input = textarea.value.trim();
+            if (!input) return alert("Please enter a story first.");
+
+            // UI Loading
+            document.getElementById('state-idle').classList.add('hidden');
+            document.getElementById('state-result').classList.add('hidden');
+            document.getElementById('state-loading').classList.remove('hidden');
+            const btn = document.getElementById('run-btn');
+            btn.disabled = true;
+            btn.innerText = "PROCESSING...";
+
+            try {
+                // Get Session
+                let email = null;
+                let userId = null;
+                try {
+                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                    if (sessionStr) {
+                        const s = JSON.parse(sessionStr);
+                        email = s.email;
+                        userId = s.user_id || s.user?.id || s.id;
+                    }
+                } catch (e) { }
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'star_drill',
+                        input_text: input,
+                        user_id: userId,
+                        email: email
+                    })
+                });
+
+                if (response.status === 403) {
+                    // Limit Reached
+                    document.getElementById('limit-modal').classList.remove('hidden');
+                    resetUI();
+                    return;
+                }
+
+                const data = await response.json();
+
+                // Render
+                document.getElementById('res-s').innerText = data.S || "N/A";
+                document.getElementById('res-t').innerText = data.T || "N/A";
+                document.getElementById('res-a').innerText = data.A || "N/A";
+                document.getElementById('res-r').innerText = data.R || "N/A";
+
+                // Show
+                document.getElementById('state-loading').classList.add('hidden');
+                document.getElementById('state-result').classList.remove('hidden');
+                btn.disabled = false;
+                btn.innerHTML = `<span>BUILD ANOTHER STORY</span>`;
+
+            } catch (e) {
+                console.error(e);
+                alert("Error: " + e.message);
+                resetUI();
+            }
+        }
+
+        function resetUI() {
+            document.getElementById('state-loading').classList.add('hidden');
+            document.getElementById('state-idle').classList.remove('hidden');
+            const btn = document.getElementById('run-btn');
+            btn.disabled = false;
+            btn.innerText = "BUILD MY S.T.A.R. STORY";
+        }
+
+        function copyAll() {
+            const s = document.getElementById('res-s').innerText;
+            const t = document.getElementById('res-t').innerText;
+            const a = document.getElementById('res-a').innerText;
+            const r = document.getElementById('res-r').innerText;
+            const full = `Situation: ${s}\n\nTask: ${t}\n\nAction: ${a}\n\nResult: ${r}`;
+            navigator.clipboard.writeText(full);
+            document.getElementById('copy-msg').classList.remove('hidden');
+            setTimeout(() => document.getElementById('copy-msg').classList.add('hidden'), 2000);
+        }
+    </script>
+</body>
+
+</html>
