@@ -376,27 +376,32 @@ function init() {
         if (el) el.addEventListener('click', handler);
     }
 
-    // LinkedIn Visual Unlock Logic
+    // LinkedIn Visual Unlock Logic (UPDATED Phase 9.4)
     function verifyLinkedInAccess(session) {
         if (!session) return;
-        const lockedState = document.getElementById('linkedin-locked-state');
-        const activeState = document.getElementById('linkedin-active-state');
-        const optimizeBtn = document.getElementById('optimize-linkedin-btn');
 
-        if (!lockedState || !activeState) return;
+        // New Overlay Ref
+        const overlay = document.getElementById('linkedin-unlock-overlay');
+        const optimizeBtn = document.getElementById('optimize-linkedin-btn');
+        // We no longer toggle the sidebar inputs - they are always open (Freemium Style)
+
+        if (!overlay) return;
 
         const credits = (session.credits_linkedin || 0) + (session.credits || 0);
         const isUnlimited = session.is_unlimited || false;
 
+        // If has access, HIDE the overlay. If locked, SHOW it (but primarily when they try to view results)
+        // Actually, we want the overlay to be visible over the "Placeholder" if they are locked?
+        // OR better: The overlay should appear if they try to click optimize? 
+        // User Request: "UI styling that the Executive Rewrite tool has when locked" which means Overlay is visible immediately on the right?
+        // Yes, let's show it immediately if locked to drive the point home.
+
         if (credits > 0 || isUnlimited) {
-            lockedState.classList.add('hidden');
-            activeState.classList.remove('hidden');
-            if (optimizeBtn) optimizeBtn.disabled = false;
+            overlay.classList.add('hidden');
+            if (optimizeBtn) optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
         } else {
-            lockedState.classList.remove('hidden');
-            activeState.classList.add('hidden');
-            // Optionally disable the main action button too, though the UI hides inputs
-            if (optimizeBtn) optimizeBtn.disabled = true;
+            overlay.classList.remove('hidden');
+            if (optimizeBtn) optimizeBtn.innerHTML = 'UNLOCK & OPTIMIZE';
         }
     }
 
@@ -518,13 +523,13 @@ function init() {
         });
     }
 
-    // Bind Unlock Button for LinkedIn Logic
-    const unlockLinkedInBtn = document.getElementById('btn-unlock-linkedin');
+    // Bind Unlock Button for LinkedIn Logic (Overlay Button)
+    const unlockLinkedInBtn = document.getElementById('btn-unlock-linkedin-overlay');
     if (unlockLinkedInBtn) {
         unlockLinkedInBtn.addEventListener('click', async () => {
             const session = getSession();
             if (!session) return window.location.href = '/login.html';
-            initiateCheckout('linkedin_optimize', session.email);
+            initiateCheckout('linkedin_optimize', session.email, session.user_id); // Pass ID!
         });
     }
 
@@ -538,6 +543,19 @@ function init() {
             console.log("Capturing LinkedIn Input:", input.substring(0, 50) + "..."); // Debug Log
 
             if (!input.trim()) return alert("Please paste your 'About' section content.");
+
+            // CHECK ACCESS BEFORE PROCEEDING
+            const session = getSession();
+            const credits = (session?.credits_linkedin || 0) + (session?.credits || 0);
+            const isUnlimited = session?.is_unlimited || false;
+
+            if (!isUnlimited && credits <= 0) {
+                // Trigger Checkout
+                if (confirm("Unlock this feature for $6.99?")) {
+                    initiateCheckout('linkedin_optimize', session.email, session.user_id);
+                }
+                return;
+            }
 
             // UI Loading State
             const originalText = optimizeLinkedinBtn.innerHTML;
