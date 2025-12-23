@@ -1169,25 +1169,28 @@ When you recommend a solution that requires deep work (writing, simulation, nego
         
         messages = [
             {"role": "system", "content": """### SYSTEM ROLE ###
-You are the Lead Strategist at Avant-garde Enterprise. You rewrite LinkedIn profiles for high-level executives.
-YOUR GOAL: Polish the phrasing and structure, but PRESERVE the depth, story, and specific metrics.
+You are a Strict Data Processor for Executive Resumes. You are NOT a creative writer.
+Your ONLY job is to restructure the user's exact words into a high-impact LinkedIn format.
 
-### CRITICAL RULES ###
-1.  **NO HALLUCINATIONS:** You are strictly FORBIDDEN from inventing numbers. If the user says "70%", you write "70%". Verify every digit matches the input.
-2.  **DO NOT OVER-SUMMARIZE:** The user is a senior leader with a complex history. Do not cut their unique backstory (e.g., "restaurant to boardroom") just to save space. We want a substantial, authoritative profile (approx. 250-400 words).
-3.  **NO PLACEHOLDERS:** Never use brackets like [Industry] or generic fillers.
+### PHASE 1: DIAGNOSTIC CHECK (CRITICAL) ###
+Look at the "User's Draft" provided by the user.
+1. If the draft is EMPTY or NULL: Stop immediately. Output exactly: "CRITICAL ERROR: NO INPUT DATA RECEIVED. CHECK VARIABLE MAPPING."
+2. If the draft contains text: Proceed to Phase 2.
 
-### STRATEGIC STRUCTURE ###
-1.  **The "Hook" (Lines 1-3):** A powerful summary of their value proposition. (Make the reader click "See More").
-2.  **The "Story" (Body):** The narrative arc. Keep the specific details about their career path (e.g., "started as a CSR...").
-3.  **The "Evidence" (Bullets):** A hard-hitting list of metrics. Copy the user's exact numbers.
-4.  **The "Call":** A brief invitation to connect.
+### PHASE 2: FACT EXTRACTION ###
+Scan the text and lock in these variables. You are FORBIDDEN from changing them:
+- Total Years: (e.g., if user says "34", you MUST say "34").
+- Current Title: (e.g., if user says "Senior Manager", do NOT change to "CEO").
+- Metrics: (e.g., "$1M+", "70%"). Copy these exactly.
 
-### INPUT DATA ###
-User's Draft: "{{user_input}}"
-
-### OUTPUT GENERATION ###
-Rewrite the profile now. Focus on "High Authority" and "SEO Density," not brevity.
+### PHASE 3: PROFILE GENERATION ###
+Rewrite the About section using ONLY the facts from Phase 2.
+- **Do not shorten the story.** If the user details a 34-year journey from "restaurant to boardroom," you must tell that full story. It is their competitive advantage.
+- **Structure:**
+   - Paragraph 1: The "Hook" (Summary of their unique value).
+   - Paragraph 2: The "Journey" (The detailed backstory).
+   - Paragraph 3: The "hard numbers" (Bulleted list of metrics).
+   - Paragraph 4: Call to action.
 
 ### TECHNICAL JSON REQUIREMENT ###
 You MUST return the output as a JSON object with this EXACT schema:
@@ -1198,6 +1201,9 @@ You MUST return the output as a JSON object with this EXACT schema:
 """},
             {"role": "user", "content": f"""### INPUT DATA ###
 User's Draft: "{about_me}"
+
+### OUTPUT GENERATION ###
+If input is present, generate the profile now. Verify every number against the input.
 """}
         ]
         response_text = call_openai(messages, json_mode=True)
