@@ -456,6 +456,9 @@ def api():
             elif feature == 'rewrite' or plan_type == 'rewrite':
                 price_id = os.environ.get('STRIPE_REWRITE_PRICE_ID')
                 feature = 'rewrite'
+            elif feature == 'linkedin_optimize' or plan_type == 'linkedin_optimize':
+                price_id = "price_1ShWBJIH1WTKNasqd7p9VA5f" # Hardcoded per request (or use ENV)
+                feature = 'linkedin_optimize'
 
             if not price_id and not plan_type and not feature:
                  return jsonify({'error': 'Missing Plan or Feature selection.'}), 400
@@ -541,7 +544,7 @@ def api():
                 # Check User Status (Updated Phase 34 + Free Tier Tracking)
                 # NOTE: Removed analysis_count from here to prevent crash if SQL not run yet. We fetch it safely below.
                 user_res = db_client.table('users').select(
-                    'role, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits, monthly_voice_usage, '
+                    'role, subscription_status, is_unlimited, resume_credits, interview_credits, rewrite_credits, credits_linkedin, credits, monthly_voice_usage, '
                     'credits_negotiation, credits_inquisitor, credits_followup, credits_30_60_90, credits_cover_letter'
                 ).eq('email', email).execute()
                 
@@ -658,15 +661,36 @@ def api():
                                  print(f"Blocked: Insufficient credits for Rewrite (Rewrite: {rewrite_credits}, Universal: {universal_credits})")
                                  has_access = False
 
-                        elif action in ['career_plan', 'cover_letter', 'negotiation_script', 'value_followup', 'inquisitor', 'linkedin_optimize']:
+                                 has_access = False
+ 
+                        elif action == 'linkedin_optimize':
+                            # LINKEDIN OPTIMIZER CREDIT CHECK
+                            linkedin_credits = user.get('credits_linkedin', 0) or 0
+                            
+                            if linkedin_credits > 0 or universal_credits > 0:
+                                has_access = True
+                                if should_deduct:
+                                    supabase_upd = supabase_admin if supabase_admin else supabase
+                                    if linkedin_credits > 0:
+                                        new_val = linkedin_credits - 1
+                                        supabase_upd.table('users').update({'credits_linkedin': new_val}).eq('email', email).execute()
+                                        print(f"Deducted 1 LINKEDIN credit. New: {new_val}")
+                                    else:
+                                        new_val = universal_credits - 1
+                                        supabase_upd.table('users').update({'credits': new_val}).eq('email', email).execute()
+                                        print(f"Deducted 1 UNIVERSAL credit for LinkedIn. New: {new_val}")
+                            else:
+                                print(f"Blocked: Insufficient credits for LinkedIn (Specific: {linkedin_credits}, Universal: {universal_credits})")
+                                has_access = False
+
+                        elif action in ['career_plan', 'cover_letter', 'negotiation_script', 'value_followup', 'inquisitor']:
                             # Determine specific credit column
                             credit_col = {
                                 'career_plan': 'credits_30_60_90',
                                 'cover_letter': 'credits_cover_letter',
                                 'negotiation_script': 'credits_negotiation',
                                 'value_followup': 'credits_followup',
-                                'inquisitor': 'credits_inquisitor',
-                                'linkedin_optimize': 'credits' # Uses universal directly
+                                'inquisitor': 'credits_inquisitor'
                             }.get(action)
                             
                             specific_credits = user.get(credit_col, 0) or 0
@@ -675,7 +699,7 @@ def api():
                                 has_access = True
                                 if should_deduct:
                                     supabase_upd = supabase_admin if supabase_admin else supabase
-                                    if specific_credits > 0 and credit_col != 'credits':
+                                    if specific_credits > 0:
                                         new_val = specific_credits - 1
                                         supabase_upd.table('users').update({credit_col: new_val}).eq('email', email).execute()
                                         print(f"Deducted 1 {action} credit from {credit_col}. New: {new_val}")
@@ -2660,6 +2684,10 @@ def stripe_webhook():
                     elif metadata.get('feature') == 'rewrite' or plan_type == 'rewrite':
                         update_data['rewrite_credits'] = (user_data.get('rewrite_credits', 0) or 0) + 1
                         trace(f"Adding +1 credit for Rewrite. New: {update_data['rewrite_credits']}")
+
+                    elif metadata.get('feature') == 'linkedin_optimize' or plan_type == 'linkedin_optimize':
+                        update_data['credits_linkedin'] = (user_data.get('credits_linkedin', 0) or 0) + 1
+                        trace(f"Adding +1 credit for LinkedIn. New: {update_data['credits_linkedin']}")
                     
                     elif plan_type == 'complete':
                         update_data['credits'] = (user_data.get('credits', 0) or 0) + 2

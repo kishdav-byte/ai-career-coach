@@ -131,7 +131,10 @@ async function checkAccess(requiredType = 'interview_credits') {
     session.credits = universalBalance;
     session.interview_credits = userData.interview_credits || 0;
     session.resume_credits = userData.resume_credits || 0;
+    session.interview_credits = userData.interview_credits || 0;
+    session.resume_credits = userData.resume_credits || 0;
     session.rewrite_credits = userData.rewrite_credits || 0;
+    session.credits_linkedin = userData.credits_linkedin || 0;
     session.role = userData.role;
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
@@ -284,7 +287,8 @@ async function initiateCheckout(productKey, userEmail, userId) {
         // 1. STRICT PRICING MAP
         const priceMap = {
             'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', // $9.99
-            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'            // $49.99
+            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',           // $49.99
+            'linkedin_optimize': 'price_1ShWBJIH1WTKNasqd7p9VA5f'       // $6.99 (NEW)
         };
 
         const actualPriceId = priceMap[productKey];
@@ -370,6 +374,30 @@ function init() {
     function addClickListener(id, handler) {
         const el = document.getElementById(id);
         if (el) el.addEventListener('click', handler);
+    }
+
+    // LinkedIn Visual Unlock Logic
+    function verifyLinkedInAccess(session) {
+        if (!session) return;
+        const lockedState = document.getElementById('linkedin-locked-state');
+        const activeState = document.getElementById('linkedin-active-state');
+        const optimizeBtn = document.getElementById('optimize-linkedin-btn');
+
+        if (!lockedState || !activeState) return;
+
+        const credits = (session.credits_linkedin || 0) + (session.credits || 0);
+        const isUnlimited = session.is_unlimited || false;
+
+        if (credits > 0 || isUnlimited) {
+            lockedState.classList.add('hidden');
+            activeState.classList.remove('hidden');
+            if (optimizeBtn) optimizeBtn.disabled = false;
+        } else {
+            lockedState.classList.remove('hidden');
+            activeState.classList.add('hidden');
+            // Optionally disable the main action button too, though the UI hides inputs
+            if (optimizeBtn) optimizeBtn.disabled = true;
+        }
     }
 
     // Auto-analysis logic moved to end of init function
@@ -458,6 +486,27 @@ function init() {
         });
     });
 
+    // Special: Verify LinkedIn on Load/Hash Change (since it's not a tab pane in the same way)
+    // We hook into the existing hash change listener in app.html, but we can also check here based on view
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.target.id === 'view-linkedin-sidebar' && !mutation.target.classList.contains('hidden')) {
+                const session = getSession();
+                verifyLinkedInAccess(session);
+            }
+        });
+    });
+    const linkedinSidebar = document.getElementById('view-linkedin-sidebar');
+    if (linkedinSidebar) {
+        observer.observe(linkedinSidebar, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    // Initial Check if already on linkedin
+    if (window.location.hash === '#linkedin') {
+        const session = getSession();
+        verifyLinkedInAccess(session);
+    }
+
     // Bind Unlock Button for Interview Logic
     const unlockInterviewBtn = document.getElementById('btn-unlock-interview');
     if (unlockInterviewBtn) {
@@ -466,6 +515,16 @@ function init() {
             if (!session) return window.location.href = '/login.html';
 
             initiateCheckout('strategy_interview_sim', session.email);
+        });
+    }
+
+    // Bind Unlock Button for LinkedIn Logic
+    const unlockLinkedInBtn = document.getElementById('btn-unlock-linkedin');
+    if (unlockLinkedInBtn) {
+        unlockLinkedInBtn.addEventListener('click', async () => {
+            const session = getSession();
+            if (!session) return window.location.href = '/login.html';
+            initiateCheckout('linkedin_optimize', session.email);
         });
     }
 
