@@ -314,10 +314,9 @@
             const btn = document.getElementById('btn-unlock-overlay');
             btn.innerHTML = 'Redirecting...';
             try {
-                // Use reuseable map logic if we had shared app.js, but here we inline or use generic
                 const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
                     body: {
-                        price_id: 'price_1ShWBJIH1WTKNasqd7p9VA5f', // Reusing LinkedIn Price $6.99 as per request logic similarity
+                        price_id: 'price_1Shc7tIH1WTKNasqQNu7O5fL', // Correct Cover Letter Price ID
                         plan_type: 'cover_letter', // New Type
                         return_url: window.location.href,
                         email: userEmail,
