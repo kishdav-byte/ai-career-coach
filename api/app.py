@@ -1233,59 +1233,78 @@ If input is present, generate the profile now. Verify every number against the i
             return jsonify({"recommendations": [], "refined_content": response_text})
 
     elif action == 'star_drill':
-        user_input = data.get('input_text', '')
-        user_id = data.get('user_id')
-        email = data.get('email')
+        try:
+            user_input = data.get('input_text', '')
+            user_id = data.get('user_id')
+            email = data.get('email')
 
-        # 1. LIMIT CHECK
-        # Fetch user subscription and count
-        user_data = None
-        if user_id:
-            user_data = supabase.table('users').select('subscription_status, is_unlimited, star_drill_count').eq('id', user_id).single().execute()
-            if user_data and user_data.data:
-                u = user_data.data
-                is_pro = u.get('is_unlimited') or u.get('subscription_status') == 'pro'
-                count = u.get('star_drill_count', 0)
+            # 1. LIMIT CHECK
+            count = 0
+            if user_id:
+                # Use robust query - avoid .single() to prevent crash if user not found, catch generic errors
+                try:
+                    # Request specific columns, if they don't exist this will raise APIError
+                    response = supabase.table('users').select('subscription_status, is_unlimited, star_drill_count').eq('id', user_id).execute()
+                    if response.data and len(response.data) > 0:
+                        u = response.data[0]
+                        is_pro = u.get('is_unlimited') or u.get('subscription_status') == 'pro'
+                        count = u.get('star_drill_count', 0)
+                        
+                        # Free User Logic
+                        if not is_pro and count >= 3:
+                            return jsonify({"error": "LIMIT_REACHED", "message": "Free limit reached (3/month). Upgrade for unlimited access."}), 403
+                except Exception as db_err:
+                    print(f"DB Check Failed (Likely Schema): {db_err}")
+                    # If we can't check limits due to schema error, we should probably fail safe or block?
+                    # For now, let's re-raise so it's caught by outer block and sent to frontend
+                    raise db_err
+
+            # 2. AI GENERATION
+            messages = [
+                {"role": "system", "content": """You are an expert Interview Coach specializing in the S.T.A.R. method.
+                Your goal is to take a messy, rambling user story and structure it into a perfect S.T.A.R. format.
                 
-                # Free User Logic
-                if not is_pro and count >= 3:
-                     return jsonify({"error": "LIMIT_REACHED", "message": "Free limit reached (3/month). Upgrade for unlimited access."}), 403
+                OUTPUT RULES:
+                - **S (Situation):** Set the scene briefly (1-2 sentences). Context only.
+                - **T (Task):** What was the specific challenge or goal? (1 sentence).
+                - **A (Action):** What did the USER specifically do? Focus heavily here. Use active verbs (Led, Built, Negotiated). (3-4 sentences).
+                - **R (Result):** What was the outcome? Quantify it if possible ($ saved, % improved). (1-2 sentences).
 
-        # 2. AI GENERATION
-        messages = [
-            {"role": "system", "content": """You are an expert Interview Coach specializing in the S.T.A.R. method.
-            Your goal is to take a messy, rambling user story and structure it into a perfect S.T.A.R. format.
+                RETURN JSON ONLY:
+                {
+                    "S": "...",
+                    "T": "...",
+                    "A": "...",
+                    "R": "..."
+                }
+                """},
+                {"role": "user", "content": f"Here is my raw story:\n{user_input}"}
+            ]
             
-            OUTPUT RULES:
-            - **S (Situation):** Set the scene briefly (1-2 sentences). Context only.
-            - **T (Task):** What was the specific challenge or goal? (1 sentence).
-            - **A (Action):** What did the USER specifically do? Focus heavily here. Use active verbs (Led, Built, Negotiated). (3-4 sentences).
-            - **R (Result):** What was the outcome? Quantify it if possible ($ saved, % improved). (1-2 sentences).
+            response_text = call_openai(messages, json_mode=True)
+            
+            # Clean up
+            if response_text.startswith('```json'): response_text = response_text[7:]
+            if response_text.startswith('```'): response_text = response_text[3:]
+            if response_text.endswith('```'): response_text = response_text[:-3]
 
-            RETURN JSON ONLY:
-            {
-                "S": "...",
-                "T": "...",
-                "A": "...",
-                "R": "..."
-            }
-            """},
-            {"role": "user", "content": f"Here is my raw story:\n{user_input}"}
-        ]
-        
-        response_text = call_openai(messages, json_mode=True)
-        
-        # Clean up
-        if response_text.startswith('```json'): response_text = response_text[7:]
-        if response_text.endswith('```'): response_text = response_text[:-3]
+            # 3. INCREMENT COUNT & LOG
+            if user_id:
+                try:
+                    # Update count - verified earlier that we have it
+                    supabase.table('users').update({'star_drill_count': count + 1}).eq('id', user_id).execute()
+                except Exception as update_err:
+                    print(f"Failed to update count: {update_err}")
+                    # Non-critical, continue
+            
+            log_db_activity(email, 'star_drill', {"status": "success"})
+            
+            return jsonify(json.loads(response_text))
 
-        # 3. INCREMENT COUNT & LOG
-        if user_id:
-             supabase.table('users').update({'star_drill_count': count + 1}).eq('id', user_id).execute()
-        
-        log_db_activity(email, 'star_drill', {"status": "success"})
-        
-        return jsonify(json.loads(response_text))
+        except Exception as e:
+            print(f"STAR Drill Critical Error: {e}")
+            # Return JSON error to prevent 'Unexpected token <' in frontend
+            return jsonify({"error": "SERVER_ERROR", "message": f"Backend Error: {str(e)}"}), 500
 
     elif action == 'parse_resume':
         resume_text = data.get('resume_text', '')
