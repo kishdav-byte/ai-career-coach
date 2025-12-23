@@ -2089,7 +2089,7 @@ def generate_strategy_tool():
              has_credit = True
         elif tool_type == 'inquisitor' and user.get('credits_inquisitor', 0) > 0:
              has_credit = True
-        elif tool_type == 'followup' and user.get('credits_followup', 0) > 0:
+        elif tool_type == 'follow_up' and user.get('credits_followup', 0) > 0:
              has_credit = True
 
         # Unlimited Override (Pro Plan)
@@ -2245,7 +2245,7 @@ You are an Executive Deal Closer. You write high-stakes follow-up emails.
                      db.table('users').update({'credits_inquisitor': val - 1}).eq('email', user_email).execute()
                      deducted = True
                      
-            elif tool_type == 'followup':
+            elif tool_type == 'follow_up':
                  val = user.get('credits_followup', 0)
                  if val > 0:
                      db.table('users').update({'credits_followup': val - 1}).eq('email', user_email).execute()
