@@ -125,7 +125,7 @@
 </head>
 
 
-<body class="bg-gray-50 text-white font-sans selection:bg-teal selection:text-black overflow-hidden h-screen">
+<body class="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-teal selection:text-black">
 
     <div class="flex h-screen bg-slate-950">
 
@@ -277,7 +277,7 @@
         </aside>
 
         <!-- MAIN CONTENT WRAPPER -->
-        <div class="flex-1 flex flex-col min-w-0 lg:ml-0 overflow-hidden relative">
+        <div class="flex-1 flex flex-col min-w-0 lg:ml-0 overflow-x-hidden overflow-y-auto relative">
 
             <!-- Mobile Overlay -->
             <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
@@ -288,7 +288,7 @@
 
             <!-- Scrollable Content Area -->
             <main
-                class="flex-1 flex flex-col p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black overflow-hidden">
+                class="flex-1 flex flex-col p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black overflow-y-auto md:h-screen">
 
                 <div class="max-w-7xl mx-auto w-full flex-shrink-0">
                     <!-- Header -->
