@@ -2145,13 +2145,30 @@ def generate_strategy_tool():
             )
 
         elif tool_type == 'cover_letter':
-             system_prompt = "You are an expert executive resume writer."
+             system_prompt = """
+### SYSTEM ROLE ###
+You are an Executive Ghostwriter for high-level leaders. You DO NOT write standard cover letters.
+**THE ENEMY:** "I am writing to apply...", "I am a perfect match...", "Enclosed is my resume." (BANNED PHRASES).
+
+### THE GOAL ###
+Write a narrative-driven letter that connects the user's *unique backstory* to the company's *hardest problems*.
+
+### STRICT INSTRUCTIONS ###
+1.  **The Hook (Paragraph 1):** DO NOT mention the job title in the first sentence. Start with a philosophy or a specific story from the user's resume (e.g., "Operations isn't about spreadsheets; it's about people..."). If the user has a "grit" story (e.g., "started in a restaurant" or "manual labor"), YOU MUST LEAD WITH THAT.
+2.  **The Bridge (Paragraph 2):** Connect that gritty past to their current executive success. (e.g., "That early experience taught me X, which I used at Verizon to save $1M.").
+3.  **The Pitch (Paragraph 3):** Address the Company's pain points (found in the Job Description) directly. Use the user's metrics (70% efficiency, $1M savings) as proof.
+4.  **The Voice:** Punchy. Confident. Short sentences. No fluff.
+5.  **Format:** Standard Business Letter.
+"""
              manager = user_inputs.get('hiring_manager') or 'Hiring Manager'
              user_prompt = (
-                 f"Write a powerful executive cover letter for {user_inputs.get('target_role')} at {user_inputs.get('company_name')}.\n"
-                 f"Addressed to: {manager}.\n"
-                 f"Highlight these skills/achievements: {user_inputs.get('key_skills')}.\n\n"
-                 "Tone: Strategic, confident, and brief. Use strong action verbs. Output Markdown."
+                 f"### INPUT DATA ###\n"
+                 f"Target Role: {user_inputs.get('target_role')}\n"
+                 f"Target Company: {user_inputs.get('company_name')}\n"
+                 f"Hiring Manager: {manager}\n\n"
+                 f"User's Resume & Context:\n{user_inputs.get('key_skills')}\n\n"
+                 "### OUTPUT ###\n"
+                 "Generate the letter in Markdown."
              )
 
         # 4. Call OpenAI
