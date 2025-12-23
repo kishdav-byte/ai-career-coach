@@ -581,11 +581,15 @@
                         class="w-full mt-6 py-3 bg-teal text-black font-bold text-sm rounded-xl hover:bg-[#1aa179] transition-colors text-center block">
                         Start New Session
                     </a>
+                    <button onclick="toggleActivityHistory()"
+                        class="w-full text-center text-xs text-gray-500 hover:text-teal mt-3 transition-colors">
+                        View Activity History
+                    </button>
                 </div>
         </div>
 
         <!-- 3. Bottom Section: Recent Activity -->
-        <div class="glass-card rounded-2xl p-6">
+        <div id="recent-activity-section" class="glass-card rounded-2xl p-6 hidden">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-lg font-bold text-white">Recent Activity</h3>
                 <button class="text-xs text-teal hover:text-white transition-colors">View All</button>
@@ -749,6 +753,10 @@
 
         // Main Dashboard Logic (Adapted from original)
         const APP_SESSION_KEY = 'aceinterview_session';
+
+        // Lazy Loading State
+        let currentUserId = null;
+        let activityLoaded = false;
         const SESSION_EXPIRY_DAYS = 7;
 
         function getSession() {
@@ -852,6 +860,7 @@
                 }
 
                 console.log("Authenticated as:", user.id);
+                currentUserId = user.id; // Store for lazy loading
 
                 // 2. Get Resume Score (Latest)
                 const { data: resumes } = await supabase.from('resumes')
@@ -963,32 +972,7 @@
                 document.getElementById('interview-score').innerHTML = `${avgScore}<span class="text-gray-500 text-xl">/10</span>`;
 
 
-                // 6. Recent Activity
-                const { data: activity } = await supabase.from('user_recent_activity')
-                    .select('*')
-                    .eq('user_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(5);
-
-                const tableBody = document.getElementById('recent-activity-table');
-                if (activity && activity.length > 0) {
-                    tableBody.innerHTML = activity.map(a => `
-                         <tr class="group hover:bg-white/5 transition-colors">
-                            <td class="py-4 pl-2 font-medium text-white">${a.project_name || 'Untitled'}</td>
-                            <td class="py-4 text-gray-400">${a.type}</td>
-                            <td class="py-4 text-white font-bold">${a.score || '-'}</td>
-                            <td class="py-4 text-gray-500">${timeAgo(a.created_at)}</td>
-                            <td class="py-4">
-                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">${a.status || 'Done'}</span>
-                            </td>
-                            <td class="py-4 text-right pr-2">
-                                <button class="text-gray-400 hover:text-white">•••</button>
-                            </td>
-                        </tr>
-                    `).join('');
-                } else {
-                    tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-gray-500">No activity found.</td></tr>';
-                }
+                // 6. Recent Activity (Lazy Loaded via toggleActivityHistory)
 
 
                 // 7. Initialize Graph (Interviews by default)
@@ -996,6 +980,56 @@
 
             } catch (err) {
                 console.error("Error fetching dashboard data:", err);
+            }
+        }
+
+        async function toggleActivityHistory() {
+            const section = document.getElementById('recent-activity-section');
+            if (!section) return;
+
+            // Toggle Visibility
+            section.classList.toggle('hidden');
+
+            // If now visible and not loaded, fetch data
+            if (!section.classList.contains('hidden') && !activityLoaded && currentUserId) {
+                const tableBody = document.getElementById('recent-activity-table');
+                tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-teal">Loading recent activity...</td></tr>';
+
+                try {
+                    const { data: activity } = await supabase.from('user_recent_activity')
+                        .select('*')
+                        .eq('user_id', currentUserId)
+                        .order('created_at', { ascending: false })
+                        .limit(5);
+
+                    if (activity && activity.length > 0) {
+                        tableBody.innerHTML = activity.map(a => `
+                             <tr class="group hover:bg-white/5 transition-colors">
+                                <td class="py-4 pl-2 font-medium text-white">${a.project_name || 'Untitled'}</td>
+                                <td class="py-4 text-gray-400">${a.type}</td>
+                                <td class="py-4 text-white font-bold">${a.score || '-'}</td>
+                                <td class="py-4 text-gray-500">${timeAgo(a.created_at)}</td>
+                                <td class="py-4">
+                                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase bg-teal/20 text-teal">${a.status || 'Done'}</span>
+                                </td>
+                                <td class="py-4 text-right pr-2">
+                                    <button class="text-gray-400 hover:text-white">•••</button>
+                                </td>
+                            </tr>
+                        `).join('');
+                    } else {
+                        tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-gray-500">No activity found.</td></tr>';
+                    }
+                    activityLoaded = true;
+                } catch (err) {
+                    console.error("Activity Load Error:", err);
+                    tableBody.innerHTML = '<tr><td colspan="6" class="py-10 text-center text-red-500">Failed to load activity.</td></tr>';
+                }
+            }
+
+            // Smooth scroll to section if opening
+            if (!section.classList.contains('hidden')) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
