@@ -1178,12 +1178,26 @@ When you recommend a solution that requires deep work (writing, simulation, nego
     Format the output as JSON:
     {{
         "recommendations": ["rec 1", "rec 2"],
-        "refined_sample": "full text of the rewritten section"
+        "refined_content": "full text of the rewritten section"
     }}
     """}
         ]
         response_text = call_openai(messages, json_mode=True)
-        return jsonify({"data": response_text})
+        
+        # Clean up markdown if present (Common OpenAI quirk)
+        if response_text.startswith('```json'):
+            response_text = response_text[7:]
+        if response_text.startswith('```'):
+            response_text = response_text[3:]
+        if response_text.endswith('```'):
+            response_text = response_text[:-3]
+
+        try:
+            return jsonify(json.loads(response_text))
+        except:
+            # Fallback if AI returns bad JSON
+            # Return raw text in refined_content so user sees SOMETHING
+            return jsonify({"recommendations": [], "refined_content": response_text})
 
     elif action == 'parse_resume':
         resume_text = data.get('resume_text', '')
