@@ -317,7 +317,7 @@
                 const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
                     body: {
                         price_id: 'price_1Shc7tIH1WTKNasqQNu7O5fL', // Correct Cover Letter Price ID
-                        plan_type: 'cover_letter', // New Type
+                        plan_type: 'strategy_cover', // MATCHES BACKEND WEBHOOK
                         return_url: window.location.href,
                         email: userEmail,
                         user_id: userId
