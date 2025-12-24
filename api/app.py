@@ -1398,14 +1398,18 @@ If input is present, generate the profile now. Verify every number against the i
         # 2. FETCH PROFILE & CREDIT STATUS
         # We fetch ID here to ensure we have the UUID for the RPC call
         try:
-            profile_res = supabase.table('users').select('id, credits, rewrite_credits, is_unlimited, subscription_status').eq('email', email).single().execute()
-            profile = profile_res.data
+            # Fetch profile (without .single() to safely handle 0 results)
+            profile_res = supabase.table('users').select('id, credits, rewrite_credits, is_unlimited, subscription_status').eq('email', email).execute()
+            
+            if not profile_res.data or len(profile_res.data) == 0:
+                 print(f"Gatekeeper: Check failed for {email} - User not found in DB")
+                 return jsonify({"error": f"User profile not found for {email}. Please ensure you are logged in."}), 404
+                 
+            profile = profile_res.data[0]
+            
         except Exception as e:
             print(f"Gatekeeper Error: {e}")
-            return jsonify({"error": "Profile verification failed"}), 500
-
-        if not profile:
-             return jsonify({"error": "User profile not found"}), 403
+            return jsonify({"error": f"Profile verification failed: {str(e)}"}), 500
 
         user_id = profile['id']
 
