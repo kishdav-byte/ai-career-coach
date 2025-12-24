@@ -580,14 +580,13 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
 
         // Initialize Supabase Client
-        let supabase = null;
+        // Overwrite global instance directly to avoid "Identifier already declared" error
         if (window.supabase && window.supabase.createClient) {
-            supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
-            window.supabase = supabase; // Global override to match dashboard pattern
+            window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
         }
 
         (function checkAuth() {
-            if (!localStorage.getItem(SESSION_KEY) && !supabase) window.location.href = '/login.html';
+            if (!localStorage.getItem(SESSION_KEY) && !window.supabase) window.location.href = '/login.html';
         })();
 
         // --- GLOBAL DATA STORE ---
