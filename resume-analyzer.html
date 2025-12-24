@@ -12,6 +12,14 @@
         rel="stylesheet">
     <!-- Tailwind CSS -->
     <!-- PDF.js -->
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+    <!-- PDF.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
@@ -429,7 +437,7 @@
 
                         <div id="upsell-btn-container" class="relative z-10 shrink-0 w-full md:w-auto">
                             <!-- Button Will Be Injected By JS -->
-                            <button
+                            <button id="rewrite-cta-btn"
                                 class="w-full md:w-auto px-6 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg text-sm border border-slate-700">Loading
                                 Access...</button>
                         </div>
@@ -469,7 +477,68 @@
             } catch (e) {
                 console.error("Context Injection Failed:", e);
             }
+
+            // 2. CHECK SMART AUTH (Button State)
+            checkRewriteEligibility();
         });
+
+        // --- SMART AUTH CHECK ---
+        async function checkRewriteEligibility() {
+            try {
+                // 1. Get User Status from Global Supabase
+                // Note: Auth state might be lazy loaded, so we wait or use specific method
+                const { data: { user } } = await window.supabase.auth.getUser();
+                if (!user) return;
+
+                const { data: profile } = await window.supabase
+                    .from('users')
+                    .select('credits, rewrite_credits, is_unlimited')
+                    .eq('id', user.id)
+                    .single();
+
+                // 2. Locate the "Unlock" Button
+                const ctaBtn = document.getElementById('rewrite-cta-btn');
+
+                if (ctaBtn && profile) {
+                    // 3. Logic: If they have access, change the button
+                    const hasAccess = profile.is_unlimited || (profile.rewrite_credits > 0) || (profile.credits > 0);
+
+                    if (hasAccess) {
+                        // VISUAL UPDATE
+                        ctaBtn.innerHTML = `
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 
+                                Launch Executive Rewrite ${profile.is_unlimited ? '(Unlimited)' : '(Use 1 Credit)'}
+                            </span>
+                        `;
+
+                        // REMOVE LOADING/PAYMENT STYLE
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'hover:bg-yellow-500');
+                        ctaBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-[0_0_15px_rgba(37,99,235,0.5)]', 'animate-pulse');
+
+                        // ACTION UPDATE
+                        ctaBtn.onclick = (e) => {
+                            e.preventDefault();
+                            window.location.href = 'resume-rewriter.html';
+                        };
+
+                    } else {
+                        // NO ACCESS: Show Upsell
+                        ctaBtn.innerHTML = `UNLOCK REWRITE ($9.99)`;
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'bg-blue-600', 'text-white', 'hover:bg-blue-500', 'animate-pulse');
+                        ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+
+                        ctaBtn.onclick = (e) => {
+                            if (confirm("Unlock Executive Rewrite for $9.99?")) {
+                                window.location.href = '/app.html#resume-builder';
+                            }
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error("Smart Auth Check Failed:", e);
+            }
+        }
 
         // --- AUTH CHECK ---
         const SESSION_KEY = 'supabase.auth.token';
@@ -823,31 +892,13 @@
             // 5. UPSELL BUTTON LOGIC
             const btnContainer = document.getElementById('upsell-btn-container');
             if (btnContainer) {
-                // Check Session for Credits
-                let credits = 0;
-                try {
-                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
-                    if (sessionStr) {
-                        const s = JSON.parse(sessionStr);
-                        // Access credits - prioritize universal 'credits' then specific 'rewrite_credits'
-                        credits = s.credits || s.rewrite_credits || (s.user ? (s.user.credits || s.user.rewrite_credits) : 0) || 0;
-                    }
-                } catch (e) { }
+                // RESET Button to "Thinking" state logic so CheckFunction can grab it
+                btnContainer.innerHTML = `
+                            <button id="rewrite-cta-btn"
+                                class="w-full md:w-auto px-6 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg text-sm border border-slate-700">Checking Access...</button>`;
 
-                if (credits > 0) {
-                    // STATE A: Has Credits
-                    // Updated to call goToRewriter()
-                    btnContainer.innerHTML = `
-                        <button onclick="goToRewriter()" class="inline-block w-full md:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg text-sm shadow-[0_0_15px_rgba(37,99,235,0.5)] animate-pulse transition-all text-center">
-                            AUTO-REWRITE (1 Credit)
-                        </button>`;
-                } else {
-                    // STATE B: Buy
-                    btnContainer.innerHTML = `
-                        <button onclick="triggerUpsell()" class="w-full md:w-auto px-6 py-3 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold rounded-lg text-sm shadow-lg transition-colors">
-                            UNLOCK REWRITE ($9.99)
-                        </button>`;
-                }
+                // Call Smart Auth
+                checkRewriteEligibility();
             }
         }
 
