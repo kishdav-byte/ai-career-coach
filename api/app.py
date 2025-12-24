@@ -1398,8 +1398,11 @@ If input is present, generate the profile now. Verify every number against the i
         # 2. FETCH PROFILE & CREDIT STATUS
         # We fetch ID here to ensure we have the UUID for the RPC call
         try:
-            # Fetch profile (without .single() to safely handle 0 results)
-            profile_res = supabase.table('users').select('id, credits, rewrite_credits, is_unlimited, subscription_status').eq('email', email).execute()
+            # Use Admin client if available to bypass RLS, otherwise fallback to standard client
+            db_client = supabase_admin if supabase_admin else supabase
+            
+            # Fetch profile (using ilike for case-insensitive match)
+            profile_res = db_client.table('users').select('id, credits, rewrite_credits, is_unlimited, subscription_status').ilike('email', email).execute()
             
             if not profile_res.data or len(profile_res.data) == 0:
                  print(f"Gatekeeper: Check failed for {email} - User not found in DB")
