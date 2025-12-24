@@ -1390,35 +1390,51 @@ If input is present, generate the profile now. Verify every number against the i
         user_data = data.get('user_data', {})
         template_name = data.get('template_name', 'modern')
         job_description = data.get('job_description', '')
+        resume_text = data.get('resume_text', '')  # Fallback source
 
-        # Construct a prompt to optimize the resume
-        system_prompt = "You are an expert resume writer and career coach."
-        user_prompt = f"""
-        Optimize this resume content for the following job description. 
-        Improve the summary and bullet points to be result-oriented (STAR method).
-        Keep the structure (JSON) exactly as provided.
+        # GUARDRAIL: Input Validation
+        has_valid_user_data = user_data and (user_data.get('experience') or user_data.get('education'))
+        has_valid_text = resume_text and len(resume_text) > 50
 
-        Job Description:
-        {job_description}
+        if not has_valid_user_data and not has_valid_text:
+            return jsonify({"error": "ERROR: No resume data found. Please upload your resume to the Scanner first."}), 400
 
-        Current Resume Data (JSON):
-        {json.dumps(user_data)}
-
-        Return ONLY valid JSON matching the input structure. 
-        Do not add new fields (except 'job_title' and 'enhancement_overview'). 
+        # Construct Prompt
+        base_instruction = "Optimize the following resume content for a professional look. Improve clarity and impact."
         
-        REQUIRED OUTPUT FIELDS:
-        1. "job_title": The inferred target role.
-        2. "enhancement_overview": A detailed Markdown summary (2-3 paragraphs) explaining the key changes made to align the resume with the Job Description. Highlight specific keywords added, tone shifts, and strategic improvements.
-        3. The rest of the resume structure (personal, experience, etc.) with optimized content.
+        tailoring_instruction = ""
+        if job_description:
+            tailoring_instruction = f"\n\nTARGET JOB DESCRIPTION:\n{job_description}\n\nTAILORING INSTRUCTION: Tailor the resume content to align with the above Job Description. Use relevant keywords and phrasing from the JD. Emphasize matching skills. Do NOT invent new experience or skills."
+
+        formatting_instruction = ""
+        if template_name == 'condensed':
+            formatting_instruction = "\n\nFORMATTING CRITICAL INSTRUCTION: Rewrite the 'Experience' descriptions as a list of concise, high-impact bullet points. Start each bullet with a hyphen (-). Do NOT use paragraphs. This formatting requirement overrides any other style instructions."
+        else:
+            formatting_instruction = "\n\nFORMATTING INSTRUCTION: Use professional paragraphs for the experience section. Do not use bullet points."
         
-        Update summary, experience descriptions, and skills to be result-oriented.
+        # Determine Data Source for Prompt
+        data_block = ""
+        if has_valid_user_data:
+            data_block = json.dumps(user_data)
+        else:
+            data_block = f"RESUME TEXT:\n{resume_text}\n\n(Note: Parse this text into the structured JSON format: personal, summary, experience, education, skills)."
+
+        prompt = f"""
+        {base_instruction}
+        {tailoring_instruction}
+        {formatting_instruction}
+
+        Here is the data:
+        {data_block}
+
+        Return ONLY valid JSON with the exact same structure (personal, summary, experience, education, skills).
+        Do not include markdown formatting (like ```json). Just the raw JSON string.
         """
         
         try:
             optimized_text = call_openai([
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "system", "content": "You are an expert resume writer and career coach."},
+                {"role": "user", "content": prompt}
             ], json_mode=True)
             
             opt_json = json.loads(optimized_text)

@@ -997,7 +997,24 @@
             btn.innerHTML = `<div class="loader"></div> <span class="ml-2 animate-pulse">OPTIMIZING...</span>`;
 
             try {
-                // 2. Gather Data
+                // 1. DATA GATHERING (The Fix)
+                // First, check the Global Variable
+                let resumeContent = currentFileText;
+
+                // Second, if that's empty, check the Sticky Memory (Local Storage)
+                if (!resumeContent || resumeContent.length < 50) {
+                    console.log("Global variable empty. Checking LocalStorage...");
+                    resumeContent = localStorage.getItem('master_resume_text');
+                }
+
+                // 2. HARD STOP (Prevent "Jane Doe")
+                if (!resumeContent || resumeContent.length < 50) {
+                    alert("CRITICAL ERROR: No resume data found. Please go to the Resume Scanner and upload your resume again to initialize the memory.");
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    return; // Stop. Do not send request.
+                }
+
                 const payload = {
                     action: 'optimize',
                     user_data: {
@@ -1014,7 +1031,7 @@
                     },
                     job_description: document.getElementById('target-job').value,
                     template_name: 'modern',
-                    resume_text: currentFileText // Send raw text for fallback/validation
+                    resume_text: resumeContent // SEND THE CORRECT VARIABLE
                 };
 
                 // Gather Exps
