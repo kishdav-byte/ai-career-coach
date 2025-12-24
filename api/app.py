@@ -1386,21 +1386,30 @@ If input is present, generate the profile now. Verify every number against the i
             return jsonify({"error": "Failed to generate cover letter"}), 500
         
     # --- GATEKEEPER: Credit Check & Deduction (Python Version) ---
+    # --- GATEKEEPER: Credit Check & Deduction (Python Version) ---
     if action == 'optimize': # Executive Rewrite
-        if not user or not user.get('id'):
-             return jsonify({"error": "Unauthorized"}), 401
+        # 1. IDENTIFY USER (By Email)
+        user_data = data.get('user_data', {})
+        email = user_data.get('personal', {}).get('email')
         
-        # 1. FETCH PROFILE & CREDIT STATUS (Fresh Fetch)
+        if not email:
+             return jsonify({"error": "Email required for credit validation"}), 400
+
+        # 2. FETCH PROFILE & CREDIT STATUS
+        # We fetch ID here to ensure we have the UUID for the RPC call
         try:
-            profile_res = supabase.table('users').select('credits, rewrite_credits, is_unlimited, subscription_status').eq('id', user['id']).single().execute()
+            profile_res = supabase.table('users').select('id, credits, rewrite_credits, is_unlimited, subscription_status').eq('email', email).single().execute()
             profile = profile_res.data
         except Exception as e:
-            return jsonify({"error": "Profile Check Failed"}), 500
+            print(f"Gatekeeper Error: {e}")
+            return jsonify({"error": "Profile verification failed"}), 500
 
         if not profile:
-             return jsonify({"error": "Profile not found"}), 403
+             return jsonify({"error": "User profile not found"}), 403
 
-        # 2. THE GATEKEEPER CHECK (Priority: Unlimited -> Rewrite Credits -> Universal Credits)
+        user_id = profile['id']
+
+        # 3. THE GATEKEEPER CHECK (Priority: Unlimited -> Rewrite Credits -> Universal Credits)
         is_unlimited = profile.get('is_unlimited') or profile.get('subscription_status') == 'pro'
         rewrite_creds = profile.get('rewrite_credits', 0) or 0
         univ_creds = profile.get('credits', 0) or 0
@@ -1411,8 +1420,8 @@ If input is present, generate the profile now. Verify every number against the i
                 "message": "You have run out of Rewrite Credits. Please upgrade to continue." 
              }), 402 # 402 Payment Required
 
-        # 3. EXECUTE GENERATION
-        user_data = data.get('user_data', {})
+        # 4. EXECUTE GENERATION
+        # (user_data already extracted above)
         template_name = data.get('template_name', 'modern')
         job_description = data.get('job_description', '')
         resume_text = data.get('resume_text', '')  # Fallback source
