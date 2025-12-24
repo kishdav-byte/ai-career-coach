@@ -1181,6 +1181,33 @@
             }
         }
 
+        // HELPER: Custom Markdown Parser (User Requested)
+        function formatMarkdown(content) {
+            if (!content) return '';
+            let formatted = content
+                // Convert Header 1 (# Name) to H1 tags
+                .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-slate-900 mb-1">$1</h1>')
+
+                // Convert Header 2 (## Section) to H2 tags with spacing
+                .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-blue-700 mt-6 mb-3 border-b border-blue-200 pb-1 uppercase tracking-wide">$1</h2>')
+
+                // Convert Header 3 (### Role) to H3 tags
+                .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-800 mt-4">$1</h3>')
+
+                // Convert Bold (**text**) to <strong> tags
+                .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-slate-900">$1</strong>')
+
+                // Convert Bullet Points (* text) to list items
+                .replace(/^\* (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-relaxed mb-1 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-blue-500">$1</li>');
+
+            // Wrap lists (Group consecutive LIs in a UL)
+            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-2 space-y-1">$1</ul>');
+
+            // Convert remaining newlines to breaks
+            formatted = formatted.replace(/\n/gim, '<br>');
+            return formatted;
+        }
+
         function renderPreview(result, originalData) {
             const container = document.getElementById('resume-preview');
             const overviewContainer = document.getElementById('enhancement-preview');
@@ -1189,47 +1216,50 @@
             // 1. Render Overview (If available)
             if (data.enhancement_overview && overviewContainer) {
                 overviewContainer.classList.remove('hidden');
-                // Use Marked.js to parse the markdown
                 overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
             } else if (overviewContainer) {
                 overviewContainer.classList.add('hidden');
             }
 
             // Fallbacks
-            const p = data.personal || originalData.personal;
-            const exps = data.experience || originalData.experience;
-            const edus = data.education || originalData.education;
+            const p = data.personal || originalData.personal || {};
+            const exps = data.experience || originalData.experience || [];
+            const edus = data.education || originalData.education || [];
 
+            // Apply "Killer Executive" Styling to the Preview Container
+            // We reconstruct the HTML using the formatMarkdown for description fields
             let html = `
-                <h1>${p.name || 'Your Name'}</h1>
-                <p class="contact-info">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
-                <hr style="border-top:1px solid #e2e8f0; margin: 15px 0;">
+                <h1 class="text-4xl font-bold text-slate-900 mb-1">${p.name || 'Your Name'}</h1>
+                <p class="text-slate-600 mb-6 text-sm">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
+                <hr class="border-slate-200 mb-6">
                 
-                <h3>Professional Summary</h3>
-                <p>${p.summary || ''}</p>
+                <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Professional Summary</h2>
+                <div class="text-slate-700 leading-relaxed mb-8 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
                 
-                <h3>Experience</h3>
+                <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Experience</h2>
             `;
 
             exps.forEach(exp => {
                 html += `
-                <div class="exp-item">
-                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <div class="exp-role" style="font-weight:700;">${exp.role || 'Role'}</div>
-                        <div class="exp-date" style="font-size:0.9em; color:#64748b;">${exp.dates || ''}</div>
+                <div class="mb-6 break-inside-avoid">
+                    <div class="flex justify-between items-baseline mb-1">
+                        <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
+                        <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
                     </div>
-                    <div class="exp-company" style="font-style:italic; color:#475569; margin-bottom:5px;">${exp.company || 'Company'}</div>
-                    <p>${exp.description || ''}</p>
+                    <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
+                    <div class="text-slate-700 text-sm leading-relaxed">
+                        ${formatMarkdown(exp.description || '')}
+                    </div>
                 </div>`;
             });
 
             if (edus.length > 0) {
-                html += `<h3>Education</h3>`;
+                html += `<h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4 mt-8">Education</h2>`;
                 edus.forEach(edu => {
                     html += `
-                    <div style="margin-bottom:10px;">
-                        <div style="font-weight:700;">${edu.school}</div>
-                        <div>${edu.degree} <span style="float:right; font-size:0.9em; color:#64748b;">${edu.dates}</span></div>
+                    <div class="mb-3">
+                        <div class="font-bold text-slate-900">${edu.school}</div>
+                        <div class="text-slate-600 text-sm">${edu.degree} <span class="float-right text-slate-500 font-mono">${edu.dates}</span></div>
                     </div>`;
                 });
             }
