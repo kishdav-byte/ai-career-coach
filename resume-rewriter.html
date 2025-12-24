@@ -1007,6 +1007,9 @@
                     resumeContent = localStorage.getItem('master_resume_text');
                 }
 
+                // Debugging Safety (User Request)
+                console.log("Sending Resume Content to AI:", (resumeContent ? resumeContent.substring(0, 100) + "..." : "NULL/EMPTY"));
+
                 // 2. HARD STOP (Prevent "Jane Doe")
                 if (!resumeContent || resumeContent.length < 50) {
                     alert("CRITICAL ERROR: No resume data found. Please go to the Resume Scanner and upload your resume again to initialize the memory.");

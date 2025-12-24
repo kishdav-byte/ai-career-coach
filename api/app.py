@@ -1406,40 +1406,44 @@ If input is present, generate the profile now. Verify every number against the i
         else:
             data_block = f"RESUME TEXT:\n{resume_text}\n\n(Note: Parse this text into the structured JSON format: personal, summary, experience, education, skills)."
 
-        # "Killer Executive Protocol" System Prompt
-        system_prompt = "You are an Elite Executive Resume Writer for Fortune 500 hiring committees."
+        # "High-Scoring Data Fidelity" System Prompt
+        system_prompt = "You are an expert Executive Resume Strategist (Fortune 500 level)."
         
         prompt = f"""
-        OBJECTIVE: Rewrite the User's Resume to aggressively target the provided Job Description (JD).
-        
-        CRITICAL RULES (VIOLATIONS = FAILURE):
-        1.  **NO GENERIC TITLES:** Never use "Role". You MUST extract the specific Job Title from the resume (e.g., "Sr. Manager, Insights & Decisions"). If the title is unclear, infer a strong industry-standard title based on the responsibilities (e.g., "Director of Operations").
-        2.  **NO PARAGRAPHS:** Convert all experience into "Impact Bullet Points" (STAR Method). 
-            * Bad: "I was responsible for managing the team."
-            * Good: "**Orchestrated** a 100-person command center, driving a **70% improvement** in workflow efficiency via automation."
-        3.  **KEYWORD INJECTION:** You must weave the JD's specific keywords (e.g., {job_description[:100]}... [extract full keywords from context]) into the bullet points where they truthfully apply.
-        4.  **METRICS FIRST:** Front-load metrics. Start bullets with numbers where possible.
-
-        STRUCTURE:
-        1.  **EXECUTIVE HEADER:** Name, Location, Phone, Email, LinkedIn.
-        2.  **PROFESSIONAL SUMMARY:** A 3-sentence power pitch. 
-            * Sentence 1: Who I am (e.g., "Visionary Data Strategy Leader with 15+ years...").
-            * Sentence 2: My Core Value (e.g., "Expert in operationalizing AI and Governance...").
-            * Sentence 3: My Goal (Aligned to the JD).
-        3.  **PROFESSIONAL EXPERIENCE:** Reverse Chronological.
-            * **[Job Title]** | **[Company]** | **[Dates]**
-            * *Brief Context Sentence (1 line)*
-            * *Bullet Point 1 (Impact)*
-            * *Bullet Point 2 (Impact)*
-            * *Bullet Point 3 (Impact)*
-        4.  **CORE COMPETENCIES:** A grid of 6-9 hard skills matches the JD.
+        TASK: Rewrite the User's Resume content to achieve a 95%+ match score against the Target Job Description (JD).
 
         INPUT DATA:
-        USER RESUME: {data_block}
-        TARGET JD: {job_description}
+        1. USER RESUME: {data_block}
+        2. TARGET JD: {job_description}
 
-        Return ONLY valid JSON with the exact same structure as the input (personal, summary, experience, education, skills) but with the content completely REWRITTEN according to the protocol above.
-        Do not include markdown formatting (like ```json). Just the raw JSON string.
+        CRITICAL INSTRUCTIONS (NON-NEGOTIABLE):
+        1.  **DATA PRESERVATION:** You MUST use the **Exact Job Titles**, **Company Names**, and **Dates** from the User Resume. 
+            * **FATAL ERROR:** Do NOT use the word "Role" or "Job Title" as a placeholder. If the input says "Senior Manager", you write "Senior Manager".
+        2.  **CONTENT TRANSFORMATION:** Do not just copy-paste. Rewrite every bullet point to be **Result-Oriented**.
+            * *Input:* "Responsible for managing data."
+            * *Output:* "Spearheaded enterprise data governance strategy, ensuring 100% regulatory compliance." (Using keywords from JD).
+        3.  **KEYWORD OPTIMIZATION:** Scan the JD for "Hard Skills" (e.g., Python, P&L Management, Strategic Planning). Integrate these naturally into the bullet points.
+        4.  **EXECUTIVE FORMAT:**
+            * **Summary:** 3 lines max. High impact.
+            * **Experience:** Reverse chronological. 3-5 bullets per role. NO paragraphs.
+            * **Format:** The `description` field for each role must be a Markdown formatted list of bullets (start with `* `).
+        5.  **Handling Missing Info:** If the User Resume is missing a title, infer the most likely executive title based on the description (e.g., "Director of Operations") rather than writing "Role".
+
+        OUTPUT REQUIREMENT:
+        You must return a valid JSON object matching the schema below. Do NOT return raw Markdown. The Markdown content (bullets, headers) should be strings *inside* the JSON fields.
+        
+        JSON STRUCTURE:
+        {{
+            "personal": {{ "name": "...", "email": "...", "phone": "...", "location": "...", "summary": "..." }},
+            "experience": [
+                {{ "role": "Exact Title", "company": "Exact Co", "dates": "...", "description": "* Strong Action Verb...\\n* Another bullet..." }}
+            ],
+            "education": [...],
+            "skills": ["..."],
+            "enhancement_overview": "A brief markdown summary of the strategic changes made."
+        }}
+
+        Return ONLY valid JSON.
         """
         
         try:
