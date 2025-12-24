@@ -1385,8 +1385,33 @@ If input is present, generate the profile now. Verify every number against the i
             print(f"Cover Letter Error: {e}")
             return jsonify({"error": "Failed to generate cover letter"}), 500
         
-    elif action == 'optimize':
-        # Legacy action name for Resume Builder Optimization
+    # --- GATEKEEPER: Credit Check & Deduction (Python Version) ---
+    if action == 'optimize': # Executive Rewrite
+        if not user or not user.get('id'):
+             return jsonify({"error": "Unauthorized"}), 401
+        
+        # 1. FETCH PROFILE & CREDIT STATUS (Fresh Fetch)
+        try:
+            profile_res = supabase.table('users').select('credits, rewrite_credits, is_unlimited, subscription_status').eq('id', user['id']).single().execute()
+            profile = profile_res.data
+        except Exception as e:
+            return jsonify({"error": "Profile Check Failed"}), 500
+
+        if not profile:
+             return jsonify({"error": "Profile not found"}), 403
+
+        # 2. THE GATEKEEPER CHECK (Priority: Unlimited -> Rewrite Credits -> Universal Credits)
+        is_unlimited = profile.get('is_unlimited') or profile.get('subscription_status') == 'pro'
+        rewrite_creds = profile.get('rewrite_credits', 0) or 0
+        univ_creds = profile.get('credits', 0) or 0
+
+        if not is_unlimited and rewrite_creds < 1 and univ_creds < 1:
+             return jsonify({
+                "error": "INSUFFICIENT_CREDITS", 
+                "message": "You have run out of Rewrite Credits. Please upgrade to continue." 
+             }), 402 # 402 Payment Required
+
+        # 3. EXECUTE GENERATION
         user_data = data.get('user_data', {})
         template_name = data.get('template_name', 'modern')
         job_description = data.get('job_description', '')
@@ -1455,6 +1480,16 @@ If input is present, generate the profile now. Verify every number against the i
             opt_json = json.loads(optimized_text)
             jt = opt_json.get('job_title')
             
+            # 4. ATOMIC CREDIT DEDUCTION (RPC)
+            if not is_unlimited:
+                 try:
+                    if rewrite_creds > 0:
+                        supabase.rpc('decrement_rewrite_credits', {'row_id': user['id']}).execute()
+                    else:
+                        supabase.rpc('decrement_credits', {'row_id': user['id']}).execute()
+                 except Exception as e:
+                    print(f"Credit Deduction Failed: {e}")
+
             log_db_activity(user_data.get('personal', {}).get('email', 'unknown'), 'resume_analysis', {"job_title": jt})
             return jsonify(opt_json)
         except Exception as e:

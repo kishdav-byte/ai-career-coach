@@ -1069,6 +1069,15 @@
                     body: JSON.stringify(payload)
                 });
 
+                // GATEKEEPER: Check for 402 Payment Required
+                if (response.status === 402) {
+                    alert("⛔️ OUT OF CREDITS\n\nYou have used all your Strategy Credits. Upgrade to the Monthly Plan for unlimited access.");
+                    window.location.href = '/pricing.html';
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    return;
+                }
+
                 const data = await response.json(); // Renamed 'result' to 'data' to match user's snippet
 
                 if (data.error) {
