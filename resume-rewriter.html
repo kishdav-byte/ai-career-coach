@@ -684,7 +684,7 @@
 
         // --- AUTH & CREDIT CHECK (Refactored for Supabase SDK) ---
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!supabaseClient) {
+            if (!window.supabase) {
                 console.error("Supabase client not initialized - missing CDN?");
                 return;
             }
@@ -699,14 +699,14 @@
 
             try {
                 // 1. Get User
-                const { data: { user } } = await supabaseClient.auth.getUser();
+                const { data: { user } } = await window.supabase.auth.getUser();
                 if (!user) {
                     window.location.href = '/login.html';
                     return;
                 }
 
                 // 2. Get Profile Data (Select * for safety)
-                const { data: profile, error } = await supabaseClient
+                const { data: profile, error } = await window.supabase
                     .from('users')
                     .select('*')
                     .eq('id', user.id)
