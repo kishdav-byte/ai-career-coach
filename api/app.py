@@ -1399,19 +1399,6 @@ If input is present, generate the profile now. Verify every number against the i
         if not has_valid_user_data and not has_valid_text:
             return jsonify({"error": "ERROR: No resume data found. Please upload your resume to the Scanner first."}), 400
 
-        # Construct Prompt
-        base_instruction = "Optimize the following resume content for a professional look. Improve clarity and impact."
-        
-        tailoring_instruction = ""
-        if job_description:
-            tailoring_instruction = f"\n\nTARGET JOB DESCRIPTION:\n{job_description}\n\nTAILORING INSTRUCTION: Tailor the resume content to align with the above Job Description. Use relevant keywords and phrasing from the JD. Emphasize matching skills. Do NOT invent new experience or skills."
-
-        formatting_instruction = ""
-        if template_name == 'condensed':
-            formatting_instruction = "\n\nFORMATTING CRITICAL INSTRUCTION: Rewrite the 'Experience' descriptions as a list of concise, high-impact bullet points. Start each bullet with a hyphen (-). Do NOT use paragraphs. This formatting requirement overrides any other style instructions."
-        else:
-            formatting_instruction = "\n\nFORMATTING INSTRUCTION: Use professional paragraphs for the experience section. Do not use bullet points."
-        
         # Determine Data Source for Prompt
         data_block = ""
         if has_valid_user_data:
@@ -1419,21 +1406,45 @@ If input is present, generate the profile now. Verify every number against the i
         else:
             data_block = f"RESUME TEXT:\n{resume_text}\n\n(Note: Parse this text into the structured JSON format: personal, summary, experience, education, skills)."
 
+        # "Killer Executive Protocol" System Prompt
+        system_prompt = "You are an Elite Executive Resume Writer for Fortune 500 hiring committees."
+        
         prompt = f"""
-        {base_instruction}
-        {tailoring_instruction}
-        {formatting_instruction}
+        OBJECTIVE: Rewrite the User's Resume to aggressively target the provided Job Description (JD).
+        
+        CRITICAL RULES (VIOLATIONS = FAILURE):
+        1.  **NO GENERIC TITLES:** Never use "Role". You MUST extract the specific Job Title from the resume (e.g., "Sr. Manager, Insights & Decisions"). If the title is unclear, infer a strong industry-standard title based on the responsibilities (e.g., "Director of Operations").
+        2.  **NO PARAGRAPHS:** Convert all experience into "Impact Bullet Points" (STAR Method). 
+            * Bad: "I was responsible for managing the team."
+            * Good: "**Orchestrated** a 100-person command center, driving a **70% improvement** in workflow efficiency via automation."
+        3.  **KEYWORD INJECTION:** You must weave the JD's specific keywords (e.g., {job_description[:100]}... [extract full keywords from context]) into the bullet points where they truthfully apply.
+        4.  **METRICS FIRST:** Front-load metrics. Start bullets with numbers where possible.
 
-        Here is the data:
-        {data_block}
+        STRUCTURE:
+        1.  **EXECUTIVE HEADER:** Name, Location, Phone, Email, LinkedIn.
+        2.  **PROFESSIONAL SUMMARY:** A 3-sentence power pitch. 
+            * Sentence 1: Who I am (e.g., "Visionary Data Strategy Leader with 15+ years...").
+            * Sentence 2: My Core Value (e.g., "Expert in operationalizing AI and Governance...").
+            * Sentence 3: My Goal (Aligned to the JD).
+        3.  **PROFESSIONAL EXPERIENCE:** Reverse Chronological.
+            * **[Job Title]** | **[Company]** | **[Dates]**
+            * *Brief Context Sentence (1 line)*
+            * *Bullet Point 1 (Impact)*
+            * *Bullet Point 2 (Impact)*
+            * *Bullet Point 3 (Impact)*
+        4.  **CORE COMPETENCIES:** A grid of 6-9 hard skills matches the JD.
 
-        Return ONLY valid JSON with the exact same structure (personal, summary, experience, education, skills).
+        INPUT DATA:
+        USER RESUME: {data_block}
+        TARGET JD: {job_description}
+
+        Return ONLY valid JSON with the exact same structure as the input (personal, summary, experience, education, skills) but with the content completely REWRITTEN according to the protocol above.
         Do not include markdown formatting (like ```json). Just the raw JSON string.
         """
         
         try:
             optimized_text = call_openai([
-                {"role": "system", "content": "You are an expert resume writer and career coach."},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ], json_mode=True)
             

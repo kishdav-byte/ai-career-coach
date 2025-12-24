@@ -1066,12 +1066,72 @@
                     body: JSON.stringify(payload)
                 });
 
-                const result = await response.json();
+                const data = await response.json(); // Renamed 'result' to 'data' to match user's snippet
 
-                if (result.error) throw new Error(result.error);
+                if (data.error) {
+                    alert(data.error);
+                    btn.disabled = false;
+                    btn.innerHTML = originalHTML;
+                    return;
+                }
 
-                // 4. Render
-                renderPreview(result, payload.user_data);
+                // 4. Update UI with Optimized Content
+                // Personal
+                if (data.personal) {
+                    document.getElementById('rb-name').value = data.personal.name || '';
+                    document.getElementById('rb-email').value = data.personal.email || '';
+                    document.getElementById('rb-phone').value = data.personal.phone || '';
+                    document.getElementById('rb-location').value = data.personal.location || '';
+                    document.getElementById('rb-summary').value = data.personal.summary || '';
+                }
+
+                // Experience (Re-render)
+                const expContainer = document.getElementById('rb-experience-list');
+                expContainer.innerHTML = '';
+                if (data.experience && Array.isArray(data.experience)) {
+                    data.experience.forEach(exp => {
+                        const div = document.createElement('div');
+
+                        // "Killer Protocol" Title Detection Logic
+                        let roleValue = exp.role || '';
+                        let roleStyle = '';
+                        if (roleValue.trim().toLowerCase() === 'role' || roleValue.trim() === '') {
+                            roleValue = "⚠️ UPDATE TITLE";
+                            roleStyle = "border: 2px solid #ef4444; color: #ef4444; background: #fee2e2;";
+                        }
+
+                        div.className = 'glass-panel p-4 rounded-lg border border-slate-700/50 mb-3';
+                        div.innerHTML = `
+                            <div class="grid grid-cols-2 gap-3 mb-2">
+                                <input type="text" class="rb-exp-role w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Role" value="${roleValue}" style="${roleStyle}">
+                                <input type="text" class="rb-exp-company w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Company" value="${exp.company || ''}">
+                            </div>
+                            <input type="text" class="rb-exp-dates w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 mb-2" placeholder="Dates" value="${exp.dates || ''}">
+                            <textarea class="rb-exp-desc w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 h-24 resize-none leading-relaxed" placeholder="Description">${exp.description || ''}</textarea>
+                        `;
+                        expContainer.appendChild(div);
+                    });
+                }
+
+                // Skills
+                if (data.skills) {
+                    // Check if array or string
+                    if (Array.isArray(data.skills)) {
+                        document.getElementById('rb-skills').value = data.skills.join(', ');
+                    } else {
+                        document.getElementById('rb-skills').value = data.skills;
+                    }
+                }
+
+                // Enhancement Overview (Killer Protocol Output)
+                if (data.enhancement_overview) {
+                    const overviewDiv = document.getElementById('enhancement-preview');
+                    overviewDiv.classList.remove('hidden');
+                    overviewDiv.innerHTML = marked.parse(data.enhancement_overview);
+                }
+
+                // Refresh Preview
+                renderPreview(data, payload.user_data); // Pass data to renderPreview as it expects it
 
             } catch (e) {
                 console.error(e);
