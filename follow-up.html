@@ -399,6 +399,10 @@
                     } else {
                         extractedResumeText = await file.text();
                     }
+                    // Sticky Memory
+                    localStorage.setItem('master_resume_text', extractedResumeText);
+                    localStorage.setItem('master_resume_name', file.name);
+
                     uploadIdle.classList.add('hidden');
                     uploadSuccess.classList.remove('hidden');
                     dropzone.classList.remove('border-dashed', 'border-blue-500/30');

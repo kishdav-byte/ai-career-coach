@@ -544,9 +544,15 @@
                         }
 
                         currentFileText = fullText;
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', fullText);
+                        localStorage.setItem('master_resume_name', file.name);
                         // console.log("PDF Extracted:", fullText.substring(0, 100) + "...");
                     } else {
                         currentFileText = await file.text();
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', currentFileText);
+                        localStorage.setItem('master_resume_name', file.name);
                     }
                     showFileSuccess();
                 } catch (e) {

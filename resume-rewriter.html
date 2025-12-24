@@ -643,6 +643,35 @@
                         localStorage.removeItem('mission_context');
                     } catch (e) { console.error("Bad Mission Context", e); }
                 }
+
+                // Sticky Resume Memory Auto-Load
+                const masterResumeText = localStorage.getItem('master_resume_text');
+                const masterResumeName = localStorage.getItem('master_resume_name');
+
+                if (masterResumeText) {
+                    currentFileText = masterResumeText; // FIXED VARIABLE
+                    // Update UI
+                    const dropzone = document.getElementById('dropzone');
+                    if (dropzone) {
+                        dropzone.innerHTML = `
+                            <div class="flex items-center gap-4 text-left w-full h-full justify-center">
+                                <div class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center shrink-0 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                                    <i class="fas fa-check text-green-400 text-lg"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-white mb-0.5">Resume Loaded</p>
+                                    <p class="text-xs text-slate-400 font-mono truncate max-w-[150px]">${masterResumeName || 'Previous Resume'}</p>
+                                </div>
+                                <button onclick="localStorage.removeItem('master_resume_text'); localStorage.removeItem('master_resume_name'); window.location.reload();" 
+                                    class="ml-auto text-[10px] font-bold text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-1.5 rounded-lg border border-red-500/20 transition-all hover:bg-red-500/20">
+                                    CHANGE
+                                </button>
+                            </div>
+                        `;
+                        dropzone.classList.remove('border-dashed', 'border-blue-500/30');
+                        dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+                    }
+                }
             }
         });
 
@@ -779,8 +808,16 @@
                         }
 
                         currentFileText = fullText;
+
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', fullText);
+                        localStorage.setItem('master_resume_name', file.name);
+
                     } else {
                         currentFileText = await file.text();
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', currentFileText);
+                        localStorage.setItem('master_resume_name', file.name);
                     }
 
                     showFileSuccess();
