@@ -1493,9 +1493,9 @@ If input is present, generate the profile now. Verify every number against the i
             if not is_unlimited:
                  try:
                     if rewrite_creds > 0:
-                        supabase.rpc('decrement_rewrite_credits', {'row_id': user['id']}).execute()
+                        supabase.rpc('decrement_rewrite_credits', {'row_id': user_id}).execute()
                     else:
-                        supabase.rpc('decrement_credits', {'row_id': user['id']}).execute()
+                        supabase.rpc('decrement_credits', {'row_id': user_id}).execute()
                  except Exception as e:
                     print(f"Credit Deduction Failed: {e}")
 
