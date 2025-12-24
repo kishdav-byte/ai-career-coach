@@ -933,7 +933,7 @@
                         .eq('user_id', user.id)
                         .order('created_at', { ascending: false })
                         .limit(1)
-                        .single();
+                        .maybeSingle();
 
                     if (resumeData) {
                         setRing(resumeData.score);
@@ -950,7 +950,7 @@
                         .eq('user_id', user.id)
                         .order('created_at', { ascending: false })
                         .limit(1)
-                        .single();
+                        .maybeSingle();
 
                     if (interviewData && interviewData.average_score) {
                         document.getElementById('interview-score').innerHTML = `${interviewData.average_score}<span class="text-gray-500 text-xl">/10</span>`;
