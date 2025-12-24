@@ -526,6 +526,9 @@ def api():
     # ADMIN GHOST MODE CHECK
     # ---------------------------------------------------------
     is_admin_ghost = data.get('ghostMode', False)
+    
+    print(f"DEBUG API: Received Action = '{action}'")
+
     # Important: In production, verify the user is ACTUALLY an admin on the server side 
     # before trusting this flag. For this implementation, we will trust the client 
     # but verify the user's role logic below if 'is_admin_ghost' is True.
@@ -1387,7 +1390,7 @@ If input is present, generate the profile now. Verify every number against the i
         
     # --- GATEKEEPER: Credit Check & Deduction (Python Version) ---
     # --- GATEKEEPER: Credit Check & Deduction (Python Version) ---
-    if action == 'optimize': # Executive Rewrite
+    elif action == 'optimize': # Executive Rewrite
         # 1. IDENTIFY USER (By Email)
         user_data = data.get('user_data', {})
         email = user_data.get('personal', {}).get('email')
