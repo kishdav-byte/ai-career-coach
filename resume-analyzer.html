@@ -547,12 +547,18 @@
                         // Sticky Memory
                         localStorage.setItem('master_resume_text', fullText);
                         localStorage.setItem('master_resume_name', file.name);
+
+                        // Visual Confirmation
+                        alert("Resume Saved to Strategy Memory!");
                         // console.log("PDF Extracted:", fullText.substring(0, 100) + "...");
                     } else {
                         currentFileText = await file.text();
                         // Sticky Memory
                         localStorage.setItem('master_resume_text', currentFileText);
                         localStorage.setItem('master_resume_name', file.name);
+
+                        // Visual Confirmation
+                        alert("Resume Saved to Strategy Memory!");
                     }
                     showFileSuccess();
                 } catch (e) {

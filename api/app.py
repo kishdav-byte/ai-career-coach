@@ -372,6 +372,14 @@ def optimize_resume_content():
     user_data = data.get('user_data')
     template_name = data.get('template_name', 'modern')
     job_description = data.get('job_description', '')
+    resume_text = data.get('resume_text', '')  # Fallback source
+
+    # GUARDRAIL: Input Validation
+    has_valid_user_data = user_data and (user_data.get('experience') or user_data.get('education'))
+    has_valid_text = resume_text and len(resume_text) > 50
+
+    if not has_valid_user_data and not has_valid_text:
+        return jsonify({"error": "ERROR: No resume data found. Please upload your resume to the Scanner first."}), 400
 
     # Construct Prompt
     base_instruction = "Optimize the following resume content for a professional look. Improve clarity and impact."
@@ -386,13 +394,20 @@ def optimize_resume_content():
     else:
         formatting_instruction = "\n\nFORMATTING INSTRUCTION: Use professional paragraphs for the experience section. Do not use bullet points."
 
+    # Determine Data Source for Prompt
+    data_block = ""
+    if has_valid_user_data:
+        data_block = json.dumps(user_data)
+    else:
+        data_block = f"RESUME TEXT:\n{resume_text}\n\n(Note: Parse this text into the structured JSON format: personal, summary, experience, education, skills)."
+
     prompt = f"""
     {base_instruction}
     {tailoring_instruction}
     {formatting_instruction}
 
     Here is the data:
-    {json.dumps(user_data)}
+    {data_block}
 
     Return ONLY valid JSON with the exact same structure (personal, summary, experience, education, skills).
     Do not include markdown formatting (like ```json). Just the raw JSON string.
