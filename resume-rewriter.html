@@ -1018,12 +1018,27 @@
                     return; // Stop. Do not send request.
                 }
 
+                // 2b. AUTH CHECK & EMAIL INJECTION (Gatekeeper Fix)
+                let userEmail = '';
+                try {
+                    // Try to get email from Supabase Session in LocalStorage
+                    const sessionRaw = localStorage.getItem('supabase.auth.token');
+                    if (sessionRaw) {
+                        const session = JSON.parse(sessionRaw);
+                        if (session.currentSession && session.currentSession.user) {
+                            userEmail = session.currentSession.user.email;
+                        } else if (session.user) { // Fallback structure
+                            userEmail = session.user.email;
+                        }
+                    }
+                } catch (e) { console.warn("Auth Auto-Fill Failed", e); }
+
                 const payload = {
                     action: 'optimize',
                     user_data: {
                         personal: {
                             name: document.getElementById('rb-name').value,
-                            email: document.getElementById('rb-email').value,
+                            email: document.getElementById('rb-email').value || userEmail, // <--- INJECT EMAIL
                             phone: document.getElementById('rb-phone').value,
                             location: document.getElementById('rb-location').value,
                             summary: document.getElementById('rb-summary').value
