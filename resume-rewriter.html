@@ -1021,14 +1021,23 @@
                 // 2b. AUTH CHECK & EMAIL INJECTION (Gatekeeper Fix)
                 let userEmail = '';
                 try {
-                    // Try to get email from Supabase Session in LocalStorage
-                    const sessionRaw = localStorage.getItem('supabase.auth.token');
-                    if (sessionRaw) {
-                        const session = JSON.parse(sessionRaw);
-                        if (session.currentSession && session.currentSession.user) {
-                            userEmail = session.currentSession.user.email;
-                        } else if (session.user) { // Fallback structure
-                            userEmail = session.user.email;
+                    const token = localStorage.getItem('supabase.auth.token');
+                    if (token) {
+                        // 1. Try Standard Supabase getUser (works with raw JWT string)
+                        const { data } = await supabase.auth.getUser(token);
+                        if (data && data.user) {
+                            userEmail = data.user.email;
+                        }
+
+                        // 2. Fallback: Parse as JSON (Legacy Session Object)
+                        if (!userEmail) {
+                            try {
+                                const session = JSON.parse(token);
+                                if (session.currentSession?.user) userEmail = session.currentSession.user.email;
+                                else if (session.user) userEmail = session.user.email;
+                            } catch (e) {
+                                // Not JSON, simply invalid or just a raw token that getUser failed on
+                            }
                         }
                     }
                 } catch (e) { console.warn("Auth Auto-Fill Failed", e); }
