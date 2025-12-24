@@ -444,6 +444,33 @@
     </main>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. CHECK FOR MISSION CONTEXT (JD from Dashboard)
+            try {
+                const missionContext = JSON.parse(localStorage.getItem('mission_context'));
+
+                if (missionContext && missionContext.jd) {
+                    console.log("Mission Context Detected: Injecting JD...");
+
+                    // Locate the JD Input Box (Verified ID: job-description)
+                    const jdInput = document.getElementById('job-description');
+
+                    if (jdInput) {
+                        jdInput.value = missionContext.jd;
+
+                        // Visual Feedback: Flash the box
+                        jdInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                        setTimeout(() => jdInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
+                    }
+
+                    // Clear context to prevent stale data re-injection
+                    localStorage.removeItem('mission_context');
+                }
+            } catch (e) {
+                console.error("Context Injection Failed:", e);
+            }
+        });
+
         // --- AUTH CHECK ---
         const SESSION_KEY = 'supabase.auth.token';
         const APP_SESSION_KEY = 'aceinterview_session';
