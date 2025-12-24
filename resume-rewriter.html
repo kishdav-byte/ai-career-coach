@@ -740,7 +740,7 @@
                             btn.disabled = true;
 
                             try {
-                                const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
+                                const { data, error } = await window.supabase.functions.invoke('create-checkout-session', {
                                     body: {
                                         price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY',
                                         plan_type: 'rewrite', // CRITICAL: Required for Webhook to fulfill credits
