@@ -3370,3 +3370,25 @@ def stripe_webhook():
     return jsonify({'status': 'success'}), 200
 
 # For Vercel, we don't need app.run()
+
+# --- TTS ENDPOINT ---
+@app.route('/speak', methods=['POST'])
+def speak():
+    data = request.json
+    text = data.get('text')
+    
+    # Call OpenAI TTS
+    url = "https://api.openai.com/v1/audio/speech"
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "tts-1",
+        "input": text,
+        "voice": "alloy"  # Options: alloy, echo, fable, onyx, nova, shimmer
+    }
+    
+    # Stream audio back to frontend
+    req = requests.post(url, json=payload, headers=headers, stream=True)
+    return Response(stream_with_context(req.iter_content(chunk_size=1024)), content_type='audio/mpeg')

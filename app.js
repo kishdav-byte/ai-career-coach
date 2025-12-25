@@ -1285,16 +1285,45 @@ function init() {
             let resultText = "";
             let hasAutoScrolled = false;
 
-            // AUDIO SETUP (Client-Side TTS)
-            let audioBuffer = "";
+            // AUDIO SETUP (OpenAI High-Quality TTS)
+            let audioQueue = [];
+            let isPlaying = false;
+
+            async function playNext() {
+                if (audioQueue.length === 0) {
+                    isPlaying = false;
+                    return;
+                }
+
+                isPlaying = true;
+                const text = audioQueue.shift();
+
+                try {
+                    const response = await fetch('/speak', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: text })
+                    });
+                    const blob = await response.blob();
+                    const audioUrl = URL.createObjectURL(blob);
+                    const audio = new Audio(audioUrl);
+
+                    audio.onended = () => {
+                        playNext();
+                    };
+                    audio.play();
+                } catch (error) {
+                    console.error("Audio error:", error);
+                    playNext();
+                }
+            }
+
             const speak = (text) => {
                 if (!text || !text.trim()) return;
-                // Use built-in SpeechSynthesis
-                const utterance = new SpeechSynthesisUtterance(text);
-                utterance.lang = 'en-US';
-                // Optional: Try to match selected voice roughly or just use default
-                // Simpler to stick to default for reliability in this quick fix
-                window.speechSynthesis.speak(utterance);
+                audioQueue.push(text);
+                if (!isPlaying) {
+                    playNext();
+                }
             };
 
             while (true) {
