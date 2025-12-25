@@ -1340,18 +1340,26 @@ function init() {
                         systemMsg = result.data.text || JSON.stringify(result.data);
                     }
 
+                    // 1. UPDATE UI TEXT IMMEDIATELY (Text-First Rendering)
                     addMessage(systemMsg, 'system', true);
 
-                    // Play Audio if present
+                    // Force scroll to ensure user sees text
+                    const chatWindow = document.getElementById('chat-window');
+                    if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
+
+                    // 2. PLAY AUDIO ASYNCHRONOUSLY
+                    // Use setTimeout to yield main thread so UI paints first
                     if (result.data.audio) {
-                        console.log("Audio data received, attempting to play...");
-                        const audioPlayer = document.getElementById('ai-audio-player');
-                        audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
-                        audioPlayer.style.display = 'block';
-                        audioPlayer.play().catch(e => {
-                            console.error("Audio playback error:", e);
-                            alert("Audio playback failed. Please interact with the page (click anywhere) and try again. Browser autoplay policies might be blocking it.");
-                        });
+                        setTimeout(() => {
+                            console.log("Audio data received, attempting to play...");
+                            const audioPlayer = document.getElementById('ai-audio-player');
+                            audioPlayer.src = `data:audio/mp3;base64,${result.data.audio}`;
+                            audioPlayer.style.display = 'block';
+                            audioPlayer.play().catch(e => {
+                                console.error("Audio playback error:", e);
+                                // Optional: alert user or retry
+                            });
+                        }, 50);
                     } else {
                         console.warn("No audio data in response");
                     }
