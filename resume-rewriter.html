@@ -1264,6 +1264,15 @@
                 });
             }
 
+            // NUCLEAR SCRUB: Aggressively remove 'undefined' artifacts
+            html = html.replace(/>\s*undefined\s*</gi, '><'); // Removes >undefined<
+            html = html.replace(/undefined/gi, ''); // Global backup catch-all
+
+            // Cleanup empty elements left behind
+            html = html.replace(/<strong[^>]*>\s*<\/strong>/gi, '');
+            html = html.replace(/<h3[^>]*>\s*<\/h3>/gi, '');
+            html = html.replace(/<div[^>]*>\s*<\/div>/gi, '');
+
             container.innerHTML = html;
         }
 
