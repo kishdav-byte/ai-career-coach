@@ -2142,3 +2142,36 @@ if (document.readyState === 'loading') {
 }
 
 window.init = init;
+
+// --- AUTO-LOAD CONTEXT FROM DASHBOARD ---
+document.addEventListener('DOMContentLoaded', () => {
+    try {
+        const activeJD = localStorage.getItem('activeJobDescription');
+        if (activeJD) {
+            console.log("Found Active JD from Dashboard. Injecting...");
+            // Try both potential IDs just in case
+            const inputs = ['interview-job-posting', 'job-description-input'];
+            let found = false;
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.value = activeJD;
+                    found = true;
+                    // Trigger input event for auto-resizers or validation
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            });
+            
+            if (found) {
+                // Auto-expand the context section if hidden
+                const contextContainer = document.getElementById('context-container');
+                if (contextContainer && contextContainer.classList.contains('hidden')) {
+                    // Optional: window.toggleContext() if available or manual class removal
+                    // For now, we just populate the data.
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error auto-loading JD:", e);
+    }
+});

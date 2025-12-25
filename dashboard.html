@@ -202,6 +202,9 @@
                         <a href="/app.html#interview"
                             class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/app.html#interview">Mock Interview</a>
+                        <a href="/lab-assistant.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            data-path="/lab-assistant.html">Lab Assistant (Tools)</a>
                         <a href="/role-reversal.html"
                             class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
                             data-path="/role-reversal.html">Role Reversal</a>
@@ -733,7 +736,7 @@
                 `;
             } else if (currentStatus === 'Interviewing') {
                 quickActions = `
-                    <button onclick="launchTool('${job.id}', '/lab-assistant.html')" class="${btnClass}">
+                    <button onclick="launchTool('${job.id}', '/app.html#interview')" class="${btnClass}">
                         <i class="fas fa-microphone w-4 text-center text-teal"></i> 🎤 Mock Interview Sim
                     </button>
                     <button onclick="launchTool('${job.id}', '/star-drill.html')" class="${btnClass}">
@@ -1017,6 +1020,10 @@
 
             // Save context for receiver tools to pick up
             localStorage.setItem('mission_context', JSON.stringify(context));
+            // User requested explicit separate storage for Interview Lab
+            if (context.jd) {
+                localStorage.setItem('activeJobDescription', context.jd);
+            }
 
             // Redirect
             window.location.href = destinationUrl;
