@@ -1285,6 +1285,18 @@ function init() {
             let resultText = "";
             let hasAutoScrolled = false;
 
+            // AUDIO SETUP (Client-Side TTS)
+            let audioBuffer = "";
+            const speak = (text) => {
+                if (!text || !text.trim()) return;
+                // Use built-in SpeechSynthesis
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'en-US';
+                // Optional: Try to match selected voice roughly or just use default
+                // Simpler to stick to default for reliability in this quick fix
+                window.speechSynthesis.speak(utterance);
+            };
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -1292,12 +1304,7 @@ function init() {
                 resultText += textChunk;
 
                 if (outputDiv) {
-                    // STREAMING UPDATE
-                    // Use marked if available, or plain text
-                    // Note: Because we are streaming partial markdown, standard parsers might glitch. 
-                    // For stability, we append raw text until done? No, user wants real-time typing.
-                    // We will just append innerText + use simple formatting if needed, or re-parse full string.
-                    // Re-parsing full string every chunk is expensive but safer for markdown.
+                    // 1. VISUAL UPDATE
                     if (typeof marked !== 'undefined') {
                         outputDiv.innerHTML = marked.parse(resultText);
                     } else {
@@ -1308,6 +1315,24 @@ function init() {
                     const chatWindow = document.getElementById('chat-window');
                     if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
                 }
+
+                // 2. AUDIO PROCESSING
+                audioBuffer += textChunk;
+                // Regex: Find punctuation (.?!) followed by space or end of string? 
+                // No, only space to avoid slicing mid-abbreviation if possible, but simplicity first.
+                // User snippet: /([.?!])\s/
+                let match;
+                while ((match = audioBuffer.match(/([.?!])\s/)) !== null) {
+                    const index = match.index + 1; // Include punctuation
+                    const sentence = audioBuffer.substring(0, index);
+                    speak(sentence);
+                    audioBuffer = audioBuffer.substring(index);
+                }
+            }
+
+            // 3. FLUSH REMAINING AUDIO
+            if (audioBuffer.trim().length > 0) {
+                speak(audioBuffer);
             }
 
             // POST-STREAM STATE UPDATES
@@ -2161,7 +2186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     el.dispatchEvent(new Event('input', { bubbles: true }));
                 }
             });
-            
+
             if (found) {
                 // Auto-expand the context section if hidden
                 const contextContainer = document.getElementById('context-container');
