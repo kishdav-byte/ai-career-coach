@@ -303,15 +303,45 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check Smart Context
-            const missionContext = localStorage.getItem('mission_context');
+            // 1. LOAD MISSION CONTEXT (Target Company/JD)
+            const missionContext = localStorage.getItem('mission_context') ? JSON.parse(localStorage.getItem('mission_context')) : null;
             if (missionContext) {
-                try {
-                    const ctx = JSON.parse(missionContext);
-                    if (ctx.jd) document.getElementById('job-description').value = ctx.jd;
-                    // cover-letter.html currently only takes JD text input
-                    localStorage.removeItem('mission_context');
-                } catch (e) { console.error("Context Error", e); }
+                if (missionContext.company) {
+                    const companyInput = document.getElementById('company-name');
+                    if (companyInput) companyInput.value = missionContext.company;
+                }
+                if (missionContext.jd) {
+                    const jdInput = document.getElementById('job-description');
+                    if (jdInput) jdInput.value = missionContext.jd;
+                }
+            }
+
+            // 2. LOAD MASTER RESUME (The "Sticky Memory")
+            const masterResumeText = localStorage.getItem('master_resume_text');
+            const masterResumeName = localStorage.getItem('master_resume_name');
+
+            if (masterResumeText && masterResumeText.length > 50) {
+                console.log("Master Resume Found for Cover Letter.");
+
+                // Set the global variable used by the generation function
+                extractedResumeText = masterResumeText;
+
+                // Visual Feedback (Replace the upload box with a "Loaded" banner)
+                const uploadZone = document.getElementById('dropzone');
+                if (uploadZone) {
+                    uploadZone.innerHTML = `
+                        <div class="p-4 bg-blue-900/20 border border-blue-500/50 rounded-lg flex items-center gap-3">
+                            <i class="fas fa-file-contract text-blue-400 text-xl"></i>
+                            <div>
+                                <p class="text-sm font-bold text-white">Using Resume: ${masterResumeName || 'Master Resume'}</p>
+                                <p class="text-xs text-slate-400">Ready to align with ${missionContext?.company || 'Target Job'}</p>
+                            </div>
+                        </div>
+                    `;
+                    // Adjust styles to look "filled"
+                    uploadZone.classList.remove('border-dashed', 'border-blue-500/30');
+                    uploadZone.classList.add('border-green-500/30', 'bg-slate-900/80');
+                }
             }
 
             if (!supabaseClient) { window.location.href = 'login.html'; return; }
