@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response, stream_with_context
 import sys
 import traceback
 
@@ -166,6 +166,122 @@ def generate_audio(text, voice_id):
         if not voice_id or voice_id == 'alloy': # fallback handling
             voice_id = "en-US-AriaNeural"
         return generate_audio_edge(text, voice_id)
+
+def prepare_interview_prompt(data):
+    """Refactored prompt builder for Interview Chat (Standard & Stream)."""
+    message = data.get('message', '')
+    job_posting = data.get('jobPosting', '')
+    resume_text = data.get('resumeText', '')
+    is_start = data.get('isStart', False)
+    question_count = data.get('questionCount', 1)
+    
+    # Context Prep
+    company_name = data.get('companyName') or "this company"
+    role_title = "this position" 
+    short_resume = (resume_text[:2000] + '...') if len(resume_text) > 2000 else resume_text
+    short_jd = (job_posting[:2000] + '...') if len(job_posting) > 2000 else job_posting
+
+    system_prompt = f"""
+    ROLE: You are the Hiring Manager at {company_name} interviewing a candidate for the role of {role_title}.
+    CONTEXT DATA:
+    CANDIDATE RESUME: "{short_resume}"
+    JOB DESCRIPTION: "{short_jd}"
+    INTERVIEW PROTOCOL (STRICT):
+    PHASE 1: THE OPENER (triggered when I say "START_INTERVIEW")
+    - Introduce yourself briefly.
+    - Ask EXACTLY: "Tell me how your experience has prepared you for this role, what will you bring to the position, and is there anything else I should know about your work history that you'd like to highlight associated with the role you have applied for?"
+    PHASE 2: THE STAR TRANSITION (Question 1)
+    - Acknowledge answer.
+    - Say EXACTLY: "Thank you for that overview. For the remainder of our conversation, I'd like to use the STAR format. When I ask for a specific situation or task, please walk me through your specific Actions and the Results of those actions."
+    - Ask Question 1.
+    PHASE 3: THE DRILL DOWN (Questions 2-5)
+    - Check specificity. Push back if vague.
+    TONE: Professional, Inquisitive, Fair but Rigorous.
+    Current Question Count: {question_count} of 5.
+"""
+    if is_start:
+         user_prompt = f"""
+COMMAND: START_INTERVIEW
+USER CONTEXT: The user has just sat down.
+INSTRUCTION: Introduce yourself and ask the Opener Question defined in PHASE 1.
+JSON RESPONSE TEMPLATE:
+{{
+  "transcript": "{message}",
+  "text": "[Introduction] [Opener Question]",
+  "next_question": "[The same opener question]"
+}}"""
+    else:
+        if question_count < 5:
+            if question_count == 2:
+                transition_text = "Thank you for that overview. Before we move on, I want to set the stage for the rest of our chat. I use the STAR format—Situation, Task, Action, Result. When I ask for a specific example, please walk me through your specific actions and the results you achieved. Now, let's dive in..."
+                phase_instruction = f"TRANSITION REQUIRED: This is the Second Turn. You MUST start the 'next_question' field with EXACTLY the following text, followed by your actual question: '{transition_text} [Your First Behavioral Question Here]'"
+            else:
+                phase_instruction = "This is Question " + str(question_count) + ". Follow PHASE 3 (Drill Down). Evaluate the previous answer rigorously."
+
+            user_prompt = f"""
+User Answer: "{message}"
+{phase_instruction}
+Evaluate the previous answer (unless it was just the opener, in which case just acknowledge it).
+JSON RESPONSE TEMPLATE:
+{{
+  "transcript": "{message}",
+  "score": [1-5 Score of previous answer],
+  "feedback": "[Brief feedback on S.T.A.R. quality]",
+  "improved_sample": "[Better version of their answer if score < 4]",
+  "next_question": "[The next behavioral question to ask]"
+}}
+3. In 'feedback', explicitly state which STAR components were present.
+4. BETTER ANSWER LOGIC SPLIT:
+   - IF SCORE is 3 or 4: Use "Plus-One" method.
+   - IF SCORE is 1 or 2: Generate FRESH, PERFECT example. Start with: "Since you were unsure, here is an example of what a perfect answer sounds like..."
+5. TONE: Coaching.
+Return STRICT JSON.
+"""
+        else:
+            user_prompt = f"""
+User Answer: {message}
+Evaluate the answer to the final question (Question 5) using the HYPER-STRICT STAR SCORING RUBRIC (+25% Specificity).
+Return STRICT JSON.
+"""
+    
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": user_prompt}
+    ]
+
+@app.route('/api/stream-chat', methods=['POST'])
+def stream_chat_feedback():
+    data = request.json
+    messages = prepare_interview_prompt(data)
+    
+    # Add Streaming-Specific Instruction
+    messages[0]['content'] += "\\n\\nIMPORTANT FOR STREAMING: Start the response immediately with 'Score: X/5' on the first line if applicable, then Feedback, then Next Question. Do NOT use valid JSON format. Just format it clearly for reading."
+
+    def generate():
+        url = 'https://api.openai.com/v1/chat/completions'
+        headers = {'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/json'}
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": messages,
+            "stream": True
+        }
+        
+        with requests.post(url, json=payload, headers=headers, stream=True) as r:
+            for line in r.iter_lines():
+                if line:
+                    decoded_line = line.decode('utf-8')
+                    if decoded_line.startswith('data: '):
+                        json_str = decoded_line[6:]
+                        if json_str != '[DONE]':
+                            try:
+                                chunk = json.loads(json_str)
+                                content = chunk['choices'][0]['delta'].get('content', '')
+                                if content:
+                                    yield content
+                            except:
+                                pass
+    
+    return Response(stream_with_context(generate()), content_type='text/plain')
 
 def call_openai(messages, json_mode=False):
     """Helper function to call OpenAI API."""
