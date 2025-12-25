@@ -893,7 +893,7 @@ def api():
 
         # 2. CONTEXT PREPARATION
         # Fallbacks for variables in prompt
-        company_name = "this company" 
+        company_name = data.get('companyName') or "this company" 
         role_title = "this position" # could try to extract, but generic is safer unless parsing is robust
 
         # Truncate context to avoid token limits (approx 1500 chars each)

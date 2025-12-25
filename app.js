@@ -1150,8 +1150,14 @@ function init() {
             if (startBtn) startBtn.classList.add('hidden');
             if (activeControls) activeControls.classList.remove('hidden');
 
-            // Pass resume info
-            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText);
+            // Pass resume info & Company Name
+            let companyName = "the target company";
+            try {
+                const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+                if (mCtx && mCtx.company) companyName = mCtx.company;
+            } catch (e) { }
+
+            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName);
         } else {
             alert("Please paste a job description first.");
         }
@@ -1219,7 +1225,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '') {
+    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = '') {
         const message = msg || chatInput.value;
         if (!message) return;
 
@@ -1262,7 +1268,8 @@ function init() {
                     action: 'interview_chat',
                     message: message,
                     jobPosting: jobPosting,
-                    resumeText: resumeText, // Add resume to payload (passed from Start button or extracted if global needed)
+                    resumeText: resumeText,
+                    companyName: companyName, // Added context
                     voice: voice,
                     speed: speed,
                     isStart: isStart,
