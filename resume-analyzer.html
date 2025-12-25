@@ -519,6 +519,33 @@
                         // ACTION UPDATE
                         ctaBtn.onclick = (e) => {
                             e.preventDefault();
+
+                            // 1. SCRAPE THE JD FROM THE SCREEN
+                            // Use the same "Dragnet" IDs to find where the JD is currently sitting
+                            const jdBox = document.getElementById('job-description') ||
+                                document.getElementById('job-description-input') ||
+                                document.getElementById('target-job-description') ||
+                                document.querySelector('textarea'); // Fallback
+
+                            const jdText = jdBox ? jdBox.value : '';
+
+                            if (!jdText || jdText.length < 50) {
+                                if (!confirm("Warning: No Job Description detected. The Rewrite tool works best with a JD. Continue anyway?")) {
+                                    return;
+                                }
+                            }
+
+                            // 2. PACK THE BAGS (Save to Mission Context)
+                            // We re-save it so the next page can read it immediately.
+                            localStorage.setItem('mission_context', JSON.stringify({
+                                jd: jdText,
+                                role: "Target Role", // Default since we might not have specific role data here
+                                company: "Target Company"
+                            }));
+
+                            console.log("Payload Saved. Launching Rewrite...");
+
+                            // 3. LAUNCH
                             window.location.href = 'resume-rewriter.html';
                         };
 
