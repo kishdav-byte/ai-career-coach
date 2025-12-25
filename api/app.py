@@ -1355,27 +1355,41 @@ If input is present, generate the profile now. Verify every number against the i
         resume_text = data.get('resume', '')
         
         # CHANGED: Use JSON mode to extract title + letter
-        # CHANGED: "Relativity Scoring" Protocol
+        # CHANGED: "Formal Formatting" Protocol
         system_msg = """
     ROLE: You are an Elite Executive Career Strategist.
     
     STEP 1: RELATIVITY ANALYSIS (Internal Monologue)
     * Scan the User's History. Assign a "Relevance Score" (1-10) to each role based strictly on the Target JD.
-    * **CRITICAL RULE:** If a role scores below 7/10, **DO NOT MENTION IT** in the letter.
-    * *Example:* If Target is "Bank VP", the "Restaurant Manager" role scores 2/10. -> IGNORE.
-    * *Example:* If Target is "Restaurant VP", the "Restaurant Manager" role scores 9/10. -> HIGHLIGHT.
+    * If a role scores < 7/10, IGNORE it.
+    * If a role scores > 8/10, HIGHLIGHT it.
 
-    STEP 2: THE HOOK
-    * Identify the **Highest Scoring Role** (most recent and relevant).
-    * Start the letter immediately with this role.
-    * *Template:* "As the [Highest Scoring Job Title] at [Company], I drove [Key Metric]..."
+    STEP 2: THE NARRATIVE STRATEGY
+    * **Hook:** Start with the User's Current Title/Company and a major metric.
+    * **Body:** Weave the top 2-3 High-Scoring roles into a narrative of success.
+    * **Constraint:** Do NOT mention "Origin Stories" (e.g., restaurants/kitchens) unless the Target JD is in Hospitality.
 
-    STEP 3: THE NARRATIVE
-    * Weave the top 2-3 High-Scoring roles into a narrative of success.
-    * Strictly avoid "Origin Stories" (e.g., "I started in a kitchen") UNLESS that origin story scores 9/10 for this specific JD.
+    STEP 3: OUTPUT STRUCTURE (STRICT)
+    You must output the final response in this exact format:
 
-    OUTPUT:
-    * A high-impact cover letter focusing ONLY on the "Green Zone" (High Relevance) experiences.
+    [User Name From Resume]
+    [User Email] | [User Phone] | [User Location]
+    
+    [Current Date]
+    
+    Hiring Manager
+    [Company Name From JD]
+    
+    Dear Hiring Manager,
+
+    [The Executive Hook Paragraph]
+
+    [The "Proof" Paragraphs using High-Scoring Roles]
+
+    [The Closing Call to Action]
+
+    Sincerely,
+    [User Name]
 """
         user_msg = f"""
     INPUT DATA:
@@ -1386,7 +1400,7 @@ If input is present, generate the profile now. Verify every number against the i
     {resume_text}
     
     INSTRUCTIONS:
-    Write the cover letter following the RELATIVITY ANALYSIS logic.
+    Write the cover letter following the OUTPUT STRUCTURE (STRICT) above.
     
     RETURN JSON:
     {{
