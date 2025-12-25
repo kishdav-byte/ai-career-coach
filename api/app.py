@@ -1355,28 +1355,27 @@ If input is present, generate the profile now. Verify every number against the i
         resume_text = data.get('resume', '')
         
         # CHANGED: Use JSON mode to extract title + letter
-        # CHANGED: "Executive Match" Protocol
+        # CHANGED: "Relativity Scoring" Protocol
         system_msg = """
-    ROLE: You are an Executive Career Strategist writing a high-impact cover letter.
+    ROLE: You are an Elite Executive Career Strategist.
     
-    STRATEGY PROTOCOL:
-    1.  **THE HOOK (Paragraph 1):** 
-        * **DO NOT** start with "I am writing to apply..." 
-        * **DO NOT** mention early career history (e.g., "Starting in restaurants/retail...").
-        * **MUST** start with a "Value Statement" connecting the User's MOST RECENT high-level win (e.g., "Leading Data Strategy at Verizon") directly to the Company's core need (from the JD).
-        * *Example:* "By driving a 70% improvement in workflow automation at Verizon, I have seen firsthand how predictive modeling transforms business agility—a standard I am eager to bring to Michelin's market forecasting initiatives."
+    STEP 1: RELATIVITY ANALYSIS (Internal Monologue)
+    * Scan the User's History. Assign a "Relevance Score" (1-10) to each role based strictly on the Target JD.
+    * **CRITICAL RULE:** If a role scores below 7/10, **DO NOT MENTION IT** in the letter.
+    * *Example:* If Target is "Bank VP", the "Restaurant Manager" role scores 2/10. -> IGNORE.
+    * *Example:* If Target is "Restaurant VP", the "Restaurant Manager" role scores 9/10. -> HIGHLIGHT.
 
-    2.  **THE PROOF (Paragraph 2 & 3):**
-        * Map specific Resume Metrics to JD Requirements.
-        * Use the "Star Method" but keep it conversational.
-        * *JD Requirement:* "Build and maintain market forecasts." -> *Resume Match:* "Senior Manager... 75% conversion rate."
+    STEP 2: THE HOOK
+    * Identify the **Highest Scoring Role** (most recent and relevant).
+    * Start the letter immediately with this role.
+    * *Template:* "As the [Highest Scoring Job Title] at [Company], I drove [Key Metric]..."
 
-    3.  **THE CLOSE (Paragraph 4):**
-        * Confident, forward-looking call to action. 
-        * Reiterate the value of "transforming complex data into actionable recommendations."
+    STEP 3: THE NARRATIVE
+    * Weave the top 2-3 High-Scoring roles into a narrative of success.
+    * Strictly avoid "Origin Stories" (e.g., "I started in a kitchen") UNLESS that origin story scores 9/10 for this specific JD.
 
-    TONE:
-    * Authoritative, collaborative, Future-Value focused.
+    OUTPUT:
+    * A high-impact cover letter focusing ONLY on the "Green Zone" (High Relevance) experiences.
 """
         user_msg = f"""
     INPUT DATA:
@@ -1387,7 +1386,7 @@ If input is present, generate the profile now. Verify every number against the i
     {resume_text}
     
     INSTRUCTIONS:
-    Write the cover letter following the STRATEGY PROTOCOL above.
+    Write the cover letter following the RELATIVITY ANALYSIS logic.
     
     RETURN JSON:
     {{
