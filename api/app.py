@@ -870,17 +870,18 @@ def api():
 
     elif action == 'interview_chat':
         message = data.get('message', '')
-        job_posting = data.get('jobPosting', '')
+        job_posting = data.get('jobPosting', '')  # This is the JD
+        resume_text = data.get('resumeText', '')  # NEW: Resume Context
         voice = data.get('voice', 'en-US-AriaNeural')
         speed = data.get('speed', '+0%')
         is_start = data.get('isStart', False)
         question_count = data.get('questionCount', 1)
         json_mode = True
 
-        # 1. SILENCE & "THINKING..." DETECTION (Anti-Hallucination Trap)
+        # 1. SILENCE & "THINKING..." DETECTION
         user_input_clean = message.strip()
-        if not is_start and (user_input_clean.lower() == "thinking..." or len(user_input_clean.split()) < 5):
-            return jsonify({
+        if not is_start and (user_input_clean.lower() == "thinking..." or len(user_input_clean.split()) < 2):
+             return jsonify({
                 "data": {
                     "score": 0,
                     "feedback": "",
@@ -889,65 +890,89 @@ def api():
                     "next_question": "I am waiting for your response."
                 }
             })
-        
-        context = ""
-        if job_posting:
-            context = f"\n\nContext: The user is interviewing for the following job:\n{job_posting}\n\nTailor your questions and persona to this role. You already know the candidate is applying for this position. Do NOT ask them to state the position. Prepare to ask relevant interview questions."
-        
-        system_prompt = f"""System Instructions:
-You are a strict but conversational hiring manager. YOUR GOAL is to evaluate the candidate's use of the STAR method. 
 
-CONVERSATIONAL RULES:
-1. STOP ANNOUNCING: You are FORBIDDEN from using the words "question," "next," or "first" in the opening sentence of your turn. Just ask the question directly.
-2. USE NATURAL BRIDGES: Briefly acknowledge the user's previous answer before pivoting (e.g., "That sounds like a tough situation. Speaking of conflict...").
-3. DIRECT INTERROGATION: Always phrase questions as direct sentences ending in a question mark.
-4. SINGLE SENTENCE: The 'next_question' MUST be a single, complete sentence. Do not add any preamble.
+        # 2. CONTEXT PREPARATION
+        # Fallbacks for variables in prompt
+        company_name = "this company" 
+        role_title = "this position" # could try to extract, but generic is safer unless parsing is robust
 
-Keep responses concise and professional. This interview consists of 5 questions. Current Question: {question_count} of 5.{context}"""
+        # Truncate context to avoid token limits (approx 1500 chars each)
+        short_resume = (resume_text[:2000] + '...') if len(resume_text) > 2000 else resume_text
+        short_jd = (job_posting[:2000] + '...') if len(job_posting) > 2000 else job_posting
+
+        system_prompt = f"""
+    ROLE: You are the Hiring Manager at {company_name} interviewing a candidate for the role of {role_title}.
+    
+    CONTEXT DATA:
+    CANDIDATE RESUME: "{short_resume}"
+    JOB DESCRIPTION: "{short_jd}"
+
+    INTERVIEW PROTOCOL (STRICT):
+    
+    PHASE 1: THE OPENER (triggered when I say "START_INTERVIEW")
+    - Introduce yourself briefly as the Hiring Manager.
+    - Ask this EXACT opening question: "Tell me how your experience has prepared you for this role, what will you bring to the position, and is there anything else I should know about your work history that you'd like to highlight associated with the role you have applied for?"
+
+    PHASE 2: THE STAR TRANSITION (Question 1)
+    - Acknowledge the user's opening answer briefly.
+    - Then, say EXACTLY: "Thank you for that overview. For the remainder of our conversation, I'd like to use the STAR format. When I ask for a specific situation or task, please walk me through your specific Actions and the Results of those actions."
+    - Then, ask Question 1 based on the Job Description/Resume overlap.
+
+    PHASE 3: THE DRILL DOWN (Questions 2-5)
+    - If the user's answer is vague, push back: "Can you clarify specifically what YOUR role was in that project?" or "What was the specific result?"
+    - Use the Resume context to spot inconsistencies.
+    - If the answer is strong, move to the next behavioral question.
+
+    TONE: Professional, Inquisitive, Fair but Rigorous.
+    Current Question Count: {question_count} of 5.
+"""
         
         if is_start:
-            welcome_msg = "Welcome to the interview! I've reviewed the job details, and I'm going to ask you five questions. <break time=\"2.0s\" /> When answering, please provide specific examples of how you've handled key situations, and I encourage you to use the STAR method when providing your answers. <break time=\"2.0s\" /> You'll want to share a specific Situation or Task, the Action or Actions you took, and the Result of your Actions. <break time=\"2.0s\" /> The first question that I have for you is... <break time=\"1.0s\" />"
+            # We must force the Opener
+            welcome_msg = "Hello, I am the Hiring Manager for this role. <break time=\"1.0s\" />"
+            # Note: The prompt instruction above handles the question phrasing, but for safety/hallucination prevention,
+            # we can inject the exact expected opener into the 'next_question' field if we want, 
+            # BUT the prompt says "triggered when I say START_INTERVIEW".
+            # Let's give the AI the command.
             
-            user_prompt = f"""User: {message}
-
-Start the interview. You MUST start your response with exactly: '{welcome_msg}'.
-Immediately after the final <break time="1.0s" />, append the FIRST INTERVIEW QUESTION based on the Job Context provided.
-
-JSON Template:
+            user_prompt = f"""
+COMMAND: START_INTERVIEW
+USER CONTEXT: The user has just sat down.
+INSTRUCTION: Introduce yourself and ask the Opener Question defined in PHASE 1.
+JSON RESPONSE TEMPLATE:
 {{
   "transcript": "{message}",
-  "feedback": "",
-  "improved_sample": null,
-  "job_title": "[Extract Job Title from Context]",
-  "next_question": "{welcome_msg} [Insert Question 1 Here]"
+  "text": "[Introduction] [Opener Question]",
+  "next_question": "[The same opener question]"
 }}"""
         
         else:
             # CONTINUATION: Evaluate previous answer, Ask next question
             
-            # Ordinals for the NEXT question we are about to ask
-            # Input question_count is the one just answered.
-            # So if count=1, we are evaluating 1 and asking 2.
-            next_q_num = question_count + 1
-            if next_q_num >= 5:
-                next_ordinal = "final"
-            else:
-                next_ordinal = "next"
-
             if question_count < 5:
                 # Normal Case: Eval current -> Ask Next
+                if question_count == 1:
+                    transition_text = "Thank you for that overview. For the remainder of our conversation, I'd like to use the STAR format. When I ask for a specific situation or task, please walk me through your specific Actions and the Results of those actions."
+                    phase_instruction = f"This is Question 1. You MUST start the 'next_question' field with EXACTLY the following text, followed by your actual question: '{transition_text} [Your Question Here]'"
+                else:
+                    phase_instruction = "This is Question " + str(question_count) + ". Follow PHASE 3 (Drill Down). Evaluate the previous answer rigorously."
+
                 user_prompt = f"""
-User Answer: {message}
+User Answer: "{message}"
 
-Evaluate the answer to Question {question_count} using the HYPER-STRICT STAR SCORING RUBRIC (+25% Specificity Requirement):
-1-2 (Fail/Weak): Missing S, A, or R. (HARD CONSTRAINT: Max 2 if any component is missing).
-3 (Average): S, A, R present. Contains at least 1-2 specific details (names, tools) but lacks hard outcomes.
-4 (Strong): Complete STAR. High technical specificity. Uses job-specific keywords. Must include a clear outcome or impact.
-5 (Unicorn): Complete STAR. Highly specific AND includes MULTIPLE measurable metrics (%, $, time SAVED, scale).
+{phase_instruction}
 
-CRITICAL INSTRUCTIONS:
-1. SPECIFICITY AUDIT: If the answer is vague or lacks concrete nouns/actions, PENALIZE the score.
-2. Start 'feedback' with: "I would score this answer a [score] because...".
+Evaluate the previous answer (unless it was just the opener, in which case just acknowledge it).
+
+JSON RESPONSE TEMPLATE:
+{{
+  "transcript": "{message}",
+  "score": [1-5 Score of previous answer],
+  "feedback": "[Brief feedback on S.T.A.R. quality]",
+  "improved_sample": "[Better version of their answer if score < 4]",
+  "next_question": "[The next behavioral question to ask]"
+}}
+
 3. In 'feedback', explicitly state which STAR components were present. The numeric score in the 'score' field MUST match the written explanation. If the user provides no substance, the Score is 0 and the feedback is "No answer provided."
 4. BETTER ANSWER LOGIC SPLIT:
    - IF SCORE is 3 or 4: Use the "Plus-One" method. Retain the user's original voice/text and only inject the missing metric/result into the end. Use conversational transitions like "And that actually meant...".

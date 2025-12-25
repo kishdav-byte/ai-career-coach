@@ -1121,7 +1121,13 @@ function init() {
         sendChatMessage();
     });
     document.getElementById('start-interview-btn').addEventListener('click', () => {
-        const jobPosting = document.getElementById('interview-job-posting').value;
+        // Prioritize Context Accordion inputs, fallback to sidebar
+        const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
+        const sidebarJD = document.getElementById('interview-job-posting').value;
+        const jobPosting = accordionJD || sidebarJD;
+
+        const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
+
         const chatInterface = document.getElementById('chat-interface');
         const activeState = document.getElementById('interview-active-state');
 
@@ -1144,7 +1150,8 @@ function init() {
             if (startBtn) startBtn.classList.add('hidden');
             if (activeControls) activeControls.classList.remove('hidden');
 
-            sendChatMessage("I have provided the job description. Please start the interview.", true);
+            // Pass resume info
+            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText);
         } else {
             alert("Please paste a job description first.");
         }
@@ -1212,7 +1219,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null, isStart = false, skipUI = false) {
+    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '') {
         const message = msg || chatInput.value;
         if (!message) return;
 
@@ -1228,7 +1235,12 @@ function init() {
 
         // Animated Loading Indicator (Spinner)
         const loadingId = addMessage('<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-sm text-slate-400">Thinking...</span></div>', 'system', true);
-        const jobPosting = document.getElementById('interview-job-posting').value;
+
+        // Prioritize Accordion JD, fallback to sidebar
+        const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
+        const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
+        const jobPosting = accordionJD || sidebarJD;
+
         const { voice, speed } = getVoiceSettings();
 
 
@@ -1250,6 +1262,7 @@ function init() {
                     action: 'interview_chat',
                     message: message,
                     jobPosting: jobPosting,
+                    resumeText: resumeText, // Add resume to payload (passed from Start button or extracted if global needed)
                     voice: voice,
                     speed: speed,
                     isStart: isStart,

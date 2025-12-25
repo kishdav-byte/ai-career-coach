@@ -178,6 +178,32 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- CONTEXT ACCORDION (Added) -->
+                    <div class="mt-6 pt-6 border-t border-slate-800">
+                        <button onclick="toggleContext()"
+                            class="flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-blue-400 uppercase tracking-wider mb-3 w-full transition-colors group">
+                            <i class="fas fa-database group-hover:text-blue-400 transition-colors"></i>
+                            Mission Context (Auto-Loaded)
+                            <i class="fas fa-chevron-down ml-auto"></i>
+                        </button>
+
+                        <div id="context-container" class="hidden space-y-4">
+                            <div class="relative">
+                                <label class="absolute -top-2 left-2 bg-slate-900 px-1 text-[10px] text-blue-400">TARGET
+                                    JD</label>
+                                <textarea id="job-description-input"
+                                    class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 focus:border-blue-500 outline-none resize-none leading-relaxed"></textarea>
+                            </div>
+
+                            <div class="relative">
+                                <label class="absolute -top-2 left-2 bg-slate-900 px-1 text-[10px] text-green-400">YOUR
+                                    RESUME</label>
+                                <textarea id="resume-text-input"
+                                    class="w-full h-32 bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-xs text-slate-300 focus:border-blue-500 outline-none resize-none leading-relaxed"></textarea>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -398,6 +424,31 @@
 
             // Bridge for app.js (legacy id mapping)
             // app.js expects: 'interview-job-posting', 'voice-select', 'start-interview-btn', 'chat-window', 'record-btn'
+
+            // Context Toggle
+            window.toggleContext = function () {
+                const container = document.getElementById('context-container');
+                if (container) container.classList.toggle('hidden');
+            };
+
+            // Auto-Load Context
+            const missionCtx = localStorage.getItem('mission_context');
+            if (missionCtx) {
+                try {
+                    const ctx = JSON.parse(missionCtx);
+                    const jdInput = document.getElementById('job-description-input');
+                    // Also check for legacy ID 'interview-job-posting' if we want to sync them?
+                    // Actually, app.js reads 'interview-job-posting'.
+                    // We should probably sync the accordion JD to the main input or vice versa.
+                    // But for now, let's just populate the accordion inputs.
+                    if (jdInput && ctx.jd) jdInput.value = ctx.jd;
+
+                    // Also try to load Master Resume
+                    const masterResume = localStorage.getItem('master_resume_text');
+                    const resInput = document.getElementById('resume-text-input');
+                    if (resInput && masterResume) resInput.value = masterResume;
+                } catch (e) { console.error("Context Load Error", e); }
+            }
         });
     </script>
 </body>
