@@ -1355,23 +1355,50 @@ If input is present, generate the profile now. Verify every number against the i
         resume_text = data.get('resume', '')
         
         # CHANGED: Use JSON mode to extract title + letter
-        messages = [
-            {"role": "system", "content": "You are an expert cover letter writer."},
-            {"role": "user", "content": f"""
-    Write a tailored cover letter based on the following:
+        # CHANGED: "Executive Match" Protocol
+        system_msg = """
+    ROLE: You are an Executive Career Strategist writing a high-impact cover letter.
     
-    Job Description:
+    STRATEGY PROTOCOL:
+    1.  **THE HOOK (Paragraph 1):** 
+        * **DO NOT** start with "I am writing to apply..." 
+        * **DO NOT** mention early career history (e.g., "Starting in restaurants/retail...").
+        * **MUST** start with a "Value Statement" connecting the User's MOST RECENT high-level win (e.g., "Leading Data Strategy at Verizon") directly to the Company's core need (from the JD).
+        * *Example:* "By driving a 70% improvement in workflow automation at Verizon, I have seen firsthand how predictive modeling transforms business agility—a standard I am eager to bring to Michelin's market forecasting initiatives."
+
+    2.  **THE PROOF (Paragraph 2 & 3):**
+        * Map specific Resume Metrics to JD Requirements.
+        * Use the "Star Method" but keep it conversational.
+        * *JD Requirement:* "Build and maintain market forecasts." -> *Resume Match:* "Senior Manager... 75% conversion rate."
+
+    3.  **THE CLOSE (Paragraph 4):**
+        * Confident, forward-looking call to action. 
+        * Reiterate the value of "transforming complex data into actionable recommendations."
+
+    TONE:
+    * Authoritative, collaborative, Future-Value focused.
+"""
+        user_msg = f"""
+    INPUT DATA:
+    1. JOB DESCRIPTION:
     {job_desc}
     
-    My Resume:
+    2. USER RESUME:
     {resume_text}
     
-    Return JSON:
+    INSTRUCTIONS:
+    Write the cover letter following the STRATEGY PROTOCOL above.
+    
+    RETURN JSON:
     {{
-        "job_title": "Inferred Job Title from Description",
-        "letter_body": "The full text of the cover letter..."
+        "job_title": "Inferred Job Title from JD",
+        "letter_body": "The full text of the cover letter (Markdown supported)..."
     }}
-    """}
+    """
+    
+        messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": user_msg}
         ]
         try:
             response_text = call_openai(messages, json_mode=True)
