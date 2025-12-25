@@ -787,6 +787,23 @@
         function renderResults(data) {
             console.log("Rendering Data:", data);
 
+            // CHECK: Education Parsing Integrity & Integrity
+            const educationSection = currentFileText.match(/Education|University|College|Degree/i);
+            const educationContent = data.education || [];
+            data.formatting = data.formatting || []; // Ensure array exists
+
+            if (educationSection && (!educationContent || educationContent.length === 0 || JSON.stringify(educationContent).includes("undefined"))) {
+                data.formatting.push({
+                    issue: 'Education Parsing Error',
+                    fix: 'The parser detected an Education section but failed to read the School or Degree. Ensure standard formatting.'
+                });
+            } else if (!educationSection) {
+                data.formatting.push({
+                    issue: 'Missing Education Section',
+                    fix: 'No "Education" header found. Add an Education section to ensure ATS compliance.'
+                });
+            }
+
             // 1. SCORE
             const scoreDisplay = document.querySelector('#state-result .text-4xl'); // Updated selector
             // const scoreLabel = document.querySelector('#state-result .text-green-400'); 
