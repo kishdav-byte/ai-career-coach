@@ -1286,6 +1286,7 @@ function init() {
             let hasAutoScrolled = false;
 
             // AUDIO SETUP (OpenAI High-Quality TTS)
+            let audioBuffer = "";
             let audioQueue = [];
             let isPlaying = false;
 
