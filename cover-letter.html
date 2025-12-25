@@ -488,28 +488,51 @@
                     throw new Error("Session expired. Please log in again.");
                 }
 
-                const res = await fetch('/api/generate-strategy-tool', {
+                // 1. ANALYZE CONTEXT (Smart Scrub)
+                // Check if the Target Job is actually in the food/hospitality industry
+                const targetJob = jd.toLowerCase();
+                const isHospitalityJob = targetJob.includes('restaurant') ||
+                    targetJob.includes('food') ||
+                    targetJob.includes('hospitality') ||
+                    targetJob.includes('kitchen') ||
+                    targetJob.includes('culinary');
+
+                let cleanResumeText = extractedResumeText || "";
+
+                // 2. APPLY SMART SCRUB
+                // If the target job is NOT hospitality, we purge the "Origin Story" keywords from the Resume Summary.
+                if (!isHospitalityJob) {
+                    console.log("Target is NOT Hospitality. Scrubbing 'Restaurant' origin story...");
+
+                    cleanResumeText = cleanResumeText
+                        .replace(/restaurant/gi, "high-volume operations") // "Restaurant" -> "High-Volume Operations"
+                        .replace(/kitchen/gi, "fast-paced environments")   // "Kitchen" -> "Fast-Paced Environments"
+                        .replace(/auto body/gi, "industrial")              // "Auto Body" -> "Industrial"
+                        .replace(/bustling/gi, "complex");                 // "Bustling" -> "Complex"
+                } else {
+                    console.log("Target IS Hospitality. Keeping 'Restaurant' keywords for relevance.");
+                }
+
+                // 3. SEND CLEAN DATA
+                const res = await fetch('/api', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        email: userEmail, // from auth init
-                        tool_type: 'cover_letter',
-                        inputs: {
-                            target_role: "Role",
-                            company_name: "Company",
-                            key_skills: `RESUME:\n${extractedResumeText.substring(0, 3000)}\n\nJOB:\n${jd.substring(0, 3000)}`
-                        }
+                        action: 'cover_letter',
+                        email: userEmail,
+                        jobDesc: jd,
+                        resume: cleanResumeText
                     })
                 });
 
                 const data = await res.json();
                 if (data.error) throw new Error(data.error);
 
-                // Parse Markdown first
-                let htmlContent = marked.parse(data.content);
+                // Parse Markdown (Backend returns 'data' key now)
+                let htmlContent = marked.parse(data.data || data.content);
 
                 // Regex to find text in brackets (e.g., [Date]) and wrap it in the highlight span
                 // This will catch [Date], [Hiring Manager], etc.
