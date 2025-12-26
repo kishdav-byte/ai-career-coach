@@ -373,7 +373,8 @@ def get_feedback():
         # --- ENFORCEMENT: STAR Preamble Policy ---
         try:
              q_count = int(data.get('questionCount', 1))
-             if q_count == 2:
+             # ONLY trigger on Turn 2 (User's first answer), NOT on the Greeting (isStart)
+             if q_count == 2 and not data.get('isStart'):
                  star_preamble = (
                      "Thank you for that overview. Before we move on, I want to set the stage for the rest of our time together. "
                      "I use the STAR format, which is all about the Situation or Task, the Action, and Result. "
