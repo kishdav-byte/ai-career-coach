@@ -1468,12 +1468,9 @@ function init() {
                 displayHtml += `<div class="text-white">${JSON.stringify(aiData)}</div>`;
             }
 
-            if (outputDiv) {
-                outputDiv.innerHTML = displayHtml;
-                // Scroll
-                const chatWindow = document.getElementById('chat-window');
-                if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
-            }
+            // 1.5 PUBLISH MESSAGE
+            // Use addMessage to show the response in a new bubble (system/AI)
+            addMessage(displayHtml, 'system', true);
 
             // 2. AUDIO PLAYBACK (Base64)
             if (audioBase64) {
