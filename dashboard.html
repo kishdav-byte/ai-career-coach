@@ -670,7 +670,7 @@
 
         window.saveDossier = async () => {
             if (!currentJobId) return;
-            const btn = document.querySelector('button[onclick="saveDossier()"]');
+            const btn = document.getElementById('dossier-save-btn');
             const originalText = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
 
