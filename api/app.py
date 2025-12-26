@@ -163,12 +163,18 @@ def generate_audio_edge(text, voice_id):
 def generate_audio(text, voice_id):
     """Router for audio generation based on voice_id."""
     openai_voices = ["alloy", "echo", "fable", "onyx", "nova", "shimmer"]
+    
+    # Random Logic: If voice_id is 'random' or missing, pick from Top 3
+    if not voice_id or voice_id == 'random':
+        import random
+        # Curated Top 4: Alloy (Neutral), Onyx (Deep/Male), Nova (Energetic/Female), Fable (British-ish)
+        voice_id = random.choice(["alloy", "onyx", "nova", "fable"]) 
+
     if voice_id in openai_voices:
         return generate_audio_openai(text, voice_id)
     else:
-        # Default to Edge TTS for better support of Microsoft voices and SSML
-        # Use standard en-US-AriaNeural if the voice_id is generic or unrecognized
-        if not voice_id or voice_id == 'alloy': # fallback handling
+        # Default to Edge TTS for functional fallback
+        if not voice_id: 
             voice_id = "en-US-AriaNeural"
         return generate_audio_edge(text, voice_id)
 
@@ -3625,6 +3631,20 @@ def speak():
     data = request.json
     text = data.get('text')
     
+    voice_id = data.get('voice')
+    
+    # Random / Default Logic
+    if not voice_id or voice_id == 'random' or voice_id == 'alloy': # Overwrite 'alloy' default if random desired? No, stick to explicit 'random' or missing.
+         # Actually user said "not having the user select", so typically frontend sends nothing or default.
+         # Let's make it so if voice is NOT provided, it randomizes.
+         # But wait, 'alloy' is a valid choice.
+         pass
+
+    if not voice_id or voice_id == 'random':
+        import random
+        # Random Pool: Alloy, Onyx, Nova, Fable (British)
+        voice_id = random.choice(["alloy", "onyx", "nova", "fable"])
+
     # Call OpenAI TTS
     url = "https://api.openai.com/v1/audio/speech"
     headers = {
@@ -3634,7 +3654,7 @@ def speak():
     payload = {
         "model": "tts-1-hd",
         "input": text,
-        "voice": "alloy"  # Options: alloy, echo, fable, onyx, nova, shimmer
+        "voice": voice_id if voice_id in ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] else "alloy"
     }
     
     # Stream audio back to frontend
