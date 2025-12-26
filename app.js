@@ -1263,7 +1263,7 @@ function init() {
 
             // NEW: STREAMING ARCHITECTURE (Latency Fix)
             // NEW: STREAMING ARCHITECTURE (Latency Fix)
-            const response = await fetch('/get-feedback', {
+            const response = await fetch('/api/get-feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1301,7 +1301,7 @@ function init() {
                 const text = audioQueue.shift();
 
                 try {
-                    const response = await fetch('/speak', {
+                    const response = await fetch('/api/speak', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: text })

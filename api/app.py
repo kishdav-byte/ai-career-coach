@@ -249,7 +249,7 @@ Return STRICT JSON.
         {"role": "user", "content": user_prompt}
     ]
 
-@app.route('/get-feedback', methods=['POST'])
+@app.route('/api/get-feedback', methods=['POST'])
 def get_feedback():
     data = request.json
     messages = prepare_interview_prompt(data)
@@ -3372,7 +3372,7 @@ def stripe_webhook():
 # For Vercel, we don't need app.run()
 
 # --- TTS ENDPOINT ---
-@app.route('/speak', methods=['POST'])
+@app.route('/api/speak', methods=['POST'])
 def speak():
     data = request.json
     text = data.get('text')
