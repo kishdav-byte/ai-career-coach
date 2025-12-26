@@ -878,6 +878,7 @@
         window.smartLaunch = (id, url, job) => {
             const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description };
             localStorage.setItem('strategy_context', JSON.stringify(context));
+            sessionStorage.setItem('warRoomLaunch', 'true');
             window.location.href = url;
         };
 

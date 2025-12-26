@@ -319,17 +319,40 @@
                         will ask questions based on your target role.</p>
                 </div>
 
+                <!-- Loading/Countdown Overlay -->
+                <div id="interviewLoader"
+                    class="hidden absolute inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-md">
+                    <div id="setupCountdown" class="flex flex-col items-center justify-center space-y-6">
+                        <div class="relative w-48 h-48">
+                            <svg class="w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="88" stroke="currentColor" stroke-width="8" fill="transparent"
+                                    class="text-slate-800" />
+                                <circle id="progressRing" cx="96" cy="96" r="88" stroke="currentColor" stroke-width="8"
+                                    fill="transparent" stroke-dasharray="552" stroke-dashoffset="0"
+                                    stroke-linecap="round"
+                                    class="text-blue-500 transition-all duration-1000 ease-linear" />
+                            </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span id="countdownNumber" class="text-5xl font-bold text-white">12</span>
+                            </div>
+                        </div>
+
+                        <div class="text-center space-y-2">
+                            <h3 class="text-xl font-semibold text-white">Initializing Simulation...</h3>
+                            <p id="countdownStatus" class="text-gray-400 text-sm">Loading Role Context...</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Chat Transcript -->
                 <div id="chat-interface" class="hidden max-w-3xl mx-auto pb-20">
                     <div id="chat-window" class="space-y-4">
                         <!-- Messages go here -->
 
                     </div>
-
+                    <!-- Audio Player (Hidden) -->
+                    <audio id="ai-audio-player" class="hidden"></audio>
                 </div>
-
-                <!-- Audio Player (Hidden) -->
-                <audio id="ai-audio-player" class="hidden"></audio>
             </div>
 
             <!-- VIEW: LINKEDIN OUTPUT -->

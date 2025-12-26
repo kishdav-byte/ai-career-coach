@@ -245,6 +245,98 @@ let questionCount = 0;
 let interviewHistory = [];
 let currentQuestionText = "";
 
+// --- COUNTDOWN LOGIC ---
+window.startCountdown = function () {
+    const loader = document.getElementById('interviewLoader');
+    if (loader) loader.classList.remove('hidden');
+
+    // Ensure chat/intro keys are hidden
+    const intro = document.getElementById('interview-intro');
+    if (intro) intro.classList.add('hidden');
+
+    document.getElementById('chat-interface').classList.add('hidden');
+
+    let timeLeft = 12;
+    const totalTime = 12;
+    const ring = document.getElementById('progressRing');
+    const number = document.getElementById('countdownNumber');
+    const status = document.getElementById('countdownStatus');
+    const circumference = 552;
+
+    const timer = setInterval(() => {
+        timeLeft--;
+        if (number) number.innerText = timeLeft;
+
+        if (ring) {
+            const offset = circumference - (timeLeft / totalTime) * circumference;
+            ring.style.strokeDashoffset = offset;
+        }
+
+        if (status) {
+            if (timeLeft === 9) status.innerText = "Analyzing User Experience...";
+            if (timeLeft === 6) status.innerText = "Drafting Interview Roadmap...";
+            if (timeLeft === 3) status.innerText = "Selecting Interview Persona...";
+        }
+
+        if (timeLeft <= 0) {
+            clearInterval(timer);
+            finishSetup();
+        }
+    }, 1000);
+};
+
+window.finishSetup = function () {
+    document.getElementById('interviewLoader').classList.add('hidden');
+    document.getElementById('chat-interface').classList.remove('hidden');
+};
+
+// --- THINKING LOGIC HELPERS ---
+let thinkingBubbleId = null;
+let thinkingIntervalId = null;
+
+window.showThinkingState = function () {
+    // Only show if not already showing
+    if (thinkingBubbleId && document.getElementById(thinkingBubbleId)) return;
+
+    const listeningStates = [
+        "Assessing STAR Alignment...",
+        "Checking for Key Metrics...",
+        "Formulating Feedback...",
+        "Analyzing Tone & Pace...",
+        "Reviewing your response..."
+    ];
+
+    // Create Bubble
+    thinkingBubbleId = addMessage(
+        `<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-sm text-slate-400">Reviewing your response...</span></div>`,
+        'system',
+        true
+    );
+
+    // Start Cycle
+    thinkingIntervalId = setInterval(() => {
+        const bubble = document.getElementById(thinkingBubbleId);
+        if (bubble) {
+            const textSpan = bubble.querySelector('span');
+            if (textSpan) {
+                const randomPhrase = listeningStates[Math.floor(Math.random() * listeningStates.length)];
+                textSpan.innerText = randomPhrase;
+            }
+        } else {
+            clearInterval(thinkingIntervalId);
+        }
+    }, 2000);
+};
+
+window.hideThinkingState = function () {
+    if (thinkingIntervalId) clearInterval(thinkingIntervalId);
+    if (thinkingBubbleId) {
+        const bubble = document.getElementById(thinkingBubbleId);
+        if (bubble) bubble.remove();
+        thinkingBubbleId = null;
+    }
+};
+
 async function sendVoiceMessage(base64Audio) {
     if (!window.addMessage) {
         console.error("addMessage not found");
@@ -1132,6 +1224,7 @@ function init() {
 
     document.getElementById('send-chat-btn').addEventListener('click', () => {
         primeAudio();
+        showThinkingState(); // Trigger UI for text input too
         sendChatMessage();
     });
     document.getElementById('start-interview-btn').addEventListener('click', async () => {
@@ -1152,8 +1245,12 @@ function init() {
             interviewHistory = []; // Reset history
 
             // Show Chat Interface, Hide Intro & Setup
+            // Show Chat Interface, Hide Intro & Setup
             if (activeState) activeState.classList.add('hidden');
-            if (chatInterface) chatInterface.classList.remove('hidden');
+            // Chat Interface will be revealed by finishSetup() after countdown
+
+            // START COUNTDOWN (Parallel with API calls)
+            startCountdown();
 
             const intro = document.getElementById('interview-intro');
             if (intro) intro.classList.add('hidden');
@@ -1256,6 +1353,7 @@ function init() {
 
                 mediaRecorder.onstop = async () => {
                     console.log("Recording stopped, processing...");
+                    showThinkingState(); // Trigger Thinking UI immediately
                     const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
@@ -1294,35 +1392,7 @@ function init() {
         }
         chatInput.value = '';
 
-        // Animated Loading Indicator (Active Listening UI)
-        // 1. Define states
-        const listeningStates = [
-            "Taking notes on your response...",
-            "Reviewing your key points...",
-            "Comparing against the job description...",
-            "Analyzing your STAR alignment...",
-            "Formulating the next question..."
-        ];
-
-        // 2. Initial State
-        const loadingId = addMessage(`<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span id="thinking-text-${Date.now()}" class="text-sm text-slate-400">Taking notes on your response...</span></div>`, 'system', true);
-
-        // 3. Cycle States
-        const thinkingSpanId = `thinking-text-${Date.now()}`; // Need to match the ID injected above. 
-        // Wait, addMessage returns ID of the bubble container. I need to find the span inside it.
-        // Let's rely on finding the span by class or structure since ID injection is tricky inside the string literal without a variable.
-        // Easier: Use a unique class or just querySelector on the bubble.
-
-        let thinkingInterval = setInterval(() => {
-            const bubble = document.getElementById(loadingId);
-            if (bubble) {
-                const textSpan = bubble.querySelector('span'); // The only span in our HTML
-                if (textSpan) {
-                    const randomPhrase = listeningStates[Math.floor(Math.random() * listeningStates.length)];
-                    textSpan.innerText = randomPhrase;
-                }
-            }
-        }, 2000); // Change every 2 seconds
+        // REMOVED: Old Thinking Interval Logic (Refactored to showThinkingState)
 
 
         // Prioritize Accordion JD, fallback to sidebar
@@ -1366,12 +1436,8 @@ function init() {
                 })
             });
 
-            // Clear Interval
-            clearInterval(thinkingInterval);
-
-            // Clear "Thinking..." text
-            const outputDiv = document.getElementById(loadingId);
-            if (outputDiv) outputDiv.innerHTML = '';
+            // Clear Thinking UI
+            hideThinkingState();
 
             // Check errors
             if (!response.ok) {
@@ -2258,6 +2324,16 @@ window.init = init;
 
 // --- AUTO-LOAD CONTEXT FROM DASHBOARD ---
 document.addEventListener('DOMContentLoaded', () => {
+    // Ghost Data Fix: Clear if not explicit War Room launch
+    const isWarRoomLaunch = sessionStorage.getItem('warRoomLaunch');
+    if (!isWarRoomLaunch) {
+        console.log("Fresh Session: Clearing previous job data.");
+        if (document.getElementById('interview-job-posting')) document.getElementById('interview-job-posting').value = "";
+        if (document.getElementById('job-description-input')) document.getElementById('job-description-input').value = "";
+        localStorage.removeItem('strategy_context');
+    } else {
+        sessionStorage.removeItem('warRoomLaunch');
+    }
     try {
         const activeJD = localStorage.getItem('activeJobDescription');
         if (activeJD) {
