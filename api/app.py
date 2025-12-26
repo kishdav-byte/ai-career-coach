@@ -3391,4 +3391,10 @@ def speak():
     
     # Stream audio back to frontend
     req = requests.post(url, json=payload, headers=headers, stream=True)
+    
+    if req.status_code != 200:
+        error_msg = f"OpenAI TTS API Error: {req.text}"
+        print(error_msg)
+        return jsonify({'error': error_msg}), 500
+
     return Response(stream_with_context(req.iter_content(chunk_size=1024)), content_type='audio/mpeg')
