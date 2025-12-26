@@ -375,10 +375,10 @@ def get_feedback():
              q_count = int(data.get('questionCount', 1))
              if q_count == 2:
                  star_preamble = (
-                     "Thank you for that overview. Before we move on, I want to set the stage for the rest of our chat. "
-                     "I use the STAR format—Situation, Task, Action, Result. "
+                     "Thank you for that overview. Before we move on, I want to set the stage for the rest of our time together. "
+                     "I use the STAR format, which is all about the Situation or Task, the Action, and Result. "
                      "When I ask for a specific example, please walk me through your specific actions and the results you achieved. "
-                     "Now, let's dive in... "
+                     "The first question I have for you is... "
                  )
                  # If AI missed it, force inject it
                  if "STAR format" not in text_to_speak:
