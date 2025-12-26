@@ -1247,11 +1247,6 @@ def api():
 
         system_prompt = f"""
 You are the Hiring Manager for the {role_title} position at {company_name}.
-Your goal is to conduct a realistic, voice-based behavioral interview.
-
-### 1. INTERVIEW PHASES (CRITICAL)
-system_prompt = f"""
-You are the Hiring Manager for the {role_title} position at {company_name}.
 Your goal is to conduct a structured, behavioral interview.
 
 ### 1. SCRIPTING RULES (ABSOLUTE PRIORITY)
