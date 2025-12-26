@@ -1314,13 +1314,30 @@ function init() {
                     }
 
                     const blob = await response.blob();
+                    console.log(`[Audio Debug] Blob Size: ${blob.size}, Type: ${blob.type}`);
+
+                    if (blob.size < 100) {
+                        console.error("Audio Blob too small, likely error text.");
+                        // Optional: Read as text to see error
+                        const textErr = await blob.text();
+                        console.error("Blob content:", textErr);
+                        throw new Error("Invalid Audio Data");
+                    }
+
                     const audioUrl = URL.createObjectURL(blob);
                     const audio = new Audio(audioUrl);
 
                     audio.onended = () => {
                         playNext();
                     };
-                    audio.play();
+
+                    try {
+                        await audio.play();
+                        console.log("Audio playing...");
+                    } catch (playErr) {
+                        console.error("Browser Playback Failed:", playErr);
+                        playNext(); // Skip to next if browser blocks
+                    }
                 } catch (error) {
                     console.error("Audio error:", error);
                     playNext();

@@ -3397,4 +3397,5 @@ def speak():
         print(error_msg)
         return jsonify({'error': error_msg}), 500
 
+    print(f"Streaming Audio for text: {text[:20]}... Status: {req.status_code}")
     return Response(stream_with_context(req.iter_content(chunk_size=1024)), content_type='audio/mpeg')
