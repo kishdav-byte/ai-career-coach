@@ -1262,7 +1262,8 @@ function init() {
             } catch (e) { console.error("Error fetching email from session", e); }
 
             // NEW: STREAMING ARCHITECTURE (Latency Fix)
-            const response = await fetch('/api/stream-chat', {
+            // NEW: STREAMING ARCHITECTURE (Latency Fix)
+            const response = await fetch('/get-feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1319,13 +1320,13 @@ function init() {
                 }
             }
 
-            const speak = (text) => {
+            function queueAudio(text) {
                 if (!text || !text.trim()) return;
                 audioQueue.push(text);
                 if (!isPlaying) {
                     playNext();
                 }
-            };
+            }
 
             while (true) {
                 const { done, value } = await reader.read();
@@ -1355,14 +1356,14 @@ function init() {
                 while ((match = audioBuffer.match(/([.?!])\s/)) !== null) {
                     const index = match.index + 1; // Include punctuation
                     const sentence = audioBuffer.substring(0, index);
-                    speak(sentence);
+                    queueAudio(sentence);
                     audioBuffer = audioBuffer.substring(index);
                 }
             }
 
             // 3. FLUSH REMAINING AUDIO
             if (audioBuffer.trim().length > 0) {
-                speak(audioBuffer);
+                queueAudio(audioBuffer);
             }
 
             // POST-STREAM STATE UPDATES

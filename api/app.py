@@ -249,8 +249,8 @@ Return STRICT JSON.
         {"role": "user", "content": user_prompt}
     ]
 
-@app.route('/api/stream-chat', methods=['POST'])
-def stream_chat_feedback():
+@app.route('/get-feedback', methods=['POST'])
+def get_feedback():
     data = request.json
     messages = prepare_interview_prompt(data)
     
