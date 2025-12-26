@@ -2722,18 +2722,31 @@ def job_operations(job_id):
             return jsonify({"error": str(e)}), 500
             
     elif request.method == 'PUT':
-        try:
-            data = request.json
-            update_data = {}
-            if 'status' in data: update_data['status'] = data['status']
-            if 'resume_score' in data: update_data['resume_score'] = data['resume_score']
-            if 'interview_score' in data: update_data['interview_score'] = data['interview_score']
-            if 'job_description' in data: update_data['job_description'] = data['job_description']
-            if 'notes' in data: update_data['notes'] = data['notes']
-            if 'salary_target' in data: update_data['salary_target'] = data['salary_target']
-            
-            res = db.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
-            return jsonify(res.data)
+            if request.json:
+                data = request.json
+                update_data = {}
+                # Use .get() for safety and support aliases
+                if 'status' in data: update_data['status'] = data.get('status')
+                
+                # Numeric fields (only update if present)
+                if 'resume_score' in data: update_data['resume_score'] = data.get('resume_score')
+                if 'interview_score' in data: update_data['interview_score'] = data.get('interview_score')
+                
+                # Text fields with aliases
+                jd = data.get('job_description') or data.get('role_requirements') or data.get('description')
+                if jd: update_data['job_description'] = jd
+                
+                if 'notes' in data: update_data['notes'] = data.get('notes')
+                if 'salary_target' in data: update_data['salary_target'] = data.get('salary_target')
+                
+                # Only run update if we have data
+                if update_data:
+                    res = db.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
+                    return jsonify(res.data)
+                else:
+                    return jsonify({"message": "No fields to update"}), 200
+            else:
+                 return jsonify({"error": "Invalid JSON"}), 400
         except Exception as e:
              return jsonify({"error": str(e)}), 500
 
