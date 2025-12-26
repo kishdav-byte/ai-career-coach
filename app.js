@@ -1120,7 +1120,7 @@ function init() {
         primeAudio();
         sendChatMessage();
     });
-    document.getElementById('start-interview-btn').addEventListener('click', () => {
+    document.getElementById('start-interview-btn').addEventListener('click', async () => {
         // Prioritize Context Accordion inputs, fallback to sidebar
         const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
         const sidebarJD = document.getElementById('interview-job-posting').value;
