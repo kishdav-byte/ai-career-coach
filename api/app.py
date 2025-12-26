@@ -1275,8 +1275,8 @@ Conduct a structured, executive-level behavioral interview.
 Grade the candidate's last answer on a 1-5 scale. Do not grade on a curve.
 * **5/5 (Exceptional):** Perfect STAR. Clear Situation, Action, and HARD METRIC Result ($, %, time).
 * **4/5 (Strong):** Good STAR. Clear Result, but qualitative (e.g., "morale improved") rather than data.
-* **3/5 (Average):** Weak Result. Describes a plan but not the outcome.
-* **2/5 (Weak):** Vague Action, NO Result, or hypothetical answer.
+* **3/5 (Average):** Result is present but vague or unquantified. Structure is okay.
+* **2/5 (Weak):** Action is present but Result is completely missing. Or hypothetical answer.
 * **1/5 (Poor):** Irrelevant or refused to answer.
 
 ### 2. SPEAKING TEMPLATES (MANDATORY)
