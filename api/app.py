@@ -174,18 +174,22 @@ def generate_audio(text, voice_id):
 
 def get_opening_greeting(role, company, summary):
     """
-    Generates the greeting with explicit pauses.
-    The '... ' combined with new lines forces the TTS to take a breath.
+    Generates the greeting with explicit SSML pauses and natural phrasing.
     """
     if not role: role = "this role"
     if not company: company = "our company"
     if not summary: summary = ""
 
+    # Normalization: Fix "Director, Customer Experience" -> "Director of Customer Experience"
+    if "Director," in role:
+        role = role.replace("Director,", "Director of")
+
+    # Use SSML breaks for natural pacing
     greeting = (
-        f"Hi, it's great to meet you. ... \n\n"
+        f"Hi, it's great to meet you. <break time='1.0s' /> "
         f"I'm the Hiring Manager for the {role} position at {company}. "
-        f"{summary} ... \n\n"
-        "I'm really looking forward to diving into your experience. ... "
+        f"{summary} <break time='1.0s' /> "
+        "I'm really looking forward to diving into your experience. <break time='0.8s' /> "
         "To get us started, could you give me a high-level overview of your background? "
         "I'm particularly interested in what brings you to this specific point in your career "
         f"and why you think {role} is the right next step for you."
