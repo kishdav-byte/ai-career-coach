@@ -167,6 +167,26 @@ def generate_audio(text, voice_id):
             voice_id = "en-US-AriaNeural"
         return generate_audio_edge(text, voice_id)
 
+def get_opening_greeting(role, company, summary):
+    """
+    Generates the greeting with explicit pauses.
+    The '... ' combined with new lines forces the TTS to take a breath.
+    """
+    if not role: role = "this role"
+    if not company: company = "our company"
+    if not summary: summary = ""
+
+    greeting = (
+        f"Hi, it's great to meet you. ... \n\n"
+        f"I'm the Hiring Manager for the {role} position at {company}. "
+        f"{summary} ... \n\n"
+        "I'm really looking forward to diving into your experience. ... "
+        "To get us started, could you give me a high-level overview of your background? "
+        "I'm particularly interested in what brings you to this specific point in your career "
+        f"and why you think {role} is the right next step for you."
+    )
+    return greeting
+
 def prepare_interview_prompt(data):
     """Refactored prompt builder for Interview Chat (Standard & Stream)."""
     message = data.get('message', '')
@@ -176,71 +196,56 @@ def prepare_interview_prompt(data):
     question_count = data.get('questionCount', 1)
     
     # Context Prep
-    company_name = data.get('companyName') or "this company"
-    role_title = "this position" 
+    company_name = data.get('company_name') or data.get('companyName') or "this company"
+    role_title = data.get('role_title') or data.get('role') or "this position"
+    summary = data.get('role_summary') or data.get('summary') or ""
+    
     short_resume = (resume_text[:2000] + '...') if len(resume_text) > 2000 else resume_text
     short_jd = (job_posting[:2000] + '...') if len(job_posting) > 2000 else job_posting
 
     system_prompt = f"""
-    ROLE: You are the Hiring Manager at {company_name} interviewing a candidate for the role of {role_title}.
-    CONTEXT DATA:
-    CANDIDATE RESUME: "{short_resume}"
-    JOB DESCRIPTION: "{short_jd}"
-    INTERVIEW PROTOCOL (STRICT):
-    PHASE 1: THE OPENER (triggered when I say "START_INTERVIEW")
-    - Introduce yourself briefly.
-    - Ask EXACTLY: "Tell me how your experience has prepared you for this role, what will you bring to the position, and is there anything else I should know about your work history that you'd like to highlight associated with the role you have applied for?"
-    PHASE 2: THE STAR TRANSITION (Question 1)
-    - Acknowledge answer.
-    - Say EXACTLY: "Thank you for that overview. For the remainder of our conversation, I'd like to use the STAR format. When I ask for a specific situation or task, please walk me through your specific Actions and the Results of those actions."
-    - Ask Question 1.
-    PHASE 3: THE DRILL DOWN (Questions 2-5)
-    - Check specificity. Push back if vague.
-    TONE: Professional, Inquisitive, Fair but Rigorous.
-    Current Question Count: {question_count} of 5.
-"""
+You are an expert AI Interviewer. Your goal is to conduct a professional, behavioral interview based on the user's resume and job description.
+
+OUTPUT FORMAT:
+You must respond with a VALID JSON object. Do not include any text outside the JSON object. 
+The JSON must have these exact keys:
+1. "transcript": (String) A verbatim transcript of what the user just said.
+2. "feedback": (String) Constructive feedback on their answer.
+3. "score": (Integer) A score from 1-5 based on relevance and quality.
+4. "improved_sample": (String) An example of a better answer they could have given.
+5. "next_question": (String) This is the ONLY part that will be spoken to the user. It should include a brief transition based on their previous answer (e.g., "Thanks for sharing that...") followed by your next interview question. Do NOT repeat the user's transcript here.
+
+INTERVIEW RULES:
+- Keep the "next_question" conversational and professional.
+- Do not read the feedback or score aloud; put those in their respective fields.
+- If the user's answer was vague, ask a follow-up question in the "next_question" field.
+    """
     if is_start:
+         opening_text = get_opening_greeting(role_title, company_name, summary)
          user_prompt = f"""
 COMMAND: START_INTERVIEW
 USER CONTEXT: The user has just sat down.
-INSTRUCTION: Introduce yourself and ask the Opener Question defined in PHASE 1.
+INSTRUCTION: Introduce yourself using EXACTLY the following text in the 'next_question' field: "{opening_text}"
 JSON RESPONSE TEMPLATE:
 {{
   "transcript": "{message}",
-  "text": "[Introduction] [Opener Question]",
-  "next_question": "[The same opener question]"
+  "text": "Intro",
+  "next_question": "{opening_text}"
 }}"""
     else:
-        if question_count < 5:
-            if question_count == 2:
-                transition_text = "Thank you for that overview. Before we move on, I want to set the stage for the rest of our chat. I use the STAR format—Situation, Task, Action, Result. When I ask for a specific example, please walk me through your specific actions and the results you achieved. Now, let's dive in..."
-                phase_instruction = f"TRANSITION REQUIRED: This is the Second Turn. You MUST start the 'next_question' field with EXACTLY the following text, followed by your actual question: '{transition_text} [Your First Behavioral Question Here]'"
-            else:
-                phase_instruction = "This is Question " + str(question_count) + ". Follow PHASE 3 (Drill Down). Evaluate the previous answer rigorously."
-
-            user_prompt = f"""
+        # Generic flow Prompt (Simplified from previous version to rely on System Prompt rules)
+        user_prompt = f"""
 User Answer: "{message}"
-{phase_instruction}
-Evaluate the previous answer (unless it was just the opener, in which case just acknowledge it).
-JSON RESPONSE TEMPLATE:
-{{
-  "transcript": "{message}",
-  "score": [1-5 Score of previous answer],
-  "feedback": "[Brief feedback on S.T.A.R. quality]",
-  "improved_sample": "[Better version of their answer if score < 4]",
-  "next_question": "[The next behavioral question to ask]"
-}}
-3. In 'feedback', explicitly state which STAR components were present.
-4. BETTER ANSWER LOGIC SPLIT:
-   - IF SCORE is 3 or 4: Use "Plus-One" method.
-   - IF SCORE is 1 or 2: Generate FRESH, PERFECT example. Start with: "Since you were unsure, here is an example of what a perfect answer sounds like..."
-5. TONE: Coaching.
-Return STRICT JSON.
-"""
-        else:
-            user_prompt = f"""
-User Answer: {message}
-Evaluate the answer to the final question (Question 5) using the HYPER-STRICT STAR SCORING RUBRIC (+25% Specificity).
+Current Question Count: {question_count} of 5.
+
+Evaluate the previous answer.
+If Question Count < 5:
+  - Provide feedback and score.
+  - Ask the next behavioral question in 'next_question'.
+If Question Count == 5:
+  - Provide feedback and score.
+  - Wrap up the interview in 'next_question'.
+
 Return STRICT JSON.
 """
     
@@ -249,39 +254,123 @@ Return STRICT JSON.
         {"role": "user", "content": user_prompt}
     ]
 
+@app.route('/api/analyze-jd', methods=['POST'])
+def analyze_jd():
+    data = request.json
+    raw_text = data.get('job_description', '')
+
+    # This prompt cleans the "slop" automatically
+    prompt = f"""
+    Extract the following from the job description:
+    1. "role": The exact Job Title (e.g. Director of CX).
+    2. "company": The Company Name.
+    3. "summary": A very brief 1-sentence overview of the role's scope.
+    
+    Return ONLY valid JSON:
+    {{
+        "role": "...",
+        "company": "...",
+        "summary": "..."
+    }}
+    
+    Job Description:
+    {raw_text[:3000]} 
+    """
+    
+    try:
+        # Call LLM (using existing helper)
+        messages = [{"role": "system", "content": "You are a JSON data extractor."}, {"role": "user", "content": prompt}]
+        # Helper returns content string
+        content = call_openai(messages, json_mode=True)
+        
+        # Clean up the response to ensure valid JSON
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].strip()
+            
+        return jsonify(json.loads(content))
+        
+    except Exception as e:
+        # Fallback if AI fails
+        print(f"Extraction Error: {e}")
+        return jsonify({
+            "role": "this position",
+            "company": "our company",
+            "summary": "leading our team to success."
+        })
+
 @app.route('/api/get-feedback', methods=['POST'])
 def get_feedback():
     data = request.json
     messages = prepare_interview_prompt(data)
     
-    # Add Streaming-Specific Instruction
-    messages[0]['content'] += "\\n\\nIMPORTANT FOR STREAMING: Start the response immediately with 'Score: X/5' on the first line if applicable, then Feedback, then Next Question. Do NOT use valid JSON format. Just format it clearly for reading."
+    # 0. SPECIAL HANDLER FOR START (Prevent "Feedback" on Greeting)
+    # 0. SPECIAL HANDLER FOR START (Prevent "Feedback" on Greeting)
+    if data.get('isStart'):
+        # Deterministic Start - No LLM needed (Faster & Cleaner)
+        # Unpack specific analysis data from frontend
+        role_table = data.get('role_title')
+        company_name = data.get('company_name')
+        summary = data.get('role_summary')
+        
+        # Fallbacks if frontend didn't pass analysis
+        if not role_table: role_table = "this position"
+        if not company_name: company_name = "our company"
+        if not summary: summary = ""
 
-    def generate():
-        url = 'https://api.openai.com/v1/chat/completions'
-        headers = {'Authorization': f'Bearer {API_KEY}', 'Content-Type': 'application/json'}
-        payload = {
-            "model": "gpt-4o-mini",
-            "messages": messages,
-            "stream": True
+        greeting_text = get_opening_greeting(role_table, company_name, summary)
+        
+        # Fake the "search/generation" to match structure
+        response_data = {
+            "next_question": greeting_text,
+            "transcript": "START_INTERVIEW",
+            # Explicitly omit feedback/score
         }
         
-        with requests.post(url, json=payload, headers=headers, stream=True) as r:
-            for line in r.iter_lines():
-                if line:
-                    decoded_line = line.decode('utf-8')
-                    if decoded_line.startswith('data: '):
-                        json_str = decoded_line[6:]
-                        if json_str != '[DONE]':
-                            try:
-                                chunk = json.loads(json_str)
-                                content = chunk['choices'][0]['delta'].get('content', '')
-                                if content:
-                                    yield content
-                            except:
-                                pass
-    
-    return Response(stream_with_context(generate()), content_type='text/plain')
+        raw_content = json.dumps(response_data)
+        text_to_speak = greeting_text
+        voice = data.get('voice', 'alloy')
+
+    else:
+        # 1. Get the raw content from the AI (Using helper)
+        # Ensure system prompt (messages[0]) enforces JSON
+        raw_content = call_openai(messages, json_mode=True)
+
+    # 2. Try to clean it up (sometimes AI adds markdown like ```json ... ```)
+    if "```json" in raw_content:
+        raw_content = raw_content.split("```json")[1].split("```")[0].strip()
+    elif "```" in raw_content:
+        raw_content = raw_content.split("```")[1].strip()
+
+    # 3. Parse the JSON to find the hidden fields
+    try:
+        response_data = json.loads(raw_content)
+        
+        # EXTRACT ONLY THE SPEECH
+        text_to_speak = response_data.get("next_question", "I am ready for the next question.")
+        # Safety fallback if empty
+        if not text_to_speak or not str(text_to_speak).strip():
+             text_to_speak = "Could you please repeat that or clarify?"
+
+        # Also extract voice preference if passed
+        voice = data.get('voice', 'alloy')
+
+    except json.JSONDecodeError:
+        # Fallback: If AI fails to give JSON, speak the whole thing (safety net)
+        print("Error parsing JSON, falling back to raw text.")
+        text_to_speak = raw_content
+        response_data = {"next_question": raw_content, "transcript": raw_content}
+        voice = data.get('voice', 'alloy')
+
+    # 4. Generate audio ONLY from the conversational text
+    audio_data = generate_audio(text_to_speak, voice) 
+
+    # 5. Return everything to the frontend
+    return jsonify({
+        "audio": audio_data,         # The voice file (Base64)
+        "response": response_data    # The full data (for the UI to display)
+    })
 
 def call_openai(messages, json_mode=False):
     """Helper function to call OpenAI API."""
@@ -457,28 +546,29 @@ def generate_model_answer():
         print(f"Model Answer Gen Error: {e}")
         return jsonify({"error": "Failed to generate answer"}), 500
 
-@app.route('/api/speak', methods=['POST'])
-def speak_text():
-    if not API_KEY:
-        return jsonify({"error": "Server API Key missing"}), 500
+# @app.route('/api/speak', methods=['POST'])
+# def speak_text():
+#     if not API_KEY:
+#         return jsonify({"error": "Server API Key missing"}), 500
 
-    data = request.json
-    text = data.get('text')
-    voice = data.get('voice', 'alloy')
+#     data = request.json
+#     text = data.get('text')
+#     voice = data.get('voice', 'alloy')
 
-    if not text:
-        return jsonify({"error": "Text is required"}), 400
+#     if not text:
+#         return jsonify({"error": "Text is required"}), 400
 
-    try:
-        # Re-use existing helper
-        audio_base64 = generate_audio_openai(text, voice)
-        if not audio_base64:
-             return jsonify({"error": "Audio generation failed"}), 500
+#     try:
+#         # Re-use existing helper
+#         # audio_base64 = generate_audio_openai(text, voice)
+#         # if not audio_base64:
+#         #      return jsonify({"error": "Audio generation failed"}), 500
              
-        return jsonify({"audio": audio_base64})
-    except Exception as e:
-        print(f"TTS Error: {e}")
-        return jsonify({"error": str(e)}), 500
+#         # return jsonify({"audio": audio_base64})
+#         pass # Disabled in favor of streaming endpoint
+#     except Exception as e:
+#         print(f"TTS Error: {e}")
+#         return jsonify({"error": str(e)}), 500
 @app.route('/api/optimize', methods=['POST'])
 def optimize_resume_content():
     if not API_KEY:
@@ -1841,26 +1931,19 @@ If input is present, generate the profile now. Verify every number against the i
                     improved_sample = ""
                 response_data['improved_sample'] = improved_sample
                 
-                # Generate Audio
-                speech_text = ""
-                if response_data.get('feedback'):
-                    speech_text += f"{response_data.get('feedback')} "
-                
-                if response_data.get('improved_sample'):
-                    speech_text += f"Here is an improved version: {response_data.get('improved_sample')}. "
-                
-                if response_data.get('next_question'):
-                    # Don't add any preamble - the AI response already includes proper phrasing
-                    speech_text += f"{response_data.get('next_question')}"
-                
-                if not speech_text:
-                    speech_text = "I am ready. Let's continue."
-                
+                # Generate Audio (CRITICAL FIX: Speak ONLY next_question)
+                try:
+                    text_to_speak = response_data.get("next_question", "I'm sorry, I didn't catch that.")
+                    # Safety fallback if empty
+                    if not text_to_speak or not str(text_to_speak).strip():
+                         text_to_speak = "Could you please repeat that?"
+                except Exception as e:
+                    text_to_speak = "I apologize, could you please continue?"
+
+                print(f"DEBUG: Generating Audio for: '{text_to_speak}'")
+
                 # Switch to unified audio generator
-                audio_base64 = generate_audio(speech_text, voice)
-                
-                if audio_base64:
-                    response_data['audio'] = audio_base64
+                audio_base64 = generate_audio(text_to_speak, voice)
                 
                 if audio_base64:
                     response_data['audio'] = audio_base64
@@ -3380,7 +3463,7 @@ def speak():
     # Call OpenAI TTS
     url = "https://api.openai.com/v1/audio/speech"
     headers = {
-        "Authorization": f"Bearer {os.environ.get('OPENAI_API_KEY')}",
+        "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
     payload = {

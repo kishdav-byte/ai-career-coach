@@ -1,9 +1,16 @@
-from flask import send_from_directory, request
-from api.index import app
 import os
+from dotenv import load_dotenv
 
-# Get absolute path of the folder containing this script (project root)
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+env_path = os.path.join(BASE_DIR, '.env')
+load_dotenv(env_path)
+
+print(f"DEBUG: Loading .env from {env_path}")
+print(f"DEBUG: OPENAI_API_KEY present: {'OPENAI_API_KEY' in os.environ}")
+print(f"DEBUG: OPENAI_API_KEY_ present: {'OPENAI_API_KEY_' in os.environ}")
+
+from flask import send_from_directory, request
+from api.app import app
 
 print(f"DEBUG: BASE_DIR: {BASE_DIR}")
 print(f"DEBUG: App Root Path (before): {app.root_path}")

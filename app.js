@@ -1150,6 +1150,9 @@ function init() {
             if (startBtn) startBtn.classList.add('hidden');
             if (activeControls) activeControls.classList.remove('hidden');
 
+            console.log("Starting Interview Flow...");
+            await processJobDescription(); // Analyze JD before starting
+
             // Pass resume info & Company Name
             let companyName = "the target company";
             try {
@@ -1174,6 +1177,39 @@ function init() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendChatMessage();
     });
+
+    // JD Analyzer Logic
+    let jobData = { role: "", company: "", summary: "" };
+
+    async function processJobDescription() {
+        const jdInput = document.getElementById('job-description-input') || document.getElementById('interview-job-posting');
+        const rawText = jdInput ? jdInput.value : "";
+
+        if (!rawText || rawText.length < 50) {
+            console.log("JD too short, skipping analysis.");
+            jobData = { role: "this role", company: "the company", summary: "" };
+            return;
+        }
+
+        console.log("Analyzing JD...");
+        // Show lightweight indicator if needed, but for now we just block briefly
+
+        try {
+            const response = await fetch('/api/analyze-jd', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_description: rawText })
+            });
+
+            jobData = await response.json();
+            console.log("Analysis Complete:", jobData);
+
+        } catch (error) {
+            console.error("Analysis Failed", error);
+            // Fallback defaults
+            jobData = { role: "this role", company: "the company", summary: "" };
+        }
+    }
 
     // Voice Logic - Global Scope
     let mediaRecorder;
@@ -1261,8 +1297,7 @@ function init() {
                 }
             } catch (e) { console.error("Error fetching email from session", e); }
 
-            // NEW: STREAMING ARCHITECTURE (Latency Fix)
-            // NEW: STREAMING ARCHITECTURE (Latency Fix)
+            // NEW: BLOCKING ARCHITECTURE (Quality Fix)
             const response = await fetch('/api/get-feedback', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1273,7 +1308,13 @@ function init() {
                     companyName: companyName,
                     isStart: isStart,
                     questionCount: questionCount + 1,
-                    email: email
+                    email: email,
+                    voice: voice, // Pass voice preference
+
+                    // Pass Analyzed Data (if available and isStart)
+                    role_title: isStart ? jobData.role : undefined,
+                    company_name: isStart ? jobData.company : undefined,
+                    role_summary: isStart ? jobData.summary : undefined
                 })
             });
 
@@ -1281,125 +1322,66 @@ function init() {
             const outputDiv = document.getElementById(loadingId);
             if (outputDiv) outputDiv.innerHTML = '';
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let resultText = "";
-            let hasAutoScrolled = false;
+            // Check errors
+            if (!response.ok) {
+                throw new Error("API Failed");
+            }
 
-            // AUDIO SETUP (OpenAI High-Quality TTS)
-            let audioBuffer = "";
-            let audioQueue = [];
-            let isPlaying = false;
+            const data = await response.json();
+            const aiData = data.response; // The structured JSON from backend
+            const audioBase64 = data.audio;
 
-            async function playNext() {
-                if (audioQueue.length === 0) {
-                    isPlaying = false;
-                    return;
-                }
+            // 1. VISUAL UPDATE
+            // Construct a nice display HTML
+            let displayHtml = "";
 
-                isPlaying = true;
-                const text = audioQueue.shift();
+            if (aiData.feedback) {
+                displayHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
+                    <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
+                    <div class="test-sm text-gray-300">${aiData.feedback}</div>
+                    ${aiData.score ? `<div class="mt-2 text-xs font-mono text-yellow-400">Score: ${aiData.score}/5</div>` : ''}
+                </div>`;
+            }
 
+            // The main question bubbles
+            if (aiData.next_question) {
+                displayHtml += `<div class="text-white text-lg font-medium leading-relaxed">${aiData.next_question}</div>`;
+            } else {
+                // Fallback if structure missing
+                displayHtml += `<div class="text-white">${JSON.stringify(aiData)}</div>`;
+            }
+
+            if (outputDiv) {
+                outputDiv.innerHTML = displayHtml;
+                // Scroll
+                const chatWindow = document.getElementById('chat-window');
+                if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
+            }
+
+            // 2. AUDIO PLAYBACK (Base64)
+            if (audioBase64) {
+                console.log("[Audio] Received audio from backend.");
                 try {
-                    const response = await fetch('/api/speak', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ text: text })
-                    });
-
-                    if (!response.ok) {
-                        const errData = await response.json();
-                        console.error("TTS Backend Error:", errData);
-                        throw new Error(errData.error || "TTS Failed");
-                    }
-
-                    const blob = await response.blob();
-                    console.log(`[Audio Debug] Blob Size: ${blob.size}, Type: ${blob.type}`);
-
-                    if (blob.size < 100) {
-                        console.error("Audio Blob too small, likely error text.");
-                        // Optional: Read as text to see error
-                        const textErr = await blob.text();
-                        console.error("Blob content:", textErr);
-                        throw new Error("Invalid Audio Data");
-                    }
-
-                    const audioUrl = URL.createObjectURL(blob);
-                    const audio = new Audio(audioUrl);
-
-                    audio.onended = () => {
-                        playNext();
-                    };
-
-                    try {
-                        await audio.play();
-                        console.log("Audio playing...");
-                    } catch (playErr) {
-                        console.error("Browser Playback Failed:", playErr);
-                        playNext(); // Skip to next if browser blocks
-                    }
-                } catch (error) {
-                    console.error("Audio error:", error);
-                    playNext();
+                    const audio = new Audio("data:audio/mp3;base64," + audioBase64);
+                    audio.play().catch(e => console.error("Playback failed:", e));
+                    console.log("Audio playing...");
+                } catch (e) {
+                    console.error("Audio setup error:", e);
                 }
-            }
-
-            function queueAudio(text) {
-                if (!text || !text.trim()) return;
-                audioQueue.push(text);
-                if (!isPlaying) {
-                    playNext();
-                }
-            }
-
-            while (true) {
-                const { done, value } = await reader.read();
-                if (done) break;
-                const textChunk = decoder.decode(value, { stream: true });
-                resultText += textChunk;
-
-                if (outputDiv) {
-                    // 1. VISUAL UPDATE
-                    if (typeof marked !== 'undefined') {
-                        outputDiv.innerHTML = marked.parse(resultText);
-                    } else {
-                        outputDiv.innerText = resultText;
-                    }
-
-                    // Scroll
-                    const chatWindow = document.getElementById('chat-window');
-                    if (chatWindow) chatWindow.scrollTop = chatWindow.scrollHeight;
-                }
-
-                // 2. AUDIO PROCESSING
-                audioBuffer += textChunk;
-                // Regex: Find punctuation (.?!) followed by space or end of string? 
-                // No, only space to avoid slicing mid-abbreviation if possible, but simplicity first.
-                // User snippet: /([.?!])\s/
-                let match;
-                while ((match = audioBuffer.match(/([.?!])\s/)) !== null) {
-                    const index = match.index + 1; // Include punctuation
-                    const sentence = audioBuffer.substring(0, index);
-                    queueAudio(sentence);
-                    audioBuffer = audioBuffer.substring(index);
-                }
-            }
-
-            // 3. FLUSH REMAINING AUDIO
-            if (audioBuffer.trim().length > 0) {
-                queueAudio(audioBuffer);
+            } else {
+                console.warn("[Audio] No audio returned from backend.");
             }
 
             // POST-STREAM STATE UPDATES
-            // We lost the strict JSON structure, so we approximate
+            // POST-STREAM STATE UPDATES
             interviewHistory.push({
                 question: currentQuestionText,
                 answer: message,
-                feedback: resultText // Full text is the feedback
+                feedback: aiData.feedback || "No feedback provided."
             });
 
             if (!isStart) questionCount++;
-            currentQuestionText = resultText; // Set for next history reference
+            currentQuestionText = aiData.next_question;
 
         } catch (e) {
             const loadingEl = document.getElementById(loadingId);
