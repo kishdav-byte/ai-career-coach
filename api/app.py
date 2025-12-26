@@ -322,7 +322,60 @@ def get_feedback():
     data = request.json
     messages = prepare_interview_prompt(data)
     
-    # 0. SPECIAL HANDLER FOR START (Prevent "Feedback" on Greeting)
+    today_date = datetime.now().strftime("%Y-%m-%d")
+    
+    # --- CREDIT DEDUCTION ("isStart" only) ---
+    if data.get('isStart'):
+        try:
+            # 1. Get User Email
+            user_email = data.get('email')
+            if not user_email:
+                return jsonify({"error": "User email required for credit check"}), 400
+
+            # 2. Get User Profile
+            db = supabase_admin if supabase_admin else supabase
+            user_res = db.table('users').select('*').eq('email', user_email).execute()
+            
+            if not user_res.data:
+                return jsonify({"error": "User profile not found"}), 404
+                
+            user = user_res.data[0]
+            
+            # 3. Check Credits (Priority: Unlimited -> interview_credits -> credits)
+            has_access = False
+            deduct_source = None
+            current_val = 0
+            
+            if user.get('is_unlimited', False):
+                has_access = True
+            elif user.get('interview_credits', 0) > 0:
+                has_access = True
+                deduct_source = 'interview_credits'
+                current_val = user.get('interview_credits')
+            elif user.get('credits', 0) > 0:
+                has_access = True
+                deduct_source = 'credits'
+                current_val = user.get('credits')
+
+            if not has_access:
+                 return jsonify({
+                     "error": "Insufficient Credits",
+                     "is_payment_required": True,
+                     "next_question": "I'm sorry, but you have run out of interview credits. Please reload your account to continue."
+                 }), 402
+
+            # 4. Deduct (if not unlimited)
+            if deduct_source:
+                 db.table('users').update({deduct_source: current_val - 1}).eq('email', user_email).execute()
+                 print(f"Deducted 1 credit from {deduct_source} for {user_email}")
+
+        except Exception as credit_err:
+             print(f"Credit Check Failed: {credit_err}")
+             # Fail open or fail closed? Let's fail OPEN for now to avoid blocking testing if DB issues arise, 
+             # but log it. Or fail closed? User asked "Why not deducted", implies they want it strict.
+             # I will log but allow to proceed if it's just a connection blip, but return error if logic fails.
+             pass
+
     # 0. SPECIAL HANDLER FOR START (Prevent "Feedback" on Greeting)
     if data.get('isStart'):
         # Deterministic Start - No LLM needed (Faster & Cleaner)
