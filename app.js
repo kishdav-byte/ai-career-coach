@@ -1445,6 +1445,36 @@ function init() {
             }
 
             const data = await response.json();
+
+            // --- REFEREE: CHECK FOR GAME OVER ---
+            if (data.is_complete) {
+                console.log("Referee: Interview Complete.");
+
+                // 1. Play Final Audio
+                if (data.audio) {
+                    const audio = new Audio("data:audio/mp3;base64," + data.audio);
+                    audio.play().catch(e => console.error("Playback failed:", e));
+                }
+
+                // 2. Show Closing Message
+                if (data.response && data.response.next_question) {
+                    addMessage(data.response.next_question, 'system', true);
+                }
+
+                // 3. Kill Mic
+                const recordBtn = document.getElementById('record-btn');
+                if (recordBtn) {
+                    recordBtn.disabled = true;
+                    recordBtn.style.background = '#6c757d'; // Gray
+                    recordBtn.textContent = '✅';
+                }
+
+                // 4. Generate Report
+                generateInterviewReport();
+                return; // STOP HERE
+            }
+            // ------------------------------------
+
             const aiData = data.response; // The structured JSON from backend
             const audioBase64 = data.audio;
 

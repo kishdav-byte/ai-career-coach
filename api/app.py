@@ -429,31 +429,45 @@ def get_feedback():
         if not text_to_speak or not str(text_to_speak).strip():
              text_to_speak = "Could you please repeat that or clarify?"
 
-        # --- ENFORCEMENT: STAR Preamble Policy ---
+        # --- SCRIPT ENFORCER: PHRASE INJECTION ---
         try:
              q_count = int(data.get('questionCount', 1))
-             # ONLY trigger on Turn 2 (User's first answer), NOT on the Greeting (isStart)
+
+             # CASE A: STAR Preamble (Turn 2)
              if q_count == 2 and not data.get('isStart'):
-                 # --- NEW STRIPPER LOGIC ---
-                 # The AI is stubbornly polite. Regex strip common transitions to prevent "Sandwiching".
-                 # Matches: "Thanks for...", "Thank you...", "Great...", "That's helpful..." at start of string.
-                 import re
-                 clean_text = re.sub(r'^(Thank you|Thanks|Great|That\'s helpful|I appreciate).*?[.?!]\s*', '', text_to_speak, flags=re.IGNORECASE).strip()
-                 text_to_speak = clean_text # Replace with clean version
-                 
-                 star_preamble = (
-                     "Thank you for that overview. Before we move on, I want to set the stage for the rest of our time together. "
-                     "I use the STAR format, which is all about the Situation or Task, the Action, and Result. "
-                     "When I ask for a specific example, please walk me through your specific actions and the results you achieved. "
-                     "The first question I have for you is... "
-                 )
-                 # Force inject it (now onto a clean string)
                  if "STAR format" not in text_to_speak:
-                     text_to_speak = star_preamble + text_to_speak
+                     import re
+                     # Strip polite filler
+                     clean_text = re.sub(r'^(Thank you|Thanks|Great|That\'s helpful|I appreciate).*?[.?!]\s*', '', text_to_speak, flags=re.IGNORECASE).strip()
+                     
+                     star_preamble = (
+                         "Thank you for that overview. Before we move on, I want to set the stage for the rest of our time together. "
+                         "I use the STAR format, which is all about the Situation or Task, the Action, and Result. "
+                         "When I ask for a specific example, please walk me through your specific actions and the results you achieved. "
+                         "The first question I have for you is... "
+                     )
+                     text_to_speak = star_preamble + clean_text
                      response_data['next_question'] = text_to_speak
+
+             # CASE B: "Next Question" Bridge (Turn 3-5)
+             elif 2 < q_count <= 5 and not data.get('isStart'):
+                 target_phrase = "The next question I have for you is"
+                 if target_phrase not in text_to_speak:
+                     # Inject needed bridge
+                     parts = text_to_speak.split('. ', 1)
+                     if len(parts) > 1:
+                         clean_text = f"{parts[0]}. {target_phrase}... {parts[1]}"
+                     else:
+                         clean_text = f"{target_phrase}... {text_to_speak}"
+                     
+                     # Save back
+                     response_data['next_question'] = clean_text
+                     text_to_speak = clean_text
+
         except Exception as e:
-             print(f"STAR Enforcement Error: {e}")
+             print(f"Script Enforcer Error: {e}")
         # -----------------------------------------
+
 
         # Also extract voice preference if passed
         voice = data.get('voice', 'alloy')
@@ -469,9 +483,11 @@ def get_feedback():
     audio_data = generate_audio(text_to_speak, voice) 
 
     # 5. Return everything to the frontend
+    # 5. Return everything to the frontend
     return jsonify({
         "audio": audio_data,         # The voice file (Base64)
-        "response": response_data    # The full data (for the UI to display)
+        "response": response_data,   # The full data (for the UI to display)
+        "is_complete": False         # Default signal
     })
 
 def call_openai(messages, json_mode=False):
@@ -1304,6 +1320,22 @@ JSON RESPONSE TEMPLATE:
 }}"""
         
         else:
+            # 3. REFEREE: HARD STOP AT 5
+            # If we've already asked 5 questions (q_count > 5), we must stop.
+            if question_count > 5:
+                 closing_text = "Thank you for your time today. I have everything I need. We will be in touch shortly regarding next steps."
+                 audio_data = generate_audio(closing_text, voice)
+                 return jsonify({
+                     "audio": audio_data,
+                     "response": {
+                         "transcript": "",
+                         "feedback": "Interview Complete.",
+                         "score": 0,
+                         "next_question": closing_text
+                     },
+                     "is_complete": True # SIGNAL TO FRONTEND
+                 })
+
             # CONTINUATION: Evaluate previous answer, Ask next question
             
             if question_count < 5:
