@@ -58,7 +58,7 @@ try:
 
     # CONSTANTS
     VOICE_CAP = 50
-    API_KEY = os.environ.get('OPENAI_API_KEY_')
+    API_KEY = os.environ.get('OPENAI_API_KEY_') or os.environ.get('OPENAI_API_KEY')
 
     # Initialize Stripe (Moved inside try)
     stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
