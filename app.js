@@ -1134,7 +1134,7 @@ function init() {
         if (jobPosting.trim()) {
             primeAudio();
             primeAudio();
-            questionCount = 0; // Reset counter to 0 for welcome message
+            questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
             interviewHistory = []; // Reset history
 
             // Show Chat Interface, Hide Intro & Setup
