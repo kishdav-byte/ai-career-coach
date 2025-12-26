@@ -52,7 +52,12 @@ try:
                 print(f"Error initializing Supabase Admin: {e}")
         else:
             print("WARNING: SUPABASE_SERVICE_ROLE_KEY not found. Webhooks may fail RLS.")
-    
+            
+    # GLOBAL FALLBACK: If Admin client failed to load, alias to standard client to prevent crashes
+    if not supabase_admin and supabase:
+        print("FALLBACK: Using Anon Client for Admin operations (RLS risks apply)")
+        supabase_admin = supabase
+
     # Configure App
     app.url_map.strict_slashes = False
 
@@ -2707,9 +2712,11 @@ def job_operations(job_id):
         
     user_id = user_res.user.id
 
+    db = supabase_admin if supabase_admin else supabase
+
     if request.method == 'DELETE':
         try:
-            res = supabase_admin.table('user_jobs').delete().eq('id', job_id).eq('user_id', user_id).execute()
+            res = db.table('user_jobs').delete().eq('id', job_id).eq('user_id', user_id).execute()
             return jsonify({"success": True})
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -2725,7 +2732,7 @@ def job_operations(job_id):
             if 'notes' in data: update_data['notes'] = data['notes']
             if 'salary_target' in data: update_data['salary_target'] = data['salary_target']
             
-            res = supabase_admin.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
+            res = db.table('user_jobs').update(update_data).eq('id', job_id).eq('user_id', user_id).execute()
             return jsonify(res.data)
         except Exception as e:
              return jsonify({"error": str(e)}), 500
