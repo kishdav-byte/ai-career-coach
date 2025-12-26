@@ -1306,6 +1306,13 @@ function init() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: text })
                     });
+
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        console.error("TTS Backend Error:", errData);
+                        throw new Error(errData.error || "TTS Failed");
+                    }
+
                     const blob = await response.blob();
                     const audioUrl = URL.createObjectURL(blob);
                     const audio = new Audio(audioUrl);
