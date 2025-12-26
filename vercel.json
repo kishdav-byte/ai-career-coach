@@ -6,31 +6,31 @@
         },
         {
             "source": "/api/init-debug",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api/auth/login",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api/auth/signup",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api/auth/user",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api/create-checkout-session",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api/(.*)",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/api",
-            "destination": "/api/app.py"
+            "destination": "/api/index.py"
         },
         {
             "source": "/signup",
