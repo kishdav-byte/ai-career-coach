@@ -1253,9 +1253,16 @@ JSON RESPONSE TEMPLATE:
             if question_count < 5:
                 # Normal Case: Eval current -> Ask Next
                 if question_count == 2:
-                    phase_instruction = "This is the Second Turn (Question 1). Do NOT include any transition phrases like 'Thank you' or 'Great'. Start the 'next_question' field flow DIRECTLY with the Behavioral Question itself. The system will handle the STAR preamble automatically. Just ask the question."
+                    # PHASE B: FIRST BEHAVIORAL QUESTION
+                    # STRICT RULE: Do NOT use transitions like "Thanks" or "Great". 
+                    # The system automator adds the STAR Preamble.
+                    # Your job is to output ONLY the question itself.
+                    phase_instruction = "PHASE B (First Question): Do NOT include any transition phrases or preambles. Start the 'next_question' field flow DIRECTLY with the Behavioral Question itself. The system will handle the STAR preamble automatically. Just ask the question."
                 else:
-                    phase_instruction = "This is Question " + str(question_count) + ". Follow PHASE 3 (Drill Down). Evaluate the previous answer rigorously."
+                    # PHASE C: SUBSEQUENT QUESTIONS
+                    # STRICT RULE: Use the Bridge Phrase "The next question I have for you is..."
+                    bridge_phrase = "The next question I have for you is..."
+                    phase_instruction = f"PHASE C (Question {question_count}): 1. Briefly validate the previous answer (e.g. 'That is a strong example'). 2. YOU MUST SAY EXACTLY: '{bridge_phrase}' 3. Ask the next question."
 
                 user_prompt = f"""
 User Answer: "{message}"

@@ -1280,8 +1280,36 @@ function init() {
         }
         chatInput.value = '';
 
-        // Animated Loading Indicator (Spinner)
-        const loadingId = addMessage('<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span class="text-sm text-slate-400">Thinking...</span></div>', 'system', true);
+        // Animated Loading Indicator (Active Listening UI)
+        // 1. Define states
+        const listeningStates = [
+            "Taking notes on your response...",
+            "Reviewing your key points...",
+            "Comparing against the job description...",
+            "Analyzing your STAR alignment...",
+            "Formulating the next question..."
+        ];
+
+        // 2. Initial State
+        const loadingId = addMessage(`<div class="flex items-center gap-3"><div class="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div><span id="thinking-text-${Date.now()}" class="text-sm text-slate-400">Taking notes on your response...</span></div>`, 'system', true);
+
+        // 3. Cycle States
+        const thinkingSpanId = `thinking-text-${Date.now()}`; // Need to match the ID injected above. 
+        // Wait, addMessage returns ID of the bubble container. I need to find the span inside it.
+        // Let's rely on finding the span by class or structure since ID injection is tricky inside the string literal without a variable.
+        // Easier: Use a unique class or just querySelector on the bubble.
+
+        let thinkingInterval = setInterval(() => {
+            const bubble = document.getElementById(loadingId);
+            if (bubble) {
+                const textSpan = bubble.querySelector('span'); // The only span in our HTML
+                if (textSpan) {
+                    const randomPhrase = listeningStates[Math.floor(Math.random() * listeningStates.length)];
+                    textSpan.innerText = randomPhrase;
+                }
+            }
+        }, 2000); // Change every 2 seconds
+
 
         // Prioritize Accordion JD, fallback to sidebar
         const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
@@ -1323,6 +1351,9 @@ function init() {
                     role_summary: isStart ? jobData.summary : undefined
                 })
             });
+
+            // Clear Interval
+            clearInterval(thinkingInterval);
 
             // Clear "Thinking..." text
             const outputDiv = document.getElementById(loadingId);
