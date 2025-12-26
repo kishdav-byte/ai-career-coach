@@ -375,13 +375,20 @@ def get_feedback():
              q_count = int(data.get('questionCount', 1))
              # ONLY trigger on Turn 2 (User's first answer), NOT on the Greeting (isStart)
              if q_count == 2 and not data.get('isStart'):
+                 # --- NEW STRIPPER LOGIC ---
+                 # The AI is stubbornly polite. Regex strip common transitions to prevent "Sandwiching".
+                 # Matches: "Thanks for...", "Thank you...", "Great...", "That's helpful..." at start of string.
+                 import re
+                 clean_text = re.sub(r'^(Thank you|Thanks|Great|That\'s helpful|I appreciate).*?[.?!]\s*', '', text_to_speak, flags=re.IGNORECASE).strip()
+                 text_to_speak = clean_text # Replace with clean version
+                 
                  star_preamble = (
                      "Thank you for that overview. Before we move on, I want to set the stage for the rest of our time together. "
                      "I use the STAR format, which is all about the Situation or Task, the Action, and Result. "
                      "When I ask for a specific example, please walk me through your specific actions and the results you achieved. "
                      "The first question I have for you is... "
                  )
-                 # If AI missed it, force inject it
+                 # Force inject it (now onto a clean string)
                  if "STAR format" not in text_to_speak:
                      text_to_speak = star_preamble + text_to_speak
                      response_data['next_question'] = text_to_speak
