@@ -1246,8 +1246,7 @@ JSON RESPONSE TEMPLATE:
             if question_count < 5:
                 # Normal Case: Eval current -> Ask Next
                 if question_count == 2:
-                    transition_text = "Thank you for that overview. Before we move on, I want to set the stage for the rest of our chat. I use the STAR format—Situation, Task, Action, Result. When I ask for a specific example, please walk me through your specific actions and the results you achieved. Now, let's dive in..."
-                    phase_instruction = f"TRANSITION REQUIRED: This is the Second Turn. You MUST start the 'next_question' field with EXACTLY the following text, followed by your actual question: '{transition_text} [Your First Behavioral Question Here]'"
+                    phase_instruction = "This is the Second Turn (Question 1). Do NOT include any transition phrases like 'Thank you' or 'Great'. Start the 'next_question' field flow DIRECTLY with the Behavioral Question itself. The system will handle the STAR preamble automatically. Just ask the question."
                 else:
                     phase_instruction = "This is Question " + str(question_count) + ". Follow PHASE 3 (Drill Down). Evaluate the previous answer rigorously."
 
