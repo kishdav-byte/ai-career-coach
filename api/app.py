@@ -1375,6 +1375,8 @@ JSON RESPONSE TEMPLATE:
 5. TONE: Coaching. Summarize gaps.
 
 Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "..."}}
+
+CRITICAL GRADING INSTRUCTION: Review the answer above. If it does not have a clear Result/Outcome, the MAXIMUM score is 2. Do not hesitate to give low scores.
 """
             
             else:
