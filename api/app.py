@@ -189,10 +189,10 @@ def get_opening_greeting(role, company, summary):
 
     # Use SSML breaks for natural pacing
     greeting = (
-        f"Hi, it's great to meet you. <break time='1.0s' /> "
+        f"Hi, it's great to meet you. <break time='0.5s' /> "
         f"I'm the Hiring Manager for the {role} position at {company}. "
-        f"{summary} <break time='1.0s' /> "
-        "I'm really looking forward to diving into your experience. <break time='0.8s' /> "
+        f"{summary} <break time='0.5s' /> "
+        "I'm really looking forward to diving into your experience. <break time='0.4s' /> "
         "To get us started, could you give me a high-level overview of your background? "
         "I'm particularly interested in what brings you to this specific point in your career "
         f"and why you think {role} is the right next step for you."
@@ -369,6 +369,24 @@ def get_feedback():
         # Safety fallback if empty
         if not text_to_speak or not str(text_to_speak).strip():
              text_to_speak = "Could you please repeat that or clarify?"
+
+        # --- ENFORCEMENT: STAR Preamble Policy ---
+        try:
+             q_count = int(data.get('questionCount', 1))
+             if q_count == 2:
+                 star_preamble = (
+                     "Thank you for that overview. Before we move on, I want to set the stage for the rest of our chat. "
+                     "I use the STAR format—Situation, Task, Action, Result. "
+                     "When I ask for a specific example, please walk me through your specific actions and the results you achieved. "
+                     "Now, let's dive in... "
+                 )
+                 # If AI missed it, force inject it
+                 if "STAR format" not in text_to_speak:
+                     text_to_speak = star_preamble + text_to_speak
+                     response_data['next_question'] = text_to_speak
+        except Exception as e:
+             print(f"STAR Enforcement Error: {e}")
+        # -----------------------------------------
 
         # Also extract voice preference if passed
         voice = data.get('voice', 'alloy')
