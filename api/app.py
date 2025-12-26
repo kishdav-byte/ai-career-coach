@@ -2722,6 +2722,7 @@ def job_operations(job_id):
             return jsonify({"error": str(e)}), 500
             
     elif request.method == 'PUT':
+        try:
             if request.json:
                 data = request.json
                 update_data = {}
