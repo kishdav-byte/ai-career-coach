@@ -127,7 +127,7 @@ def generate_audio_openai(text, voice_id):
         }
         
         payload = {
-            "model": "tts-1",
+            "model": "tts-1-hd",
             "input": text,
             "voice": voice_id if voice_id in ["alloy", "echo", "fable", "onyx", "nova", "shimmer"] else "alloy"
         }
@@ -3632,7 +3632,7 @@ def speak():
         "Content-Type": "application/json"
     }
     payload = {
-        "model": "tts-1",
+        "model": "tts-1-hd",
         "input": text,
         "voice": "alloy"  # Options: alloy, echo, fable, onyx, nova, shimmer
     }
