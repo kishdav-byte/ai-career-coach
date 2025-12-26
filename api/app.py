@@ -376,7 +376,7 @@ def get_feedback():
              # I will log but allow to proceed if it's just a connection blip, but return error if logic fails.
              pass
 
-    # 0. SPECIAL HANDLER FOR START (Prevent "Feedback" on Greeting)
+
     if data.get('isStart'):
         # Deterministic Start - No LLM needed (Faster & Cleaner)
         # Unpack specific analysis data from frontend
