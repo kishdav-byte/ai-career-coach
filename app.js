@@ -12,8 +12,22 @@ if (typeof window.supabase === 'undefined' || typeof window.supabase.createClien
 }
 
 // Helper functions (Global Scope)
+let currentSessionVoice = null;
+
 function getVoiceSettings() {
-    const voice = document.getElementById('voice-select').value;
+    const voiceSelect = document.getElementById('voice-select');
+    let voice = voiceSelect ? voiceSelect.value : null;
+
+    // Sticky Random Logic (One voice per session)
+    if (!voice || voice === 'random') {
+        if (!currentSessionVoice) {
+            const variants = ['alloy', 'onyx', 'nova', 'fable'];
+            currentSessionVoice = variants[Math.floor(Math.random() * variants.length)];
+            console.log("Selected Random Voice for Session:", currentSessionVoice);
+        }
+        voice = currentSessionVoice;
+    }
+
     const speed = '+0%'; // Default speed
     return { voice, speed };
 }
