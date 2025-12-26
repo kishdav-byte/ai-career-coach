@@ -440,6 +440,49 @@ def transcribe_audio_openai(base64_audio):
         print(f"OpenAI transcription error: {e}")
         return None
 
+@app.route('/api/generate-intel', methods=['POST'])
+def generate_intel():
+    # 1. Validation
+    data = request.json
+    job_description = data.get('job_description', '')
+
+    if not job_description:
+        return jsonify({"error": "No job description provided"}), 400
+
+    # 2. Construct the Prompt
+    messages = [
+        {"role": "system", "content": "You are an expert Career Coach."},
+        {"role": "user", "content": f"""
+        Read the job description below and generate a concise "Interviewer Intel" briefing.
+        
+        Format the output exactly like this:
+        **Role:** [Role Title]
+        **Company:** [Company Name]
+        
+        **Top 5 Key Focus Areas:**
+        * [Area 1]
+        * [Area 2]
+        * [Area 3]
+        * [Area 4]
+        * [Area 5]
+        
+        **Strategic Insight:**
+        [One sentence on what the hiring manager likely cares about most]
+
+        JOB DESCRIPTION:
+        {job_description[:4000]}
+        """}
+    ]
+
+    try:
+        # 3. Use existing helper function
+        intel_text = call_openai(messages)
+        return jsonify({"intel": intel_text})
+
+    except Exception as e:
+        print(f"Error generating intel: {e}")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/generate-model-answer', methods=['POST'])
 def generate_model_answer():
     if not API_KEY:

@@ -555,7 +555,7 @@
         <div class="p-6 border-t border-slate-700 bg-slate-950 flex justify-end gap-3">
             <button onclick="closeDossier()"
                 class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
-            <button onclick="saveDossier()"
+            <button id="dossier-save-btn" onclick="handleSaveIntel()"
                 class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2">
                 <i class="fas fa-save"></i> SAVE INTEL
             </button>
@@ -623,6 +623,49 @@
         window.closeDossier = () => {
             dossier.classList.add('translate-x-full');
             currentJobId = null;
+        };
+
+        window.handleSaveIntel = async () => {
+            const jdText = document.getElementById('dossier-jd').value;
+            const intelBox = document.getElementById('dossier-notes').value;
+            const saveBtn = document.getElementById('dossier-save-btn');
+
+            // 1. SMART CHECK: If JD exists but Intel is empty, generate it first.
+            if (jdText.trim().length > 50 && intelBox.trim().length < 10) {
+
+                // UI Feedback
+                const originalBtnText = saveBtn.innerText;
+                saveBtn.innerHTML = '<i class="fas fa-robot fa-spin"></i> Analyzing...';
+                saveBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/generate-intel', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${currentToken}`
+                        },
+                        body: JSON.stringify({ job_description: jdText })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.intel) {
+                        document.getElementById('dossier-notes').value = data.intel; // Fill the box
+                    }
+                } catch (error) {
+                    console.error("AI Generation failed:", error);
+                    // We don't block the save; we just alert and continue
+                    alert("Could not feature-generate intel, but saving data...");
+                } finally {
+                    saveBtn.innerText = originalBtnText; // Restore text (icon lost but ok)
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE INTEL'; // Actually restore full HTML
+                    saveBtn.disabled = false;
+                }
+            }
+
+            // 2. Proceed to save to database
+            saveDossier();
         };
 
         window.saveDossier = async () => {
