@@ -1501,8 +1501,7 @@ function init() {
             currentQuestionText = aiData.next_question;
 
         } catch (e) {
-            const loadingEl = document.getElementById(loadingId);
-            if (loadingEl) loadingEl.remove();
+            hideThinkingState();
             addMessage('Stream Error: ' + e.message, 'system');
         }
     }
