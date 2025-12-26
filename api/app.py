@@ -183,6 +183,9 @@ def get_opening_greeting(role, company, summary):
     # Normalization: Fix "Director, Customer Experience" -> "Director of Customer Experience"
     if "Director," in role:
         role = role.replace("Director,", "Director of")
+    
+    if "Director," in summary:
+        summary = summary.replace("Director,", "Director of")
 
     # Use SSML breaks for natural pacing
     greeting = (
@@ -204,13 +207,18 @@ def prepare_interview_prompt(data):
     is_start = data.get('isStart', False)
     question_count = data.get('questionCount', 1)
     
+    interviewer_intel = data.get('interviewer_intel', '')
+    
     # Context Prep
     company_name = data.get('company_name') or data.get('companyName') or "this company"
     role_title = data.get('role_title') or data.get('role') or "this position"
     summary = data.get('role_summary') or data.get('summary') or ""
     
     short_resume = (resume_text[:2000] + '...') if len(resume_text) > 2000 else resume_text
-    short_jd = (job_posting[:2000] + '...') if len(job_posting) > 2000 else job_posting
+    
+    # Context Priority: Use Intel (Notes) if available, otherwise use raw JD
+    jd_source = interviewer_intel if interviewer_intel else job_posting
+    short_jd = (jd_source[:2000] + '...') if len(jd_source) > 2000 else jd_source
 
     system_prompt = f"""
 You are an expert AI Interviewer. Your goal is to conduct a professional, behavioral interview based on the user's resume and job description.

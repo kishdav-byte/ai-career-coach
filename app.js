@@ -1153,14 +1153,19 @@ function init() {
             console.log("Starting Interview Flow...");
             await processJobDescription(); // Analyze JD before starting
 
-            // Pass resume info & Company Name
+            // Pass resume info & Company Name & Interviewer Intel
             let companyName = "the target company";
+            let interviewerIntel = "";
+
             try {
                 const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-                if (mCtx && mCtx.company) companyName = mCtx.company;
+                if (mCtx) {
+                    if (mCtx.company) companyName = mCtx.company;
+                    if (mCtx.notes) interviewerIntel = mCtx.notes;
+                }
             } catch (e) { }
 
-            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName);
+            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel);
         } else {
             alert("Please paste a job description first.");
         }
@@ -1261,7 +1266,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = '') {
+    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "") {
         const message = msg || chatInput.value;
         if (!message) return;
 
@@ -1306,6 +1311,7 @@ function init() {
                     jobPosting: jobPosting,
                     resumeText: resumeText,
                     companyName: companyName,
+                    interviewer_intel: interviewerIntel, // Pass Intel!
                     isStart: isStart,
                     questionCount: questionCount + 1,
                     email: email,
