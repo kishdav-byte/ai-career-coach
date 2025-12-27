@@ -3879,14 +3879,14 @@ def admin_get_users():
 def admin_update_credits():
     data = request.json
     user_id = data.get('user_id')
-    credits = data.get('credits')
+    updates = data.get('updates') # Dict of col: val
     
-    if not user_id or credits is None:
+    if not user_id or not updates:
         return jsonify({"error": "Missing params"}), 400
         
     try:
         if supabase_admin:
-            supabase_admin.table('users').update({'credits': credits}).eq('id', user_id).execute()
+            supabase_admin.table('users').update(updates).eq('id', user_id).execute()
         return jsonify({"success": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500

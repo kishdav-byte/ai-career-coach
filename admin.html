@@ -303,13 +303,37 @@
 
             <input type="hidden" id="modal-user-id">
 
-            <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Universal Credits</label>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Universal</label>
                     <input type="number" id="edit-credits"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white">
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
                 </div>
-                <!-- TODO: Add Tool specific inputs here if needed -->
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Resume</label>
+                    <input type="number" id="edit-resume"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mock Int.</label>
+                    <input type="number" id="edit-interview"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Negotiation</label>
+                    <input type="number" id="edit-negotiation"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">LinkedIn</label>
+                    <input type="number" id="edit-linkedin"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Follow Up</label>
+                    <input type="number" id="edit-followup"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                </div>
             </div>
 
             <div class="flex justify-end gap-3 mt-8">
@@ -385,7 +409,7 @@
                         </td>
                         <td class="px-4 py-3 text-center text-teal-400 font-mono font-bold">${u.credits || 0}</td>
                         <td class="px-4 py-3 text-right">
-                            <button onclick="openEditModal('${u.id}', '${u.email}', ${u.credits})" class="text-xs text-blue-400 hover:text-blue-300 hover:underline">Edit</button>
+                            <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="text-xs text-blue-400 hover:text-blue-300 hover:underline">Edit</button>
                         </td>
                     </tr>
                 `).join('');
@@ -396,10 +420,18 @@
         }
 
         // 3. EDIT MODAL
-        function openEditModal(id, email, credits) {
-            document.getElementById('modal-user-id').value = id;
-            document.getElementById('modal-user-email').textContent = email;
-            document.getElementById('edit-credits').value = credits;
+        function openEditModal(user) {
+            document.getElementById('modal-user-id').value = user.id;
+            document.getElementById('modal-user-email').textContent = user.email;
+
+            // Populate Inputs
+            document.getElementById('edit-credits').value = user.credits || 0;
+            document.getElementById('edit-resume').value = user.resume_credits || 0;
+            document.getElementById('edit-interview').value = user.credits_interview_sim || 0;
+            document.getElementById('edit-negotiation').value = user.credits_negotiation || 0;
+            document.getElementById('edit-linkedin').value = user.credits_linkedin || 0;
+            document.getElementById('edit-followup').value = user.credits_followup || 0;
+
             document.getElementById('edit-modal').classList.remove('hidden');
         }
 
@@ -409,13 +441,21 @@
 
         async function saveUserChanges() {
             const id = document.getElementById('modal-user-id').value;
-            const credits = document.getElementById('edit-credits').value;
+
+            const updates = {
+                credits: parseInt(document.getElementById('edit-credits').value) || 0,
+                resume_credits: parseInt(document.getElementById('edit-resume').value) || 0,
+                credits_interview_sim: parseInt(document.getElementById('edit-interview').value) || 0,
+                credits_negotiation: parseInt(document.getElementById('edit-negotiation').value) || 0,
+                credits_linkedin: parseInt(document.getElementById('edit-linkedin').value) || 0,
+                credits_followup: parseInt(document.getElementById('edit-followup').value) || 0
+            };
 
             try {
                 const res = await fetch('/api/admin/credits', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ user_id: id, credits: parseInt(credits) })
+                    body: JSON.stringify({ user_id: id, updates: updates })
                 });
 
                 if (res.ok) {
