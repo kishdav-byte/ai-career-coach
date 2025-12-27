@@ -298,12 +298,13 @@
                         </button>
                     </div>
 
-                    <!-- 1. Key Metrics Row (5 Columns) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+                    <!-- 1. Key Metrics Row (6 Columns for Wider Tiles) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
 
                         <!-- Metric 1: Resume Health -->
                         <a href="/resume-analyzer.html"
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            <!-- ... content ... -->
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
                             <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Resume Health
@@ -323,7 +324,7 @@
                             </div>
                         </a>
 
-                        <!-- Metric 2: Avg Interview Score -->
+                        <!-- Metric 2: Avg Interview Score (Span 1) -->
                         <a href="/role-reversal.html"
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
@@ -338,7 +339,7 @@
                             </div>
                         </a>
 
-                        <!-- Metric 3: Strategy Log -->
+                        <!-- Metric 3: Strategy Log (Span 1) -->
                         <div
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
@@ -352,15 +353,15 @@
                             <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                         </div>
 
-                        <!-- Metric 4: Universal Credits -->
+                        <!-- Metric 4: Universal Credits (Span 1) -->
                         <div id="universal-tile"
                             class="glass-card rounded-2xl p-0 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
                             <!-- Injected by renderUniversalTile() -->
                         </div>
 
-                        <!-- Metric 5: Tool Locker -->
+                        <!-- Metric 5: Tool Locker (Span 2 for Width) -->
                         <div id="tool-locker-tile"
-                            class="glass-card rounded-2xl p-0 flex flex-col relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
+                            class="glass-card rounded-2xl p-0 flex flex-col relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px] lg:col-span-2">
                             <!-- Injected by renderToolLocker() -->
                         </div>
                     </div>

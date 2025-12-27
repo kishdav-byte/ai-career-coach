@@ -465,6 +465,7 @@ window.renderSmartTiles = function (user) {
             "rewrite": user.rewrite_credits || 0,
             "mock_interview": user.interview_credits || 0,
             "linkedin_opt": user.linkedin_credits || 0,
+            "cover_letter": user.cover_letter_credits || 0,
             "plan_30_60_90": user.plan_credits || 0,
             "negotiation": user.negotiation_credits || 0,
             "follow_up": user.followup_credits || 0
@@ -504,9 +505,9 @@ function renderToolLocker(user) {
     const vouchers = user.tool_vouchers;
     // Helper to row
     const row = (label, count) => `
-        <div class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded transition-colors">
-            <span class="text-[10px] text-slate-400 truncate w-20" title="${label}">${label}</span>
-            <span class="text-[10px] font-bold ${count > 0 ? 'text-green-400' : 'text-slate-600'}">${count}</span>
+        <div class="flex justify-between items-center py-1 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded transition-colors">
+            <span class="text-[9px] text-slate-400 truncate w-20" title="${label}">${label}</span>
+            <span class="text-[9px] font-bold ${count > 0 ? 'text-green-400' : 'text-slate-600'}">${count}</span>
         </div>
     `;
 
@@ -518,13 +519,16 @@ function renderToolLocker(user) {
                     <i class="fas fa-toolbox text-blue-400"></i> Tool Locker
                 </h3>
             </div>
-            <div class="flex-1 overflow-y-auto custom-scroll p-1 space-y-0.5">
-                ${row('Rewrite', vouchers.rewrite)}
-                ${row('Mock Interview', vouchers.mock_interview)}
-                ${row('30-60-90 Plan', vouchers.plan_30_60_90)}
-                ${row('Salary Neg.', vouchers.negotiation)}
-                ${row('LinkedIn Opt', vouchers.linkedin_opt)}
-                ${row('Strat Follow-up', vouchers.follow_up)}
+            <div class="flex-1 overflow-y-auto custom-scroll p-2">
+                <div class="grid grid-cols-2 gap-x-4 gap-y-0.5">
+                    ${row('Rewrite', vouchers.rewrite)}
+                    ${row('Mock Interview', vouchers.mock_interview)}
+                    ${row('Cover Letter', vouchers.cover_letter)}
+                    ${row('30-60-90 Plan', vouchers.plan_30_60_90)}
+                    ${row('Salary Neg.', vouchers.negotiation)}
+                    ${row('LinkedIn Opt', vouchers.linkedin_opt)}
+                    ${row('Strat Follow-up', vouchers.follow_up)}
+                </div>
             </div>
         </div>
     `;
