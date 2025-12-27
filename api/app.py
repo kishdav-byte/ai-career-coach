@@ -212,17 +212,18 @@ def get_opening_greeting(role, company, summary):
 
 def generate_fixed_roadmap(jd_text):
     """
-    Generates a strict 5-question interview roadmap based on the JD.
+    Generates a strict 6-question interview roadmap based on the JD.
     Returns a Python list of strings.
     """
     prompt = f"""
-    Create a strict 5-question interview roadmap based on this JD.
+    Create a strict 6-question interview roadmap based on this JD.
     Rules:
     1. Q1: Introduction / Job Fit (e.g. "Tell me about yourself and why this role?").
     2. Q2: Behavioral (Topic: Leadership/Conflict).
     3. Q3: Behavioral (Topic: Strategy/Analysis).
     4. Q4: Behavioral (Topic: Adaptability/Deadlines).
-    5. Q5: Closing / Vision.
+    5. Q5: Behavioral (Topic: Culture/Teamwork).
+    6. Q6: Closing / Vision.
     
     Return ONLY a Python list of strings. No JSON formatting.
     Example: ["Tell me about yourself.", "Describe a conflict..."]
@@ -241,8 +242,8 @@ def generate_fixed_roadmap(jd_text):
              response = response.replace("python", "").replace("```", "").strip()
              
         questions = ast.literal_eval(response)
-        if isinstance(questions, list) and len(questions) >= 5:
-            return questions[:5] # Enforce 5
+        if isinstance(questions, list) and len(questions) >= 6:
+            return questions[:6] # Enforce 6
         else:
             # Fallback
             return [
@@ -250,6 +251,7 @@ def generate_fixed_roadmap(jd_text):
                 "Describe a time you had to resolve a conflict.",
                 "Tell me about a strategic decision you made.",
                 "How do you handle tight deadlines?",
+                "Describe a time you built or improved team culture.",
                 "Do you have any questions for us?"
             ]
     except Exception as e:
@@ -259,6 +261,7 @@ def generate_fixed_roadmap(jd_text):
                 "Describe a time you had to resolve a conflict.",
                 "Tell me about a strategic decision you made.",
                 "How do you handle tight deadlines?",
+                "Describe a time you built or improved team culture.",
                 "Do you have any questions for us?"
         ]
 
@@ -344,13 +347,13 @@ JSON RESPONSE TEMPLATE:
         # Generic flow Prompt (Simplified from previous version to rely on System Prompt rules)
         user_prompt = f"""
 User Answer: "{message}"
-Current Question Count: {question_count} of 5.
+Current Question Count: {question_count} of 6.
 
 Evaluate the previous answer.
-If Question Count < 5:
+If Question Count < 6:
   - Provide feedback and score.
   - Ask the next behavioral question in 'next_question'.
-If Question Count == 5:
+If Question Count == 6:
   - Provide feedback and score.
   - Wrap up the interview in 'next_question'.
 
