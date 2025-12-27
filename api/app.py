@@ -3840,8 +3840,7 @@ def stripe_webhook():
 
     return jsonify({'status': 'success'}), 200
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5001)
+
 
 # ==========================================
 # ADMIN CONSOLE ENDPOINTS
@@ -3974,3 +3973,6 @@ def speak():
 
     print(f"Streaming Audio for text: {text[:20]}... Status: {req.status_code}")
     return Response(stream_with_context(req.iter_content(chunk_size=1024)), content_type='audio/mpeg')
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5001)
