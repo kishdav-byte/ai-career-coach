@@ -456,14 +456,18 @@ const PRODUCTS = [
 // --- SMART TILES RENDERER (Universal + Locker) ---
 window.renderSmartTiles = function (user) {
     // 1. Prepare Mock Data Model (as requested)
+    // In a real scenario, we would fetch these valid columns from Supabase
     const currentUser = {
         ...user,
         plan: (user.subscription_status === 'active' || user.is_unlimited) ? "ACE PRO" : "FREE",
         universal_credits: user.is_unlimited ? '∞' : (user.credits || 0),
         tool_vouchers: {
             "rewrite": user.rewrite_credits || 0,
-            "linkedin": user.linkedin_credits || 0,   // Assuming column exists or 0
-            "simulator": user.interview_credits || 0  // Assuming column exists or 0
+            "mock_interview": user.interview_credits || 0,
+            "linkedin_opt": user.linkedin_credits || 0,
+            "plan_30_60_90": user.plan_credits || 0,
+            "negotiation": user.negotiation_credits || 0,
+            "follow_up": user.followup_credits || 0
         }
     };
 
@@ -501,7 +505,7 @@ function renderToolLocker(user) {
     // Helper to row
     const row = (label, count) => `
         <div class="flex justify-between items-center py-1.5 border-b border-white/5 last:border-0 hover:bg-white/5 px-2 rounded transition-colors">
-            <span class="text-[10px] text-slate-400 truncate">${label}</span>
+            <span class="text-[10px] text-slate-400 truncate w-20" title="${label}">${label}</span>
             <span class="text-[10px] font-bold ${count > 0 ? 'text-green-400' : 'text-slate-600'}">${count}</span>
         </div>
     `;
@@ -516,8 +520,11 @@ function renderToolLocker(user) {
             </div>
             <div class="flex-1 overflow-y-auto custom-scroll p-1 space-y-0.5">
                 ${row('Rewrite', vouchers.rewrite)}
-                ${row('Negotiator', vouchers.linkedin)} 
-                ${row('LinkedIn Opt', vouchers.linkedin)}
+                ${row('Mock Interview', vouchers.mock_interview)}
+                ${row('30-60-90 Plan', vouchers.plan_30_60_90)}
+                ${row('Salary Neg.', vouchers.negotiation)}
+                ${row('LinkedIn Opt', vouchers.linkedin_opt)}
+                ${row('Strat Follow-up', vouchers.follow_up)}
             </div>
         </div>
     `;
