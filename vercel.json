@@ -1,60 +1,12 @@
 {
     "rewrites": [
         {
-            "source": "/api/health",
-            "destination": "/api/health.py"
-        },
-        {
-            "source": "/api/init-debug",
-            "destination": "/api/app.py"
-        },
-        {
-            "source": "/api/auth/login",
-            "destination": "/api/app.py"
-        },
-        {
-            "source": "/api/auth/signup",
-            "destination": "/api/app.py"
-        },
-        {
-            "source": "/api/auth/user",
-            "destination": "/api/app.py"
-        },
-        {
-            "source": "/api/create-checkout-session",
-            "destination": "/api/app.py"
-        },
-        {
             "source": "/api/(.*)",
-            "destination": "/api/app.py"
-        },
-        {
-            "source": "/api",
             "destination": "/api/app.py"
         },
         {
             "source": "/signup",
             "destination": "/signup.html"
-        },
-        {
-            "source": "/app",
-            "destination": "/app.html"
-        },
-        {
-            "source": "/tools",
-            "destination": "/app.html"
-        },
-        {
-            "source": "/terms",
-            "destination": "/terms.html"
-        },
-        {
-            "source": "/privacy",
-            "destination": "/privacy.html"
-        },
-        {
-            "source": "/contact",
-            "destination": "/contact.html"
         },
         {
             "source": "/login",
@@ -77,6 +29,26 @@
             "destination": "/update-password.html"
         },
         {
+            "source": "/app",
+            "destination": "/app.html"
+        },
+        {
+            "source": "/tools",
+            "destination": "/app.html"
+        },
+        {
+            "source": "/terms",
+            "destination": "/terms.html"
+        },
+        {
+            "source": "/privacy",
+            "destination": "/privacy.html"
+        },
+        {
+            "source": "/contact",
+            "destination": "/contact.html"
+        },
+        {
             "source": "/strategy/closer",
             "destination": "/strategy/closer.html"
         },
@@ -97,6 +69,18 @@
             "destination": "/strategy/follow-up.html"
         },
         {
+            "source": "/strategy/tracker",
+            "destination": "/strategy/strategy-log.html"
+        },
+        {
+            "source": "/strategy/negotiation",
+            "destination": "/strategy/closer.html"
+        },
+        {
+            "source": "/strategy",
+            "destination": "/strategy/strategy-log.html"
+        },
+        {
             "source": "/clinic/scan",
             "destination": "/resume-analyzer.html"
         },
@@ -107,6 +91,10 @@
         {
             "source": "/clinic/linkedin",
             "destination": "/app.html"
+        },
+        {
+            "source": "/clinic",
+            "destination": "/resume-analyzer.html"
         },
         {
             "source": "/simulator/interview",
@@ -121,33 +109,8 @@
             "destination": "/role-reversal.html"
         },
         {
-            "source": "/strategy/tracker",
-            "destination": "/strategy/strategy-log.html"
-        },
-        {
-            "source": "/strategy/30-60-90",
-            "destination": "/strategy/30-60-90.html"
-        },
-        {
-            "source": "/strategy/negotiation",
-            "destination": "/strategy/closer.html"
-        },
-        {
-            "source": "/clinic",
-            "destination": "/resume-analyzer.html"
-        },
-        {
             "source": "/simulator",
             "destination": "/role-reversal.html"
-        },
-        {
-            "source": "/strategy",
-            "destination": "/strategy/strategy-log.html"
         }
-    ],
-    "functions": {
-        "api/**/*.py": {
-            "runtime": "python3.9"
-        }
-    }
+    ]
 }
