@@ -464,10 +464,10 @@ window.renderSmartTiles = function (user) {
         tool_vouchers: {
             "rewrite": user.rewrite_credits || 0,
             "mock_interview": user.interview_credits || 0,
-            "linkedin_opt": user.linkedin_credits || 0,
-            "cover_letter": user.cover_letter_credits || 0,
-            "plan_30_60_90": user.plan_credits || 0,
-            "negotiation": user.negotiation_credits || 0,
+            "linkedin_opt": user.credits_linkedin || 0,
+            "cover_letter": user.credits_cover_letter || 0,
+            "plan_30_60_90": user.credits_30_60_90 || 0,
+            "negotiation": user.credits_negotiation || 0,
             "follow_up": user.followup_credits || 0
         }
     };
