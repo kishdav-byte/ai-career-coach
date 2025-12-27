@@ -3062,6 +3062,7 @@ def manage_jobs():
                     "job_title": job_title,
                     "company_name": company_name,
                     "job_description": job_description,
+                    "focus_areas": data.get('focus_areas'), # JSONB or Array
                     "status": "Identified"
                 }
                 
@@ -3857,22 +3858,120 @@ def stripe_webhook():
 # ADMIN CONSOLE ENDPOINTS
 # ==========================================
 
+# ==========================================
+# DASHBOARD & ADMIN ENDPOINTS
+# ==========================================
+
+# HELPER: System Logging
+def log_system_event(source, message, severity="INFO"):
+    """Logs an event to the Supabase system_logs table."""
+    try:
+        if supabase_admin:
+            supabase_admin.table('system_logs').insert({
+                "source": source,
+                "message": message,
+                "severity": severity
+            }).execute()
+        # Also keep in-memory for fallback
+        SYSTEM_ERRORS.append(f"[{severity}] {source}: {message}")
+    except Exception as e:
+        print(f"Log Failure: {e}")
+
+@app.route('/api/dashboard', methods=['GET'])
+def get_user_dashboard():
+    """Consolidated load for Executive Performance Hub."""
+    try:
+        # 1. Auth
+        auth_header = request.headers.get('Authorization')
+        if not auth_header: return jsonify({"error": "No Auth"}), 401
+        token = auth_header.split(" ")[1]
+        
+        user_res = supabase.auth.get_user(token)
+        if not user_res.user: return jsonify({"error": "Invalid Token"}), 401
+        user_id = user_res.user.id
+        
+        db = supabase_admin if supabase_admin else supabase
+
+        # 2. Fetch Profile (Credits & Vouchers)
+        # Note: We fetch 'credits' as universal. 'tool_vouchers' JSONB if exists, else individual cols.
+        p_res = db.table('users').select('*').eq('id', user_id).single().execute()
+        profile = p_res.data
+        
+        # 3. Fetch Active Job (Top 1)
+        j_res = db.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).limit(1).execute()
+        active_job = j_res.data[0] if j_res.data else None
+        
+        # 4. Calculate Avg Score (Last 5 interviews)
+        i_res = db.table('interviews').select('score').eq('user_id', user_id).order('created_at', desc=True).limit(5).execute()
+        scores = [r['score'] for r in i_res.data if r.get('score')]
+        avg_score = sum(scores) / len(scores) if scores else 0
+        
+        # 5. Construct Response
+        return jsonify({
+            "profile": {
+                "email": profile.get('email'),
+                "plan": "ACE PRO" if profile.get('subscription_status') == 'active' else "FREE", # Simplification
+                "universal_credits": profile.get('credits', 0),
+                "tool_vouchers": profile.get('tool_vouchers') or {
+                    # Fallback to legacy columns if JSONB is empty/missing
+                    "rewrite": profile.get('resume_credits', 0),
+                    "mock_interview": profile.get('credits_interview_sim', 0),
+                    "negotiation": profile.get('credits_negotiation', 0),
+                    "linkedin_opt": profile.get('credits_linkedin', 0),
+                    "follow_up": profile.get('credits_followup', 0)
+                }
+            },
+            "active_job": active_job,
+            "metrics": {
+                "avg_interview_score": round(avg_score, 1)
+            }
+        })
+
+    except Exception as e:
+        log_system_event("Dashboard", str(e), "ERROR")
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/admin/health', methods=['GET'])
 def admin_health():
-    # MOCK SCORING DATA (In real app, query DB)
-    import random
-    avg_24h = random.uniform(3.5, 4.8)
-    avg_7d = 4.2  # Baseline
-    
-    # Anomaly Logic
-    anomaly = avg_24h < (avg_7d - 0.8)
-    
-    return jsonify({
-        "avg_24h": avg_24h,
-        "avg_7d": avg_7d,
-        "anomaly": anomaly,
-        "error_log": SYSTEM_ERRORS[-50:] # Last 50 errors
-    })
+    try:
+        db = supabase_admin if supabase_admin else supabase
+        
+        # 1. Scoring Trends (Real DB Query)
+        # 24h Avg
+        one_day_ago = (datetime.utcnow() - timedelta(days=1)).isoformat()
+        r24 = db.table('interviews').select('score').gte('created_at', one_day_ago).execute()
+        s24 = [r['score'] for r in r24.data if r.get('score') is not None]
+        avg_24h = sum(s24) / len(s24) if s24 else 0.0
+        
+        # 7d Avg
+        seven_days_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+        r7 = db.table('interviews').select('score').gte('created_at', seven_days_ago).execute()
+        s7 = [r['score'] for r in r7.data if r.get('score') is not None]
+        avg_7d = sum(s7) / len(s7) if s7 else 0.0
+        
+        # 2. Error Log (System Logs)
+        e_res = db.table('system_logs').select('*').order('created_at', desc=True).limit(50).execute()
+        # Format for frontend (list of strings or objects? Frontend expects strings currently)
+        # Frontend code: err => `<div>${err}</div>`
+        # We need to format the object into a string for backward compatibility OR update frontend.
+        # Let's send objects but the frontend expects strings (from my memory of admin.html).
+        # Actually admin.html: data.error_log.map(err => ... ${err} ...)
+        # So it expects strings. Let's format them.
+        formatted_errors = [f"[{e['severity']}] {e['source']}: {e['message']}" for e in e_res.data]
+        
+        # If DB logs empty, fallback to memory
+        if not formatted_errors and SYSTEM_ERRORS:
+            formatted_errors = SYSTEM_ERRORS[-50:]
+
+        return jsonify({
+            "avg_24h": round(avg_24h, 1),
+            "avg_7d": round(avg_7d, 1),
+            "anomaly": avg_24h < (avg_7d - 0.5) and avg_24h > 0,
+            "error_log": formatted_errors
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e), "avg_24h": 0, "avg_7d": 0, "error_log": []})
 
 @app.route('/api/admin/users', methods=['GET'])
 def admin_get_users():
