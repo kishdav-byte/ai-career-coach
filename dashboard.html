@@ -298,8 +298,8 @@
                         </button>
                     </div>
 
-                    <!-- 1. Key Metrics Row (4 Columns) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <!-- 1. Key Metrics Row (5 Columns) -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
 
                         <!-- Metric 1: Resume Health -->
                         <a href="/resume-analyzer.html"
@@ -352,13 +352,16 @@
                             <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                         </div>
 
-                        <!-- Metric 4: Credits (Usage Tile) -->
-                        <div id="usage-tile"
-                            class="glass-card rounded-2xl p-0 flex flex-col justify-between relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
-                            <!-- Content injected by renderUsageTile() -->
-                            <div class="flex items-center justify-center h-full text-slate-500 text-xs">
-                                Loading Usage...
-                            </div>
+                        <!-- Metric 4: Universal Credits -->
+                        <div id="universal-tile"
+                            class="glass-card rounded-2xl p-0 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
+                            <!-- Injected by renderUniversalTile() -->
+                        </div>
+
+                        <!-- Metric 5: Tool Locker -->
+                        <div id="tool-locker-tile"
+                            class="glass-card rounded-2xl p-0 flex flex-col relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
+                            <!-- Injected by renderToolLocker() -->
                         </div>
                     </div>
                 </div>
@@ -941,12 +944,12 @@
                     const isPro = profile.subscription_status === 'active';
                     document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
 
-                    // Plan & Credits Logic (Refactored to Usage Tile)
-                    if (window.renderUsageTile) {
+                    // Plan & Credits Logic (Refactored to Smart Tiles)
+                    if (window.renderSmartTiles) {
                         try {
-                            renderUsageTile(profile);
+                            renderSmartTiles(profile);
                         } catch (e) {
-                            console.error("Usage Tile Error:", e);
+                            console.error("Smart Tile Error:", e);
                         }
                     }
 
