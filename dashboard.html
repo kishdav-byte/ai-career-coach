@@ -41,8 +41,8 @@
 
     <script>
         // Auth Logic Pre-check (Restored)
-        const SESSION_KEY = 'supabase.auth.token';
-        const token = localStorage.getItem(SESSION_KEY);
+        const AUTH_TOKEN_KEY = 'supabase.auth.token';
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (!token) {
             window.location.href = '/login.html';
         }
@@ -951,10 +951,21 @@
                     const isPro = profile.subscription_status === 'active';
                     document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
 
-                    // Admin Check
+                    // Admin Check & Session Sync
                     if (profile.role === 'admin') {
                         const adminBtn = document.getElementById('admin-btn');
                         if (adminBtn) adminBtn.classList.remove('hidden');
+
+                        // Sync Session for Gatekeeper
+                        try {
+                            const sessionStr = localStorage.getItem('aceinterview_session');
+                            let session = sessionStr ? JSON.parse(sessionStr) : {};
+                            session.role = 'admin';
+                            session.email = profile.email || user.email;
+                            localStorage.setItem('aceinterview_session', JSON.stringify(session));
+                        } catch (e) {
+                            console.error("Session Sync Error", e);
+                        }
                     }
 
                     // Plan & Credits Logic (Refactored to Smart Tiles)
