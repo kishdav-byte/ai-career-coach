@@ -3046,27 +3046,27 @@ def get_user_id_from_token():
 
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
-    # 1. AUTH: Get User ID
+    # 1. AUTHENTICATION (Safe Wrap)
     try:
-        user_id = get_user_id_from_token() # Uses your existing helper
+        user_id = get_user_id_from_token()
         if not user_id:
             return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
-        print(f"AUTH ERROR: {str(e)}", flush=True)
+        print(f"AUTH ERROR: {str(e)}")
         return jsonify({"error": "Auth Failed"}), 401
 
+    # 2. GET JOBS (Safe Mode)
     if request.method == 'GET':
         try:
-            # 2. DEBUG LOG
-            print(f"Fetching jobs for user: {user_id}", flush=True)
-
-            # 3. SAFE QUERY: Explicitly select ONLY existing columns
-            # We map 'job_title' (DB) to 'role' (UI) manually below
+            print(f"Fetching jobs for: {user_id}")
+            
+            # Explicitly select ONLY columns we know exist to prevent crashes
+            # We avoid 'created_at' or 'notes' for now to be safe
             response = supabase.table('user_jobs').select(
                 "id, job_title, company_name, status, job_description"
             ).eq('user_id', user_id).execute()
 
-            # 4. DATA MAPPING (DB -> Frontend)
+            # Map Database Columns -> Frontend Keys
             clean_jobs = []
             for job in response.data:
                 clean_jobs.append({
@@ -3080,29 +3080,26 @@ def manage_jobs():
             return jsonify(clean_jobs), 200
 
         except Exception as e:
-            # 5. CATCH & LOG (Prevents 500 Crash)
-            print(f"CRITICAL JOBS ERROR: {str(e)}", flush=True)
-            # Return empty list so dashboard loads even if DB fails
+            # CRITICAL FIX: Capture the crash, Log it, but return EMPTY LIST
+            # This prevents the 500 Error and allows the dashboard to load
+            print(f"DB CRASH ERROR: {str(e)}")
             return jsonify([]), 200
 
-    # 3. POST REQUEST (Adding a Job)
+    # 3. POST JOBS (Add New)
     if request.method == 'POST':
         try:
             data = request.json
             new_job = {
                 "user_id": user_id,
                 "job_title": data.get('role', data.get('job_title', 'New Role')),
-                "company_name": data.get('company', data.get('company_name', 'New Company')),
+                "company_name": data.get('company', data.get('company_name', 'New Co')),
                 "status": "Identified",
-                "job_description": data.get('description', data.get('job_description', ''))
+                "job_description": data.get('description', '')
             }
-            print(f"DEBUG: Creating Job: {new_job}", flush=True)
-            
             response = supabase.table('user_jobs').insert(new_job).execute()
             return jsonify(response.data), 201
-            
         except Exception as e:
-            print(f"CRITICAL POST ERROR: {str(e)}", flush=True)
+            print(f"POST ERROR: {str(e)}")
             return jsonify({"error": str(e)}), 500
 
 @app.route('/api/jobs/<job_id>', methods=['DELETE', 'PUT'])
