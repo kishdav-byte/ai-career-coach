@@ -144,5 +144,10 @@
             "source": "/strategy",
             "destination": "/strategy/strategy-log.html"
         }
-    ]
+    ],
+    "functions": {
+        "api/**/*.py": {
+            "runtime": "python3.9"
+        }
+    }
 }
