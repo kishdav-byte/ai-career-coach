@@ -431,7 +431,7 @@
                                     class="text-xs font-bold font-mono tracking-widest text-purple-400 uppercase flex items-center gap-2">
                                     <span
                                         class="w-2 h-2 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.6)] animate-pulse"></span>
-                                    War Zone
+                                    Mission Control
                                 </h3>
                                 <span id="count-interviewing"
                                     class="bg-purple-900/30 text-purple-300 text-[10px] font-bold px-2 py-0.5 rounded-full">0</span>
@@ -831,8 +831,12 @@
                 </div>
 
                 <div class="flex gap-2">
-                     <button onclick="window.openDossier('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
-                        WAR ROOM
+                     <button onclick="window.launchMission('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
+                        LAUNCH MISSION
+                    </button>
+                     <button onclick="window.openDossier('${job.id}')" 
+                        class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Mission Dossier">
+                        <i class="fas fa-folder-open text-[10px]"></i>
                     </button>
                      <button onclick="launchTool('${job.id}', '/strategy/30-60-90.html')" 
                         class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Quick Plan">
@@ -871,15 +875,15 @@
             } catch (e) { alert(e.message); }
         };
 
-        window.openWarRoom = (id) => {
+        window.launchMission = (id) => {
             const job = localJobsInfo.find(j => j.id === id);
-            if (job) smartLaunch(id, '/resume-rewriter.html', job);
+            if (job) smartLaunch(id, '/app.html#interview', job); // Default to Simulator
         };
 
         window.smartLaunch = (id, url, job) => {
-            const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description };
-            localStorage.setItem('strategy_context', JSON.stringify(context));
-            sessionStorage.setItem('warRoomLaunch', 'true');
+            const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description, jd: job.job_description };
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            sessionStorage.setItem('missionLaunch', 'true');
             window.location.href = url;
         };
 
@@ -967,43 +971,33 @@
                     } else {
                         planLabel.innerText = "Free Plan";
                         creditLabel.innerText = `${creds} Credits Left`;
-                        bar.style.width = `${Math.min(100, (creds / 10) * 100)}%`;
+                        bar.style.width = `${Math.min(100, (creds / 5) * 100)}%`;
                     }
 
                     if (isPro) document.getElementById('credit-bar').classList.add('bg-purple-500');
 
                     // --- REAL-TIME STATS FETCHING ---
 
-                    // 1. Resume Health (Last Scan)
-                    const { data: resumeData } = await supabase
-                        .from('resume_scans')
-                        .select('score')
-                        .eq('user_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .maybeSingle();
+                    // 1. Resume Health (Data-Wired: Check resume_text OR LocalStorage)
+                    const localRes = localStorage.getItem('master_resume_text');
+                    const resumeExists = (profile.resume_text && profile.resume_text.length > 50) || (localRes && localRes.length > 50);
 
-                    if (resumeData) {
-                        setRing(resumeData.score);
-                    } else {
-                        setRing(0);
-                    }
+                    // Future Proofing: We will replace this with AI scoring later
+                    setRing(resumeExists ? 100 : 0);
+                    document.getElementById('resume-score').textContent = resumeExists ? '100' : '0';
 
-                    // 2. Interview Score (Last Interview Average)
-                    // Note: 'interviews' table usually has 'average_score' or 'score' column. 
-                    // I will check for 'average_score' based on previous context or fallback to 0.
+                    // 2. Avg Interview Score (Data-Wired: Calculate Average)
                     const { data: interviewData } = await supabase
                         .from('interviews')
-                        .select('average_score')
-                        .eq('user_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .maybeSingle();
+                        .select('average_score') // Assuming column is average_score per session
+                        .eq('user_id', user.id);
 
-                    if (interviewData && interviewData.average_score) {
-                        document.getElementById('interview-score').innerHTML = `${interviewData.average_score}<span class="text-gray-500 text-xl">/10</span>`;
+                    if (interviewData && interviewData.length > 0) {
+                        const total = interviewData.reduce((acc, curr) => acc + (curr.average_score || 0), 0);
+                        const avg = (total / interviewData.length).toFixed(1);
+                        document.getElementById('interview-score').innerHTML = `${avg}<span class="text-gray-500 text-xl">/5</span>`;
                     } else {
-                        document.getElementById('interview-score').innerHTML = `0<span class="text-gray-500 text-xl">/10</span>`;
+                        document.getElementById('interview-score').innerHTML = `0<span class="text-gray-500 text-xl">/5</span>`;
                     }
                 }
             } catch (e) {
