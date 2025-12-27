@@ -1093,6 +1093,11 @@
             window.location.href = '/login.html';
         }
 
+        // INITIALIZATION: Load jobs on page load
+        (async function init() {
+            await loadJobs();
+        })();
+
     </script>
 </body>
 
