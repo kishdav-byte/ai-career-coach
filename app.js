@@ -453,28 +453,92 @@ const PRODUCTS = [
     }
 ];
 
-// --- RENDER LOGIC ---
+// --- RENDER LOGIC (Compact Accordion) ---
 window.renderUpgradeHub = function (containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    container.innerHTML = PRODUCTS.map(p => `
-        <button onclick="initiateCheckout('${p.id}', null, null)" 
-            class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 transition-all group relative mb-2 flex items-center justify-between">
-            
-            ${p.tag ? `<span class="absolute -top-2 -right-2 bg-teal text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg uppercase tracking-wider">${p.tag}</span>` : ''}
-            
-            <div class="flex-1">
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="text-sm font-bold text-white group-hover:text-teal transition-colors">${p.title}</span>
-                    <span class="text-xs font-medium text-teal bg-teal/10 px-1.5 py-0.5 rounded">${p.price}</span>
+    // Grouping Logic
+    const groups = [
+        {
+            key: 'pro',
+            title: 'Unlock Pro',
+            ids: ['monthly_plan', 'strategy_bundle'],
+            isOpen: true
+        },
+        {
+            key: 'services',
+            title: 'Expert Services',
+            ids: ['executive_rewrite', 'interview_sim', 'plan_30_60_90'],
+            isOpen: false
+        },
+        {
+            key: 'tools',
+            title: 'Toolkit',
+            ids: ['cover_letter', 'linkedin_optimize', 'negotiation', 'inquisitor', 'follow_up'],
+            isOpen: false
+        }
+    ];
+
+    let html = '';
+
+    groups.forEach(group => {
+        const groupItems = PRODUCTS.filter(p => group.ids.includes(p.id));
+        if (groupItems.length === 0) return;
+
+        const isHidden = group.isOpen ? '' : 'hidden';
+        const iconClass = group.isOpen ? '' : '-rotate-90'; // Point right when closed, down when open
+
+        html += `
+            <div class="mb-3">
+                <button onclick="toggleUpgradeGroup('${group.key}')" 
+                    class="flex items-center justify-between w-full text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors mb-2 group">
+                    <span>${group.title}</span>
+                    <i id="icon-upg-${group.key}" class="fas fa-chevron-down text-[10px] transition-transform duration-200 ${iconClass} group-hover:text-white"></i>
+                </button>
+                
+                <div id="group-upg-${group.key}" class="space-y-1 ${isHidden}">
+                    ${groupItems.map(p => {
+            const isHighlight = p.id === 'monthly_plan';
+            const baseClass = "w-full flex justify-between items-center p-2 rounded border transition-all group text-left relative overflow-hidden";
+            const styleClass = isHighlight
+                ? "bg-teal/5 border-teal/20 hover:bg-teal/10"
+                : "bg-transparent border-transparent hover:bg-white/5 border-b-slate-800/50";
+            const titleColor = isHighlight ? "text-teal" : "text-slate-300";
+
+            return `
+                        <button onclick="initiateCheckout('${p.id}', null, null)" 
+                            class="${baseClass} ${styleClass}"
+                            title="${p.desc}">
+                            
+                            <div class="flex-1 min-w-0 pr-2">
+                                <div class="flex items-center gap-1.5 truncate">
+                                    ${isHighlight ? '<i class="fas fa-star text-[8px] text-teal"></i>' : ''}
+                                    <span class="text-xs font-medium ${titleColor} truncate">${p.title}</span>
+                                    <span class="text-[10px] text-slate-500 shrink-0">(${p.price})</span>
+                                </div>
+                            </div>
+                            
+                            <div class="shrink-0 text-slate-600 group-hover:text-teal transition-colors">
+                                <i class="fas fa-shopping-cart text-[10px]"></i>
+                            </div>
+                        </button>
+                        `;
+        }).join('')}
                 </div>
-                <p class="text-[10px] text-slate-400 leading-tight">${p.desc}</p>
             </div>
-            
-            <i class="fas fa-chevron-right text-xs text-slate-600 group-hover:text-white transition-colors"></i>
-        </button>
-    `).join('');
+        `;
+    });
+
+    container.innerHTML = html;
+};
+
+// Accordion Toggle Helper
+window.toggleUpgradeGroup = function (key) {
+    const el = document.getElementById(`group-upg-${key}`);
+    const icon = document.getElementById(`icon-upg-${key}`);
+    if (el) el.classList.toggle('hidden');
+    if (icon) icon.classList.toggle('-rotate-90');
 };
 
 // Helper to reuse checkout logic (Global Scope)
