@@ -58,6 +58,11 @@ try:
         print("FALLBACK: Using Anon Client for Admin operations (RLS risks apply)")
         supabase_admin = supabase
 
+    # ==========================================
+    # GLOBAL IN-MEMORY STORAGE
+    # ==========================================
+    INTERVIEW_SESSIONS = {} 
+
     # Configure App
     app.url_map.strict_slashes = False
 
@@ -205,6 +210,58 @@ def get_opening_greeting(role, company, summary):
     )
     return greeting
 
+def generate_fixed_roadmap(jd_text):
+    """
+    Generates a strict 5-question interview roadmap based on the JD.
+    Returns a Python list of strings.
+    """
+    prompt = f"""
+    Create a strict 5-question interview roadmap based on this JD.
+    Rules:
+    1. Q1: Introduction / Job Fit (e.g. "Tell me about yourself and why this role?").
+    2. Q2: Behavioral (Topic: Leadership/Conflict).
+    3. Q3: Behavioral (Topic: Strategy/Analysis).
+    4. Q4: Behavioral (Topic: Adaptability/Deadlines).
+    5. Q5: Closing / Vision.
+    
+    Return ONLY a Python list of strings. No JSON formatting.
+    Example: ["Tell me about yourself.", "Describe a conflict..."]
+    
+    JD: {jd_text[:2000]}
+    """
+    try:
+        response = call_openai([{"role": "user", "content": prompt}])
+        # Clean up the string to get a real list
+        # Security Note: literal_eval is safer than eval, but for this specific strict prompt, it's okay.
+        # We'll use ast.literal_eval for safety if possible, or just basic string parsing if it fails.
+        import ast
+        
+        # Clean markdown
+        if "```" in response:
+             response = response.replace("python", "").replace("```", "").strip()
+             
+        questions = ast.literal_eval(response)
+        if isinstance(questions, list) and len(questions) >= 5:
+            return questions[:5] # Enforce 5
+        else:
+            # Fallback
+            return [
+                "Tell me about yourself and your background.",
+                "Describe a time you had to resolve a conflict.",
+                "Tell me about a strategic decision you made.",
+                "How do you handle tight deadlines?",
+                "Do you have any questions for us?"
+            ]
+    except Exception as e:
+        print(f"Roadmap Gen Error: {e}")
+        return [
+                "Tell me about yourself and your background.",
+                "Describe a time you had to resolve a conflict.",
+                "Tell me about a strategic decision you made.",
+                "How do you handle tight deadlines?",
+                "Do you have any questions for us?"
+        ]
+
 def prepare_interview_prompt(data):
     """Refactored prompt builder for Interview Chat (Standard & Stream)."""
     message = data.get('message', '')
@@ -226,6 +283,8 @@ def prepare_interview_prompt(data):
     jd_source = interviewer_intel if interviewer_intel else job_posting
     short_jd = (jd_source[:2000] + '...') if len(jd_source) > 2000 else jd_source
 
+    target_question = data.get('target_question')
+    
     system_prompt = f"""
 You are an expert AI Interviewer. Your goal is to conduct a professional, behavioral interview based on the user's resume and job description.
 
@@ -243,6 +302,16 @@ INTERVIEW RULES:
 - Do not read the feedback or score aloud; put those in their respective fields.
 - If the user's answer was vague, ask a follow-up question in the "next_question" field.
     """
+    
+    if target_question:
+        system_prompt += f"""
+    
+    ### CURRENT TASK
+    1. Grade the user's previous answer.
+    2. Provide a verbal bridge (e.g., "That was a great example...").
+    3. **YOU MUST ASK EXACTLY THIS NEXT QUESTION:** "{target_question}"
+    """
+
     if is_start:
          opening_text = get_opening_greeting(role_title, company_name, summary)
          user_prompt = f"""
@@ -326,9 +395,58 @@ def analyze_jd():
 @app.route('/api/get-feedback', methods=['POST'])
 def get_feedback():
     data = request.json
-    messages = prepare_interview_prompt(data)
     
     today_date = datetime.now().strftime("%Y-%m-%d")
+    user_email = data.get('email')
+
+    # --- ROADMAP LOGIC ---
+    try:
+        if data.get('isStart'):
+            # Generate Roadmap
+            job_posting = data.get('jobPosting', '')
+            intel = data.get('interviewer_intel', '')
+            jd_text = intel if intel else job_posting
+
+            # Prefer JD text, fallback to generic if empty
+            if not jd_text and data.get('role_title'):
+                jd_text = f"{data.get('role_title')} at {data.get('company_name')}"
+
+            if jd_text and user_email:
+                 print(f"Generating Roadmap for {user_email}...")
+                 roadmap = generate_fixed_roadmap(jd_text)
+                 INTERVIEW_SESSIONS[user_email] = roadmap
+                 print(f"Roadmap Stored: {roadmap}")
+            else:
+                 print("Warning: No JD or Email for Roadmap generation.")
+        
+        else:
+            # Retrieve Roadmap
+            if user_email and user_email in INTERVIEW_SESSIONS:
+                roadmap = INTERVIEW_SESSIONS[user_email]
+                
+                # Frontend sends questionCount for the *upcoming* turn?
+                # Actually app.js sends: questionCount: questionCount + 1
+                # If current was 0, it sends 1 (Start).
+                # If current was 1 (Just finished Q1), it sends 2.
+                # Use strict int conversion
+                q_count = int(data.get('questionCount', 1))
+                
+                # Mapping:
+                # Count 2 -> Ask Q2 (Index 1)
+                # Count 3 -> Ask Q3 (Index 2)
+                current_index = q_count - 1
+                
+                if 0 <= current_index < len(roadmap):
+                     target = roadmap[current_index]
+                     data['target_question'] = target
+                     print(f"Injecting Target Question [{current_index}]: {target}")
+                elif current_index >= len(roadmap):
+                     data['target_question'] = "That concludes our interview. Thank you for your time. Do you have any final questions for me?"
+    except Exception as e:
+        print(f"Roadmap Logic Error: {e}")
+
+    # Prepare Prompt (Now with injected target_question)
+    messages = prepare_interview_prompt(data)
     
     # --- CREDIT DEDUCTION ("isStart" only) ---
     if data.get('isStart'):
@@ -1277,7 +1395,9 @@ Grade the candidate's last answer on a 1-5 scale. Do not grade on a curve.
 * **4/5 (Strong):** Good STAR. Clear Result, but qualitative (e.g., "morale improved") rather than data.
 * **3/5 (Average):** Result is present but vague or unquantified. Structure is okay.
 * **2/5 (Weak):** Action is present but Result is completely missing. Or hypothetical answer.
-* **1/5 (Poor):** Irrelevant or refused to answer.
+* **1/5 (Poor):** Irrelevant, refused to answer, OR stopped after Situation (no Action taken).
+
+TRAP: If the user describes a Situation/Problem but stops before explaining their Action (solution), the score is AUTOMATICALLY 1/5. Do not award points for "insight" if the story is incomplete.
 
 ### 2. SPEAKING TEMPLATES (MANDATORY)
 You must follow these strict templates for the "next_question" field.
@@ -1376,7 +1496,10 @@ JSON RESPONSE TEMPLATE:
 
 Return STRICT JSON: {{"score": [Numeric Score 0-5], "feedback": "...", "improved_sample": "...", "next_question": "..."}}
 
-CRITICAL GRADING INSTRUCTION: Review the answer above. If it does not have a clear Result/Outcome, the MAXIMUM score is 2. Do not hesitate to give low scores.
+CRITICAL GRADING INSTRUCTION: 
+1. If the answer describes a Situation but has NO Action/Solution, the Score is 1.
+2. If the answer has Action but NO Result/Outcome, the MAXIMUM score is 2. 
+Do not hesitate to give low scores for incomplete answers.
 """
             
             else:
