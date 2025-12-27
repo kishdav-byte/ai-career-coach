@@ -26,8 +26,12 @@ try:
     load_dotenv()
     CORS(app)
     
-    # Import Test Runner safely
-    import test_runner
+    # Import Test Runner safely (prevents checking OpenAI dependency at app startup if unrelated)
+    try:
+        import test_runner
+    except ImportError as e:
+        print(f"WARNING: Could not import test_runner (Admin Console simulations will fail): {e}")
+        test_runner = None
 
     # ==========================================
     # INITIALIZATION
