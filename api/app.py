@@ -3963,16 +3963,16 @@ def admin_health():
     try:
         db = supabase_admin if supabase_admin else supabase
         
-        # 1. Scoring Trends (Real DB Query)
+        # 1. Scoring Trends (Query user_recent_activity table)
         # 24h Avg
         one_day_ago = (datetime.utcnow() - timedelta(days=1)).isoformat()
-        r24 = db.table('interviews').select('score').gte('created_at', one_day_ago).execute()
+        r24 = db.table('user_recent_activity').select('score').gte('created_at', one_day_ago).execute()
         s24 = [r['score'] for r in r24.data if r.get('score') is not None]
         avg_24h = sum(s24) / len(s24) if s24 else 0.0
         
         # 7d Avg
         seven_days_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-        r7 = db.table('interviews').select('score').gte('created_at', seven_days_ago).execute()
+        r7 = db.table('user_recent_activity').select('score').gte('created_at', seven_days_ago).execute()
         s7 = [r['score'] for r in r7.data if r.get('score') is not None]
         avg_7d = sum(s7) / len(s7) if s7 else 0.0
         
