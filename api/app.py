@@ -25,6 +25,9 @@ try:
 
     load_dotenv()
     CORS(app)
+    
+    # Import Test Runner safely
+    import test_runner
 
     # ==========================================
     # INITIALIZATION
@@ -62,6 +65,7 @@ try:
     # GLOBAL IN-MEMORY STORAGE
     # ==========================================
     INTERVIEW_SESSIONS = {} 
+    SYSTEM_ERRORS = [] # In-memory error log 
 
     # Configure App
     app.url_map.strict_slashes = False
@@ -3838,6 +3842,95 @@ def stripe_webhook():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001)
+
+# ==========================================
+# ADMIN CONSOLE ENDPOINTS
+# ==========================================
+
+@app.route('/api/admin/health', methods=['GET'])
+def admin_health():
+    # MOCK SCORING DATA (In real app, query DB)
+    import random
+    avg_24h = random.uniform(3.5, 4.8)
+    avg_7d = 4.2  # Baseline
+    
+    # Anomaly Logic
+    anomaly = avg_24h < (avg_7d - 0.8)
+    
+    return jsonify({
+        "avg_24h": avg_24h,
+        "avg_7d": avg_7d,
+        "anomaly": anomaly,
+        "error_log": SYSTEM_ERRORS[-50:] # Last 50 errors
+    })
+
+@app.route('/api/admin/users', methods=['GET'])
+def admin_get_users():
+    if not supabase_admin:
+        return jsonify([]), 500
+        
+    try:
+        # Fetch last 50 users
+        res = supabase_admin.table('users').select('*').order('created_at', desc=True).limit(50).execute()
+        return jsonify(res.data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/credits', methods=['POST'])
+def admin_update_credits():
+    data = request.json
+    user_id = data.get('user_id')
+    credits = data.get('credits')
+    
+    if not user_id or credits is None:
+        return jsonify({"error": "Missing params"}), 400
+        
+    try:
+        if supabase_admin:
+            supabase_admin.table('users').update({'credits': credits}).eq('id', user_id).execute()
+        return jsonify({"success": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/run-test', methods=['POST'])
+def admin_run_test():
+    data = request.json
+    persona_key = data.get('persona', 'executive')
+    
+    # Map key to full persona name for test_runner
+    persona_map = {
+        "executive": "The Executive (5/5)",
+        "quitter": "The Quitter (1/5)",
+        "cliffhanger": "The Junior (3/5)" # Using Junior for Cliffhanger test
+    }
+    
+    full_name = persona_map.get(persona_key, "The Executive (5/5)")
+    
+    try:
+        # Capture stdout
+        import io
+        import sys
+        
+        # Create a capture buffer
+        buffer = io.StringIO()
+        original_stdout = sys.stdout
+        sys.stdout = buffer
+        
+        # Run Simulation
+        print(f"--- STARTING SIMULATION: {full_name} ---")
+        test_runner.run_simulation(full_name, max_turns=3) # Limit to 3 turns for speed in UAT
+        print("--- SIMULATION COMPLETE ---")
+        
+        # Restore stdout
+        sys.stdout = original_stdout
+        
+        logs = buffer.getvalue()
+        return jsonify({"logs": logs})
+        
+    except Exception as e:
+        # Ensure stdout is restored even on error
+        sys.stdout = sys.__stdout__ 
+        return jsonify({"logs": f"Test Failed: {str(e)}"}), 500
 
 # --- TTS ENDPOINT ---
 @app.route('/api/speak', methods=['POST'])
