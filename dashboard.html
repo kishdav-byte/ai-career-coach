@@ -292,10 +292,16 @@
                             <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
                                     class="text-teal">Candidate</span>?</p>
                         </div>
-                        <button onclick="openModal()"
-                            class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
-                            <i class="fas fa-plus"></i> ADD TARGET
-                        </button>
+                        <div class="flex gap-3">
+                            <a id="admin-btn" href="/admin.html"
+                                class="hidden bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-800 hover:border-teal-500 px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2">
+                                <i class="fas fa-shield-cat"></i> ADMIN
+                            </a>
+                            <button onclick="openModal()"
+                                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
+                                <i class="fas fa-plus"></i> ADD TARGET
+                            </button>
+                        </div>
                     </div>
 
                     <!-- 1. Key Metrics Row (6 Columns for Wider Tiles) -->
@@ -945,6 +951,12 @@
                     const isPro = profile.subscription_status === 'active';
                     document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
 
+                    // Admin Check
+                    if (profile.role === 'admin') {
+                        const adminBtn = document.getElementById('admin-btn');
+                        if (adminBtn) adminBtn.classList.remove('hidden');
+                    }
+
                     // Plan & Credits Logic (Refactored to Smart Tiles)
                     if (window.renderSmartTiles) {
                         try {
@@ -1053,7 +1065,8 @@
 
             // Save context for receiver tools to pick up
             localStorage.setItem('mission_context', JSON.stringify(context));
-            // User requested explicit separate storage for Interview Lab
+
+            // User Display Namequested explicit separate storage for Interview Lab
             if (context.jd) {
                 localStorage.setItem('activeJobDescription', context.jd);
             }
