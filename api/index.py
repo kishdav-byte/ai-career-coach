@@ -4121,3 +4121,6 @@ def speak():
 
 # Vercel serverless handler
 handler = app
+
+# Vercel requires the variable 'app' to be exposed
+app = app
