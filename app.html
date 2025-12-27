@@ -159,12 +159,27 @@
                 <!-- Active State -->
                 <div id="interview-active-state">
                     <div class="space-y-6">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Target
-                                Role</label>
-                            <input type="text" id="interview-job-posting"
-                                class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none"
-                                placeholder="e.g. Product Manager">
+                        <!-- MISSION BRIEF CARD -->
+                        <div id="mission-brief-card"
+                            class="bg-gray-800 rounded-lg p-4 border border-slate-700 shadow-lg">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Target Mission
+                            </h3>
+                            <div class="mb-3">
+                                <h2 class="text-xl font-bold text-white leading-tight" id="mission-role">Loading...</h2>
+                                <p class="text-blue-400 text-sm font-medium" id="mission-company">...</p>
+                            </div>
+
+                            <div class="border-t border-slate-700 pt-3 mt-3">
+                                <label
+                                    class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-2">Mission
+                                    Priorities</label>
+                                <div id="mission-priorities" class="text-xs text-slate-300 space-y-1.5 font-mono">
+                                    <p class="italic text-slate-500">No priorities set.</p>
+                                </div>
+                            </div>
+
+                            <!-- Hidden input for logic -->
+                            <input type="hidden" id="interview-job-posting">
                         </div>
                         <div>
                             <label
@@ -463,18 +478,41 @@
             if (missionCtx) {
                 try {
                     const ctx = JSON.parse(missionCtx);
-                    const jdInput = document.getElementById('job-description-input');
-                    // Also check for legacy ID 'interview-job-posting' if we want to sync them?
-                    // Actually, app.js reads 'interview-job-posting'.
-                    // We should probably sync the accordion JD to the main input or vice versa.
-                    // But for now, let's just populate the accordion inputs.
-                    if (jdInput && ctx.jd) jdInput.value = ctx.jd;
 
-                    // Also try to load Master Resume
+                    // 1. Fill Mission Brief Card
+                    if (ctx.role) document.getElementById('mission-role').textContent = ctx.role;
+                    if (ctx.company) document.getElementById('mission-company').textContent = ctx.company;
+
+                    // Priorities (JD)
+                    if (ctx.jd) {
+                        // Fallback logic: If JD is long text, show snippet. If list, show list.
+                        // User asked for "Top 5 Focus Areas". We assume ctx.jd contains this.
+                        const listContainer = document.getElementById('mission-priorities');
+                        listContainer.innerHTML = ''; // Clear default
+
+                        const lines = ctx.jd.split('\n').filter(line => line.trim().length > 0).slice(0, 5);
+                        lines.forEach(line => {
+                            const p = document.createElement('p');
+                            p.textContent = line.replace(/^\d+[\.)]\s*/, '• '); // Replace number with bullet
+                            listContainer.appendChild(p);
+                        });
+
+                        // Also populate hidden input for legacy app.js logic
+                        document.getElementById('interview-job-posting').value = ctx.jd;
+
+                        // Populate Accordion for reference
+                        const jdInput = document.getElementById('job-description-input');
+                        if (jdInput) jdInput.value = ctx.jd;
+                    }
+
+                    // 2. Master Resume
                     const masterResume = localStorage.getItem('master_resume_text');
                     const resInput = document.getElementById('resume-text-input');
                     if (resInput && masterResume) resInput.value = masterResume;
-                } catch (e) { console.error("Context Load Error", e); }
+                } catch (e) {
+                    console.error("Context Load Error", e);
+                    document.getElementById('mission-role').textContent = "Error Loading Context";
+                }
             }
         });
     </script>

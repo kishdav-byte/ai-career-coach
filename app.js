@@ -1230,8 +1230,18 @@ function init() {
     document.getElementById('start-interview-btn').addEventListener('click', async () => {
         // Prioritize Context Accordion inputs, fallback to sidebar
         const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
-        const sidebarJD = document.getElementById('interview-job-posting').value;
-        const jobPosting = accordionJD || sidebarJD;
+        const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
+
+        let jobPosting = accordionJD || sidebarJD;
+
+        // MISSION BRIEF LOGIC: Construct composite string if structured data exists
+        try {
+            const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+            if (mCtx && mCtx.role && mCtx.company) {
+                jobPosting = `MISSION BRIEFING:\nTarget Role: ${mCtx.role} at ${mCtx.company}.\n\nMISSION PRIORITIES (FOCUS AREAS):\n${mCtx.jd || "No specific priorities set."}`;
+                console.log("Constructed Mission Brief Payload:", jobPosting);
+            }
+        } catch (e) { console.warn("Mission Context Parse Error", e); }
 
         const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
 
