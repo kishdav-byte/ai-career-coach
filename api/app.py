@@ -36,8 +36,16 @@ try:
     SUPABASE_KEY = os.environ.get('SUPABASE_KEY')
     SUPABASE_SERVICE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    supabase: Client = None
-    supabase_admin: Client = None
+# ==========================================
+# GLOBAL STATE (Safe Initialization)
+# ==========================================
+supabase: Client = None
+supabase_admin: Client = None
+INTERVIEW_SESSIONS = {} 
+SYSTEM_ERRORS = [] 
+
+try:
+    import re
 
     if SUPABASE_URL:
         if SUPABASE_KEY:
@@ -64,8 +72,7 @@ try:
     # ==========================================
     # GLOBAL IN-MEMORY STORAGE
     # ==========================================
-    INTERVIEW_SESSIONS = {} 
-    SYSTEM_ERRORS = [] # In-memory error log 
+    # INTERVIEW_SESSIONS and SYSTEM_ERRORS moved to top level 
 
     # Configure App
     app.url_map.strict_slashes = False
