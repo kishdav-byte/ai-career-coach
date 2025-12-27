@@ -392,7 +392,7 @@ async function initiateCheckout(productKey, userEmail, userId) {
     try {
         // 1. STRICT PRICING MAP
         const priceMap = {
-            'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', // $9.99
+            'strategy_interview_sim': 'price_1Sgsf9IH1WTKNasqxvk528yY', // $12.99
             'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',           // $49.99
             'linkedin_optimize': 'price_1ShWBJIH1WTKNasqd7p9VA5f'       // $6.99 (NEW)
         };
