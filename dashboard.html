@@ -374,11 +374,49 @@
                 </div>
 
                 <!-- KANBAN BOARD (Flex grow to fill rest of screen) -->
-                <!-- KANBAN BOARD REMOVED FOR STABILITY -->
-                <div class="flex-1 w-full pb-6 min-h-[600px] md:min-h-0 flex items-center justify-center">
-                    <div class="text-center text-slate-500">
-                        <i class="fas fa-check-circle text-4xl mb-3 text-slate-700"></i>
-                        <p class="font-mono text-sm uppercase tracking-widest">System Stabilized</p>
+                <div
+                    class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory min-h-[600px] md:min-h-0 mt-8">
+                    <div class="flex gap-4 h-full px-1">
+                        <div
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
+                            <div
+                                class="p-4 border-b border-slate-700/50 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3 class="text-xs font-bold text-slate-400 uppercase">Targets</h3>
+                                <span id="count-identified"
+                                    class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 rounded-full">0</span>
+                            </div>
+                            <div id="col-identified" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
+                        </div>
+                        <div
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-blue-900/10 rounded-xl border border-dashed border-blue-900/30">
+                            <div
+                                class="p-4 border-b border-blue-900/20 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3 class="text-xs font-bold text-blue-400 uppercase">Applied</h3>
+                                <span id="count-applied"
+                                    class="bg-blue-900/30 text-blue-300 text-[10px] font-bold px-2 rounded-full">0</span>
+                            </div>
+                            <div id="col-applied" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
+                        </div>
+                        <div
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-purple-900/10 rounded-xl border border-dashed border-purple-900/30">
+                            <div
+                                class="p-4 border-b border-purple-900/20 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3 class="text-xs font-bold text-purple-400 uppercase">Interviewing</h3>
+                                <span id="count-interviewing"
+                                    class="bg-purple-900/30 text-purple-300 text-[10px] font-bold px-2 rounded-full">0</span>
+                            </div>
+                            <div id="col-interviewing" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
+                        </div>
+                        <div
+                            class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-green-900/10 rounded-xl border border-dashed border-green-900/30">
+                            <div
+                                class="p-4 border-b border-green-900/20 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <h3 class="text-xs font-bold text-green-400 uppercase">Offer / Closed</h3>
+                                <span id="count-offer"
+                                    class="bg-green-900/30 text-green-300 text-[10px] font-bold px-2 rounded-full">0</span>
+                            </div>
+                            <div id="col-offer" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
+                        </div>
                     </div>
                 </div>
 
@@ -630,7 +668,55 @@
             }
         };
 
-        // --- JOB LOGIC (Note: Ported from strategy-log.html) ---
+        // --- JOB LOGIC ---
+        async function loadJobs() {
+            try {
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                if (!res.ok) return; // Silent fail if still syncing
+                const jobs = await res.json();
+                renderBoard(jobs);
+            } catch (e) { console.error(e); }
+        }
+
+        function renderBoard(jobs) {
+            // Clear Columns
+            ['identified', 'applied', 'interviewing', 'offer'].forEach(id => {
+                const col = document.getElementById(`col-${id}`);
+                if (col) col.innerHTML = '';
+                const count = document.getElementById(`count-${id}`);
+                if (count) count.innerText = '0';
+            });
+
+            // Sort & Render
+            jobs.forEach(job => {
+                let status = (job.status || 'identified').toLowerCase();
+                if (status.includes('offer')) status = 'offer';
+                else if (status.includes('interview')) status = 'interviewing';
+                else if (status.includes('appli')) status = 'applied';
+                else status = 'identified';
+
+                // Update Count
+                const countEl = document.getElementById(`count-${status}`);
+                if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;
+
+                // Create Card
+                const card = `
+                <div class="bg-slate-900 border border-slate-800 p-3 rounded mb-3 relative group hover:border-blue-500/30 transition-all cursor-pointer" onclick="window.openDossier('${job.id}')">
+                    <h4 class="text-sm font-bold text-white truncate">${job.role || 'New Role'}</h4>
+                    <p class="text-xs text-slate-400 truncate">${job.company || 'New Company'}</p>
+                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <i class="fas fa-chevron-right text-slate-600"></i>
+                    </div>
+                </div>`;
+                const col = document.getElementById(`col-${status}`);
+                if (col) col.insertAdjacentHTML('beforeend', card);
+            });
+
+            // Re-store jobs for local access properly
+            localJobsInfo = jobs;
+        }
 
 
         window.launchMission = (id) => {
@@ -854,9 +940,8 @@
         }
 
         // INITIALIZATION: Load jobs on page load
-        // REMOVED loadJobs() call
         (async function init() {
-            // await loadJobs(); 
+            await loadJobs();
         })();
 
     </script>
