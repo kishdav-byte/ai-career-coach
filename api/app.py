@@ -398,6 +398,9 @@ def get_feedback():
     
     today_date = datetime.now().strftime("%Y-%m-%d")
     user_email = data.get('email')
+    
+    # Track completion state
+    is_interview_complete = False
 
     # --- ROADMAP LOGIC ---
     try:
@@ -442,6 +445,7 @@ def get_feedback():
                      print(f"Injecting Target Question [{current_index}]: {target}")
                 elif current_index >= len(roadmap):
                      data['target_question'] = "That concludes our interview. Thank you for your time. Do you have any final questions for me?"
+                     is_interview_complete = True
     except Exception as e:
         print(f"Roadmap Logic Error: {e}")
 
@@ -605,7 +609,7 @@ def get_feedback():
     return jsonify({
         "audio": audio_data,         # The voice file (Base64)
         "response": response_data,   # The full data (for the UI to display)
-        "is_complete": False         # Default signal
+        "is_complete": is_interview_complete         # Signal to frontend
     })
 
 def call_openai(messages, json_mode=False):
