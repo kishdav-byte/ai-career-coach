@@ -982,9 +982,25 @@
                     const localRes = localStorage.getItem('master_resume_text');
                     const resumeExists = (profile.resume_text && profile.resume_text.length > 50) || (localRes && localRes.length > 50);
 
-                    // Future Proofing: We will replace this with AI scoring later
-                    setRing(resumeExists ? 100 : 0);
-                    document.getElementById('resume-score').textContent = resumeExists ? '100' : '0';
+                    // 1. Resume Health Logic Upgrade
+                    let resumeScore = 0;
+
+                    const { data: resumeData } = await supabase
+                        .from('resumes')
+                        .select('overall_score')
+                        .eq('user_id', user.id)
+                        .order('created_at', { ascending: false })
+                        .limit(1);
+
+                    if (resumeData && resumeData.length > 0) {
+                        resumeScore = resumeData[0].overall_score || 0;
+                    } else {
+                        // Fallback
+                        resumeScore = resumeExists ? 100 : 0;
+                    }
+
+                    setRing(resumeScore);
+                    document.getElementById('resume-score').textContent = resumeScore;
 
                     // 2. Avg Interview Score (Data-Wired: Calculate Average)
                     const { data: interviewData } = await supabase
