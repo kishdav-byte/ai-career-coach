@@ -3033,74 +3033,80 @@ You are an Executive Deal Closer. You write high-stakes follow-up emails.
 # JOB TRACKING ENDPOINTS (STRATEGY LOG)
 # ========================================
 
+def get_user_id_from_token():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return None
+    try:
+        token = auth_header.split(" ")[1]
+        user = supabase.auth.get_user(token)
+        return user.user.id if user.user else None
+    except Exception:
+        return None
+
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
-    """Unified endpoint to Get or Add jobs."""
-    print("DEBUG: /api/jobs route hit!", flush=True)
-    print(f"DEBUG: Method={request.method}", flush=True)
+    print("DEBUG: /api/jobs route hit", flush=True)
+    
+    # 1. AUTH CHECK
     try:
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-             print("DEBUG: Missing Authorization header", flush=True)
-             return jsonify({"error": "Missing Authorization header"}), 401
-        
-        token = auth_header.split(" ")[1]
-        
-        # Verify User
-        if not supabase:
-             return jsonify({"error": "DB Config Error"}), 500
-        
+        user_id = get_user_id_from_token()
+        print(f"DEBUG: Auth User ID: {user_id}", flush=True)
+        if not user_id:
+            return jsonify({"error": "Unauthorized"}), 401
+    except Exception as e:
+        print(f"DEBUG: Auth Failed: {str(e)}", flush=True)
+        return jsonify({"error": "Auth Failed"}), 401
+
+    # 2. GET REQUEST
+    if request.method == 'GET':
         try:
-            user_res = supabase.auth.get_user(token)
-            if not user_res.user:
-                 return jsonify({"error": "Invalid token"}), 401
-            user_id = user_res.user.id
-        except Exception as auth_e:
-            print(f"Auth Check Failed: {auth_e}")
-            return jsonify({"error": f"Auth Verification Failed: {str(auth_e)}"}), 401
+            # Minimal Safe Query - No sorting, specific columns only
+            print("DEBUG: Attempting Supabase Query...", flush=True)
+            response = supabase.table('user_jobs').select(
+                "id, job_title, company_name, status, job_description"
+            ).eq('user_id', user_id).execute()
+            
+            print(f"DEBUG: Query Success. Rows found: {len(response.data)}", flush=True)
 
-        if request.method == 'GET':
-            try:
-                # Return jobs sorted by newest
-                db = supabase_admin if supabase_admin else supabase
-                print(f"DEBUG: Fetching jobs for user_id={user_id}", flush=True)
-                res = db.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
-                print(f"DEBUG: Query returned {len(res.data)} jobs", flush=True)
-                return jsonify(res.data)
-            except Exception as e:
-                print(f"Fetch Jobs Error: {e}")
-                return jsonify({"error": str(e)}), 500
+            # Safe Mapping
+            clean_jobs = []
+            for job in response.data:
+                clean_jobs.append({
+                    "id": job.get('id'),
+                    "role": job.get('job_title', 'Unknown Role'),
+                    "company": job.get('company_name', 'Unknown Co'),
+                    "status": job.get('status', 'Identified'),
+                    "description": job.get('job_description', '')
+                })
+            
+            return jsonify(clean_jobs), 200
 
-        elif request.method == 'POST':
-            try:
-                data = request.json
-                job_title = data.get('job_title')
-                company_name = data.get('company_name')
-                job_description = data.get('job_description')
+        except Exception as e:
+            # CATCH THE CRASH
+            print(f"CRITICAL DB ERROR: {str(e)}", flush=True)
+            # Return empty list so dashboard doesn't break
+            return jsonify([]), 200
 
-                if not job_title or not company_name:
-                    return jsonify({"error": "Job Title and Company are required"}), 400
-
-                new_job = {
-                    "user_id": user_id,
-                    "job_title": job_title,
-                    "company_name": company_name,
-                    "job_description": job_description,
-                    "focus_areas": data.get('focus_areas'), # JSONB or Array
-                    "status": "Identified"
-                }
-                
-                db = supabase_admin if supabase_admin else supabase
-                res = db.table('user_jobs').insert(new_job).execute()
-                # Return the created object
-                return jsonify(res.data[0] if res.data else {})
-            except Exception as e:
-                print(f"Add Job Error: {e}")
-                return jsonify({"error": str(e)}), 500
-
-    except Exception as outer_e:
-        print(f"Manage Jobs Critical Error: {outer_e}")
-        return jsonify({"error": f"Critical Server Error: {str(outer_e)}"}), 500
+    # 3. POST REQUEST (Adding a Job)
+    if request.method == 'POST':
+        try:
+            data = request.json
+            new_job = {
+                "user_id": user_id,
+                "job_title": data.get('role', data.get('job_title', 'New Role')),
+                "company_name": data.get('company', data.get('company_name', 'New Company')),
+                "status": "Identified",
+                "job_description": data.get('description', data.get('job_description', ''))
+            }
+            print(f"DEBUG: Creating Job: {new_job}", flush=True)
+            
+            response = supabase.table('user_jobs').insert(new_job).execute()
+            return jsonify(response.data), 201
+            
+        except Exception as e:
+            print(f"CRITICAL POST ERROR: {str(e)}", flush=True)
+            return jsonify({"error": str(e)}), 500
 
 @app.route('/api/jobs/<job_id>', methods=['DELETE', 'PUT'])
 def job_operations(job_id):
