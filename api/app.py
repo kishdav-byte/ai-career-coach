@@ -3046,46 +3046,43 @@ def get_user_id_from_token():
 
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
-    print("DEBUG: /api/jobs route hit", flush=True)
-    
-    # 1. AUTH CHECK
+    # 1. AUTH: Get User ID
     try:
-        user_id = get_user_id_from_token()
-        print(f"DEBUG: Auth User ID: {user_id}", flush=True)
+        user_id = get_user_id_from_token() # Uses your existing helper
         if not user_id:
             return jsonify({"error": "Unauthorized"}), 401
     except Exception as e:
-        print(f"DEBUG: Auth Failed: {str(e)}", flush=True)
+        print(f"AUTH ERROR: {str(e)}", flush=True)
         return jsonify({"error": "Auth Failed"}), 401
 
-    # 2. GET REQUEST
     if request.method == 'GET':
         try:
-            # Minimal Safe Query - No sorting, specific columns only
-            print("DEBUG: Attempting Supabase Query...", flush=True)
+            # 2. DEBUG LOG
+            print(f"Fetching jobs for user: {user_id}", flush=True)
+
+            # 3. SAFE QUERY: Explicitly select ONLY existing columns
+            # We map 'job_title' (DB) to 'role' (UI) manually below
             response = supabase.table('user_jobs').select(
                 "id, job_title, company_name, status, job_description"
             ).eq('user_id', user_id).execute()
-            
-            print(f"DEBUG: Query Success. Rows found: {len(response.data)}", flush=True)
 
-            # Safe Mapping
+            # 4. DATA MAPPING (DB -> Frontend)
             clean_jobs = []
             for job in response.data:
                 clean_jobs.append({
                     "id": job.get('id'),
-                    "role": job.get('job_title', 'Unknown Role'),
-                    "company": job.get('company_name', 'Unknown Co'),
+                    "role": job.get('job_title', 'Unknown Role'),       # DB: job_title -> UI: role
+                    "company": job.get('company_name', 'Unknown Co'),   # DB: company_name -> UI: company
                     "status": job.get('status', 'Identified'),
                     "description": job.get('job_description', '')
                 })
-            
+
             return jsonify(clean_jobs), 200
 
         except Exception as e:
-            # CATCH THE CRASH
-            print(f"CRITICAL DB ERROR: {str(e)}", flush=True)
-            # Return empty list so dashboard doesn't break
+            # 5. CATCH & LOG (Prevents 500 Crash)
+            print(f"CRITICAL JOBS ERROR: {str(e)}", flush=True)
+            # Return empty list so dashboard loads even if DB fails
             return jsonify([]), 200
 
     # 3. POST REQUEST (Adding a Job)
