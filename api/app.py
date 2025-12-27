@@ -3036,9 +3036,12 @@ You are an Executive Deal Closer. You write high-stakes follow-up emails.
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
     """Unified endpoint to Get or Add jobs."""
+    print("DEBUG: /api/jobs route hit!", flush=True)
+    print(f"DEBUG: Method={request.method}", flush=True)
     try:
         auth_header = request.headers.get('Authorization')
         if not auth_header:
+             print("DEBUG: Missing Authorization header", flush=True)
              return jsonify({"error": "Missing Authorization header"}), 401
         
         token = auth_header.split(" ")[1]
@@ -3060,7 +3063,9 @@ def manage_jobs():
             try:
                 # Return jobs sorted by newest
                 db = supabase_admin if supabase_admin else supabase
+                print(f"DEBUG: Fetching jobs for user_id={user_id}", flush=True)
                 res = db.table('user_jobs').select('*').eq('user_id', user_id).order('created_at', desc=True).execute()
+                print(f"DEBUG: Query returned {len(res.data)} jobs", flush=True)
                 return jsonify(res.data)
             except Exception as e:
                 print(f"Fetch Jobs Error: {e}")
