@@ -91,6 +91,10 @@ try:
     stripe_webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
     app_domain = os.environ.get('APP_DOMAIN', 'http://localhost:3000')
 
+    # PRICING (GPT-4o-mini estimates)
+    PRICE_INPUT = 0.00000015  # $0.15 / 1M tokens
+    PRICE_OUTPUT = 0.00000060 # $0.60 / 1M tokens
+
 except Exception as e:
     INIT_ERROR = f"Startup Error: {str(e)}\n{traceback.format_exc()}"
     print(INIT_ERROR)
@@ -677,6 +681,21 @@ def call_openai(messages, json_mode=False):
     )
     response.raise_for_status()
     result = response.json()
+    
+    # Cost Tracking
+    try:
+        usage = result.get('usage', {})
+        in_tokens = usage.get('prompt_tokens', 0)
+        out_tokens = usage.get('completion_tokens', 0)
+        cost = (in_tokens * PRICE_INPUT) + (out_tokens * PRICE_OUTPUT)
+        
+        # Log if significant (ignore 0 cost to reduce noise, or log everything?)
+        # User asked to log all calls.
+        if in_tokens > 0:
+            log_system_event("OpenAI", "Chat Generation", "INFO", (in_tokens + out_tokens), cost)
+    except Exception as e:
+        print(f"Cost Calc Error: {e}")
+
     return result['choices'][0]['message']['content']
 
 def transcribe_audio_openai(base64_audio):
@@ -3863,17 +3882,22 @@ def stripe_webhook():
 # ==========================================
 
 # HELPER: System Logging
-def log_system_event(source, message, severity="INFO"):
-    """Logs an event to the Supabase system_logs table."""
+def log_system_event(source, message, severity="INFO", tokens_used=0, estimated_cost=0.0):
+    """Logs an event to the Supabase error_logs table."""
     try:
         if supabase_admin:
-            supabase_admin.table('system_logs').insert({
+            supabase_admin.table('error_logs').insert({
                 "source": source,
                 "message": message,
-                "severity": severity
+                "severity": severity,
+                "tokens_used": tokens_used,
+                "estimated_cost": estimated_cost
             }).execute()
-        # Also keep in-memory for fallback
-        SYSTEM_ERRORS.append(f"[{severity}] {source}: {message}")
+        # Also keep in-memory for fallback (Text only)
+        if estimated_cost > 0:
+            SYSTEM_ERRORS.append(f"[{severity}] {source}: {message} (${estimated_cost:.4f})")
+        else:
+            SYSTEM_ERRORS.append(f"[{severity}] {source}: {message}")
     except Exception as e:
         print(f"Log Failure: {e}")
 
@@ -3893,8 +3917,8 @@ def get_user_dashboard():
         db = supabase_admin if supabase_admin else supabase
 
         # 2. Fetch Profile (Credits & Vouchers)
-        # Note: We fetch 'credits' as universal. 'tool_vouchers' JSONB if exists, else individual cols.
-        p_res = db.table('users').select('*').eq('id', user_id).single().execute()
+        # Map to ACTUAL schema columns (no tool_vouchers JSONB exists)
+        p_res = db.table('users').select('id, email, role, is_unlimited, subscription_status, credits, resume_credits, credits_interview_sim, credits_cover_letter, credits_linkedin, credits_negotiation, credits_inquisitor, credits_followup').eq('id', user_id).single().execute()
         profile = p_res.data
         
         # 3. Fetch Active Job (Top 1)
@@ -3906,18 +3930,21 @@ def get_user_dashboard():
         scores = [r['score'] for r in i_res.data if r.get('score')]
         avg_score = sum(scores) / len(scores) if scores else 0
         
-        # 5. Construct Response
+        # 5. Construct Response (Manual Mapping)
         return jsonify({
             "profile": {
+                "id": profile.get('id'),
                 "email": profile.get('email'),
-                "plan": "ACE PRO" if profile.get('subscription_status') == 'active' else "FREE", # Simplification
+                "role": profile.get('role', 'user'),
+                "plan": "ACE PRO" if (profile.get('subscription_status') == 'active' or profile.get('is_unlimited')) else "FREE",
                 "universal_credits": profile.get('credits', 0),
-                "tool_vouchers": profile.get('tool_vouchers') or {
-                    # Fallback to legacy columns if JSONB is empty/missing
+                "tool_vouchers": {
                     "rewrite": profile.get('resume_credits', 0),
-                    "mock_interview": profile.get('credits_interview_sim', 0),
-                    "negotiation": profile.get('credits_negotiation', 0),
-                    "linkedin_opt": profile.get('credits_linkedin', 0),
+                    "simulator": profile.get('credits_interview_sim', 0),
+                    "linkedin": profile.get('credits_linkedin', 0),
+                    "cover_letter": profile.get('credits_cover_letter', 0),
+                    "negotiator": profile.get('credits_negotiation', 0),
+                    "inquisitor": profile.get('credits_inquisitor', 0),
                     "follow_up": profile.get('credits_followup', 0)
                 }
             },
@@ -3949,17 +3976,16 @@ def admin_health():
         s7 = [r['score'] for r in r7.data if r.get('score') is not None]
         avg_7d = sum(s7) / len(s7) if s7 else 0.0
         
-        # 2. Error Log (System Logs)
-        e_res = db.table('system_logs').select('*').order('created_at', desc=True).limit(50).execute()
-        # Format for frontend (list of strings or objects? Frontend expects strings currently)
-        # Frontend code: err => `<div>${err}</div>`
-        # We need to format the object into a string for backward compatibility OR update frontend.
-        # Let's send objects but the frontend expects strings (from my memory of admin.html).
-        # Actually admin.html: data.error_log.map(err => ... ${err} ...)
-        # So it expects strings. Let's format them.
-        formatted_errors = [f"[{e['severity']}] {e['source']}: {e['message']}" for e in e_res.data]
+        # 2. Error Log (error_logs table)
+        e_res = db.table('error_logs').select('*').order('created_at', desc=True).limit(50).execute()
+        formatted_errors = [f"[{e.get('severity', 'INFO')}] {e.get('source', 'Unknown')}: {e.get('message', '')}" for e in e_res.data]
         
-        # If DB logs empty, fallback to memory
+        # 3. Cost Calculation (Month to Date)
+        first_of_month = datetime.utcnow().replace(day=1, hour=0, minute=0, second=0).isoformat()
+        c_res = db.table('error_logs').select('estimated_cost').gte('created_at', first_of_month).gt('estimated_cost', 0).execute()
+        costs = [c.get('estimated_cost', 0) for c in c_res.data]
+        current_month_spend = sum(costs)
+
         if not formatted_errors and SYSTEM_ERRORS:
             formatted_errors = SYSTEM_ERRORS[-50:]
 
@@ -3967,7 +3993,8 @@ def admin_health():
             "avg_24h": round(avg_24h, 1),
             "avg_7d": round(avg_7d, 1),
             "anomaly": avg_24h < (avg_7d - 0.5) and avg_24h > 0,
-            "error_log": formatted_errors
+            "error_log": formatted_errors,
+            "current_month_spend": current_month_spend
         })
 
     except Exception as e:
