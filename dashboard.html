@@ -352,17 +352,12 @@
                             <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                         </div>
 
-                        <!-- Metric 4: Credits -->
-                        <div
-                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group hover:border-teal/30 transition-colors">
-                            <div class="absolute top-0 left-0 w-full h-1 bg-teal/20"></div>
-                            <h3 id="plan-type-label"
-                                class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Plan</h3>
-                            <div class="w-full bg-slate-700 h-2 rounded-full overflow-hidden mb-3">
-                                <div id="credit-bar" class="bg-teal h-full rounded-full" style="width: 0%"></div>
-                            </div>
-                            <div class="flex justify-between w-full text-xs">
-                                <span id="credit-count" class="text-white font-bold">-- Credits</span>
+                        <!-- Metric 4: Credits (Usage Tile) -->
+                        <div id="usage-tile"
+                            class="glass-card rounded-2xl p-0 flex flex-col justify-between relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px]">
+                            <!-- Content injected by renderUsageTile() -->
+                            <div class="flex items-center justify-center h-full text-slate-500 text-xs">
+                                Loading Usage...
                             </div>
                         </div>
                     </div>
@@ -946,28 +941,14 @@
                     const isPro = profile.subscription_status === 'active';
                     document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
 
-                    // Plan & Credits Logic
-                    const creds = profile.credits || 0;
-                    const planLabel = document.getElementById('plan-type-label');
-                    const creditLabel = document.getElementById('credit-count');
-                    const bar = document.getElementById('credit-bar');
-
-                    if (profile.is_unlimited) {
-                        planLabel.innerText = "Monthly Unlimited";
-                        creditLabel.innerText = "Unlimited Interviews";
-                        bar.style.width = '100%';
-                        bar.classList.add('bg-purple-500'); // Special color for unlimited
-                    } else if (profile.plan_tier === 'strategy_bundle') {
-                        planLabel.innerText = "Strategy Bundle";
-                        creditLabel.innerText = `${creds} Credits Left`;
-                        bar.style.width = `${Math.min(100, (creds / 20) * 100)}%`;
-                    } else {
-                        planLabel.innerText = "Free Plan";
-                        creditLabel.innerText = `${creds} Credits Left`;
-                        bar.style.width = `${Math.min(100, (creds / 5) * 100)}%`;
+                    // Plan & Credits Logic (Refactored to Usage Tile)
+                    if (window.renderUsageTile) {
+                        try {
+                            renderUsageTile(profile);
+                        } catch (e) {
+                            console.error("Usage Tile Error:", e);
+                        }
                     }
-
-                    if (isPro) document.getElementById('credit-bar').classList.add('bg-purple-500');
 
                     // --- REAL-TIME STATS FETCHING ---
 

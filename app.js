@@ -453,6 +453,56 @@ const PRODUCTS = [
     }
 ];
 
+// --- USAGE TILE RENDERER ---
+window.renderUsageTile = function (user) {
+    const tile = document.getElementById('usage-tile');
+    if (!tile) return;
+
+    const isPro = user.is_unlimited || user.subscription_status === 'active';
+    const credits = isPro ? '∞' : (user.credits || 0);
+    const planName = isPro ? 'PRO' : 'FREE';
+    const badgeColor = isPro ? 'bg-gold text-black' : 'bg-slate-600 text-slate-200'; // Gold for Pro? Tailwind config might not have gold, I'll use yellow-500 or proper hex. User context css file mentioned simple vanilla css but using tailwind classes. I'll stick to yellow-500 for gold.
+    const badgeClass = isPro ? 'bg-yellow-500 text-black' : 'bg-slate-600 text-slate-300';
+
+    const html = `
+        <div class="flex flex-1 items-center w-full">
+            <!-- Left: Status -->
+            <div class="w-1/2 flex flex-col justify-center items-center border-r border-white/5 p-2 py-4">
+                <span class="text-[9px] font-black px-2 py-0.5 rounded-full ${badgeClass} mb-2 uppercase tracking-wider">Plan: ${planName}</span>
+                <div class="text-3xl font-bold text-white mb-1 tracking-tight">${credits}</div>
+                <div class="text-[8px] text-slate-500 uppercase tracking-widest text-center">
+                    ${isPro ? 'Unlimited' : 'Credits Left'}
+                </div>
+            </div>
+
+            <!-- Right: Menu -->
+            <div class="w-1/2 flex flex-col justify-center p-3 space-y-2.5">
+                <div class="flex justify-between items-center text-[9px] text-slate-300">
+                    <span class="truncate"><i class="fas fa-microphone mr-1.5 text-teal"></i>Sim</span>
+                    <span class="font-bold">1</span>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-300">
+                    <span class="truncate"><i class="fas fa-file-alt mr-1.5 text-blue-400"></i>Rewrite</span>
+                    <span class="font-bold">1</span>
+                </div>
+                <div class="flex justify-between items-center text-[9px] text-slate-300">
+                    <span class="truncate"><i class="fas fa-search mr-1.5 text-purple-400"></i>Scanner</span>
+                    <span class="font-bold text-green-400">FREE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Action -->
+        <button onclick="${isPro ? "window.location.href='/pricing.html'" : "initiateCheckout('monthly_plan', null, null)"}" 
+            class="w-full py-2.5 text-[9px] font-black uppercase tracking-widest text-center transition-all
+            ${isPro ? 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10' : 'bg-teal text-black hover:bg-teal/90 shadow-[0_0_15px_rgba(45,212,191,0.2)]'}">
+            ${isPro ? 'Manage Subscription' : 'Get Unlimited Access'}
+        </button>
+    `;
+
+    tile.innerHTML = html;
+};
+
 // --- RENDER LOGIC (Compact Accordion) ---
 window.renderUpgradeHub = function (containerId) {
     const container = document.getElementById(containerId);
