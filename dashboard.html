@@ -36,16 +36,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- App Logic -->
+    <script src="/app.js"></script>
 
     <script>
-        // Supabase Initialization
-        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-
-        // Initialize Supabase Client
-        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Auth Logic Pre-check
+        // Auth Logic Pre-check (Restored)
         const SESSION_KEY = 'supabase.auth.token';
         const token = localStorage.getItem(SESSION_KEY);
         if (!token) {
@@ -243,16 +238,9 @@
                     <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                         Upgrade Hub
                     </div>
-                    <button onclick="buyCredits('price_1Sbq1WIH1WTKNasqXrlCBDSD', 'subscription')"
-                        class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-teal rounded-lg hover:bg-teal/10 transition-all group">
-                        <i class="fas fa-crown"></i>
-                        <span>Monthly Package ($49.99)</span>
-                    </button>
-                    <button onclick="buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment')"
-                        class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 rounded-lg hover:text-white hover:bg-white/5 transition-all group">
-                        <i class="fas fa-bolt"></i>
-                        <span>Executive Rewrite ($12.99)</span>
-                    </button>
+                    <div id="upgradeList" class="px-2">
+                        <!-- Content Injected by renderUpgradeHub() -->
+                    </div>
                 </div>
             </nav>
 
@@ -594,10 +582,15 @@
             // 1. Sidebar Init
             initSidebar();
 
-            // 2. Fetch User & Stats
+            // 2. Render Upgrade Hub
+            if (window.renderUpgradeHub) {
+                renderUpgradeHub('upgradeList');
+            }
+
+            // 3. Fetch User & Stats
             await loadUserProfile();
 
-            // 3. Fetch Jobs (Kanban)
+            // 4. Fetch Jobs (Kanban)
             loadJobs();
         });
 
@@ -1084,14 +1077,7 @@
             window.location.href = destinationUrl;
         };
 
-        window.buyCredits = async (priceId, mode) => {
-            // simplified
-            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                body: { price_id: priceId, return_url: window.location.href, mode: mode }
-            });
-            if (data?.url) window.location.href = data.url;
-            else alert("Payment init failed");
-        }
+        // window.buyCredits is now handled in app.js
 
         window.signOut = () => {
             localStorage.removeItem(SESSION_KEY);

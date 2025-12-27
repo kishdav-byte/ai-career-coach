@@ -377,27 +377,126 @@ async function sendVoiceMessage(base64Audio) {
     }
 }
 
-// Helper to reuse checkout logic (Global Scope)
+// --- PRODUCT DATA (OFFICIAL PRICING TABLE) ---
+const PRODUCTS = [
+    {
+        id: 'monthly_plan',
+        title: 'Ace Pro Monthly',
+        price: '$49.99',
+        desc: 'Unlimited Access + 50 Voice Sessions',
+        stripeId: 'price_1Sbq1WIH1WTKNasqXrlCBDSD',
+        tag: 'Best Value'
+    },
+    {
+        id: 'strategy_bundle',
+        title: 'Strategy Bundle',
+        price: '$29.99',
+        desc: '5 Universal Credits (Save ~$15)',
+        stripeId: 'price_1SePqzlH1WTKNasq34FYIKNm',
+        tag: 'Popular'
+    },
+    {
+        id: 'executive_rewrite',
+        title: 'Executive Rewrite',
+        price: '$12.99',
+        desc: 'Full Resume Content Rewrite',
+        stripeId: 'price_1Sgsf9IH1WTKNasqxvk528yY'
+    },
+    {
+        id: 'interview_sim',
+        title: 'Interview Simulator',
+        price: '$9.99',
+        desc: 'Mock Interview Session + Scoring',
+        stripeId: 'price_1SeRRnlH1WTKNasqQFCJDxH5'
+    },
+    {
+        id: 'plan_30_60_90',
+        title: '30-60-90 Day Plan',
+        price: '$8.99',
+        desc: 'Strategic Onboarding Plan',
+        stripeId: 'price_1SePqzlH1WTKNasq34FYIKNm' // Using Bundle Placeholder till specific ID confirmed
+    },
+    {
+        id: 'cover_letter',
+        title: 'Cover Letter',
+        price: '$6.99',
+        desc: '1 Tailored PDF Document',
+        stripeId: 'price_1Shc7tlH1WTKNasqQNu7O5fL'
+    },
+    {
+        id: 'linkedin_optimize',
+        title: 'LinkedIn Optimizer',
+        price: '$6.99',
+        desc: '1 Profile Refinement Report',
+        stripeId: 'price_1ShWBJIH1WTKNasqd7p9VA5f'
+    },
+    {
+        id: 'negotiation',
+        title: 'The Closer',
+        price: '$6.99',
+        desc: '1 Negotiation Script',
+        stripeId: 'price_1SePpZIH1WTKNasqLuNq4sSZ'
+    },
+    {
+        id: 'inquisitor',
+        title: 'The Inquisitor',
+        price: '$6.99',
+        desc: '1 Reverse Interview Guide',
+        stripeId: 'price_1SeQGAIH1WTKNasqKwRR20TZ'
+    },
+    {
+        id: 'follow_up',
+        title: 'Value Follow-Up',
+        price: '$6.99',
+        desc: '1 Post-Interview Email Draft',
+        stripeId: 'price_1SeQHYIH1WTKNasqpFyl2ef0'
+    }
+];
+
+// --- RENDER LOGIC ---
+window.renderUpgradeHub = function (containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = PRODUCTS.map(p => `
+        <button onclick="initiateCheckout('${p.id}', null, null)" 
+            class="w-full text-left bg-white/5 hover:bg-white/10 border border-white/5 rounded-lg p-3 transition-all group relative mb-2 flex items-center justify-between">
+            
+            ${p.tag ? `<span class="absolute -top-2 -right-2 bg-teal text-black text-[9px] font-black px-2 py-0.5 rounded-full shadow-lg uppercase tracking-wider">${p.tag}</span>` : ''}
+            
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="text-sm font-bold text-white group-hover:text-teal transition-colors">${p.title}</span>
+                    <span class="text-xs font-medium text-teal bg-teal/10 px-1.5 py-0.5 rounded">${p.price}</span>
+                </div>
+                <p class="text-[10px] text-slate-400 leading-tight">${p.desc}</p>
+            </div>
+            
+            <i class="fas fa-chevron-right text-xs text-slate-600 group-hover:text-white transition-colors"></i>
+        </button>
+    `).join('');
+};
+
 // Helper to reuse checkout logic (Global Scope)
 async function initiateCheckout(productKey, userEmail, userId) {
     console.log('Initiating checkout for:', productKey);
 
     const btn = document.querySelector('.btn-unlock');
-    // Optional: Simple UI feedback without crashing if button doesn't exist or isn't passed
     if (btn) {
         btn.innerText = 'Redirecting...';
         btn.disabled = true;
     }
 
     try {
-        // 1. STRICT PRICING MAP
-        const priceMap = {
-            'strategy_interview_sim': 'price_1Sgsf9IH1WTKNasqxvk528yY', // $12.99
-            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',           // $49.99
-            'linkedin_optimize': 'price_1ShWBJIH1WTKNasqd7p9VA5f'       // $6.99 (NEW)
+        // 1. Dynamic Pricing Lookup
+        const product = PRODUCTS.find(p => p.id === productKey);
+        // Fallback to legacy keys if not in array (e.g. from old buttons)
+        const legacyMap = {
+            'strategy_interview_sim': 'price_1Sgsf9IH1WTKNasqxvk528yY',
+            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'
         };
 
-        const actualPriceId = priceMap[productKey];
+        const actualPriceId = product ? product.stripeId : legacyMap[productKey];
 
         if (!actualPriceId) {
             console.error("Invalid Product Key:", productKey);
@@ -410,10 +509,26 @@ async function initiateCheckout(productKey, userEmail, userId) {
         }
 
         // Determine Mode (Subscription vs Payment)
-        const isSubscription = actualPriceId === 'price_1Sbq1WIH1WTKNasqXrlCBDSD'; // Monthly Plan ID
+        const isSubscription = actualPriceId === 'price_1Sbq1WIH1WTKNasqXrlCBDSD';
         const mode = isSubscription ? 'subscription' : 'payment';
 
         console.log('Using Stripe Price ID:', actualPriceId, 'Mode:', mode);
+
+        // Get User if missing (Dashboard Context)
+        if (!userEmail || !userId) {
+            const session = getSession();
+            // Also try Supabase Auth directly if session is stale
+            if (!session) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    userEmail = user.email;
+                    userId = user.id;
+                }
+            } else {
+                userEmail = session.email;
+                userId = session.user_id; // Check if we store user_id in session
+            }
+        }
 
         // 2. Call Supabase Edge Function (STRICTLY)
         const { data, error } = await supabase.functions.invoke('create-checkout-session', {
@@ -427,23 +542,7 @@ async function initiateCheckout(productKey, userEmail, userId) {
             }
         });
 
-        if (error) {
-            let msg = error.message || 'Unknown error';
-            // Check if we can parse the response body for more details
-            if (error.context && typeof error.context.json === 'function') {
-                try {
-                    const body = await error.context.json();
-                    if (body && body.error) {
-                        msg = body.error; // Use the specific error from backend
-                    } else {
-                        msg += ' - ' + JSON.stringify(body);
-                    }
-                } catch (e) {
-                    console.warn('Could not parse error body:', e);
-                }
-            }
-            throw new Error(msg);
-        }
+        if (error) throw error;
 
         if (data?.url) {
             window.location.href = data.url;
@@ -473,8 +572,10 @@ function init() {
     versionDisplay.textContent = 'v9.0';
     document.body.appendChild(versionDisplay);
 
-    // Run Access Check
-    checkAccess();
+    // Run Access Check (BUT Skip on Dashboard to avoid annoyance)
+    if (!window.location.pathname.includes('dashboard.html')) {
+        checkAccess();
+    }
 
     // Helper: Safely add event listener (only if el exists)
     function addClickListener(id, handler) {
