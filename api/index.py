@@ -357,7 +357,7 @@ def get_feedback():
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
-            "is_complete": False 
+            "is_complete": question_count > 5
         }), 200
 
     except Exception as e:
