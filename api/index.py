@@ -1,6 +1,8 @@
 from flask import Flask, request, jsonify
 from supabase import create_client, Client
 import os
+import json
+import base64
 
 app = Flask(__name__)
 
@@ -162,6 +164,123 @@ def generate_intel():
     except Exception as e:
          print(f"AI Error: {e}")
          return jsonify({"error": str(e)}), 500
+
+# 6. ANALYZE JD (POST)
+@app.route('/api/analyze-jd', methods=['POST'])
+def analyze_jd():
+    try:
+        data = request.json
+        jd_text = data.get('job_description', '')
+        
+        if not jd_text or len(jd_text) < 10:
+             return jsonify({"role": "Target Role", "company": "Target Company", "summary": "No context provided."}), 200
+
+        # OpenAI Call
+        from openai import OpenAI
+        OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+        if not OPENAI_KEY: return jsonify({"error": "Missing AI Key"}), 500
+        
+        client = OpenAI(api_key=OPENAI_KEY)
+        
+        prompt = (
+            f"Analyze this Job Description:\n{jd_text}\n\n"
+            f"Return a JSON object with these keys:\n"
+            f"- role: The specific job title\n"
+            f"- company: The company name\n"
+            f"- summary: A 3-sentence summary of the main responsibilities"
+        )
+
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a data extraction assistant. Output valid JSON only."}, 
+                {"role": "user", "content": prompt}
+            ],
+            response_format={ "type": "json_object" }
+        )
+        
+        result = json.loads(completion.choices[0].message.content)
+        return jsonify(result), 200
+
+    except Exception as e:
+        print(f"Analyze JD Error: {e}")
+        return jsonify({"role": "Unknown Role", "company": "Unknown Company", "summary": "Analysis failed."}), 200
+
+# 7. GET FEEDBACK / INTERVIEW LOOP (POST)
+@app.route('/api/get-feedback', methods=['POST'])
+def get_feedback():
+    try:
+        data = request.json
+        message = data.get('message', '')
+        history = data.get('history', [])
+        job_posting = data.get('jobPosting', '')
+        resume_text = data.get('resumeText', '')
+        is_start = data.get('isStart', False)
+        question_count = data.get('questionCount', 1)
+        
+        # OpenAI Config
+        from openai import OpenAI
+        OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+        if not OPENAI_KEY: return jsonify({"error": "Missing AI Key"}), 500
+        client = OpenAI(api_key=OPENAI_KEY)
+
+        # Build Context
+        system_prompt = (
+            "You are an expert Executive Interview Coach. Your goal is to conduct a realistic, "
+            "high-stakes interview simulation. \n"
+            f"CONTEXT:\nJob: {job_posting}\nCandidate Resume: {resume_text}\n"
+            "BEHAVIOR:\n"
+            "- Ask one hard, relevant question at a time.\n"
+            "- If the user just answered, provide brief, critical feedback (score 1-5) on their answer before moving on.\n"
+            "- If this is the START, greet them professionally and ask the first question.\n"
+            "- Keep questions concise but challenging.\n"
+            "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }"
+        )
+
+        messages = [{"role": "system", "content": system_prompt}]
+        
+        # Add limited history to save context window
+        for interaction in history[-3:]: 
+            if 'question' in interaction: messages.append({"role": "assistant", "content": interaction['question']})
+            if 'answer' in interaction: messages.append({"role": "user", "content": interaction['answer']})
+        
+        # Current Input
+        if is_start:
+            messages.append({"role": "user", "content": "I am ready to start the interview."})
+        else:
+            messages.append({"role": "user", "content": message})
+
+        # 1. Text Generation
+        chat_completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=messages,
+            response_format={ "type": "json_object" }
+        )
+        
+        ai_response_text = chat_completion.choices[0].message.content
+        ai_json = json.loads(ai_response_text) 
+        
+        # 2. Audio Generation (Omit if empty text)
+        audio_b64 = None
+        if ai_json.get('next_question'):
+            voice = data.get('voice', 'alloy')
+            audio_response = client.audio.speech.create(
+                model="tts-1",
+                voice=voice,
+                input=ai_json['next_question']
+            )
+            # Encode
+            audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
+        
+        return jsonify({
+            "response": ai_json,
+            "audio": audio_b64,
+            "is_complete": False 
+        }), 200
+
+    except Exception as e:
+        print(f"Feedback Error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 # Expose app
 app = app
