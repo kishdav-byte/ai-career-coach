@@ -340,10 +340,16 @@ def get_feedback():
         audio_b64 = None
         if ai_json.get('next_question'):
             voice = data.get('voice', 'alloy')
+
+            # SPEAK FEEDBACK + QUESTION
+            speech_text = ai_json['next_question']
+            if ai_json.get('feedback'):
+                 speech_text = f"Feedback: {ai_json['feedback']} \n\n {ai_json['next_question']}"
+
             audio_response = client.audio.speech.create(
                 model="tts-1-hd",
                 voice=voice,
-                input=ai_json['next_question']
+                input=speech_text
             )
             # Encode
             audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
