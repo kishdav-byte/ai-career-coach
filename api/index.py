@@ -127,14 +127,13 @@ def generate_intel():
         if len(jd_text) < 50:
             return jsonify({"error": "JD too short"}), 400
 
-        # 2. Configure Gemini
-        import google.generativeai as genai
-        GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
-        if not GEMINI_KEY:
+        # 2. Configure OpenAI
+        from openai import OpenAI
+        OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+        if not OPENAI_KEY:
              return jsonify({"error": "Server Config Error: Missing AI Key"}), 500
         
-        genai.configure(api_key=GEMINI_KEY)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        client = OpenAI(api_key=OPENAI_KEY)
 
         # 3. Generate Intel
         prompt = (
@@ -147,8 +146,16 @@ def generate_intel():
             f"Format the output as a clean, concise list."
         )
         
-        response = model.generate_content(prompt)
-        ai_intel = response.text
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are an expert executive career coach."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
+
+        ai_intel = response.choices[0].message.content
         
         return jsonify({"intel": ai_intel}), 200
 
