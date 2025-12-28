@@ -2675,7 +2675,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Auto-Start if we have a JD
                 if (job.job_description && job.job_description.length > 50) {
                     const startBtn = document.getElementById('start-interview-btn');
-                    if (startBtn) startBtn.click();
+                    // DO NOT CLICK AUTOMATICALLY - Browser blocks audio
+                    // startBtn.click(); 
+                    if (startBtn) {
+                        startBtn.innerHTML = '<i class="fas fa-play"></i> INITIALIZE MISSION';
+                        startBtn.classList.remove('bg-blue-600');
+                        startBtn.classList.add('bg-purple-600', 'animate-pulse');
+                        addMessage("**Mission Ready.** Click 'Initialize Mission' to begin.", 'system');
+                    }
                 }
             }
         }).catch(e => console.error("Deep Link Fetch Error", e));
