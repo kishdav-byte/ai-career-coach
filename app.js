@@ -1468,76 +1468,81 @@ function init() {
     const chatWindow = document.getElementById('chat-window');
     const chatInput = document.getElementById('chat-input');
 
-    document.getElementById('send-chat-btn').addEventListener('click', () => {
-        primeAudio();
-        showThinkingState(); // Trigger UI for text input too
-        sendChatMessage();
-    });
-    document.getElementById('start-interview-btn').addEventListener('click', async () => {
-        // Prioritize Context Accordion inputs, fallback to sidebar
-        const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
-        const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
-
-        let jobPosting = accordionJD || sidebarJD;
-
-        // MISSION BRIEF LOGIC: Construct composite string if structured data exists
-        try {
-            const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-            if (mCtx && mCtx.role && mCtx.company) {
-                jobPosting = `MISSION BRIEFING:\nTarget Role: ${mCtx.role} at ${mCtx.company}.\n\nMISSION PRIORITIES (FOCUS AREAS):\n${mCtx.jd || "No specific priorities set."}`;
-                console.log("Constructed Mission Brief Payload:", jobPosting);
-            }
-        } catch (e) { console.warn("Mission Context Parse Error", e); }
-
-        const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
-
-        const chatInterface = document.getElementById('chat-interface');
-        const activeState = document.getElementById('interview-active-state');
-
-        if (jobPosting.trim()) {
+    const sendChatBtn = document.getElementById('send-chat-btn');
+    if (sendChatBtn) {
+        sendChatBtn.addEventListener('click', () => {
             primeAudio();
-            primeAudio();
-            questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
-            interviewHistory = []; // Reset history
+            showThinkingState(); // Trigger UI for text input too
+            sendChatMessage();
+        });
+    }
+    const startInterviewBtn = document.getElementById('start-interview-btn');
+    if (startInterviewBtn) {
+        startInterviewBtn.addEventListener('click', async () => {
+            // Prioritize Context Accordion inputs, fallback to sidebar
+            const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
+            const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
 
-            // Show Chat Interface, Hide Intro & Setup
-            // Show Chat Interface, Hide Intro & Setup
-            if (activeState) activeState.classList.add('hidden');
-            // Chat Interface will be revealed by finishSetup() after countdown
+            let jobPosting = accordionJD || sidebarJD;
 
-            // START COUNTDOWN (Parallel with API calls)
-            startCountdown();
-
-            const intro = document.getElementById('interview-intro');
-            if (intro) intro.classList.add('hidden');
-
-            // UI: Toggle Sidebar Buttons
-            const startBtn = document.getElementById('start-interview-btn');
-            const activeControls = document.getElementById('active-session-controls');
-            if (startBtn) startBtn.classList.add('hidden');
-            if (activeControls) activeControls.classList.remove('hidden');
-
-            console.log("Starting Interview Flow...");
-            await processJobDescription(); // Analyze JD before starting
-
-            // Pass resume info & Company Name & Interviewer Intel
-            let companyName = "the target company";
-            let interviewerIntel = "";
-
+            // MISSION BRIEF LOGIC: Construct composite string if structured data exists
             try {
                 const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-                if (mCtx) {
-                    if (mCtx.company) companyName = mCtx.company;
-                    if (mCtx.notes) interviewerIntel = mCtx.notes;
+                if (mCtx && mCtx.role && mCtx.company) {
+                    jobPosting = `MISSION BRIEFING:\nTarget Role: ${mCtx.role} at ${mCtx.company}.\n\nMISSION PRIORITIES (FOCUS AREAS):\n${mCtx.jd || "No specific priorities set."}`;
+                    console.log("Constructed Mission Brief Payload:", jobPosting);
                 }
-            } catch (e) { }
+            } catch (e) { console.warn("Mission Context Parse Error", e); }
 
-            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel);
-        } else {
-            alert("Please paste a job description first.");
-        }
-    });
+            const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
 
+            const chatInterface = document.getElementById('chat-interface');
+            const activeState = document.getElementById('interview-active-state');
+
+            if (jobPosting.trim()) {
+                primeAudio();
+                primeAudio();
+                questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
+                interviewHistory = []; // Reset history
+
+                // Show Chat Interface, Hide Intro & Setup
+                // Show Chat Interface, Hide Intro & Setup
+                if (activeState) activeState.classList.add('hidden');
+                // Chat Interface will be revealed by finishSetup() after countdown
+
+                // START COUNTDOWN (Parallel with API calls)
+                startCountdown();
+
+                const intro = document.getElementById('interview-intro');
+                if (intro) intro.classList.add('hidden');
+
+                // UI: Toggle Sidebar Buttons
+                const startBtn = document.getElementById('start-interview-btn');
+                const activeControls = document.getElementById('active-session-controls');
+                if (startBtn) startBtn.classList.add('hidden');
+                if (activeControls) activeControls.classList.remove('hidden');
+
+                console.log("Starting Interview Flow...");
+                await processJobDescription(); // Analyze JD before starting
+
+                // Pass resume info & Company Name & Interviewer Intel
+                let companyName = "the target company";
+                let interviewerIntel = "";
+
+                try {
+                    const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+                    if (mCtx) {
+                        if (mCtx.company) companyName = mCtx.company;
+                        if (mCtx.notes) interviewerIntel = mCtx.notes;
+                    }
+                } catch (e) { }
+
+                sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel);
+            } else {
+                alert("Please paste a job description first.");
+            }
+        });
+    }
 
 
     function primeAudio() {
@@ -1546,9 +1551,11 @@ function init() {
         audioPlayer.play().catch(() => { });
         audioPlayer.pause();
     }
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatMessage();
-    });
+    if (chatInput) {
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendChatMessage();
+        });
+    }
 
     // JD Analyzer Logic
     let jobData = { role: "", company: "", summary: "" };
@@ -1594,8 +1601,10 @@ function init() {
         if (mediaRecorder && mediaRecorder.state === 'recording') {
             console.log("Stopping recording...");
             mediaRecorder.stop();
-            recordBtn.textContent = '🎤';
-            recordBtn.style.background = '#dc3545'; // Red (default)
+            if (recordBtn) {
+                recordBtn.textContent = '🎤';
+                recordBtn.style.background = '#dc3545'; // Red (default)
+            }
         } else {
             console.log("Starting recording...");
             try {
@@ -1622,8 +1631,10 @@ function init() {
                 };
 
                 mediaRecorder.start();
-                recordBtn.textContent = '⏹️';
-                recordBtn.style.background = '#28a745'; // Green (recording)
+                if (recordBtn) {
+                    recordBtn.textContent = '⏹️';
+                    recordBtn.style.background = '#28a745'; // Green (recording)
+                }
             } catch (err) {
                 console.error("Error accessing microphone:", err);
                 alert("Could not access microphone. Please allow permissions. Error: " + err.message);
@@ -1635,7 +1646,7 @@ function init() {
 
 
     async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "") {
-        const message = msg || chatInput.value;
+        const message = msg || (chatInput ? chatInput.value : '');
         if (!message) return;
 
         // Note: In a real app, we'd send chat history. For prototype, we just send the last message.
@@ -1646,7 +1657,7 @@ function init() {
             // Add user message
             addMessage(message, 'user');
         }
-        chatInput.value = '';
+        if (chatInput) chatInput.value = '';
 
         // REMOVED: Old Thinking Interval Logic (Refactored to showThinkingState)
 
@@ -1795,7 +1806,8 @@ function init() {
         try {
             const session = getSession();
             const email = session ? session.email : null;
-            const jobPosting = document.getElementById('interview-job-posting').value;
+            const interviewJobPosting = document.getElementById('interview-job-posting');
+            const jobPosting = interviewJobPosting ? interviewJobPosting.value : '';
 
             const response = await fetch('/api', {
                 method: 'POST',
@@ -1861,10 +1873,12 @@ function init() {
             div.textContent = text;
         }
 
-        chatWindow.appendChild(div);
-        // Ensure we scroll the parent container, not just the window div if it's not the scroller
-        // The scroller is #view-interview-main or .overflow-auto parent
-        div.scrollIntoView({ behavior: 'smooth' });
+        if (chatWindow) {
+            chatWindow.appendChild(div);
+            // Ensure we scroll the parent container, not just the window div if it's not the scroller
+            // The scroller is #view-interview-main or .overflow-auto parent
+            div.scrollIntoView({ behavior: 'smooth' });
+        }
         return div.id;
     }
     // Expose functions to global scope for sendVoiceMessage and button handlers
@@ -1881,9 +1895,14 @@ if (document.getElementById('generate-plan-btn')) {
 
     // Tab 3: Career Planner
     document.getElementById('generate-plan-btn').addEventListener('click', async () => {
-        const jobTitle = document.getElementById('job-title').value;
-        const company = document.getElementById('company').value;
-        const jobPosting = document.getElementById('job-posting').value;
+        const jobTitleEl = document.getElementById('job-title');
+        const companyEl = document.getElementById('company');
+        const jobPostingEl = document.getElementById('job-posting');
+
+        const jobTitle = jobTitleEl ? jobTitleEl.value : '';
+        const company = companyEl ? companyEl.value : '';
+        const jobPosting = jobPostingEl ? jobPostingEl.value : '';
+
         if (jobTitle && company) {
             const outputDiv = document.getElementById('planner-result');
             outputDiv.innerHTML = '<div class="loading-spinner">Generating plan...</div>';
@@ -2523,14 +2542,15 @@ if (urlParams.get('status') === 'success') {
 }
 
 // Unlock Check on Load (Persistent)
+// Wrapped in DOMContentLoaded or body check to prevent null error
 if (localStorage.getItem('has_unlocked_rewrite') === 'true') {
-    // If we had a mechanism to hide/show the 'Upsell' vs 'Editor', do it here.
-    // For now, we assume the user can just access the tab. 
-    // We might want to hide the "Unlock" button if it was on the Resume Analysis page?
-    // The Unlock button is injected in renderResumeReport (lines 686).
-    // We can't easily hide it here because renderResumeReport hasn't run yet.
-    // But we can add a global style or class to body?
-    document.body.classList.add('rewrite-unlocked');
+    if (document.body) {
+        document.body.classList.add('rewrite-unlocked');
+    } else {
+        document.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('rewrite-unlocked');
+        });
+    }
 }
 
 // -------------------------------------------------------------

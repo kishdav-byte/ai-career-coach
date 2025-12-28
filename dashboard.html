@@ -525,8 +525,10 @@
 
     <script>
         // --- AUTH & DATA VARS ---
-        let currentToken = localStorage.getItem('supabase.auth.token');
+        // --- AUTH & DATA VARS ---
+        // Token is now retrieved dynamically to prevent 401 Stale Errors
         let currentUser = null;
+
 
         // --- UI REFS ---
         const modal = document.getElementById('add-modal');
@@ -546,7 +548,7 @@
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
-            if (!currentToken) return; // redirect handled in head
+            if (!getSession()) return; // redirect handled in head
 
             // 1. Sidebar Init
             initSidebar();
@@ -603,11 +605,12 @@
                 saveBtn.disabled = true;
 
                 try {
+                    const session = getSession();
                     const response = await fetch('/api/generate-intel', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${currentToken}`
+                            'Authorization': `Bearer ${session?.access_token}`
                         },
                         body: JSON.stringify({ job_description: jdText })
                     });
@@ -645,9 +648,10 @@
             };
 
             try {
+                const session = getSession();
                 const res = await fetch(`/api/jobs/${currentJobId}`, {
                     method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                    headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
                     body: JSON.stringify(updates)
                 });
 
@@ -671,8 +675,9 @@
         // --- JOB LOGIC ---
         async function loadJobs() {
             try {
+                const session = getSession();
                 const res = await fetch('/api/jobs', {
-                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                    headers: { 'Authorization': `Bearer ${session?.access_token}` }
                 });
                 if (!res.ok) return; // Silent fail if still syncing
                 const jobs = await res.json();
@@ -759,9 +764,10 @@
             data.status = 'Identified';
 
             try {
+                const session = getSession();
                 const res = await fetch('/api/jobs', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${currentToken}` },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
                     body: JSON.stringify(data)
                 });
                 if (!res.ok) throw new Error("Failed");
@@ -777,7 +783,8 @@
         async function loadUserProfile() {
             try {
                 // Get User from Supabase
-                const { data: { user } } = await supabase.auth.getUser(currentToken);
+                const session = getSession();
+                const { data: { user } } = await supabase.auth.getUser(session?.access_token);
                 if (!user) throw new Error("No user");
 
                 // Get Profile
