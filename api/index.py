@@ -364,5 +364,62 @@ def get_feedback():
         print(f"Feedback Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# 8. GENERAL API ROUTE (Report Generation)
+@app.route('/api', methods=['POST'])
+def general_api():
+    try:
+        data = request.json
+        action = data.get('action') 
+        
+        # OpenAI Config
+        from openai import OpenAI
+        OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+        if not OPENAI_KEY: return jsonify({"error": "Missing AI Key"}), 500
+        client = OpenAI(api_key=OPENAI_KEY)
+
+        if action == 'generate_report':
+            history = data.get('history', [])
+            job_posting = data.get('jobPosting', '')
+
+            prompt = f"""
+            Generate a Final Executive Coaching Report based on this interview history.
+            
+            HISTORY:
+            {json.dumps(history)}
+
+            JOB CONTEXT:
+            {job_posting}
+
+            CRITICAL TASKS:
+            1. Calculate an AVERAGE SCORE based on the scores found in the history (0-5 scale).
+            2. Identify 3 Key Strengths.
+            3. Identify 3 Specific Areas for Improvement.
+            
+            OUTPUT FORMAT:
+            Return a JSON object with this structure:
+            {{ "report": "<html>...</html>" }}
+            
+            HTML REQUIREMENTS:
+            - Use a modern, dark-mode compatible style (Tailwind-like classes or inline styles).
+            - Include a big "Overall Score" badge (e.g., 4.2/5).
+            - Use bullet points for strengths/weaknesses.
+            - Keep it professional and encouraging.
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[{"role": "user", "content": prompt}],
+                response_format={ "type": "json_object" }
+            )
+            
+            result = json.loads(completion.choices[0].message.content)
+            return jsonify({"data": result}), 200
+            
+        return jsonify({"error": "Invalid Action"}), 400
+
+    except Exception as e:
+        print(f"General API Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # Expose app
 app = app
