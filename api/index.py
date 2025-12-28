@@ -287,12 +287,43 @@ def get_feedback():
                 "role": "user", 
                 "content": greeting_instruction
             })
+        elif question_count == 2:
+            messages.append({
+                "role": "user",
+                "content": (
+                    f"User Answer: {message}. \n"
+                    "Step 1: Thank the user for sharing that.\n"
+                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
+                    "Step 3: Ask the first STAR question."
+                )
+            })
+        elif question_count in [3, 4]:
+             messages.append({
+                "role": "user",
+                "content": (
+                    f"User Answer: {message}. \n"
+                    "Step 1: Provide brief feedback (score).\n"
+                    "Step 2: Say exactly: 'Thank you. The next question that I have for you is'\n"
+                    "Step 3: Ask the next interview question."
+                )
+             })
+        elif question_count == 5:
+             messages.append({
+                "role": "user",
+                "content": (
+                    f"User Answer: {message}. \n"
+                    "Step 1: Provide brief feedback (score).\n"
+                    "Step 2: Say exactly: 'The final question I have for you is'\n"
+                    "Step 3: Ask the final interview question."
+                )
+             })
         elif question_count > 5:
              messages.append({
                  "role": "user",
-                 "content": f"User Answer: {message}. This was the final question. Provide feedback and end the interview by saying 'Thank you for your time, that concludes our session.' as the next_question."
+                 "content": f"User Answer: {message}. This was the final question. Provide feedback and end the interview by saying 'Those were all of the questions that I have for you, thank you for your time.' as the next_question."
              })
         else:
+            # Fallback for any other state (shouldn't be hit if logic is perfect, but safe)
             messages.append({"role": "user", "content": message})
 
         # 1. Text Generation
