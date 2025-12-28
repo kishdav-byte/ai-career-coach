@@ -211,18 +211,45 @@ def analyze_jd():
 def get_feedback():
     try:
         data = request.json
-        message = data.get('message', '')
-        history = data.get('history', [])
-        job_posting = data.get('jobPosting', '')
-        resume_text = data.get('resumeText', '')
-        is_start = data.get('isStart', False)
-        question_count = data.get('questionCount', 1)
-        
+        action = data.get('action') 
+
         # OpenAI Config
         from openai import OpenAI
         OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
         if not OPENAI_KEY: return jsonify({"error": "Missing AI Key"}), 500
         client = OpenAI(api_key=OPENAI_KEY)
+
+        # --- A. TRANSCRIPTION PATH ---
+        if action == 'transcribe':
+            import tempfile
+            audio_b64 = data.get('audio', '')
+            # Robust decode: handle data URI scheme if present
+            if ',' in audio_b64:
+                audio_b64 = audio_b64.split(',')[1]
+            
+            audio_bytes = base64.b64decode(audio_b64)
+            
+            with tempfile.NamedTemporaryFile(suffix=".webm", delete=False) as temp_audio:
+                temp_audio.write(audio_bytes)
+                temp_path = temp_audio.name
+            
+            try:
+                with open(temp_path, "rb") as audio_file:
+                    transcription = client.audio.transcriptions.create(
+                        model="whisper-1", 
+                        file=audio_file
+                    )
+                return jsonify({"transcript": transcription.text}), 200
+            finally:
+                if os.path.exists(temp_path): os.remove(temp_path)
+
+        # --- B. FEEDBACK PATH (Existing) ---
+        message = data.get('message', '')
+        history = data.get('history', [])
+        job_posting = data.get('jobPosting', '')
+        resume_text = data.get('resumeText', '')
+        is_start = data.get('isStart', False)
+
 
         # Build Context
         system_prompt = (

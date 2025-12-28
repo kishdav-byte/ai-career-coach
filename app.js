@@ -350,9 +350,12 @@ async function sendVoiceMessage(base64Audio) {
         const email = session ? session.email : null;
 
         // 1. STT: Transcribe Audio
-        const transResponse = await fetch('/api', {
+        const transResponse = await fetch('/api/get-feedback', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session?.access_token}`
+            },
             body: JSON.stringify({
                 action: 'transcribe',
                 audio: base64Audio,
