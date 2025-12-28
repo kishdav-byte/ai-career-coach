@@ -259,8 +259,8 @@ def get_feedback():
             "BEHAVIOR:\n"
             "- Ask one hard, relevant question at a time.\n"
             "- If the user just answered, provide brief, critical feedback (score 1-5) on their answer before moving on.\n"
-            "- If this is the START, greet them professionally and ask the first question.\n"
             "- Keep questions concise but challenging.\n"
+            f"- This is Question {question_count} of 5.\n"
             "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }"
         )
 
@@ -271,9 +271,25 @@ def get_feedback():
             if 'question' in interaction: messages.append({"role": "assistant", "content": interaction['question']})
             if 'answer' in interaction: messages.append({"role": "user", "content": interaction['answer']})
         
-        # Current Input
+        # Current Input Strategy
         if is_start:
-            messages.append({"role": "user", "content": "I am ready to start the interview."})
+            # FORCE GREETING LOGIC
+            greeting_instruction = (
+                "Start the interview. "
+                "1. Introduce yourself as the hiring manager for the position mentioned in the Job context. "
+                "2. Thank the candidate for spending the time with you. "
+                "3. Advise that the interview will be broken down into two components: 'First, I'll ask you to give me a high level overview of your experience, then I will ask you to share specific examples of different situations that you have experienced.' "
+                "4. Ask exactly: 'Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you.'"
+            )
+            messages.append({
+                "role": "user", 
+                "content": greeting_instruction
+            })
+        elif question_count > 5:
+             messages.append({
+                 "role": "user",
+                 "content": f"User Answer: {message}. This was the final question. Provide feedback and end the interview by saying 'Thank you for your time, that concludes our session.' as the next_question."
+             })
         else:
             messages.append({"role": "user", "content": message})
 
