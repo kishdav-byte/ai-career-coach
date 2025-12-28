@@ -12,48 +12,41 @@ try:
 except Exception as e:
     print(f"Supabase Init Error: {e}")
 
-# 2. AUTHENTICATED CLIENT HELPER (Identity Handoff)
-# This creates a new Supabase client SPECIFIC to this request using the User's Token.
-def get_authenticated_client():
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        # If no token, return the default client (which will fail RLS, as expected)
-        return supabase
-    
-    try:
-        # Extract the actual token "Bearer <token>"
-        token = auth_header.split(" ")[1]
-        
-        # Create a new client that masquerades as the user
-        client = create_client(
-            SUPABASE_URL, 
-            SUPABASE_KEY, 
-            options={'headers': {'Authorization': f'Bearer {token}'}}
-        )
-        return client
-    except Exception as e:
-        print(f"Auth Handshake Error: {e}")
-        return supabase
-
 # 3. THE JOBS ROUTE (Secure Mode)
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
-    # 1. Get the Client that acts AS THE USER
-    user_client = get_authenticated_client()
-
-    # 2. Get User ID (Double Check validation)
+    # 1. Extract Token
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"error": "Missing Authorization Header"}), 401
+    
     try:
-        # We ask Supabase "Who am I?" using the forwarded token
-        user_response = user_client.auth.get_user()
+        token = auth_header.split(" ")[1]
+    except IndexError:
+        return jsonify({"error": "Invalid Token Format"}), 401
+
+    # 2. Verify User (Gatekeeper)
+    # Use the global client to verify the token is valid and get the ID.
+    try:
+        user_response = supabase.auth.get_user(token)
         user_id = user_response.user.id
     except Exception as e:
-        print(f"Identity Verification Failed: {e}")
+        print(f"Auth Verification Failed: {e}")
         return jsonify({"error": "Unauthorized"}), 401
+        
+    # 3. Create RLS-Compatible Client
+    # We create a new client and explicitly set the auth token for PostgREST.
+    try:
+        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_client.postgrest.auth(token)
+    except Exception as e:
+        print(f"Client Handshake Error: {e}")
+        return jsonify({"error": "Server Error"}), 500
 
     # B. GET Request (Loading the Dashboard)
     if request.method == 'GET':
         try:
-            # Now we query AS THE USER. RLS will pass!
+            # Query AS THE USER
             response = user_client.table('user_jobs').select(
                 "id, job_title, company_name, status, job_description"
             ).eq('user_id', user_id).execute()
