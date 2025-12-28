@@ -82,5 +82,65 @@ def manage_jobs():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+# 4. UPDATE JOB (PUT) - Saving Dossier Intel
+@app.route('/api/jobs/<job_id>', methods=['PUT'])
+def update_job(job_id):
+    # 1. Auth Setup (Reused Logic)
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "No Token"}), 401
+    
+    try:
+        token = auth_header.split(" ")[1]
+        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_client.postgrest.auth(token)
+        
+        # Verify ownership implicitly via RLS
+        data = request.json
+        
+        # Whitelist columns to update
+        updates = {}
+        if 'job_description' in data: updates['job_description'] = data['job_description']
+        if 'notes' in data: updates['notes'] = data['notes']
+        if 'salary_target' in data: updates['salary_target'] = data['salary_target']
+        
+        if not updates:
+            return jsonify({"status": "No changes"}), 200
+
+        res = user_client.table('user_jobs').update(updates).eq('id', job_id).execute()
+        return jsonify(res.data), 200
+
+    except Exception as e:
+        print(f"Update Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 5. GENERATE INTEL (POST) - AI Placeholder
+@app.route('/api/generate-intel', methods=['POST'])
+def generate_intel():
+    # 1. Auth Check
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        data = request.json
+        jd_text = data.get('job_description', '')
+        
+        if len(jd_text) < 50:
+            return jsonify({"error": "JD too short"}), 400
+
+        # MOCK AI RESPONSE (To Fix 500/Restoring Service first)
+        # Real AI implementation would go here (OpenAI/Gemini call)
+        mock_intel = (
+            "Based on the provided Job Description, here are key insights:\n\n"
+            "1. **Strategic Priority**: The role focuses heavily on " + jd_text[:30] + "...\n"
+            "2. **Key Competency**: Demonstrated ability to scale operations.\n"
+            "3. **Culture Fit**: Fast-paced, high-accountability environment.\n\n"
+            "**Recommended Talking Point**: 'I noticed you emphasize X, in my past role I...'"
+        )
+        
+        return jsonify({"intel": mock_intel}), 200
+
+    except Exception as e:
+         return jsonify({"error": str(e)}), 500
+
 # Expose app
 app = app
