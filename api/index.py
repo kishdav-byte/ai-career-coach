@@ -113,7 +113,7 @@ def update_job(job_id):
         print(f"Update Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# 5. GENERATE INTEL (POST) - AI Placeholder
+# 5. GENERATE INTEL (POST) - AI Powered
 @app.route('/api/generate-intel', methods=['POST'])
 def generate_intel():
     # 1. Auth Check
@@ -127,19 +127,33 @@ def generate_intel():
         if len(jd_text) < 50:
             return jsonify({"error": "JD too short"}), 400
 
-        # MOCK AI RESPONSE (To Fix 500/Restoring Service first)
-        # Real AI implementation would go here (OpenAI/Gemini call)
-        mock_intel = (
-            "Based on the provided Job Description, here are key insights:\n\n"
-            "1. **Strategic Priority**: The role focuses heavily on " + jd_text[:30] + "...\n"
-            "2. **Key Competency**: Demonstrated ability to scale operations.\n"
-            "3. **Culture Fit**: Fast-paced, high-accountability environment.\n\n"
-            "**Recommended Talking Point**: 'I noticed you emphasize X, in my past role I...'"
+        # 2. Configure Gemini
+        import google.generativeai as genai
+        GEMINI_KEY = os.environ.get("GEMINI_API_KEY")
+        if not GEMINI_KEY:
+             return jsonify({"error": "Server Config Error: Missing AI Key"}), 500
+        
+        genai.configure(api_key=GEMINI_KEY)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+
+        # 3. Generate Intel
+        prompt = (
+            f"Analyze this Job Description and extract 3 critical insights for an executive candidate:\n"
+            f"1. A Strategic Priority (What is the #1 big picture goal?)\n"
+            f"2. A Key Competency (What specific skill is non-negotiable?)\n"
+            f"3. A Cultural Clue (What is the vibe?)\n"
+            f"Then, provide 1 specific 'Power Talking Point' the candidate can use.\n\n"
+            f"JOB DESCRIPTION:\n{jd_text}\n\n"
+            f"Format the output as a clean, concise list."
         )
         
-        return jsonify({"intel": mock_intel}), 200
+        response = model.generate_content(prompt)
+        ai_intel = response.text
+        
+        return jsonify({"intel": ai_intel}), 200
 
     except Exception as e:
+         print(f"AI Error: {e}")
          return jsonify({"error": str(e)}), 500
 
 # Expose app
