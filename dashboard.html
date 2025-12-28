@@ -562,8 +562,7 @@
             await loadUserProfile();
 
             // 4. Fetch Jobs (Kanban)
-            // 4. Removed Kanban Load
-            // loadJobs();
+            loadJobs();
         });
 
         // --- DOSSIER LOGIC ---
@@ -707,10 +706,11 @@
                 if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;
 
                 // Create Card
+                // FIX: Map backend keys (job_title, company_name) to UI
                 const card = `
                 <div class="bg-slate-900 border border-slate-800 p-3 rounded mb-3 relative group hover:border-blue-500/30 transition-all cursor-pointer" onclick="window.openDossier('${job.id}')">
-                    <h4 class="text-sm font-bold text-white truncate">${job.role || 'New Role'}</h4>
-                    <p class="text-xs text-slate-400 truncate">${job.company || 'New Company'}</p>
+                    <h4 class="text-sm font-bold text-white truncate">${job.job_title || job.role || 'New Role'}</h4>
+                    <p class="text-xs text-slate-400 truncate">${job.company_name || job.company || 'New Company'}</p>
                     <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                          <i class="fas fa-chevron-right text-slate-600"></i>
                     </div>
