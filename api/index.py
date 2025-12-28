@@ -249,6 +249,7 @@ def get_feedback():
         job_posting = data.get('jobPosting', '')
         resume_text = data.get('resumeText', '')
         is_start = data.get('isStart', False)
+        question_count = data.get('questionCount', 1)
 
 
         # Build Context
