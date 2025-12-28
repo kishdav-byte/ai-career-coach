@@ -1726,9 +1726,21 @@ function init() {
                     audio.play().catch(e => console.error("Playback failed:", e));
                 }
 
-                // 2. Show Closing Message
-                if (data.response && data.response.next_question) {
-                    addMessage(data.response.next_question, 'system', true);
+                // 2. Show Closing Message + Feedback
+                if (data.response) {
+                    let finalHtml = "";
+                    // Render Feedback if present
+                    if (data.response.feedback) {
+                        finalHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
+                            <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
+                            <div class="test-sm text-gray-300">${data.response.feedback}</div>
+                            ${data.response.score ? `<div class="mt-2 text-xs font-mono text-yellow-400">Score: ${data.response.score}/5</div>` : ''}
+                        </div>`;
+                    }
+                    if (data.response.next_question) {
+                        finalHtml += `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
+                    }
+                    addMessage(finalHtml, 'system', true);
                 }
 
                 // 3. Kill Mic

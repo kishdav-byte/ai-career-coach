@@ -293,7 +293,7 @@ def get_feedback():
                 "content": (
                     f"User Answer: {message}. \n"
                     "Step 1: Thank the user for sharing that.\n"
-                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
+                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide IS a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
                     "Step 3: Ask the first STAR question."
                 )
             })
