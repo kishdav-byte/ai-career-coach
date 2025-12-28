@@ -2636,6 +2636,48 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         sessionStorage.removeItem('warRoomLaunch');
     }
+    // --- DEEP LINK HANDLER (URL Params) ---
+    const urlParams = new URLSearchParams(window.location.search);
+    const deepLinkId = urlParams.get('id');
+
+    if (deepLinkId) {
+        console.log("Deep Link Detected: Job " + deepLinkId);
+        addMessage("Loading Mission Context...", 'system');
+
+        // Fetch Job to get fresh data
+        fetch('/api/jobs', {
+            headers: { 'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}` }
+        }).then(res => res.json()).then(jobs => {
+            const job = jobs.find(j => j.id === deepLinkId);
+            if (job) {
+                // Populate Inputs
+                const inputs = ['interview-job-posting', 'job-description-input'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = job.job_description || '';
+                });
+
+                // Set Context
+                const context = {
+                    job_id: job.id,
+                    role: job.job_title,
+                    company: job.company_name,
+                    description: job.job_description,
+                    notes: job.notes
+                };
+                localStorage.setItem('mission_context', JSON.stringify(context));
+
+                addMessage(`**Mission Loaded:** ${job.job_title} at ${job.company_name}`, 'system');
+
+                // Auto-Start if we have a JD
+                if (job.job_description && job.job_description.length > 50) {
+                    const startBtn = document.getElementById('start-interview-btn');
+                    if (startBtn) startBtn.click();
+                }
+            }
+        }).catch(e => console.error("Deep Link Fetch Error", e));
+    }
+
     try {
         const activeJD = localStorage.getItem('activeJobDescription');
         if (activeJD) {
