@@ -277,7 +277,7 @@ def get_feedback():
             # FORCE GREETING LOGIC
             greeting_instruction = (
                 "Start the interview. "
-                "1. Introduce yourself as the hiring manager for the position mentioned in the Job context. "
+                "1. Introduce yourself simply as 'the Hiring Manager' for the position mentioned in the Job context. Do NOT use a specific name. "
                 "2. Thank the candidate for spending the time with you. "
                 "3. Advise that the interview will be broken down into two components: 'First, I'll ask you to give me a high level overview of your experience, then I will ask you to share specific examples of different situations that you have experienced.' "
                 "4. Ask exactly: 'Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you.'\n"
