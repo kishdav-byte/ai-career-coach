@@ -265,7 +265,7 @@ def get_feedback():
         if ai_json.get('next_question'):
             voice = data.get('voice', 'alloy')
             audio_response = client.audio.speech.create(
-                model="tts-1",
+                model="tts-1-hd",
                 voice=voice,
                 input=ai_json['next_question']
             )
