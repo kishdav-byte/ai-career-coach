@@ -127,7 +127,7 @@ def generate_intel():
         if len(jd_text) < 50:
             return jsonify({"error": "JD too short"}), 400
 
-        # 2. Configure OpenAI
+        # 2. Configure OpenAI (Triggering Redeploy)
         from openai import OpenAI
         OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
         if not OPENAI_KEY:
