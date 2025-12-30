@@ -162,10 +162,199 @@
                                 class="hidden bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-800 hover:border-teal-500 px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2">
                                 <i class="fas fa-shield-cat"></i> ADMIN
                             </a>
+                            <button
+                                onclick="document.getElementById('tool-belt-drawer').classList.remove('translate-x-full')"
+                                class="text-xs font-bold text-green-400 hover:text-white transition-all bg-green-500/10 hover:bg-green-500/20 border border-green-500/50 hover:border-green-400 px-4 py-2 rounded-lg flex items-center gap-2 shadow-[0_0_10px_rgba(74,222,128,0.2)] hover:shadow-[0_0_15px_rgba(74,222,128,0.4)] mr-2">
+                                <i class="fas fa-tools"></i> Tool Belt
+                            </button>
                             <button onclick="openUpgradeDrawer()"
                                 class="text-xs font-bold text-teal hover:text-white transition-colors bg-teal/10 hover:bg-teal/20 border border-teal/20 hover:border-teal/50 px-4 py-2 rounded-lg flex items-center gap-2">
                                 Purchase Options
                             </button>
+
+                            <!-- TOOL BELT DRAWER -->
+                            <div id="tool-belt-drawer"
+                                class="fixed inset-y-0 right-0 w-[400px] bg-[#0B1121] border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
+                                <div
+                                    class="p-6 border-b border-slate-800 flex justify-between items-center bg-slate-900/50 backdrop-blur-sm">
+                                    <div>
+                                        <h2 class="text-xl font-bold text-white flex items-center gap-3">
+                                            <i class="fas fa-tools text-green-400"></i> Tool Belt
+                                        </h2>
+                                        <p class="text-xs text-slate-400 mt-1">Access your executive arsenal</p>
+                                    </div>
+                                    <button
+                                        onclick="document.getElementById('tool-belt-drawer').classList.add('translate-x-full')"
+                                        class="text-slate-400 hover:text-white transition-colors">
+                                        <i class="fas fa-times text-lg"></i>
+                                    </button>
+                                </div>
+
+                                <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scroll">
+
+                                    <!-- Category: Preparation -->
+                                    <div class="space-y-3">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Preparation</label>
+
+                                        <a href="/resume-analyzer.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-microscope text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
+                                                            Resume Scanner</h3>
+                                                        <p class="text-[10px] text-slate-400">Audit vs Job Description
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+
+                                        <a href="/resume-rewriter.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-yellow-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-pen-nib text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">
+                                                            Executive Rewrite</h3>
+                                                        <p class="text-[10px] text-slate-400">Targeted Optimization</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+
+                                        <a href="/cover-letter.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-purple-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-file-alt text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-purple-400 transition-colors">
+                                                            Cover Letter</h3>
+                                                        <p class="text-[10px] text-slate-400">Draft Narrative</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+
+                                        <a href="/app.html#linkedin" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-400/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-blue-400/10 flex items-center justify-center text-blue-300 group-hover:scale-110 transition-transform">
+                                                        <i class="fab fa-linkedin text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-blue-300 transition-colors">
+                                                            LinkedIn Opt.</h3>
+                                                        <p class="text-[10px] text-slate-400">Profile Alignment</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+
+                                    <!-- Category: Execution -->
+                                    <div class="space-y-3 pt-2">
+                                        <label
+                                            class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Execution</label>
+
+                                        <a href="/interview-coach.html" class="block group">
+                                            <!-- Verified filename assumption or will fix if 404, usually interview-coach based on previous context -->
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-green-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-microphone-alt text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-green-400 transition-colors">
+                                                            Mock Interview</h3>
+                                                        <p class="text-[10px] text-slate-400">AI Roleplay Simulation</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+
+                                        <a href="/strategy-lab.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-chess-knight text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-indigo-400 transition-colors">
+                                                            Strategy Lab</h3>
+                                                        <p class="text-[10px] text-slate-400">Analysis & Follow-up</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+
+                                        <a href="/strategy/negotiation.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-hand-holding-usd text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-teal-400 transition-colors">
+                                                            Salary Negotiator</h3>
+                                                        <p class="text-[10px] text-slate-400">Pay & Perks Strategy</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <a href="/star-drill.html" class="block group">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-orange-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-star text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">
+                                                            STAR Drill</h3>
+                                                        <p class="text-[10px] text-slate-400">Behavioral Answer Builder
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="p-6 border-t border-slate-800 bg-slate-900/50 text-center">
+                                    <p class="text-[10px] text-slate-500">Select a tool to launch immediately.</p>
+                                </div>
+                            </div>
                             <div
                                 class="flex items-center gap-3 bg-white/5 rounded-full pl-1 pr-3 py-1 border border-white/10">
                                 <div
