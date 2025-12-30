@@ -290,8 +290,13 @@
                 const resumeStr = localStorage.getItem('master_resume_text');
 
                 if (ctxStr) {
-                    missionContext = JSON.parse(ctxStr);
-                    missionContext.resume_text = resumeStr || ""; // Ensure resume is attached
+                    const raw = JSON.parse(ctxStr);
+                    missionContext = {
+                        role_title: raw.role || raw.role_title || "Target Role",
+                        company_name: raw.company || raw.company_name || "Target Company",
+                        job_description: raw.jd || raw.job_description || "",
+                        resume_text: raw.resume_text || resumeStr || ""
+                    };
 
                     // Update UI
                     document.getElementById('context-panel').classList.remove('hidden');
