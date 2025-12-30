@@ -128,125 +128,9 @@
         <div
             class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
             <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
-            <button onclick="toggleSidebar()" class="text-gray-400 hover:text-white">
-                <i class="fas fa-bars"></i>
-            </button>
         </div>
 
-        <!-- SIDEBAR (Fixed Left) -->
-        <aside id="sidebar"
-            class="fixed inset-y-0 left-0 w-[250px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
-
-            <!-- Logo Area -->
-            <div class="h-20 flex items-center px-8 mt-4 lg:mt-0">
-                <h1
-                    class="font-bold text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                    AceInterview
-                </h1>
-            </div>
-
-            <!-- Navigation Stack -->
-            <nav class="flex-1 px-4 space-y-2 mt-4 overflow-y-auto custom-scroll" id="nav-accordion">
-                <!-- Dashboard -->
-                <a href="/dashboard.html"
-                    class="nav-item w-full flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all relative group text-slate-400 hover:text-white hover:bg-white/5"
-                    data-path="/dashboard.html">
-                    <i class="fas fa-columns w-5 text-center"></i>
-                    <span>Dashboard</span>
-                </a>
-
-                <!-- The Clinic Category -->
-                <div class="nav-group mb-2">
-                    <div
-                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        The Clinic
-                    </div>
-                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
-                        <a href="/resume-analyzer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/resume-analyzer.html">Resume Scanner</a>
-                        <a href="/resume-rewriter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/resume-rewriter.html">Executive Rewrite</a>
-                        <a href="/app.html#linkedin"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/app.html#linkedin">LinkedIn Optimizer</a>
-                        <a href="/cover-letter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/cover-letter.html">Cover Letter Architect</a>
-                    </div>
-                </div>
-
-                <!-- The Simulator Category -->
-                <div class="nav-group mb-2">
-                    <div
-                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        The Simulator
-                    </div>
-                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
-                        <a href="/app.html#interview"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/app.html#interview">Mock Interview</a>
-                        <a href="/lab-assistant.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/lab-assistant.html">Lab Assistant</a>
-                        <a href="/role-reversal.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/role-reversal.html">Role Reversal</a>
-                        <!-- Interview History -->
-                        <a href="/interview-history.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/interview-history.html">
-                            <span>History</span>
-                        </a>
-                    </div>
-                </div>
-                <!-- Strategy Category -->
-                <div class="nav-group mb-2">
-                    <div
-                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        Strategy
-                    </div>
-                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
-                        <a href="/strategy/30-60-90.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/strategy/30-60-90.html">30-60-90 Plan</a>
-                        <a href="/strategy/closer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/strategy/closer.html">Salary Negotiation</a>
-                        <a href="/follow-up.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
-                            data-path="/follow-up.html">Strategic Follow-Up</a>
-                    </div>
-                </div>
-
-
-                <!-- Spacer to push content up if needed -->
-                <div class="flex-1"></div>
-            </nav>
-
-            <!-- User Footer -->
-            <div class="p-4 border-t border-white/5 bg-slate-900">
-                <div
-                    class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
-                    <div class="flex items-center gap-3">
-                        <div
-                            class="w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center text-teal text-xs font-bold border border-teal/30">
-                            <span id="user-initials">--</span>
-                        </div>
-                        <div class="flex flex-col">
-                            <span id="user-display-sidebar"
-                                class="text-sm font-medium text-white group-hover:text-teal transition-colors">User</span>
-                            <span class="text-[10px] text-gray-500 uppercase tracking-wider">Plan: <span
-                                    id="user-plan-status">Free</span></span>
-                        </div>
-                    </div>
-                    <button onclick="signOut()" class="text-gray-500 hover:text-white transition-colors">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
-                </div>
-            </div>
-        </aside>
+        <!-- SIDEBAR REMOVED -->
 
         <!-- MAIN CONTENT WRAPPER -->
         <div class="flex-1 flex flex-col min-w-0 lg:ml-0 overflow-x-hidden overflow-y-auto relative">
@@ -273,15 +157,28 @@
                             <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
                                     class="text-teal">Candidate</span>?</p>
                         </div>
-                        <div class="flex gap-3">
+                        <div class="flex items-center gap-4">
                             <a id="admin-btn" href="/admin.html"
                                 class="hidden bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-800 hover:border-teal-500 px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2">
                                 <i class="fas fa-shield-cat"></i> ADMIN
                             </a>
-                            <button onclick="openModal()"
-                                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2 shadow-[0_0_15px_rgba(37,99,235,0.3)]">
-                                <i class="fas fa-plus"></i> ADD TARGET
-                            </button>
+                            <div
+                                class="flex items-center gap-3 bg-white/5 rounded-full pl-1 pr-3 py-1 border border-white/10">
+                                <div
+                                    class="w-8 h-8 rounded-full bg-teal/20 flex items-center justify-center text-teal text-xs font-bold border border-teal/30">
+                                    <span id="user-initials">--</span>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span id="user-display-header"
+                                        class="text-xs font-bold text-white leading-tight">User</span>
+                                    <span class="text-[9px] text-slate-400 leading-tight">Plan: <span
+                                            id="user-plan-status">Free</span></span>
+                                </div>
+                                <div class="h-4 w-px bg-white/10 mx-1"></div>
+                                <button onclick="signOut()" class="text-slate-400 hover:text-white transition-colors">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -379,10 +276,16 @@
                         <div
                             class="flex-1 flex flex-col min-w-[280px] sm:min-w-[300px] md:max-w-[350px] snap-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
                             <div
-                                class="p-4 border-b border-slate-700/50 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
-                                <h3 class="text-xs font-bold text-slate-400 uppercase">Targets</h3>
-                                <span id="count-identified"
-                                    class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 rounded-full">0</span>
+                                class="p-4 border-b border-slate-700/50 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xs font-bold text-slate-400 uppercase">Targets</h3>
+                                    <span id="count-identified"
+                                        class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 rounded-full">0</span>
+                                </div>
+                                <button onclick="openModal()"
+                                    class="text-xs bg-blue-600 hover:bg-blue-500 text-white w-6 h-6 rounded flex items-center justify-center shadow-[0_0_10px_rgba(37,99,235,0.3)] transition-all">
+                                    <i class="fas fa-plus"></i>
+                                </button>
                             </div>
                             <div id="col-identified" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
                         </div>
@@ -907,7 +810,7 @@
                     // Update UI
                     const initials = profile.name ? profile.name.substring(0, 2).toUpperCase() : 'DK';
                     document.getElementById('user-initials').innerText = initials;
-                    document.getElementById('user-display-sidebar').innerText = profile.name || 'User';
+                    document.getElementById('user-display-header').innerText = profile.name || 'User';
                     document.getElementById('user-display-kb').innerText = (profile.name || 'Candidate').split(' ')[0];
 
                     const isPro = profile.subscription_status === 'active';
