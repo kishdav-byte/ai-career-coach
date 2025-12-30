@@ -269,21 +269,27 @@
                 <div
                     class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory min-h-[400px] md:min-h-[500px] mt-6 md:mt-8">
                     <div class="flex gap-4 h-full px-1">
+                        <!-- Targets Column (Wrapped for Button) -->
                         <div
-                            class="flex-1 flex flex-col min-w-[280px] sm:min-w-[300px] md:max-w-[350px] snap-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
+                            class="flex-1 flex flex-col min-w-[280px] sm:min-w-[300px] md:max-w-[350px] snap-center gap-3">
+                            <!-- Add Lead Button (Outside Header) -->
+                            <button onclick="openModal()"
+                                class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-widest rounded-xl shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 transition-all hover:-translate-y-1">
+                                <i class="fas fa-plus"></i> Add Lead
+                            </button>
+
+                            <!-- Actual Column Box -->
                             <div
-                                class="p-4 border-b border-slate-700/50 flex items-center justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
-                                <div class="flex items-center gap-2">
+                                class="flex-1 flex flex-col bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50 overflow-hidden">
+                                <div
+                                    class="p-4 border-b border-slate-700/50 flex items-center justify-between bg-[#0d1b2a]/90 backdrop-blur-sm z-10">
                                     <h3 class="text-xs font-bold text-slate-400 uppercase">Targets</h3>
                                     <span id="count-identified"
                                         class="bg-slate-800 text-slate-400 text-[10px] font-bold px-2 rounded-full">0</span>
                                 </div>
-                                <button onclick="openModal()"
-                                    class="text-xs bg-blue-600 hover:bg-blue-500 text-white w-6 h-6 rounded flex items-center justify-center shadow-[0_0_10px_rgba(37,99,235,0.3)] transition-all">
-                                    <i class="fas fa-plus"></i>
-                                </button>
+                                <div id="col-identified" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3">
+                                </div>
                             </div>
-                            <div id="col-identified" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
                         </div>
                         <div
                             class="flex-1 flex flex-col min-w-[280px] sm:min-w-[300px] md:max-w-[350px] snap-center bg-blue-900/10 rounded-xl border border-dashed border-blue-900/30">
