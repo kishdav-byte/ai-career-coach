@@ -156,96 +156,77 @@
                 </a>
 
                 <!-- The Clinic Category -->
-                <div class="nav-group">
-                    <button onclick="toggleGroup('clinic')"
-                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-user-md text-slate-500 group-hover:text-white w-5 text-center"></i>
-                            <span>The Clinic</span>
-                        </div>
-                        <i id="icon-clinic"
-                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
-                    </button>
-                    <div id="group-clinic" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
+                <div class="nav-group mb-2">
+                    <div
+                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        The Clinic
+                    </div>
+                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
                         <a href="/resume-analyzer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/resume-analyzer.html">Resume Scanner</a>
                         <a href="/resume-rewriter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/resume-rewriter.html">Executive Rewrite</a>
                         <a href="/app.html#linkedin"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/app.html#linkedin">LinkedIn Optimizer</a>
                         <a href="/cover-letter.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/cover-letter.html">Cover Letter Architect</a>
                     </div>
                 </div>
 
                 <!-- The Simulator Category -->
-                <div class="nav-group">
-                    <button onclick="toggleGroup('simulator')"
-                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-microchip text-slate-500 group-hover:text-white w-5 text-center"></i>
-                            <span>The Simulator</span>
-                        </div>
-                        <i id="icon-simulator"
-                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
-                    </button>
-                    <div id="group-simulator" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
+                <div class="nav-group mb-2">
+                    <div
+                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        The Simulator
+                    </div>
+                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
                         <a href="/app.html#interview"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/app.html#interview">Mock Interview</a>
                         <a href="/lab-assistant.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
-                            data-path="/lab-assistant.html">Lab Assistant (Tools)</a>
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                            data-path="/lab-assistant.html">Lab Assistant</a>
                         <a href="/role-reversal.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/role-reversal.html">Role Reversal</a>
-                        <a href="/star-drill.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
-                            data-path="/star-drill.html">STAR Drill</a>
+                        <!-- Interview History -->
+                        <a href="/interview-history.html"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
+                            data-path="/interview-history.html">
+                            <span>History</span>
+                        </a>
                     </div>
                 </div>
-
                 <!-- Strategy Category -->
-                <div class="nav-group">
-                    <button onclick="toggleGroup('strategy')"
-                        class="w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
-                        <div class="flex items-center gap-3">
-                            <i class="fas fa-chess-knight text-slate-500 group-hover:text-white w-5 text-center"></i>
-                            <span>Strategy</span>
-                        </div>
-                        <i id="icon-strategy"
-                            class="fas fa-chevron-right text-xs text-slate-500 transform transition-transform duration-200"></i>
-                    </button>
-                    <div id="group-strategy" class="pl-4 space-y-1 mt-1 border-l border-white/5 ml-4 hidden">
+                <div class="nav-group mb-2">
+                    <div
+                        class="w-full flex items-center px-4 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                        Strategy
+                    </div>
+                    <div class="space-y-1 mt-1 ml-2 border-l border-white/5 pl-2">
                         <a href="/strategy/30-60-90.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/strategy/30-60-90.html">30-60-90 Plan</a>
                         <a href="/strategy/closer.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/strategy/closer.html">Salary Negotiation</a>
                         <a href="/follow-up.html"
-                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md"
+                            class="nav-sub-item block px-3 py-2 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-md transition-colors"
                             data-path="/follow-up.html">Strategic Follow-Up</a>
                     </div>
                 </div>
 
-                <!-- Upgrade Hub -->
-                <div class="nav-group pt-4 border-t border-white/5">
-                    <div class="px-4 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
-                        Upgrade Hub
-                    </div>
-                    <div id="upgradeList" class="px-2">
-                        <!-- Content Injected by renderUpgradeHub() -->
-                    </div>
-                </div>
+
+                <!-- Spacer to push content up if needed -->
+                <div class="flex-1"></div>
             </nav>
 
             <!-- User Footer -->
-            <div class="p-4 border-t border-white/5">
+            <div class="p-4 border-t border-white/5 bg-slate-900">
                 <div
                     class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
                     <div class="flex items-center gap-3">
@@ -279,15 +260,15 @@
 
             <!-- Scrollable Content Area -->
             <main
-                class="flex-1 flex flex-col p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black overflow-y-auto md:h-screen">
+                class="flex-1 flex flex-col p-4 md:p-8 relative bg-gradient-to-br from-slate-900 via-[#0A2540] to-black overflow-y-auto h-full">
 
-                <div class="max-w-7xl mx-auto w-full flex-shrink-0">
+                <div class="max-w-full lg:max-w-6xl mx-auto w-full flex-shrink-0">
                     <!-- Header -->
                     <div class="flex justify-between items-center mb-8">
                         <div>
                             <h1
                                 class="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                                Executive Performance Hub
+                                Performance Hub
                             </h1>
                             <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
                                     class="text-teal">Candidate</span>?</p>
@@ -305,17 +286,19 @@
                     </div>
 
                     <!-- 1. Key Metrics Row (6 Columns for Wider Tiles) -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
+                    <div
+                        class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-6 md:mb-8">
 
                         <!-- Metric 1: Resume Health -->
                         <a href="/resume-analyzer.html"
-                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <!-- ... content ... -->
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
-                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Resume Health
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest text-center mt-1">
+                                Market Relevance
                             </h3>
-                            <div class="relative w-24 h-24">
+                            <div class="relative w-24 h-24 mt-auto mb-2">
                                 <svg class="w-full h-full" viewBox="0 0 100 100">
                                     <circle class="text-slate-700 stroke-current" stroke-width="8" cx="50" cy="50"
                                         r="40" fill="transparent"></circle>
@@ -331,32 +314,38 @@
                         </a>
 
                         <!-- Metric 2: Avg Interview Score (Span 1) -->
-                        <a href="/role-reversal.html"
-                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                        <a href="interview-history.html"
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
-                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-2">Avg. Interview
-                                Score</h3>
-                            <div id="interview-score" class="text-4xl font-bold text-white mb-2">--<span
-                                    class="text-gray-500 text-xl">/10</span></div>
-                            <div
-                                class="flex items-center text-teal text-xs font-bold bg-teal/10 px-2 py-1 rounded-full">
-                                <span>Active</span>
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest text-center mt-1">
+                                Strategic Fit
+                            </h3>
+                            <div class="mt-auto mb-2 flex flex-col items-center">
+                                <div id="interview-score" class="text-4xl font-bold text-white mb-2">--<span
+                                        class="text-gray-500 text-xl">/10</span></div>
+                                <div
+                                    class="flex items-center text-teal text-xs font-bold bg-teal/10 px-2 py-1 rounded-full">
+                                    <span>Active</span>
+                                </div>
                             </div>
                         </a>
 
                         <!-- Metric 3: Strategy Log (Span 1) -->
                         <div
-                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-center relative group transition-all hover:-translate-y-1 cursor-pointer">
+                            class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
-                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Active Strategy
+                            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest text-center mt-1">
+                                Active Strategy
                             </h3>
-                            <div class="flex items-center gap-3 mb-2">
-                                <span class="text-2xl">♟️</span>
-                                <span id="strategy-count" class="text-4xl font-bold text-white">--</span>
+                            <div class="mt-auto mb-2 flex flex-col items-center">
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="text-2xl">♟️</span>
+                                    <span id="strategy-count" class="text-4xl font-bold text-white">--</span>
+                                </div>
+                                <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                             </div>
-                            <span class="text-gray-500 text-xs uppercase tracking-wider">Jobs Tracked</span>
                         </div>
 
                         <!-- Metric 4: Universal Credits (Span 1) -->
@@ -370,12 +359,22 @@
                             class="glass-card rounded-2xl p-0 flex flex-col relative group hover:border-teal/30 transition-colors overflow-hidden h-full min-h-[140px] lg:col-span-2">
                             <!-- Injected by renderToolLocker() -->
                         </div>
+
+                        <!-- Purchase Options Button (Underneath Tool Locker) -->
+                        <!-- Placing it in the grid flow to wrap naturally or align -->
+                        <div class="lg:col-start-5 lg:col-span-2 mt-[-10px] flex justify-end">
+                            <button onclick="openUpgradeDrawer()"
+                                class="text-xs font-bold text-teal hover:text-white transition-colors bg-teal/10 hover:bg-teal/20 border border-teal/20 hover:border-teal/50 px-4 py-2 rounded-lg flex items-center gap-2">
+                                <i class="fas fa-arrow-up"></i>
+                                Purchase Options
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 <!-- KANBAN BOARD (Flex grow to fill rest of screen) -->
                 <div
-                    class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory min-h-[600px] md:min-h-0 mt-8">
+                    class="flex-1 overflow-x-auto overflow-y-hidden custom-scroll w-full pb-6 snap-x snap-mandatory min-h-[400px] md:min-h-[500px] mt-6 md:mt-8">
                     <div class="flex gap-4 h-full px-1">
                         <div
                             class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-slate-900/40 rounded-xl border border-dashed border-slate-700/50">
@@ -411,7 +410,7 @@
                             class="flex-1 flex flex-col min-w-[85vw] md:min-w-[350px] snap-center bg-green-900/10 rounded-xl border border-dashed border-green-900/30">
                             <div
                                 class="p-4 border-b border-green-900/20 flex justify-between sticky top-0 bg-[#0d1b2a]/90 backdrop-blur-sm rounded-t-xl z-10">
-                                <h3 class="text-xs font-bold text-green-400 uppercase">Offer / Closed</h3>
+                                <h3 class="text-xs font-bold text-green-400 uppercase">Post Interview</h3>
                                 <span id="count-offer"
                                     class="bg-green-900/30 text-green-300 text-[10px] font-bold px-2 rounded-full">0</span>
                             </div>
@@ -482,6 +481,19 @@
         <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
 
             <div class="space-y-3">
+                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-tasks"></i> Current Stage
+                </label>
+                <select id="dossier-status"
+                    class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
+                    <option value="Identified">Identified (Target)</option>
+                    <option value="Applied">Applied</option>
+                    <option value="Interviewing">Interviewing</option>
+                    <option value="Offer">Post Interview / Offer</option>
+                </select>
+            </div>
+
+            <div class="space-y-3">
                 <label class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-user-secret"></i> Interviewer Intel & Notes
                 </label>
@@ -510,7 +522,47 @@
 
         </div>
 
+        <!-- NEW: Mission Toolkit (Shuttle Logic) -->
+        <div class="px-6 pb-6 border-t border-slate-800/50 bg-slate-900/30">
+            <label
+                class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-4 flex items-center gap-2">
+                <i class="fas fa-toolbox"></i> Mission Toolkit
+            </label>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="shuttleToTool('/resume-analyzer.html')"
+                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
+                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                            class="fas fa-microscope text-blue-500 mr-2"></i>Resume Scanner</div>
+                    <div class="text-[10px] text-slate-500">Audit vs JD</div>
+                </button>
+                <button onclick="shuttleToTool('/resume-rewriter.html')"
+                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-yellow-500/50 rounded-lg text-left transition-all group">
+                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                            class="fas fa-pen-nib text-yellow-500 mr-2"></i>Executive Rewrite</div>
+                    <div class="text-[10px] text-slate-500">Targeted Optimization</div>
+                </button>
+                <button onclick="shuttleToTool('/cover-letter.html')"
+                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-purple-500/50 rounded-lg text-left transition-all group">
+                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                            class="fas fa-file-alt text-purple-500 mr-2"></i>Cover Letter</div>
+                    <div class="text-[10px] text-slate-500">Draft Narrative</div>
+                </button>
+                <button onclick="shuttleToTool('app.html#linkedin')"
+                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-400/50 rounded-lg text-left transition-all group">
+                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                            class="fab fa-linkedin text-blue-400 mr-2"></i>LinkedIn Opt.</div>
+                    <div class="text-[10px] text-slate-500">Profile Alignment</div>
+                </button>
+            </div>
+        </div>
+
         <div class="p-6 border-t border-slate-700 bg-slate-950 flex justify-end gap-3">
+            <div class="flex-1">
+                <button onclick="handleJobDelete()"
+                    class="px-4 py-2 text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2 transition-colors">
+                    <i class="fas fa-trash"></i> DELETE
+                </button>
+            </div>
             <button onclick="closeDossier()"
                 class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
             <button onclick="launchMission(currentJobId)"
@@ -585,6 +637,19 @@
             document.getElementById('dossier-notes').value = job.notes || '';
             document.getElementById('dossier-salary').value = job.salary_target || '';
 
+            // Status Match (Handle variations)
+            const statusMap = {
+                'identified': 'Identified',
+                'applied': 'Applied',
+                'interviewing': 'Interviewing',
+                'offer': 'Offer', 'closed': 'Offer'
+            };
+            let currentStatus = (job.status || 'identified').toLowerCase();
+            if (currentStatus.includes('offer') || currentStatus === 'closed') currentStatus = 'offer';
+            else if (currentStatus.includes('interview')) currentStatus = 'interviewing';
+
+            document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Identified';
+
             // Slide In
             dossier.classList.remove('translate-x-full');
         };
@@ -647,7 +712,8 @@
             const updates = {
                 job_description: document.getElementById('dossier-jd').value,
                 notes: document.getElementById('dossier-notes').value,
-                salary_target: document.getElementById('dossier-salary').value
+                salary_target: document.getElementById('dossier-salary').value,
+                status: document.getElementById('dossier-status').value
             };
 
             try {
@@ -668,10 +734,33 @@
 
                 alert("Mission Dossier updated.");
                 closeDossier();
+                loadJobs();
             } catch (e) {
                 alert("Error saving dossier: " + e.message);
             } finally {
                 btn.innerHTML = originalText;
+            }
+        };
+
+        window.handleJobDelete = async () => {
+            if (!currentJobId) return;
+            if (!confirm("Are you sure you want to remove this job from your active list?")) return;
+
+            try {
+                const session = getSession();
+                const res = await fetch(`/api/jobs/${currentJobId}`, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: 'closed' })
+                });
+
+                if (!res.ok) throw new Error("Delete failed");
+
+                alert("Job removed from active list.");
+                closeDossier();
+                loadJobs(); // Refresh board
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         };
 
@@ -697,9 +786,18 @@
                 if (count) count.innerText = '0';
             });
 
+            // Update Active Strategy Count
+            const activeCount = jobs.filter(j => (j.status || 'identified').toLowerCase() !== 'closed').length;
+            const strategyCountEl = document.getElementById('strategy-count');
+            if (strategyCountEl) strategyCountEl.innerText = activeCount;
+
             // Sort & Render
             jobs.forEach(job => {
                 let status = (job.status || 'identified').toLowerCase();
+
+                // Skip closed jobs
+                if (status === 'closed') return;
+
                 if (status.includes('offer')) status = 'offer';
                 else if (status.includes('interview')) status = 'interviewing';
                 else if (status.includes('appli')) status = 'applied';
@@ -870,11 +968,11 @@
                     // 2. Avg Interview Score (Data-Wired: Calculate Average)
                     const { data: interviewData } = await supabase
                         .from('interviews')
-                        .select('average_score') // Assuming column is average_score per session
+                        .select('overall_score') // Correct column name
                         .eq('user_id', user.id);
 
                     if (interviewData && interviewData.length > 0) {
-                        const total = interviewData.reduce((acc, curr) => acc + (curr.average_score || 0), 0);
+                        const total = interviewData.reduce((acc, curr) => acc + (curr.overall_score || 0), 0);
                         const avg = (total / interviewData.length).toFixed(1);
                         document.getElementById('interview-score').innerHTML = `${avg}<span class="text-gray-500 text-xl">/5</span>`;
                     } else {
@@ -923,6 +1021,33 @@
         }
 
         // --- SMART CONTEXT PASSING ---
+        // NEW: Shuttle Logic
+        window.shuttleToTool = (url) => {
+            // 1. Scrape Data from Dossier Inputs
+            const role = document.getElementById('dossier-title').innerText;
+            const company = document.getElementById('dossier-company').innerText;
+            const jd = document.getElementById('dossier-jd').value;
+            const notes = document.getElementById('dossier-notes').value;
+
+            if (!jd || jd.length < 50) {
+                if (!confirm("Warning: Job Description is empty or short. Tools work best with a full JD. Proceed anyway?")) return;
+            }
+
+            // 2. Save Context
+            const context = {
+                role: role,
+                company: company,
+                jd: jd,
+                notes: notes,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('mission_context', JSON.stringify(context));
+
+            // 3. Launch
+            console.log("Shuttling to " + url, context);
+            window.location.href = url;
+        };
+
         window.launchTool = (jobId, destinationUrl) => {
             const job = localJobsInfo.find(j => j.id === jobId);
             if (!job) {
@@ -962,6 +1087,64 @@
             await loadJobs();
         })();
 
+    </script>
+    <!-- UPGRADE DRAWER (Reusing Drawer Styles) -->
+    <div id="upgrade-drawer-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden transition-opacity"
+        onclick="closeUpgradeDrawer()"></div>
+    <aside id="upgrade-drawer"
+        class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
+
+        <!-- Drawer Header -->
+        <div class="p-6 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
+            <div>
+                <h2 class="text-xs font-bold text-teal uppercase tracking-widest mb-1">PREMIUM ACCESS</h2>
+                <h3 class="text-xl font-bold text-white">Upgrade Hub</h3>
+            </div>
+            <button onclick="closeUpgradeDrawer()" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Drawer Content -->
+        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+            <!-- Target for app.js Injection -->
+            <div id="upgradeList" class="space-y-8">
+                <!-- Content Injected by renderUpgradeHub() -->
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        // --- UPGRADE DRAWER LOGIC ---
+        function openUpgradeDrawer() {
+            const drawer = document.getElementById('upgrade-drawer');
+            const overlay = document.getElementById('upgrade-drawer-overlay');
+
+            overlay.classList.remove('hidden');
+            // Small delay to allow display:block to apply before transition
+            requestAnimationFrame(() => {
+                drawer.classList.remove('translate-x-full');
+            });
+        }
+
+        function closeUpgradeDrawer() {
+            const drawer = document.getElementById('upgrade-drawer');
+            const overlay = document.getElementById('upgrade-drawer-overlay');
+
+            drawer.classList.add('translate-x-full');
+
+            // Wait for transition to finish before hiding overlay
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 300);
+        }
+
+        // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeUpgradeDrawer();
+            }
+        });
     </script>
 </body>
 
