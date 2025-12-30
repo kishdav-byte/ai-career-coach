@@ -404,18 +404,24 @@
                 // Get Session
                 let email = null;
                 let userId = null;
+                let token = null;
+
                 try {
                     const sessionStr = localStorage.getItem(APP_SESSION_KEY);
                     if (sessionStr) {
                         const s = JSON.parse(sessionStr);
                         email = s.email;
                         userId = s.user_id || s.user?.id || s.id;
+                        token = s.access_token; 
                     }
                 } catch (e) { }
 
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    },
                     body: JSON.stringify({
                         action: 'star_drill',
                         input_text: input,
@@ -440,10 +446,18 @@
                 document.getElementById('res-r').innerText = data.R || "N/A";
 
                 // Show
+                // Show Result
                 document.getElementById('state-loading').classList.add('hidden');
                 document.getElementById('state-result').classList.remove('hidden');
                 btn.disabled = false;
                 btn.innerHTML = `<span>BUILD ANOTHER STORY</span>`;
+
+                // SHOW SAVED TOAST
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-500/90 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-2 font-bold tracking-wider animate-bounce';
+                toast.innerHTML = '<i class="fas fa-check-circle"></i> STORY SAVED TO HISTORY';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
 
             } catch (e) {
                 console.error(e);
@@ -543,6 +557,6 @@
             }
         }
         </script>
-</body>
+</body >
 
-</html>
+</html >
