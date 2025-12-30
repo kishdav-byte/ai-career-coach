@@ -379,9 +379,10 @@
                 </label>
                 <select id="dossier-status"
                     class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
-                    <option value="Identified">Engage</option>
-                    <option value="Interviewing">Interview</option>
-                    <option value="Offer">Post Interview</option>
+                    <option value="Engage">Engage</option>
+                    <option value="Interviewing">Interviewing</option>
+                    <option value="Post Interview">Post Interview</option>
+                    <option value="Closed">Closed</option>
                 </select>
             </div>
 
@@ -448,24 +449,17 @@
             </div>
         </div>
 
-        <div class="p-6 border-t border-slate-700 bg-slate-950 flex justify-end gap-3">
-            <div class="flex-1">
-                <button onclick="handleJobDelete()"
-                    class="px-4 py-2 text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2 transition-colors">
-                    <i class="fas fa-trash"></i> DELETE
-                </button>
-            </div>
-            <button onclick="closeDossier()"
-                class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
-            <button onclick="launchMission(currentJobId)"
-                class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-purple-900/20 flex items-center gap-2">
-                <i class="fas fa-play"></i> START SESSION
-            </button>
-            <button id="dossier-save-btn" onclick="handleSaveIntel()"
-                class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2">
-                <i class="fas fa-save"></i> SAVE INTEL
-            </button>
-        </div>
+        <button onclick="closeDossier()"
+            class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
+        <button id="dossier-refresh-btn" onclick="handleRefreshIntel()"
+            class="px-6 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-purple-900/20 flex items-center gap-2">
+            <i class="fas fa-sync"></i> REFRESH INTEL
+        </button>
+        <button id="dossier-save-btn" onclick="handleSaveIntel()"
+            class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold shadow-lg shadow-blue-900/20 flex items-center gap-2">
+            <i class="fas fa-save"></i> SAVE INTEL
+        </button>
+    </div>
     </div>
 
     <!-- Hidden PDF Logic (Retained for compatibility if needed in future, but hidden from UI) -->
@@ -530,68 +524,76 @@
 
             // Status Match (Handle variations)
             const statusMap = {
-                'identified': 'Identified',
-                'applied': 'Identified', // Merge Applied into Engage
+                'identified': 'Engage',
+                'engage': 'Engage',
+                'applied': 'Engage',
                 'interviewing': 'Interviewing',
-                'offer': 'Offer', 'closed': 'Offer'
+                'offer': 'Post Interview',
+                'post interview': 'Post Interview',
+                'closed': 'Closed'
             };
-            let currentStatus = (job.status || 'identified').toLowerCase();
-            if (currentStatus.includes('offer') || currentStatus === 'closed') currentStatus = 'offer';
-            else if (currentStatus.includes('interview')) currentStatus = 'interviewing';
+            let currentStatus = (job.status || 'Engage').toLowerCase();
+            // Normalize
+            if (currentStatus.includes('post') || currentStatus.includes('offer')) currentStatus = 'post interview';
+            if (currentStatus.includes('interview')) currentStatus = 'interviewing';
 
-            document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Identified';
+            document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Engage';
 
             // Slide In
             dossier.classList.remove('translate-x-full');
         };
 
-        window.closeDossier = () => {
+        window.closeDossier = async () => {
+            // Autosave on close
+            if (currentJobId) {
+                await saveJobChanges(true); // Silent save
+            }
+            const dossier = document.getElementById('mission-dossier');
             dossier.classList.add('translate-x-full');
             currentJobId = null;
         };
 
         window.handleSaveIntel = async () => {
+            // Explicit save button
+            await saveJobChanges(false);
+        };
+
+        window.handleRefreshIntel = async () => {
             const jdText = document.getElementById('dossier-jd').value;
-            const intelBox = document.getElementById('dossier-notes').value;
-            const saveBtn = document.getElementById('dossier-save-btn');
+            const btn = document.getElementById('dossier-refresh-btn');
 
-            // 1. SMART CHECK: If JD exists but Intel is empty, generate it first.
-            if (jdText.trim().length > 50 && intelBox.trim().length < 10) {
-
-                // UI Feedback
-                const originalBtnText = saveBtn.innerText;
-                saveBtn.innerHTML = '<i class="fas fa-robot fa-spin"></i> Analyzing...';
-                saveBtn.disabled = true;
-
-                try {
-                    const session = getSession();
-                    const response = await fetch('/api/generate-intel', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${session?.access_token}`
-                        },
-                        body: JSON.stringify({ job_description: jdText })
-                    });
-
-                    const data = await response.json();
-
-                    if (data.intel) {
-                        document.getElementById('dossier-notes').value = data.intel; // Fill the box
-                    }
-                } catch (error) {
-                    console.error("AI Generation failed:", error);
-                    // We don't block the save; we just alert and continue
-                    alert("Could not feature-generate intel, but saving data...");
-                } finally {
-                    saveBtn.innerText = originalBtnText; // Restore text (icon lost but ok)
-                    saveBtn.innerHTML = '<i class="fas fa-save"></i> SAVE INTEL'; // Actually restore full HTML
-                    saveBtn.disabled = false;
-                }
+            if (!jdText || jdText.length < 50) {
+                alert("Please paste the Job Description first.");
+                return;
             }
 
-            // 2. Proceed to save to database
-            saveDossier();
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spin fa-sync"></i> GENERATING...';
+            btn.disabled = true;
+
+            try {
+                const session = getSession();
+                const response = await fetch('/api/generate-intel', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
+                    body: JSON.stringify({ job_description: jdText })
+                });
+
+                const data = await response.json();
+                if (data.intel) {
+                    document.getElementById('dossier-notes').value = data.intel;
+                    // Not autosaving immediately, user can review then click Save or Close (Autosave)
+                }
+            } catch (error) {
+                console.error("AI Generation failed:", error);
+                alert("Could not generate intel.");
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
         };
 
         // --- SAVE & AUTOSAVE LOGIC ---
@@ -599,20 +601,19 @@
         async function saveJobChanges(silent = false) {
             if (!currentJobId) return;
             const btn = document.getElementById('dossier-save-btn');
-            const originalText = btn.innerHTML;
+            const originalText = btn ? btn.innerHTML : ''; // Safe check if button exists
 
-            if (!silent) {
+            if (!silent && btn) {
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
             }
 
             const rawStatus = document.getElementById('dossier-status').value;
-            // Map UI status back to backend standard if needed (though Identified works)
 
             const updates = {
                 job_description: document.getElementById('dossier-jd').value,
                 notes: document.getElementById('dossier-notes').value,
                 salary_target: document.getElementById('dossier-salary').value,
-                status: rawStatus // Send exactly what selected (Identified, Interviewing, Offer)
+                status: rawStatus
             };
 
             try {
@@ -631,7 +632,7 @@
                     localJobsInfo[jobIndex] = { ...localJobsInfo[jobIndex], ...updates };
                 }
 
-                if (!silent) {
+                if (!silent && btn) {
                     // Visual feedback only if explicit save
                     btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
                     setTimeout(() => btn.innerHTML = originalText, 1500);
@@ -644,48 +645,18 @@
                 console.error("Autosave/Save Error:", e);
                 if (!silent) alert("Error saving: " + e.message);
             } finally {
-                if (!silent && btn.innerHTML.includes('SAVING')) {
+                if (!silent && btn && btn.innerHTML.includes('SAVING')) {
                     btn.innerHTML = originalText;
                 }
             }
         }
 
-        window.handleSaveIntel = async () => {
-            await saveJobChanges(false);
-        };
-
-        window.closeDossier = async () => {
-            // Autosave on close
-            if (currentJobId) {
-                await saveJobChanges(true); // Silent save
-            }
-            const dossier = document.getElementById('mission-dossier');
-            dossier.classList.add('translate-x-full');
-            currentJobId = null;
-        };
-
-        // Ensure launchMission saves before going
-        window.launchMission = async (id) => {
-            if (currentJobId && currentJobId === id) {
-                await saveJobChanges(true);
-            }
-
-            // Set Context for Strategy Items
-            const job = localJobsInfo.find(j => j.id === id);
-            if (job) {
-                const context = {
-                    role: job.job_title,
-                    company: job.company_name,
-                    jd: job.job_description,
-                    notes: job.notes,
-                    salary: job.salary_target,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem('mission_context', JSON.stringify(context));
-            }
-
-            // Navigate to Strategy Lab with Context Ready
-            window.location.href = `/strategy-lab.html`;
+        // Launch Mission replaced by Refresh Intel in Dossier.
+        // Keeping this function if called from elsewhere or redirect needed?
+        // User requested removing Start Session button, but if we need a tool launcher:
+        window.launchToolFromCard = (id) => {
+            // Logic to launch tool from card if needed
+            window.openDossier(id);
         }
 
         window.handleJobDelete = async () => {
@@ -740,23 +711,25 @@
             if (strategyCountEl) strategyCountEl.innerText = activeCount;
 
             // Sort & Render
+            // Sort & Render
             jobs.forEach(job => {
-                let status = (job.status || 'identified').toLowerCase();
+                let status = (job.status || 'Engage').toLowerCase();
 
                 // Skip closed jobs
                 if (status === 'closed') return;
 
-                if (status.includes('offer')) status = 'offer';
-                else if (status.includes('interview')) status = 'interviewing';
-                else if (status.includes('appli')) status = 'applied';
-                else status = 'identified';
+                // Normalize for UI
+                // Backend might send: Engage, Interviewing, Post Interview, Closed
+                // Legacy: Identified, Applied, Offer
+
+                if (status.includes('post') || status.includes('offer')) status = 'offer'; // UI Col ID
+                else if (status.includes('interview')) status = 'interviewing'; // UI Col ID
+                else if (status.includes('appli')) status = 'engage'; // UI Col ID (Badge: Applied)
+                else status = 'engage'; // Default UI Col ID
 
                 // Update Count & Column Selection
-                // CONSOLIDATION: 'identified' and 'applied' go to 'engage' column
+                // columnKey matches HTML IDs: col-engage, col-interviewing, col-offer
                 let columnKey = status;
-                if (status === 'identified' || status === 'applied') {
-                    columnKey = 'engage';
-                }
 
                 const countEl = document.getElementById(`count-${columnKey}`);
                 if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;

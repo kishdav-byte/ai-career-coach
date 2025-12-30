@@ -49,18 +49,21 @@ def manage_jobs():
     if request.method == 'GET':
         try:
             # Query AS THE USER
-            response = user_client.table('user_jobs').select(
-                "id, job_title, company_name, status, job_description"
+            # Switch to job_tracker. Map role_title to job_title for frontend compatibility.
+            response = user_client.table('job_tracker').select(
+                "id, role_title, company_name, status, job_description, notes, salary_target"
             ).eq('user_id', user_id).execute()
 
             clean_jobs = []
             for job in response.data:
                 clean_jobs.append({
                     "id": job.get('id'),
-                    "job_title": job.get('job_title', ''),     
+                    "job_title": job.get('role_title', ''), # Map DB 'role_title' -> API 'job_title'    
                     "company_name": job.get('company_name', ''), 
-                    "status": job.get('status', 'Identified'),
-                    "job_description": job.get('job_description', '') 
+                    "status": job.get('status', 'Engage'),
+                    "job_description": job.get('job_description', ''),
+                    "notes": job.get('notes', ''),
+                    "salary_target": job.get('salary_target', '')
                 })
             return jsonify(clean_jobs), 200
         except Exception as e:
@@ -73,13 +76,13 @@ def manage_jobs():
             data = request.json
             new_job = {
                 "user_id": user_id,
-                "job_title": data.get('job_title', 'New Role'),
+                "role_title": data.get('job_title', 'New Role'), # Map API 'job_title' -> DB 'role_title'
                 "company_name": data.get('company_name', 'New Co'),
-                "status": "Identified",
+                "status": "Engage",
                 "job_description": data.get('job_description', '')
             }
             # Insert AS THE USER
-            res = user_client.table('user_jobs').insert(new_job).execute()
+            res = user_client.table('job_tracker').insert(new_job).execute()
             return jsonify(res.data), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -104,11 +107,14 @@ def update_job(job_id):
         if 'job_description' in data: updates['job_description'] = data['job_description']
         if 'notes' in data: updates['notes'] = data['notes']
         if 'salary_target' in data: updates['salary_target'] = data['salary_target']
+        if 'status' in data: updates['status'] = data['status']
+        # No role_title update supported yet in UI, but if needed:
+        if 'job_title' in data: updates['role_title'] = data['job_title']
         
         if not updates:
             return jsonify({"status": "No changes"}), 200
 
-        res = user_client.table('user_jobs').update(updates).eq('id', job_id).execute()
+        res = user_client.table('job_tracker').update(updates).eq('id', job_id).execute()
         return jsonify(res.data), 200
 
     except Exception as e:
@@ -185,8 +191,8 @@ def analyze_jd():
         prompt = (
             f"Analyze this Job Description:\n{jd_text}\n\n"
             f"Return a JSON object with these keys:\n"
-            f"- role: The specific job title\n"
-            f"- company: The company name\n"
+            f"- role: Extract the EXACT job title verbatim from the text. Do not rename or generalize it (e.g. if it says 'Kitchen Leader', do not change it to 'Operations Leader'). Only if NO title is present, infer the closest standard title based on the overview.\n"
+            f"- company: The specific company name\n"
             f"- summary: A 3-sentence summary of the main responsibilities"
         )
 
@@ -250,18 +256,35 @@ def get_feedback():
         resume_text = data.get('resumeText', '')
         is_start = data.get('isStart', False)
         question_count = data.get('questionCount', 1)
+        role_title = data.get('roleTitle', '')
 
-
+        # DYNAMIC RUBRIC Logic
+        # Question 2 evaluates the answer to Q1 (Background/Intro). 
+        # Questions 3+ evaluate STAR answers.
+        
+        if question_count == 2:
+            rubric_text = (
+                "SCORING RUBRIC (BACKGROUND QUESTION):\n"
+                "- Score 1-2: User's background is irrelevant or poorly communicated.\n"
+                "- Score 3-4: Experience is relevant but lacks executive presence or clear connection.\n"
+                "- Score 5: Strong executive summary. Clearly links past experience to this specific role's requirements.\n"
+            )
+        else:
+            rubric_text = (
+                "SCORING RUBRIC (STAR METHOD):\n"
+                "- Score 1-2: User fails to provide a specific Situation, Action, or Result.\n"
+                "- Score 3-4: User provides S-A-R but lacks specific metrics or could be better organized.\n"
+                "- Score 5 (Unicorn): Perfect delivery. Relevant Situation, specific Action/Strategy, and measurable Result ($/%).\n"
+            )
+        
         # Build Context
+        # We explicitly set the "Target Role" using the passed title to avoid AI guessing.
         system_prompt = (
             "You are an expert Executive Interview Coach. Your goal is to conduct a realistic, "
             "high-stakes interview simulation. \n"
-            f"CONTEXT:\nJob: {job_posting}\nCandidate Resume: {resume_text}\n"
+            f"CONTEXT:\nTarget Role: {role_title}\nJob Description: {job_posting}\nCandidate Resume: {resume_text}\n"
             "BEHAVIOR:\n"
-            "SCORING RUBRIC:\n"
-            "- Score 1-2: User fails to provide a specific Situation, Action, or Result.\n"
-            "- Score 3-4: User provides S-A-R but lacks specific metrics or could be better organized.\n"
-            "- Score 5 (Unicorn): Perfect delivery. Relevant Situation, specific Action/Strategy, and measurable Result ($/%).\n"
+            f"{rubric_text}"
             "BEHAVIOR:\n"
             "- Ask one hard, relevant question at a time.\n"
             "- Provide brief, constructive feedback based on the rubric above.\n"
@@ -298,7 +321,7 @@ def get_feedback():
                 "content": (
                     f"User Answer: {message}. \n"
                     "Step 1: Thank the user for sharing that.\n"
-                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide IS a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
+                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide is a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
                     "Step 3: Ask the first STAR question."
                 )
             })
@@ -402,7 +425,10 @@ def general_api():
             
             OUTPUT FORMAT:
             Return a JSON object with this structure:
-            {{ "report": "<html>...</html>" }}
+            {{
+                "report": "<html>...</html>",
+                "average_score": 4.5
+            }}
             
             HTML REQUIREMENTS:
             - Use a modern, dark-mode compatible style (Tailwind-like classes or inline styles).
@@ -418,9 +444,277 @@ def general_api():
             )
             
             result = json.loads(completion.choices[0].message.content)
+            
+            # --- PYTHON MATH ENFORCER ---
+            # Don't trust the AI's math. Calculate it from the history.
+            try:
+                extracted_scores = []
+                import re
+                for turn in history:
+                    feedback = turn.get('feedback', '')
+                    # Look for "Score: 3/5" or "Score: 3"
+                    match = re.search(r'Score:\s*(\d+(\.\d+)?)', feedback, re.IGNORECASE)
+                    if match:
+                        extracted_scores.append(float(match.group(1)))
+                
+                if extracted_scores:
+                    # Calculate precise average
+                    avg = sum(extracted_scores) / len(extracted_scores)
+                    # Round to 1 decimal place (e.g. 3.8)
+                    result['average_score'] = round(avg, 1)
+                    print(f"Server-Side Calc: Found {len(extracted_scores)} scores. Avg: {result['average_score']}")
+                else:
+                    if 'average_score' not in result:
+                        result['average_score'] = 0
+            except Exception as e:
+                print(f"Math Enforcer Error: {e}")
+                # Fallback to AI's guess if python logic fails
+                if 'average_score' not in result:
+                    result['average_score'] = 0
+
             return jsonify({"data": result}), 200
             
-        return jsonify({"error": "Invalid Action"}), 400
+        elif action == 'parse_resume':
+            resume_text = data.get('resume_text', '')
+            
+            prompt = f"""
+            Extract structured data from this resume text.
+            Resume Text:
+            {resume_text[:4000]} (truncated)
+
+            Output JSON structure:
+            {{
+                "personal": {{ "name": "...", "email": "...", "phone": "..." }},
+                "experience": [
+                    {{ "role": "...", "company": "...", "dates": "...", "description": "..." }}
+                ],
+                "education": [
+                     {{ "degree": "...", "school": "...", "dates": "..." }}
+                ]
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a resume parser. Output only valid JSON."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            
+            return jsonify({"data": completion.choices[0].message.content}), 200
+
+        elif action == 'analyze_resume':
+            resume_text = data.get('resume', '')
+            jd_text = data.get('job_description', '')
+            
+            prompt = f"""
+            Analyze this resume against the following job description.
+            RESUME:
+            {resume_text[:4000]}
+            
+            JOB DESCRIPTION:
+            {jd_text[:2000]}
+
+            Output JSON structure exactly:
+            {{
+                "overall_score": 0-100 (integer),
+                "ats_compatibility": {{ "score": 0-10 (integer) }},
+                "keywords": {{
+                    "missing": [
+                        {{ "word": "high-priority keyword from JD missing in resume" }},
+                        {{ "word": "..." }}
+                    ]
+                }},
+                "formatting": [
+                    {{ "issue": "Specific formatting concern", "fix": "How to fix it" }}
+                ],
+                "improvements": [
+                    {{ 
+                        "title": "Improvement Category", 
+                        "suggestion": "Detailed strategy", 
+                        "current": "Snippet from resume showing the issue", 
+                        "better": "Better version of that snippet" 
+                    }}
+                ],
+                "word_count": {len(resume_text.split())}
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    {"role": "system", "content": "You are a professional resume auditor. Output valid JSON only. Be extremely specific in the improvements section."},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return jsonify({"data": completion.choices[0].message.content}), 200
+
+        elif action == 'optimize':
+            user_data = data.get('user_data', {})
+            # Fix Key Mismatch: Frontend sends 'resume_text' and 'job_description'
+            resume_text = data.get('resume_text', '')
+            jd_text = data.get('job_description', '')
+            strategy = data.get('strategy', 'Professional and Results-Driven')
+
+            prompt = f"""
+            Optimize this resume for the target job using the specified strategy.
+            
+            USER IDENTITY (DO NOT HALLUCINATE):
+            Name: {user_data.get('personal', {}).get('name', 'N/A')}
+            Email: {user_data.get('personal', {}).get('email', 'N/A')}
+            Phone: {user_data.get('personal', {}).get('phone', 'N/A')}
+            Location: {user_data.get('personal', {}).get('location', 'N/A')}
+
+            ORIGINAL RESUME CONTENT:
+            {resume_text[:4000]}
+
+            TARGET JOB:
+            {jd_text[:2000]}
+
+            STRATEGY:
+            {strategy}
+
+            INSTRUCTIONS:
+            1. Rewrite the 'Summary' and 'Experience' sections to align with the JD while maintaining absolute truthfulness to the ORIGINAL RESUME content.
+            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe".
+            
+            Output JSON structure exactly:
+            {{
+                "personal": {{
+                    "name": "{user_data.get('personal', {}).get('name', 'N/A')}",
+                    "email": "{user_data.get('personal', {}).get('email', 'N/A')}",
+                    "phone": "{user_data.get('personal', {}).get('phone', 'N/A')}",
+                    "location": "{user_data.get('personal', {}).get('location', 'N/A')}",
+                    "summary": "NEW OPTIMIZED SUMMARY"
+                }},
+                "experience": [
+                    {{ "role": "...", "company": "...", "dates": "...", "description": "NEW OPTIMIZED BULLETS" }}
+                ],
+                "skills": ["keyword1", "keyword2", "..."],
+                "enhancement_overview": "A brief explanation of the strategic changes made (Markdown allowed)."
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": "You are an expert executive resume writer. Use provided user data ONLY. No hallucinations." },
+                    { "role": "user", "content": prompt }
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return jsonify({ "data": completion.choices[0].message.content }), 200
+
+        elif action == 'cover_letter':
+            resume_text = data.get('resume', '')
+            jd_text = data.get('jobDesc', '')
+            user_data = data.get('user_data', {})
+            p = user_data.get('personal', {})
+            
+            prompt = f"""
+            Write a highly tailored, professional cover letter based on the provided resume and job description.
+            
+            USER IDENTITY (USE THESE - DO NOT USE PLACEHOLDERS FOR THESE):
+            Name: {p.get('name', 'N/A')}
+            Email: {p.get('email', 'N/A')}
+            Phone: {p.get('phone', 'N/A')}
+            Location: {p.get('location', 'N/A')}
+
+            RESUME CONTENT:
+            {resume_text[:4000]}
+            
+            JOB DESCRIPTION:
+            {jd_text[:2000]}
+
+            INSTRUCTIONS:
+            1. Use a modern, professional tone.
+            2. Highlighting specific achievements from the RESUME CONTENT that align with the JOB DESCRIPTION.
+            3. Use the USER IDENTITY provided for the header and signature. DO NOT use placeholders like [Your Name] or [Your Phone] if information is provided above.
+            4. Keep it concise (under 400 words).
+            5. Use placeholders like [Date], [Hiring Manager Name], [Company Name], etc. ONLY if they are not clear from the JD or User Identity.
+            6. Output in Markdown format.
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": "You are an expert executive cover letter writer. Use provided identity and resume. No placeholders for user info." },
+                    { "role": "user", "content": prompt }
+                ]
+            )
+            return jsonify({ "data": completion.choices[0].message.content }), 200
+
+        elif action == 'linkedin_optimize':
+            about_me = data.get('aboutMe', '')
+            
+            prompt = f"""
+            Analyze and optimize this LinkedIn 'About' section for a high-performance professional.
+            
+            ABOUT SECTION:
+            {about_me[:4000]}
+
+            INSTRUCTIONS:
+            1. Provide 3-5 specific recommendations for improvement.
+            2. Provide a refined, "Sample" version of the About section that is compelling and results-driven.
+            3. Output JSON structure exactly:
+            {{
+                "recommendations": ["Recommendation 1", "Recommendation 2", ...],
+                "refined_content": "The full revised text..."
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": "You are a LinkedIn branding expert. Output valid JSON only." },
+                    { "role": "user", "content": prompt }
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return jsonify(json.loads(completion.choices[0].message.content)), 200
+
+        elif action == 'lab_assistant_chat':
+            user_message = data.get('message', '')
+            mission_context = data.get('context', '')
+            
+            system_prompt = f"""
+            You are the neural core of the Strategy Lab. You provide cold, clinical, yet highly effective career advice.
+            
+            CURRENT MISSION CONTEXT:
+            {mission_context}
+            
+            OPERATIONAL DIRECTIVES:
+            1. NEVER be dismissive. If you lack direct knowledge of a company, perform "Strategic Extrapolation."
+            2. Analyze the Job Description and Role title provided in the context to infer company culture, priorities, and pain points.
+            3. Provide a "calculated profile" of the company based on its industry and the type of talent they are hiring.
+            4. If the user asks about a specific company and you don't have it in your training data, do not tell them to "research on their own." Instead, provide a framework of exactly WHAT they should look for and WHY it matters for their specific role.
+            5. Maintain a high-leverage, executive tone.
+            
+            REVENUE LINKING PROTOCOL (CRITICAL):
+            When relevant, you MUST naturally mention one of the following tools in your response to trigger a conversion chip:
+            - Mention "Executive Rewrite" if the user needs resume optimization.
+            - Mention "Interview Simulator" if the user needs to practice for behaviorals or technicals.
+            - Mention "The Closer" if the user is discussing salary or contract negotiation.
+
+            INSTRUCTIONS:
+            1. Provide actionable, high-leverage advice.
+            2. Use Markdown for formatting.
+            3. Keep responses punchy and professional.
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": system_prompt },
+                    { "role": "user", "content": user_message }
+                ]
+            )
+            return jsonify({ "response": completion.choices[0].message.content }), 200
+
+        return jsonify({"error": f"Invalid Action: {action} (v2)"}), 400
 
     except Exception as e:
         print(f"General API Error: {e}")
