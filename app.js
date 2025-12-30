@@ -537,30 +537,30 @@ function renderToolLocker(user) {
     `;
 }
 
-// --- RENDER LOGIC (Compact Accordion) ---
+// --- RENDER LOGIC (Dossier Groups) ---
 window.renderUpgradeHub = function (containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Grouping Logic
+    // Grouping Logic - Matching Dossier Field Groups
     const groups = [
         {
-            key: 'pro',
             title: 'Unlock Pro',
-            ids: ['monthly_plan', 'strategy_bundle'],
-            isOpen: true
+            icon: 'fas fa-star',
+            color: 'text-yellow-500', // Matches Pro Badge
+            ids: ['monthly_plan', 'strategy_bundle']
         },
         {
-            key: 'services',
             title: 'Expert Services',
-            ids: ['executive_rewrite', 'interview_sim', 'plan_30_60_90'],
-            isOpen: false
+            icon: 'fas fa-user-tie', // Matches Dossier Role Blue
+            color: 'text-blue-400',
+            ids: ['executive_rewrite', 'interview_sim', 'plan_30_60_90']
         },
         {
-            key: 'tools',
             title: 'Toolkit',
-            ids: ['cover_letter', 'linkedin_optimize', 'negotiation', 'inquisitor', 'follow_up'],
-            isOpen: false
+            icon: 'fas fa-toolbox',
+            color: 'text-green-400', // Matches Dossier Salary Green
+            ids: ['cover_letter', 'linkedin_optimize', 'negotiation', 'inquisitor', 'follow_up']
         }
     ];
 
@@ -570,47 +570,35 @@ window.renderUpgradeHub = function (containerId) {
         const groupItems = PRODUCTS.filter(p => group.ids.includes(p.id));
         if (groupItems.length === 0) return;
 
-        const isHidden = group.isOpen ? '' : 'hidden';
-        const iconClass = group.isOpen ? '' : '-rotate-90'; // Point right when closed, down when open
-
         html += `
-            <div class="mb-3">
-                <button onclick="toggleUpgradeGroup('${group.key}')" 
-                    class="flex items-center justify-between w-full text-[10px] font-bold text-slate-500 uppercase tracking-widest hover:text-white transition-colors mb-2 group">
-                    <span>${group.title}</span>
-                    <i id="icon-upg-${group.key}" class="fas fa-chevron-down text-[10px] transition-transform duration-200 ${iconClass} group-hover:text-white"></i>
-                </button>
-                
-                <div id="group-upg-${group.key}" class="space-y-1 ${isHidden}">
-                    ${groupItems.map(p => {
+        <div class="space-y-3">
+             <label class="text-xs font-bold ${group.color} uppercase tracking-widest flex items-center gap-2">
+                <i class="${group.icon}"></i> ${group.title}
+             </label>
+             <div class="space-y-2">
+                ${groupItems.map(p => {
             const isHighlight = p.id === 'monthly_plan';
-            const baseClass = "w-full flex justify-between items-center p-2 rounded border transition-all group text-left relative overflow-hidden";
-            const styleClass = isHighlight
-                ? "bg-teal/5 border-teal/20 hover:bg-teal/10"
-                : "bg-transparent border-transparent hover:bg-white/5 border-b-slate-800/50";
-            const titleColor = isHighlight ? "text-teal" : "text-slate-300";
+            const bgClass = isHighlight ? 'bg-teal/10 border-teal/30 hover:bg-teal/20' : 'bg-slate-800/50 border-slate-700 hover:bg-slate-800';
+            const textClass = isHighlight ? 'text-teal' : 'text-slate-300';
 
             return `
-                        <button onclick="initiateCheckout('${p.id}', null, null)" 
-                            class="${baseClass} ${styleClass}"
-                            title="${p.desc}">
-                            
-                            <div class="flex-1 min-w-0 pr-2">
-                                <div class="flex items-center gap-1.5 truncate">
-                                    ${isHighlight ? '<i class="fas fa-star text-[8px] text-teal"></i>' : ''}
-                                    <span class="text-xs font-medium ${titleColor} truncate">${p.title}</span>
-                                    <span class="text-[10px] text-slate-500 shrink-0">(${p.price})</span>
-                                </div>
+                    <button onclick="initiateCheckout('${p.id}', null, null)"
+                        class="w-full ${bgClass} border rounded-lg p-3 flex justify-between items-center transition-all group text-left">
+                        <div>
+                            <div class="text-xs font-bold ${textClass} group-hover:text-white transition-colors flex items-center gap-2">
+                                ${p.title}
+                                ${isHighlight ? '<span class="bg-teal text-black text-[8px] px-1.5 py-0.5 rounded font-black tracking-tighter">PRO</span>' : ''}
                             </div>
-                            
-                            <div class="shrink-0 text-slate-600 group-hover:text-teal transition-colors">
-                                <i class="fas fa-shopping-cart text-[10px]"></i>
-                            </div>
-                        </button>
-                        `;
+                            <div class="text-[10px] text-slate-500 group-hover:text-slate-400 mt-0.5">${p.desc}</div>
+                        </div>
+                        <div class="text-xs font-bold text-white bg-black/20 px-2 py-1 rounded border border-white/5 group-hover:border-white/20">
+                            ${p.price}
+                        </div>
+                    </button>
+            `;
         }).join('')}
-                </div>
-            </div>
+             </div>
+        </div>
         `;
     });
 
@@ -1528,19 +1516,21 @@ function init() {
                 console.log("Starting Interview Flow...");
                 await processJobDescription(); // Analyze JD before starting
 
-                // Pass resume info & Company Name & Interviewer Intel
+                // Pass resume info & Company Name & Interviewer Intel & Role
                 let companyName = "the target company";
+                let roleTitle = "the open position"; // Default
                 let interviewerIntel = "";
 
                 try {
                     const mCtx = JSON.parse(localStorage.getItem('mission_context'));
                     if (mCtx) {
                         if (mCtx.company) companyName = mCtx.company;
+                        if (mCtx.role) roleTitle = mCtx.role; // Use exact analyzed role
                         if (mCtx.notes) interviewerIntel = mCtx.notes;
                     }
                 } catch (e) { }
 
-                sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel);
+                sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel, roleTitle);
             } else {
                 alert("Please paste a job description first.");
             }
@@ -1648,7 +1638,7 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
-    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "") {
+    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "", roleTitle = "") {
         const message = msg || (chatInput ? chatInput.value : '');
         if (!message) return;
 
@@ -1668,22 +1658,36 @@ function init() {
         // Prioritize Accordion JD, fallback to sidebar
         const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
         const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
-        const jobPosting = accordionJD || sidebarJD;
+        const jobPosting = accordionJD || sidebarJD || "No Job Description Provided.";
 
         const { voice, speed } = getVoiceSettings();
 
+        // Get Email from Session for Credit Deduction
+        let email = null;
+        try {
+            const sessionItem = localStorage.getItem(SESSION_KEY);
+            if (sessionItem) {
+                const sessionObj = JSON.parse(sessionItem);
+                email = sessionObj.email || sessionObj.user?.email;
+            }
+        } catch (e) { console.error("Error fetching email from session", e); }
+
+        const processedData = {
+            message: message,
+            jobPosting: jobPosting,
+            resumeText: resumeText,
+            companyName: companyName,
+            interviewer_intel: interviewerIntel, // Pass Intel!
+            isStart: isStart,
+            questionCount: questionCount + 1,
+            email: email,
+            voice: voice, // Pass voice preference
+            role_title: isStart ? jobData.role : roleTitle, // Use analyzed role if starting, else the passed roleTitle
+            company_name: isStart ? jobData.company : undefined,
+            role_summary: isStart ? jobData.summary : undefined
+        };
 
         try {
-            // Get Email from Session for Credit Deduction
-            let email = null;
-            try {
-                const sessionItem = localStorage.getItem(SESSION_KEY);
-                if (sessionItem) {
-                    const sessionObj = JSON.parse(sessionItem);
-                    email = sessionObj.email || sessionObj.user?.email;
-                }
-            } catch (e) { console.error("Error fetching email from session", e); }
-
             // NEW: BLOCKING ARCHITECTURE (Quality Fix)
             const response = await fetch('/api/get-feedback', {
                 method: 'POST',
@@ -1853,6 +1857,54 @@ function init() {
             if (recordBtn) recordBtn.disabled = true;
 
             if (result.data && result.data.report) {
+
+                // SAVE TO DB LOGIC
+                // SAVE TO DB LOGIC
+                try {
+                    // Use Supabase Auth User (Source of Truth for RLS)
+                    const { data: { user } } = await supabase.auth.getUser();
+
+                    if (user) {
+                        // Retrieve Context for Metadata
+                        let jobTitle = "Interview";
+                        let companyName = "Unknown Company";
+                        try {
+                            const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+                            if (mCtx) {
+                                if (mCtx.role) jobTitle = mCtx.role;
+                                if (mCtx.company) companyName = mCtx.company;
+                            }
+                        } catch (e) { }
+
+                        const { error } = await supabase
+                            .from('interviews')
+                            .insert({
+                                user_id: user.id,
+                                overall_score: result.data.average_score || 0, // Mapped to 'overall_score'
+                                transcript: JSON.stringify(interviewHistory),
+                                questions: interviewHistory, // Keep questions if column exists, else it might be feedback_json
+                                executive_report: result.data.report, // Save the full HTML report
+                                session_name: `Interview ${new Date().toLocaleDateString()}`,
+                                job_title: jobTitle,
+                                company: companyName
+                            });
+
+                        if (error) {
+                            console.error("DB Save Error:", error);
+                            alert("Warning: Could not save interview result to database. Error: " + error.message + " (Details: " + error.details + ")");
+                        } else {
+                            console.log("Interview Saved Successfully");
+                            // Optional: Small toast or console log is enough usually, but let's be sure
+                        }
+                    } else {
+                        console.error("Save Failed: No authenticated user found.");
+                        alert("Warning: You do not appear to be logged in. Interview result was NOT saved.");
+                    }
+                } catch (dbErr) {
+                    console.error("DB Save Exception:", dbErr);
+                    alert("System Error: Could not save interview. " + dbErr.message);
+                }
+
                 // RENDER THE EXECUTIVE REPORT FROM AI
                 addMessage(result.data.report, 'system', true);
 
