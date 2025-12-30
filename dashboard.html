@@ -594,17 +594,25 @@
             saveDossier();
         };
 
-        window.saveDossier = async () => {
+        // --- SAVE & AUTOSAVE LOGIC ---
+        // robust save function that handles UI updates and backend sync
+        async function saveJobChanges(silent = false) {
             if (!currentJobId) return;
             const btn = document.getElementById('dossier-save-btn');
             const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+
+            if (!silent) {
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+            }
+
+            const rawStatus = document.getElementById('dossier-status').value;
+            // Map UI status back to backend standard if needed (though Identified works)
 
             const updates = {
                 job_description: document.getElementById('dossier-jd').value,
                 notes: document.getElementById('dossier-notes').value,
                 salary_target: document.getElementById('dossier-salary').value,
-                status: document.getElementById('dossier-status').value
+                status: rawStatus // Send exactly what selected (Identified, Interviewing, Offer)
             };
 
             try {
@@ -617,21 +625,68 @@
 
                 if (!res.ok) throw new Error("Save failed");
 
-                // Update local data
+                // Optimistic Local Update
                 const jobIndex = localJobsInfo.findIndex(j => j.id === currentJobId);
                 if (jobIndex > -1) {
                     localJobsInfo[jobIndex] = { ...localJobsInfo[jobIndex], ...updates };
                 }
 
-                alert("Mission Dossier updated.");
-                closeDossier();
+                if (!silent) {
+                    // Visual feedback only if explicit save
+                    btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
+                    setTimeout(() => btn.innerHTML = originalText, 1500);
+                }
+
+                // Refresh Board to Reflect Moves
                 loadJobs();
+
             } catch (e) {
-                alert("Error saving dossier: " + e.message);
+                console.error("Autosave/Save Error:", e);
+                if (!silent) alert("Error saving: " + e.message);
             } finally {
-                btn.innerHTML = originalText;
+                if (!silent && btn.innerHTML.includes('SAVING')) {
+                    btn.innerHTML = originalText;
+                }
             }
+        }
+
+        window.handleSaveIntel = async () => {
+            await saveJobChanges(false);
         };
+
+        window.closeDossier = async () => {
+            // Autosave on close
+            if (currentJobId) {
+                await saveJobChanges(true); // Silent save
+            }
+            const dossier = document.getElementById('mission-dossier');
+            dossier.classList.add('translate-x-full');
+            currentJobId = null;
+        };
+
+        // Ensure launchMission saves before going
+        window.launchMission = async (id) => {
+            if (currentJobId && currentJobId === id) {
+                await saveJobChanges(true);
+            }
+
+            // Set Context for Strategy Items
+            const job = localJobsInfo.find(j => j.id === id);
+            if (job) {
+                const context = {
+                    role: job.job_title,
+                    company: job.company_name,
+                    jd: job.job_description,
+                    notes: job.notes,
+                    salary: job.salary_target,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('mission_context', JSON.stringify(context));
+            }
+
+            // Navigate to Strategy Lab with Context Ready
+            window.location.href = `/strategy-lab.html`;
+        }
 
         window.handleJobDelete = async () => {
             if (!currentJobId) return;
@@ -647,8 +702,10 @@
 
                 if (!res.ok) throw new Error("Delete failed");
 
-                alert("Job removed from active list.");
-                closeDossier();
+                // alert("Job removed from active list."); // Removed intrusive alert
+                document.getElementById('mission-dossier').classList.add('translate-x-full'); // Manually close to skip autosave of deleted job
+                currentJobId = null;
+
                 loadJobs(); // Refresh board
             } catch (e) {
                 alert("Error: " + e.message);
