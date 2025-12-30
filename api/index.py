@@ -49,20 +49,20 @@ def manage_jobs():
     if request.method == 'GET':
         try:
             # Query AS THE USER
-            # Switch to job_tracker. Map role_title to job_title for frontend compatibility.
-            response = user_client.table('job_tracker').select(
-                "id, role_title, company_name, status, job_description, notes, salary_target"
+            # Reverted to user_jobs. Map job_intel to notes for frontend compatibility.
+            response = user_client.table('user_jobs').select(
+                "id, job_title, company_name, status, job_description, job_intel, salary_target"
             ).eq('user_id', user_id).execute()
 
             clean_jobs = []
             for job in response.data:
                 clean_jobs.append({
                     "id": job.get('id'),
-                    "job_title": job.get('role_title', ''), # Map DB 'role_title' -> API 'job_title'    
+                    "job_title": job.get('job_title', ''),     
                     "company_name": job.get('company_name', ''), 
                     "status": job.get('status', 'Engage'),
                     "job_description": job.get('job_description', ''),
-                    "notes": job.get('notes', ''),
+                    "notes": job.get('job_intel', ''), # Map DB 'job_intel' -> API 'notes'
                     "salary_target": job.get('salary_target', '')
                 })
             return jsonify(clean_jobs), 200
@@ -76,13 +76,14 @@ def manage_jobs():
             data = request.json
             new_job = {
                 "user_id": user_id,
-                "role_title": data.get('job_title', 'New Role'), # Map API 'job_title' -> DB 'role_title'
+                "job_title": data.get('job_title', 'New Role'),
                 "company_name": data.get('company_name', 'New Co'),
                 "status": "Engage",
                 "job_description": data.get('job_description', '')
+                # job_intel starts empty or null
             }
             # Insert AS THE USER
-            res = user_client.table('job_tracker').insert(new_job).execute()
+            res = user_client.table('user_jobs').insert(new_job).execute()
             return jsonify(res.data), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -105,16 +106,15 @@ def update_job(job_id):
         # Whitelist columns to update
         updates = {}
         if 'job_description' in data: updates['job_description'] = data['job_description']
-        if 'notes' in data: updates['notes'] = data['notes']
+        if 'notes' in data: updates['job_intel'] = data['notes'] # Map API 'notes' -> DB 'job_intel'
         if 'salary_target' in data: updates['salary_target'] = data['salary_target']
         if 'status' in data: updates['status'] = data['status']
-        # No role_title update supported yet in UI, but if needed:
-        if 'job_title' in data: updates['role_title'] = data['job_title']
+        if 'job_title' in data: updates['job_title'] = data['job_title']
         
         if not updates:
             return jsonify({"status": "No changes"}), 200
 
-        res = user_client.table('job_tracker').update(updates).eq('id', job_id).execute()
+        res = user_client.table('user_jobs').update(updates).eq('id', job_id).execute()
         return jsonify(res.data), 200
 
     except Exception as e:
