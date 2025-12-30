@@ -379,16 +379,9 @@
                 </label>
                 <select id="dossier-status"
                     class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
-                    <optgroup label="ENGAGE">
-                        <option value="Identified">Target</option>
-                        <option value="Applied">Applied (Sent)</option>
-                    </optgroup>
-                    <optgroup label="INTERVIEWING">
-                        <option value="Interviewing">Interviewing</option>
-                    </optgroup>
-                    <optgroup label="POST INTERVIEW">
-                        <option value="Offer">Offer / Closed</option>
-                    </optgroup>
+                    <option value="Identified">Engage</option>
+                    <option value="Interviewing">Interview</option>
+                    <option value="Offer">Post Interview</option>
                 </select>
             </div>
 
@@ -538,7 +531,7 @@
             // Status Match (Handle variations)
             const statusMap = {
                 'identified': 'Identified',
-                'applied': 'Applied',
+                'applied': 'Identified', // Merge Applied into Engage
                 'interviewing': 'Interviewing',
                 'offer': 'Offer', 'closed': 'Offer'
             };
