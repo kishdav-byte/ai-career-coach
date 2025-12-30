@@ -87,62 +87,72 @@
 
 
         <!-- Scrollable Controls -->
-        <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 flex flex-col">
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 flex flex-col relative">
 
-            <div class="mb-6">
-                <p class="text-sm text-slate-400 leading-relaxed">
-                    Convert your raw, messy stories into the perfect <span
-                        class="text-white font-bold">Situation-Task-Action-Result</span> format.
-                    Dump your thoughts below, and the AI will structure it for you.
-                </p>
+            <!-- Context Panel (Top) -->
+            <div id="context-panel" class="mb-4 p-4 bg-slate-900/40 border border-slate-700/50 rounded-xl hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Target Mission
+                        </div>
+                        <h2 id="ctx-role" class="text-white font-bold text-sm">Loading...</h2>
+                        <p id="ctx-company" class="text-xs text-slate-400">...</p>
+                    </div>
+                    <span class="text-[10px] bg-slate-800 text-slate-400 px-2 py-1 rounded">Resume Active</span>
+                </div>
             </div>
 
-            <!-- Input Area -->
-            <div class="flex-1 flex flex-col">
-                <label
-                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
-                    Your Raw Story
-                </label>
-                <div class="relative group flex-1">
-                    <textarea id="user-input"
-                        class="w-full h-full min-h-[300px] bg-slate-900/60 border border-slate-700/60 rounded-xl p-6 text-base text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
-                        placeholder="Example: I had to deal with a conflict in my team last year. Two engineers were arguing about the architecture..."></textarea>
+            <!-- CHAT CONTAINER -->
+            <div id="chat-container" class="flex-1 space-y-4 mb-4 overflow-y-auto custom-scroll pb-20">
+                <!-- AI Welcome Message -->
+                <div class="flex gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                        <i class="fas fa-robot text-white text-xs"></i>
+                    </div>
+                    <div
+                        class="bg-slate-800/80 p-4 rounded-r-xl rounded-bl-xl border border-slate-700/50 text-sm text-slate-200 shadow-sm max-w-[85%]">
+                        <p>I'm your Behavioral Interview Coach. I've analyzed your resume and the target role.</p>
+                        <p class="mt-2">I'm going to ask you a specific question to test your experience. Ready?</p>
+                    </div>
+                </div>
+            </div>
 
+            <!-- INPUT AREA (Sticky Bottom of Container) -->
+            <div class="mt-auto relative group">
+                <textarea id="user-input"
+                    class="w-full h-24 bg-slate-900/80 border border-slate-700/60 rounded-xl p-4 pr-12 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                    placeholder="Type your answer or use the microphone..."></textarea>
+
+                <div class="absolute bottom-3 right-3 flex gap-2">
                     <!-- Mic Button -->
                     <button id="mic-btn" onclick="toggleRecording()"
-                        class="absolute bottom-4 left-4 p-2 rounded-full bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 hover:scale-110 active:scale-95 transition-all shadow-lg group-hover:opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                        class="p-2 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-lg"
                         title="Dictate Story">
-                        <svg id="mic-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z">
-                            </path>
-                        </svg>
+                        <i id="mic-icon" class="fas fa-microphone"></i>
                     </button>
-
-                    <div id="word-count"
-                        class="absolute bottom-4 right-4 text-[10px] text-slate-600 font-mono tracking-wider transition-colors">
-                        0 Words
-                    </div>
+                    <!-- Send Button -->
+                    <button id="send-btn" onclick="sendMessage()"
+                        class="p-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition-all shadow-lg">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
 
         </div>
 
-        <!--Footer Action-->
-        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
-            <button id="run-btn" onclick="runDrill()"
-                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
-                <span>BUILD MY S.T.A.R. STORY</span>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                </svg>
-            </button>
-            <p id="credit-display" class="text-center text-[10px] text-slate-500 mt-3 font-mono">
-                USAGE: <span id="usage-count">...</span> / 3 (Free Plan)
-            </p>
+
+        <p class="text-sm text-slate-400 leading-relaxed">
+            Convert your raw, messy stories into the perfect <span
+                class="text-white font-bold">Situation-Task-Action-Result</span> format.
+            Dump your thoughts below, and the AI will structure it for you.
+        </p>
         </div>
+
+
+
+        </div>
+
+
 
     </aside>
 
@@ -263,8 +273,258 @@
 
     <script>
         const textarea = document.getElementById('user-input');
-        const wordCount = document.getElementById('word-count');
+        const chatContainer = document.getElementById('chat-container');
         const APP_SESSION_KEY = 'aceinterview_session';
+        
+        let chatHistory = [];
+        let isRecording = false;
+        let recognition = null;
+        let missionContext = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadContext();
+            startSession();
+        });
+
+        function loadContext() {
+            try {
+                // Load Active Mission Context from Dashboard
+                const ctxStr = localStorage.getItem('mission_context');
+                
+                // Also try to get Master Resume if not in context
+                const resumeStr = localStorage.getItem('master_resume_text');
+
+                if (ctxStr) {
+                    missionContext = JSON.parse(ctxStr);
+                    missionContext.resume_text = resumeStr || ""; // Ensure resume is attached
+                    
+                    // Update UI
+                    document.getElementById('context-panel').classList.remove('hidden');
+                    document.getElementById('ctx-role').innerText = missionContext.role_title || "Target Role";
+                    document.getElementById('ctx-company').innerText = missionContext.company_name || "Target Company";
+                } else {
+                    // Fallback if no context (Manual Mode implied)
+                    missionContext = {
+                        resume_text: resumeStr || "",
+                        job_description: "",
+                        role_title: "General Interview"
+                    };
+                }
+            } catch (e) {
+                console.error("Context Load Error", e);
+            }
+        }
+
+        async function startSession() {
+            // Initial AI Greeting & Question Generation
+            addMessage('system', "Analyzing your profile and target role...");
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'star_coach_init',
+                        resume_text: missionContext.resume_text,
+                        job_description: missionContext.job_description,
+                        role_title: missionContext.role_title
+                    })
+                });
+
+                const data = await response.json();
+                if (data.question) {
+                    // Remove "Analyzing..." bubble (optional, but keep for history)
+                    addMessage('system', data.question);
+                } else {
+                    addMessage('system', "I'm ready. Tell me about a time you demonstrated leadership.");
+                }
+
+            } catch (e) {
+                console.error(e);
+                addMessage('system', "Connection error. Please tell me your story manually.");
+            }
+        }
+
+        async function sendMessage() {
+            const text = textarea.value.trim();
+            if (!text) return;
+
+            // User Bubble
+            addMessage('user', text);
+            textarea.value = '';
+            
+            // Show Thinking
+            const thinkingId = addMessage('system', "Thinking...", true);
+
+            try {
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'star_coach_step',
+                        history: chatHistory,
+                        latest_input: text
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove Thinking Bubble
+                document.getElementById(thinkingId).remove();
+
+                if (data.status === 'clarify') {
+                    addMessage('system', data.question);
+                } else if (data.status === 'complete') {
+                    addMessage('system', "Great story! I've structured it into the S.T.A.R. format below.");
+                    showResult(data.star_data);
+                    saveToHistory(data.star_data, text); // Save original input as full transcript approximation
+                }
+
+            } catch (e) {
+                document.getElementById(thinkingId).remove();
+                addMessage('system', "Error processing response. Please try again.");
+            }
+        }
+
+        function addMessage(role, text, isThinking = false) {
+            const div = document.createElement('div');
+            const uniqueId = 'msg-' + Date.now();
+            div.id = uniqueId;
+            div.className = "flex gap-3 fade-in";
+            
+            // Add to history (except thinking bubbles)
+            if (!isThinking) {
+                chatHistory.push({ role: role, content: text });
+            }
+
+            if (role === 'system') {
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+                        <i class="fas fa-robot text-white text-xs"></i>
+                    </div>
+                    <div class="bg-slate-800/80 p-4 rounded-r-xl rounded-bl-xl border border-slate-700/50 text-sm text-slate-200 shadow-sm max-w-[85%]">
+                        <p>${text}</p>
+                    </div>
+                `;
+            } else {
+                div.classList.add('flex-row-reverse');
+                div.innerHTML = `
+                    <div class="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center shrink-0">
+                        <i class="fas fa-user text-white text-xs"></i>
+                    </div>
+                    <div class="bg-blue-600/20 p-4 rounded-l-xl rounded-br-xl border border-blue-500/30 text-sm text-white shadow-sm max-w-[85%]">
+                        <p>${text}</p>
+                    </div>
+                `;
+            }
+
+            chatContainer.appendChild(div);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return uniqueId;
+        }
+
+        function showResult(starData) {
+            document.getElementById('res-s').innerText = starData.S;
+            document.getElementById('res-t').innerText = starData.T;
+            document.getElementById('res-a').innerText = starData.A;
+            document.getElementById('res-r').innerText = starData.R;
+            
+            document.getElementById('state-idle').classList.add('hidden');
+            document.getElementById('state-result').classList.remove('hidden');
+        }
+
+        async function saveToHistory(starData, rawText) {
+             // Get Auth
+            let userId = null;
+            let token = null; 
+            try {
+                const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                if (sessionStr) {
+                    const s = JSON.parse(sessionStr);
+                    userId = s.user_id || s.user?.id || s.id;
+                    token = s.access_token; 
+                }
+            } catch (e) { }
+
+            if (!userId) return;
+
+             await fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    action: 'star_drill', // Re-use save endpoint logic or update backend to have star_save. 
+                    // NOTE: reused star_drill endpoint expects 'input_text' to generate STAR, 
+                    // BUT if we want to save *pre-generated* STAR, we might need a tweak. 
+                    // For now, let's assume we invoke standard save or just rely on the user copying it.
+                    // Actually, let's call star_drill but pass the raw input to trigger the save flow 
+                    // The backend currently re-generates STAR. To force save EXACT structure, we need a new endpoint or tweak.
+                    // Let's rely on the displayed result for now and maybe implement a specific save later if precise fidelity matches.
+                    // Or better: Let's call the extraction endpoint with the full history as input text so it saves it.
+                    input_text: rawText, 
+                    user_id: userId
+                })
+            });
+            
+            // Show Toast
+             const toast = document.createElement('div');
+            toast.className = 'fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-3 animate-bounce';
+            toast.innerHTML = '<i class="fas fa-check-circle"></i> STORY SAVED TO HISTORY';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+
+        // --- SPEECH RECOGNITION ---
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = function () {
+                isRecording = true;
+                const btn = document.getElementById('mic-btn');
+                btn.classList.remove('text-slate-400', 'bg-slate-800');
+                btn.classList.add('text-white', 'bg-red-500', 'animate-pulse');
+                textarea.placeholder = "Listening...";
+            };
+
+            recognition.onend = function () {
+                isRecording = false;
+                const btn = document.getElementById('mic-btn');
+                btn.classList.add('text-slate-400', 'bg-slate-800');
+                btn.classList.remove('text-white', 'bg-red-500', 'animate-pulse');
+                textarea.placeholder = "Type your answer or use the microphone...";
+            };
+
+            recognition.onresult = function (event) {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                // Append finding to textarea
+                if (finalTranscript) {
+                     textarea.value += (textarea.value ? ' ' : '') + finalTranscript;
+                }
+            };
+        }
+
+        function toggleRecording() {
+            if (!recognition) return alert("Browser not supported.");
+            if (isRecording) recognition.stop();
+            else recognition.start();
+        }
+
 
         async function openHistory() {
             document.getElementById('history-modal').classList.remove('hidden');

@@ -714,6 +714,79 @@ def general_api():
             )
             return jsonify({ "response": completion.choices[0].message.content }), 200
 
+        elif action == 'star_coach_init':
+            resume_text = data.get('resume_text', '')
+            job_description = data.get('job_description', '')
+            role_title = data.get('role_title', 'Target Role')
+
+            prompt = f"""
+            You are an expert Behavioral Interview Coach.
+            
+            USER CONTEXT:
+            - Target Role: {role_title}
+            - Job Description (Excerpt): {job_description[:1000]}
+            - User Resume (Excerpt): {resume_text[:2000]}
+
+            TASK:
+            Generate ONE specific, challenging behavioral interview question that:
+            1. Is highly relevant to the Target Role.
+            2. Targets a specific skill gap or strength found in the Resume vs JD.
+            3. Asks for a specific story (e.g., "Tell me about a time when...").
+
+            Output JSON:
+            {{
+                "question": "The question text..."
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": "You are a tough but fair Interview Coach. Output valid JSON." },
+                    { "role": "user", "content": prompt }
+                ],
+                response_format={ "type": "json_object" }
+            )
+            return jsonify(json.loads(completion.choices[0].message.content)), 200
+
+        elif action == 'star_coach_step':
+            history = data.get('history', [])
+            latest_input = data.get('latest_input', '')
+            
+            # Format history for LLM
+            messages = [{ "role": "system", "content": "You are an Interview Coach helping the user refine a STAR story. Your goal is to get a COMPLETE story (Situation, Task, Action, Result) from them. If the story is vague, ask 1 clarifying question. If it is complete enough, extraction the STAR data." }]
+            
+            for msg in history:
+                messages.append(msg)
+            
+            messages.append({"role": "user", "content": latest_input})
+
+            # Append instruction for next step
+            messages.append({
+                "role": "user", 
+                "content": """
+                Analyze the user's latest response in the context of the story so far.
+                
+                DECISION LOGIC:
+                1. IF the story is missing key details (e.g. vague Action, no Result, unclear Task), output status "clarify" and ask ONE follow-up question.
+                2. IF the story is solid and complete, output status "complete" and extract the S.T.A.R. data.
+
+                Output JSON Structure:
+                {
+                    "status": "clarify" OR "complete",
+                    "question": "Your follow-up question..." (ONLY IF status=clarify),
+                    "star_data": { "S": "...", "T": "...", "A": "...", "R": "..." } (ONLY IF status=complete)
+                }
+                """
+            })
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=messages,
+                response_format={ "type": "json_object" }
+            )
+            return jsonify(json.loads(completion.choices[0].message.content)), 200
+
         elif action == 'star_drill':
             input_text = data.get('input_text', '')
             user_id = data.get('user_id')
