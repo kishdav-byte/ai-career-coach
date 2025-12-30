@@ -721,17 +721,20 @@ def general_api():
 
             prompt = f"""
             You are an expert Behavioral Interview Coach.
-            
+
             USER CONTEXT:
             - Target Role: {role_title}
             - Job Description (Excerpt): {job_description[:1000]}
             - User Resume (Excerpt): {resume_text[:2000]}
 
             TASK:
-            Generate ONE specific, challenging behavioral interview question that:
-            1. Is highly relevant to the Target Role.
-            2. Targets a specific skill gap or strength found in the Resume vs JD.
-            3. Asks for a specific story (e.g., "Tell me about a time when...").
+            1. Analyze the User Resume to find a specific role and accomplishment that is relevant to the Target Role's requirements.
+            2. Formulate a behavioral interview question that explicitly references this past experience to prompt a specific story.
+
+            FORMAT:
+            "I see on your resume that you [mention specific accomplishment/responsibility] when you were a [Role] at [Company]. This is very relevant to [Target Company]'s need for [Skill]. 
+
+            Can you walk me through that situation? What was the specific challenge?"
 
             Output JSON:
             {{
