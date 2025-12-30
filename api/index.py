@@ -714,6 +714,89 @@ def general_api():
             )
             return jsonify({ "response": completion.choices[0].message.content }), 200
 
+        elif action == 'star_drill':
+            input_text = data.get('input_text', '')
+            user_id = data.get('user_id')
+
+            if not input_text or len(input_text) < 10:
+                return jsonify({"error": "Story too short"}), 400
+
+            prompt = f"""
+            Take this raw, unstructured interview story and restructure it into the perfect S.T.A.R. format.
+            
+            RAW STORY:
+            {input_text}
+
+            INSTRUCTIONS:
+            1. SITUATION (S): Briefly set the context. Who, when, where? 
+            2. TASK (T): What was the specific challenge or goal?
+            3. ACTION (A): What specific steps did YOU take? (Emphasize "I", not "We"). This should be the bulk of the answer.
+            4. RESULT (R): What was the outcome? Use numbers/metrics if possible.
+            
+            Output JSON structure exactly:
+            {{
+                "S": "...",
+                "T": "...",
+                "A": "...",
+                "R": "..."
+            }}
+            """
+
+            completion = client.chat.completions.create(
+                model="gpt-4o",
+                messages=[
+                    { "role": "system", "content": "You are an expert interview coach. Structure raw stories into perfect STAR format. Output valid JSON." },
+                    { "role": "user", "content": prompt }
+                ],
+                response_format={ "type": "json_object" }
+            )
+            
+            result = json.loads(completion.choices[0].message.content)
+            
+            # SAVE TO DB
+            if user_id:
+                try:
+                    # Authenticate as user to respect RLS
+                    auth_header = request.headers.get('Authorization')
+                    if auth_header:
+                        token = auth_header.split(" ")[1]
+                        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+                        user_client.postgrest.auth(token)
+                        
+                        user_client.table('star_stories').insert({
+                            "user_id": user_id,
+                            "input_text": input_text,
+                            "situation": result.get('S'),
+                            "task": result.get('T'),
+                            "action": result.get('A'),
+                            "result": result.get('R')
+                        }).execute()
+                except Exception as e:
+                    print(f"STAR Save Error: {e}")
+                    # Non-blocking error, return result anyway
+
+            return jsonify(result), 200
+
+        elif action == 'get_star_stories':
+            user_id = data.get('user_id')
+            if not user_id: return jsonify({"error": "No User ID"}), 400
+            
+            try:
+                # Authenticate as user
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+                    user_client.postgrest.auth(token)
+                    
+                    response = user_client.table('star_stories').select("*").eq('user_id', user_id).order('created_at', desc=True).execute()
+                    return jsonify({"stories": response.data}), 200
+                else:
+                    return jsonify({"error": "No Token"}), 401
+            except Exception as e:
+                print(f"Fetch Stories Error: {e}")
+                return jsonify({"error": str(e)}), 500
+
         return jsonify({"error": f"Invalid Action: {action} (v2)"}), 400
 
     except Exception as e:
