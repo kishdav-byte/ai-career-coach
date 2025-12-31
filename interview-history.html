@@ -566,7 +566,28 @@
             `;
 
             // 2. Load Content
-            container.innerHTML = headerHTML + (selectedInterview.executive_report || "<p class='text-gray-500'>No report content found.</p>");
+            let reportBody = selectedInterview.executive_report || "<p class='text-gray-500'>No report content found.</p>";
+
+            // APPLY CUSTOM STYLING TO HEADERS
+            // Orange for Main Title
+            reportBody = reportBody.replace(
+                /(Final Executive Coaching Report)/gi,
+                '<span class="text-orange-500">$1</span>'
+            );
+
+            // Yellow for Strengths
+            reportBody = reportBody.replace(
+                /(Key Strengths)/gi,
+                '<span class="text-yellow-400">$1</span>'
+            );
+
+            // Red for Improvements
+            reportBody = reportBody.replace(
+                /(Areas for Improvement)/gi,
+                '<span class="text-red-400">$1</span>'
+            );
+
+            container.innerHTML = headerHTML + reportBody;
 
             // 3. Show Modal
             document.getElementById('report-modal').classList.remove('hidden');
