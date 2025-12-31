@@ -1358,6 +1358,11 @@
         <script>
             // --- UPGRADE DRAWER LOGIC ---
             function openUpgradeDrawer() {
+                // Ensure content is rendered (fix only partial loading race condition)
+                if (window.renderUpgradeHub) {
+                    renderUpgradeHub('upgradeList');
+                }
+
                 const drawer = document.getElementById('upgrade-drawer');
                 const overlay = document.getElementById('upgrade-drawer-overlay');
 
