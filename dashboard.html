@@ -553,7 +553,7 @@
 
     <!-- Mission Dossier Slide-Over -->
     <div id="mission-dossier"
-        class="fixed inset-y-0 right-0 w-full md:w-[600px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        class="fixed inset-y-0 right-0 w-full md:w-[800px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
         <div class="p-6 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
             <div>
                 <h2 class="text-xs font-bold text-blue-500 uppercase tracking-widest mb-1">MISSION DOSSIER</h2>
@@ -643,12 +643,10 @@
         </div>
 
         <div class="p-6 border-t border-slate-700 bg-slate-950 flex justify-end items-center gap-3">
-            <div class="flex-1">
-                <button onclick="handleJobDelete()"
-                    class="px-4 py-2 text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2 transition-colors">
-                    <i class="fas fa-trash"></i> DELETE
-                </button>
-            </div>
+            <button onclick="handleJobDelete()"
+                class="px-4 py-2 text-red-500 hover:text-red-400 text-sm font-bold flex items-center gap-2 transition-colors mr-auto md:mr-0">
+                <i class="fas fa-trash"></i> DELETE
+            </button>
             <button onclick="closeDossier()"
                 class="px-4 py-2 text-slate-400 hover:text-white text-sm font-medium">Cancel</button>
             <button id="dossier-refresh-btn" onclick="handleRefreshIntel()"
