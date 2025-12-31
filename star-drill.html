@@ -629,6 +629,23 @@
             document.getElementById('state-result').classList.remove('hidden');
         }
 
+        function copyAll() {
+            const s = document.getElementById('res-s').innerText;
+            const t = document.getElementById('res-t').innerText;
+            const a = document.getElementById('res-a').innerText;
+            const r = document.getElementById('res-r').innerText;
+
+            const fullText = `Situation: ${s}\n\nTask: ${t}\n\nAction: ${a}\n\nResult: ${r}`;
+
+            navigator.clipboard.writeText(fullText).then(() => {
+                const msg = document.getElementById('copy-msg');
+                msg.classList.remove('hidden');
+                setTimeout(() => msg.classList.add('hidden'), 2000);
+            }).catch(err => {
+                console.error('Failed to copy text: ', err);
+            });
+        }
+
 
     </script>
 
