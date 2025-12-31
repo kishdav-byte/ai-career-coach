@@ -1041,15 +1041,23 @@ def generate_strategy_tool():
         prompt = ""
         
         if tool_type == 'inquisitor':
-            role = inputs.get('interviewer_role', 'Interviewer')
+            interviewer_role = inputs.get('interviewer_role', 'Interviewer')
             company = inputs.get('company_name', 'Company')
             context = inputs.get('context', '')
+            jd = inputs.get('jd', '')
+            user_target_role = inputs.get('user_role', 'Candidate')
             
             prompt = f"""
-            Generate 5 High-Impact Reverse Interview Questions for a candidate interviewing with a {role} at {company}.
+            You are a Strategic Interview Consultant. Generate 5 High-Impact Reverse Interview Questions for a candidate ({user_target_role}) interviewing with a {interviewer_role} at {company}.
             
-            CONTEXT:
-            {context}
+            INPUT DATA:
+            - **Company Context**: {context}
+            - **Job Description (JD)**: {jd[:3000]}
+            
+            INSTRUCTIONS:
+            1. **SIMULATED SEARCH**: Use your internal knowledge base to "search" for {company}'s recent market position, products, or pain points. Combine this with the provided Context.
+            2. **JD ANALYSIS**: Scan the JD for heavy emphasis areas (e.g. "scaling," "modernizing," "speed") and formulate a question that proves the candidate understands this unspoken priority.
+            3. **ROLE ALIGNMENT**: Tailor the complexity. If the candidate is a VP, ask about strategy/P&L. If Engineer, ask about technical debt/velocity.
             
             GOAL:
             The goal is to flip the dynamic, show deep strategic insight, and uncover red flags or golden opportunities.
@@ -1058,7 +1066,7 @@ def generate_strategy_tool():
             For each question:
             ### 1. The [Name of Strategy] Question
             **"The Script..."**
-            *Why this works:* Explanation of the psychology.
+            *Why this works:* Explanation of the psychology + data used (e.g. "This leverages the fact that they just raised Series B...").
             """
 
         elif tool_type == 'closer':

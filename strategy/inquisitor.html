@@ -254,6 +254,19 @@
             let userEmail = '';
             let user = null;
 
+            // 0. Load Mission Context
+            let missionContext = {};
+            try {
+                const ctxStr = localStorage.getItem('mission_context');
+                if (ctxStr) {
+                    missionContext = JSON.parse(ctxStr);
+                    // Pre-fill Company
+                    if (missionContext.company) {
+                        document.querySelector('[name="company_name"]').value = missionContext.company;
+                    }
+                }
+            } catch (e) { console.error("Context load error", e); }
+
             // 1. Check Credits
             try {
                 // Initial Lock State
@@ -290,7 +303,10 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData(form);
-                const inputs = Object.fromEntries(formData.entries());
+                let inputs = Object.fromEntries(formData.entries());
+
+                // Merge Mission Context
+                inputs = { ...inputs, jd: missionContext.jd, user_role: missionContext.role };
 
                 loadDiv.classList.remove('hidden');
                 emptyState.classList.add('hidden');
