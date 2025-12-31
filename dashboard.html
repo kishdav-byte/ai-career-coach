@@ -1242,6 +1242,7 @@
             const company = document.getElementById('dossier-company').innerText;
             const jd = document.getElementById('dossier-jd').value;
             const notes = document.getElementById('dossier-notes').value;
+            const status = document.getElementById('dossier-status').value;
 
             if (!jd || jd.length < 50) {
                 if (!confirm("Warning: Job Description is empty or short. Tools work best with a full JD. Proceed anyway?")) return;
@@ -1253,6 +1254,7 @@
                 company: company,
                 jd: jd,
                 notes: notes,
+                status: status,
                 timestamp: Date.now()
             };
             localStorage.setItem('mission_context', JSON.stringify(context));

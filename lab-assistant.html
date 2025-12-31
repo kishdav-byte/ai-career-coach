@@ -219,18 +219,46 @@
                     }
 
                     // Set Context
-                    system_prompt_context = `CONTEXT:\nRole: ${ctx.role}\nCompany: ${ctx.company}\nJD: ${ctx.jd}\nNotes: ${ctx.notes}`;
+                    // Added Status to context string for Backend awareness
+                    system_prompt_context = `CONTEXT:\nRole: ${ctx.role}\nCompany: ${ctx.company}\nStatus: ${ctx.status || 'Active'}\nJD: ${ctx.jd}\nNotes: ${ctx.notes}`;
 
-                    // localStorage.removeItem('mission_context'); // Keep context persistent for chat depth
+                    // Silent Open
+                    generateOpening();
 
-                    // Auto-start
-                    setTimeout(() => {
-                        userInput.value = "Start the interview based on this context.";
-                        sendMessage();
-                    }, 500);
                 } catch (e) { console.error("Context Error", e); }
             }
         });
+
+        function generateOpening() {
+            // Retrieve Token for Auth
+            let token = null;
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                token = session?.access_token;
+            } catch (e) { }
+
+            fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    action: 'lab_assistant_chat',
+                    message: "GENERATE_OPENING_GREETING", // Special trigger
+                    context: system_prompt_context
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.response) {
+                        // Update Welcome Text smoothly
+                        const welcomeEl = document.getElementById('ai-welcome-text');
+                        welcomeEl.innerHTML = marked.parse(data.response);
+                    }
+                })
+                .catch(err => console.error("Opening generation failed", err));
+        }
 
         // -- MOCK RESPONSES --
         const mockResponses = {

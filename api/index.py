@@ -698,6 +698,28 @@ def general_api():
             except Exception as e:
                 print(f"Job Context Error: {e}")
 
+            # SPECIAL HANDLING: Initial Opening Generation
+            if user_message == "GENERATE_OPENING_GREETING":
+                opening_prompt = f"""
+                You are a sophisticated AI Career Strategist.
+                CONTEXT:
+                {mission_context}
+
+                TASK:
+                Generate a 2-sentence personalized greeting.
+                1. Acknowledge the user's current status (e.g., "I see you are interviewing for...").
+                2. OFFER to research current news/announcements for that company.
+                3. Ask how you can help.
+
+                EXAMPLE:
+                "I see you are in the [Status] phase for the [Role] position at [Company]. I can attempt to research current news and announcements for this company if you'd like. Please tell me how I can help you today."
+                """
+                completion = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[{"role": "user", "content": opening_prompt}]
+                )
+                return jsonify({"response": completion.choices[0].message.content}), 200
+
             system_prompt = f"""
             You are the neural core of the Strategy Lab. You provide cold, clinical, yet highly effective career advice.
             
