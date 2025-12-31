@@ -933,7 +933,8 @@ def create_checkout_session():
         price_id = None
         if plan_type == 'strategy_inquisitor':
             price_id = 'price_1SePpZIH1WTKNasqLuNq4sSZ'
-        # Add others if needed:
+        elif plan_type == 'strategy_followup':
+            price_id = 'price_1SeQHYIH1WTKNasqpFyl2ef0'
         # elif plan_type == 'strategy_closer': price_id = '...'
         
         if not price_id:
