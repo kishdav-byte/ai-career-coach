@@ -221,7 +221,7 @@
                     // Set Context
                     system_prompt_context = `CONTEXT:\nRole: ${ctx.role}\nCompany: ${ctx.company}\nJD: ${ctx.jd}\nNotes: ${ctx.notes}`;
 
-                    localStorage.removeItem('mission_context');
+                    // localStorage.removeItem('mission_context'); // Keep context persistent for chat depth
 
                     // Auto-start
                     setTimeout(() => {
@@ -270,10 +270,17 @@
             scrollToBottom();
 
             // 4. API Call
+            let token = null;
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                token = session?.access_token;
+            } catch (e) { }
+
             fetch('/api', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
                 },
                 body: JSON.stringify({
                     action: 'lab_assistant_chat',
@@ -324,7 +331,7 @@
             div.innerHTML = `
                 ${icon}
                 <div class="${bubbleClass}">
-                    <div class="text-sm leading-relaxed prose prose-invert max-w-none">
+                    <div class="text-sm leading-relaxed prose prose-invert max-w-none break-words whitespace-pre-wrap">
                         ${role === 'user' ? text : ''} <!-- AI Text filled later if streaming -->
                     </div>
                 </div>

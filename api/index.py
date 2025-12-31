@@ -681,17 +681,37 @@ def general_api():
             user_message = data.get('message', '')
             mission_context = data.get('context', '')
             
+            # 1. Fetch User Jobs for Context
+            active_jobs_context = "No active jobs found."
+            try:
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    user_response = supabase.auth.get_user(token)
+                    user_id = user_response.user.id
+                    
+                    user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+                    user_client.postgrest.auth(token)
+                    jobs_res = user_client.table('user_jobs').select('company, role, status').eq('user_id', user_id).execute()
+                    if jobs_res.data:
+                        active_jobs_context = "\n".join([f"- {j['role']} @ {j['company']} ({j['status']})" for j in jobs_res.data])
+            except Exception as e:
+                print(f"Job Context Error: {e}")
+
             system_prompt = f"""
             You are the neural core of the Strategy Lab. You provide cold, clinical, yet highly effective career advice.
             
             CURRENT MISSION CONTEXT:
             {mission_context}
+
+            ACTIVE USER JOBS:
+            {active_jobs_context}
             
             OPERATIONAL DIRECTIVES:
-            1. NEVER be dismissive. If you lack direct knowledge of a company, perform "Strategic Extrapolation."
-            2. Analyze the Job Description and Role title provided in the context to infer company culture, priorities, and pain points.
-            3. Provide a "calculated profile" of the company based on its industry and the type of talent they are hiring.
-            4. If the user asks about a specific company and you don't have it in your training data, do not tell them to "research on their own." Instead, provide a framework of exactly WHAT they should look for and WHY it matters for their specific role.
+            1. **JOB AWARENESS**: Review the 'ACTIVE USER JOBS'. If the user's query is key-less (e.g. "Draft an email"), ASK the user which job they are referring to before proceeding.
+            2. **COMPANY SCANNING**: If the user asks to "scan" a company, you may simulate a strategic analysis of current trends, potential pain points, and new launches relevant to that industry.
+            3. **TRUTH PROTOCOL (CRITICAL)**: DO NOT HALLUCINATE specific proprietary data. If you do not have access to specific recent news or internal data for a company, YOU MUST ADVISE THAT IT IS NOT AVAILABLE. Do NOT make things up. Instead, provide a general industry framework.
+            4. **OPENING**: Start by acknowledging the user's specific context or asking which of their active jobs they are focusing on today.
             5. Maintain a high-leverage, executive tone.
             
             REVENUE LINKING PROTOCOL (CRITICAL):
