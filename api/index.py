@@ -719,6 +719,14 @@ def general_api():
             resume_text = data.get('resume_text', '')
             job_description = data.get('job_description', '')
             role_title = data.get('role_title', 'Target Role')
+            # NEW: Accept history to avoid repeats
+            story_history = data.get('story_history', []) # List of {title, situation}
+            
+            history_context = ""
+            if story_history:
+                history_context = "PREVIOUSLY COVERED TOPICS (DO NOT ASK ABOUT THESE):\n"
+                for h in story_history:
+                     history_context += f"- {h.get('title', 'Story')}: {h.get('situation', '')[:100]}...\n"
 
             prompt = f"""
             You are an expert Behavioral Interview Coach.
@@ -727,10 +735,13 @@ def general_api():
             - Target Role: {role_title}
             - Job Description (Excerpt): {job_description[:1000]}
             - User Resume (Excerpt): {resume_text[:2000]}
+            
+            {history_context}
 
             TASK:
             1. Analyze the User Resume to find a specific role and accomplishment that is relevant to the Target Role's requirements.
             2. Formulate a behavioral interview question that explicitly references this past experience to prompt a specific story.
+            3. IGNORE topics listed in "PREVIOUSLY COVERED TOPICS". Find a NEW angle.
 
             FORMAT:
             "I see on your resume that you [mention specific accomplishment/responsibility] when you were a [Role] at [Company]. This is very relevant to [Target Company]'s need for [Skill]. 
@@ -805,13 +816,15 @@ def general_api():
             {input_text}
 
             INSTRUCTIONS:
-            1. SITUATION (S): Briefly set the context. Who, when, where? 
-            2. TASK (T): What was the specific challenge or goal?
-            3. ACTION (A): What specific steps did YOU take? (Emphasize "I", not "We"). This should be the bulk of the answer.
-            4. RESULT (R): What was the outcome? Use numbers/metrics if possible.
+            1. TITLE: Generate a professional 3-5 word title for this story (e.g. "Cost Reduction Initiative" or "Conflict Resolution").
+            2. SITUATION (S): Briefly set the context. Who, when, where? 
+            3. TASK (T): What was the specific challenge or goal?
+            4. ACTION (A): What specific steps did YOU take? (Emphasize "I", not "We"). This should be the bulk of the answer.
+            5. RESULT (R): What was the outcome? Use numbers/metrics if possible.
             
             Output JSON structure exactly:
             {{
+                "Title": "...",
                 "S": "...",
                 "T": "...",
                 "A": "...",
@@ -843,6 +856,7 @@ def general_api():
                         user_client.table('star_stories').insert({
                             "user_id": user_id,
                             "input_text": input_text,
+                            "title": result.get('Title', 'New STAR Story'),
                             "situation": result.get('S'),
                             "task": result.get('T'),
                             "action": result.get('A'),
