@@ -3,6 +3,7 @@ from supabase import create_client, Client
 import os
 import json
 import base64
+import stripe
 
 app = Flask(__name__)
 
@@ -877,6 +878,85 @@ def general_api():
 
     except Exception as e:
         print(f"General API Error: {e}")
+        print(f"General API Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 9. USER PROFILE (GET)
+@app.route('/api/user-profile', methods=['GET'])
+def get_user_profile():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "No Token"}), 401
+    
+    try:
+        token = auth_header.split(" ")[1]
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id
+        
+        # Use RLS client to query public.users
+        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_client.postgrest.auth(token)
+        
+        # Fetch detailed profile from public table
+        res = user_client.table('users').select('*').eq('id', user_id).single().execute()
+        
+        if not res.data:
+            # Fallback if no public profile yet (should exist via trigger, but safe to handle)
+            return jsonify({
+                "id": user_id,
+                "email": user_response.user.email,
+                "credits": 0,
+                "is_unlimited": False
+            }), 200
+            
+        return jsonify(res.data), 200
+
+    except Exception as e:
+        print(f"Profile Fetch Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# 10. CREATE CHECKOUT SESSION (POST)
+@app.route('/api/create-checkout-session', methods=['POST'])
+def create_checkout_session():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "No Token"}), 401
+
+    try:
+        data = request.json
+        plan_type = data.get('plan_type')
+        success_url = data.get('successUrl', 'https://tryaceinterview.com/dashboard.html')
+        cancel_url = success_url # Just go back
+        
+        stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
+        if not stripe.api_key: return jsonify({"error": "Server Missing Stripe Key"}), 500
+        
+        # PRICE MAPPING
+        price_id = None
+        if plan_type == 'strategy_inquisitor':
+            price_id = 'price_1SePpZIH1WTKNasqLuNq4sSZ'
+        # Add others if needed:
+        # elif plan_type == 'strategy_closer': price_id = '...'
+        
+        if not price_id:
+            return jsonify({"error": "Invalid Plan Type"}), 400
+
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[{
+                'price': price_id,
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            metadata={
+                "user_id": data.get('userId'), # Pass user ID for webhook fulfillment
+                "plan_type": plan_type
+            }
+        )
+        
+        return jsonify({"url": checkout_session.url}), 200
+
+    except Exception as e:
+        print(f"Checkout Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 # Expose app
