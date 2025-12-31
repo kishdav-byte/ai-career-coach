@@ -960,5 +960,103 @@ def create_checkout_session():
         print(f"Checkout Error: {e}")
         return jsonify({"error": str(e)}), 500
 
+# 11. GENERATE STRATEGY TOOL (POST)
+@app.route('/api/generate-strategy-tool', methods=['POST'])
+def generate_strategy_tool():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Unauthorized"}), 401
+
+    try:
+        data = request.json
+        tool_type = data.get('tool_type')
+        inputs = data.get('inputs', {})
+        
+        from openai import OpenAI
+        OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
+        if not OPENAI_KEY: return jsonify({"error": "Missing AI Key"}), 500
+        client = OpenAI(api_key=OPENAI_KEY)
+
+        prompt = ""
+        
+        if tool_type == 'inquisitor':
+            role = inputs.get('interviewer_role', 'Interviewer')
+            company = inputs.get('company_name', 'Company')
+            context = inputs.get('context', '')
+            
+            prompt = f"""
+            Generate 5 High-Impact Reverse Interview Questions for a candidate interviewing with a {role} at {company}.
+            
+            CONTEXT:
+            {context}
+            
+            GOAL:
+            The goal is to flip the dynamic, show deep strategic insight, and uncover red flags or golden opportunities.
+            
+            OUTPUT FORMAT (Markdown):
+            For each question:
+            ### 1. The [Name of Strategy] Question
+            **"The Script..."**
+            *Why this works:* Explanation of the psychology.
+            """
+
+        elif tool_type == 'closer':
+            offer = inputs.get('current_offer', '0')
+            bonus = inputs.get('sign_on', '0')
+            leverage = inputs.get('leverage', 'None')
+            goal = inputs.get('goal', 'Improve offer')
+            
+            prompt = f"""
+            Write a Salary Negotiation Script.
+            
+            CURRENT OFFER: ${offer} (Base) + ${bonus} (Sign-on)
+            LEVERAGE/CONTEXT: {leverage}
+            GOAL: {goal}
+            
+            OUTPUT FORMAT (Markdown):
+            1. **Strategic Analysis**: Brief assessment of leverage (2-3 sentences).
+            2. **The Script (Email Version)**: A polished email draft.
+            3. **The Script (Phone Version)**: Bullet points for a live conversation.
+            """
+
+        elif tool_type == 'followup':
+            recipient = inputs.get('recipient_name', 'Hiring Manager')
+            scenario = inputs.get('scenario', 'post_interview')
+            context = inputs.get('context', '')
+            
+            prompt = f"""
+            Write a Strategy Follow-Up Email/Message.
+            
+            RECIPIENT: {recipient}
+            SCENARIO: {scenario}
+            VALUE CONTEXT: {context}
+            
+            OUTPUT FORMAT (Markdown):
+            **Subject Line Options:**
+            1. ...
+            2. ...
+            
+            **The Email Draft:**
+            [Content]
+            
+            **Why this works:** Brief explanation.
+            """
+            
+        else:
+             return jsonify({"error": "Invalid Tool Type"}), 400
+
+        completion = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": "You are a world-class Executive Career Strategist."},
+                {"role": "user", "content": prompt}
+            ]
+        )
+        
+        return jsonify({"content": completion.choices[0].message.content}), 200
+
+    except Exception as e:
+        print(f"Strategy Gen Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # Expose app
 app = app
