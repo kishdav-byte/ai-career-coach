@@ -564,186 +564,161 @@
                     class="fas fa-times text-xl"></i></button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+        <!-- Main Split Container -->
+        <div class="flex-1 flex overflow-hidden">
 
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-tasks"></i> Current Stage
+            <!-- LEFT: Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-tasks"></i> Current Stage
+                    </label>
+                    <select id="dossier-status"
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
+                        <option value="Engage">Engage</option>
+                        <option value="Interviewing">Interviewing</option>
+                        <option value="Post Interview">Post Interview</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-user-secret"></i> Interviewer Intel & Notes
+                    </label>
+                    <textarea id="dossier-notes"
+                        class="w-full h-32 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-600"
+                        placeholder="Example: VP of Ops hates buzzwords. Mention the 'Project Alpha' win. They use Asana for project management..."></textarea>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-file-alt"></i> Role Requirements (JD)
+                    </label>
+                    <textarea id="dossier-jd"
+                        class="w-full h-64 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-xs leading-relaxed custom-scroll"
+                        placeholder="Paste the full Job Description here..."></textarea>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fas fa-money-bill-wave"></i> Salary Target / Offer
+                    </label>
+                    <input type="text" id="dossier-salary"
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                        placeholder="e.g. $150k Base + 20% Bonus">
+                </div>
+
+            </div>
+
+            <!-- NEW: Mission Toolkit (Shuttle Logic) -->
+            <div class="px-6 pb-6 border-t border-slate-800/50 bg-slate-900/30">
+                <label
+                    class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-4 flex items-center gap-2">
+                    <i class="fas fa-toolbox"></i> Mission Toolkit
                 </label>
-                <select id="dossier-status"
-                    class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all outline-none">
-                    <option value="Engage">Engage</option>
-                    <option value="Interviewing">Interviewing</option>
-                    <option value="Post Interview">Post Interview</option>
-                    <option value="Closed">Closed</option>
-                </select>
-            </div>
-
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-purple-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-user-secret"></i> Interviewer Intel & Notes
-                </label>
-                <textarea id="dossier-notes"
-                    class="w-full h-32 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all placeholder-slate-600"
-                    placeholder="Example: VP of Ops hates buzzwords. Mention the 'Project Alpha' win. They use Asana for project management..."></textarea>
-            </div>
-
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-file-alt"></i> Role Requirements (JD)
-                </label>
-                <textarea id="dossier-jd"
-                    class="w-full h-64 bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-sm text-slate-300 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all font-mono text-xs leading-relaxed custom-scroll"
-                    placeholder="Paste the full Job Description here..."></textarea>
-            </div>
-
-            <div class="space-y-3">
-                <label class="text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-money-bill-wave"></i> Salary Target / Offer
-                </label>
-                <input type="text" id="dossier-salary"
-                    class="w-full bg-slate-800/50 border border-slate-700 rounded-lg p-3 text-sm text-slate-300 focus:border-green-500 focus:ring-1 focus:ring-green-500"
-                    placeholder="e.g. $150k Base + 20% Bonus">
-            </div>
-
-        </div>
-
-        <!-- NEW: Mission Toolkit (Shuttle Logic) -->
-        <div class="px-6 pb-6 border-t border-slate-800/50 bg-slate-900/30">
-            <label
-                class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-4 flex items-center gap-2">
-                <i class="fas fa-toolbox"></i> Mission Toolkit
-            </label>
-            <div id="mission-toolkit-grid" class="grid grid-cols-2 gap-3">
-                <button onclick="shuttleToTool('/resume-analyzer.html')"
-                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
-                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
-                            class="fas fa-microscope text-blue-500 mr-2"></i>Resume Scanner</div>
-                    <div class="text-[10px] text-slate-500">Audit vs JD</div>
-                </button>
-                <button onclick="shuttleToTool('/resume-rewriter.html')"
-                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-yellow-500/50 rounded-lg text-left transition-all group">
-                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
-                            class="fas fa-pen-nib text-yellow-500 mr-2"></i>Executive Rewrite</div>
-                    <div class="text-[10px] text-slate-500">Targeted Optimization</div>
-                </button>
-                <button onclick="shuttleToTool('/cover-letter.html')"
-                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-purple-500/50 rounded-lg text-left transition-all group">
-                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
-                            class="fas fa-file-alt text-purple-500 mr-2"></i>Cover Letter</div>
-                    <div class="text-[10px] text-slate-500">Draft Narrative</div>
-                </button>
-                <button onclick="shuttleToTool('app.html#linkedin')"
-                    class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-400/50 rounded-lg text-left transition-all group">
-                    <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
-                            class="fab fa-linkedin text-blue-400 mr-2"></i>LinkedIn Opt.</div>
-                    <div class="text-[10px] text-slate-500">Profile Alignment</div>
-                </button>
-            </div>
-        </div>
-
-        <div class="p-4 border-t border-slate-700 bg-slate-950 flex justify-end items-center gap-2">
-            <button onclick="handleJobDelete()"
-                class="px-3 py-1.5 text-red-500 hover:text-red-400 text-xs font-bold flex items-center gap-1 transition-colors border border-red-500/0 hover:border-red-500/20 rounded-lg">
-                <i class="fas fa-trash"></i> DELETE
-            </button>
-            <div class="h-4 w-px bg-slate-800 mx-1"></div>
-            <button onclick="closeDossier()"
-                class="px-3 py-1.5 text-slate-400 hover:text-white text-xs font-medium hover:bg-slate-800 rounded-lg transition-colors">Cancel</button>
-            <button id="dossier-refresh-btn" onclick="handleRefreshIntel()"
-                class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-bold shadow-md shadow-purple-900/20 flex items-center gap-1 whitespace-nowrap transition-all">
-                <i class="fas fa-sync"></i> Refresh
-            </button>
-            <button id="dossier-save-btn" onclick="handleSaveIntel()"
-                class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-900/20 flex items-center gap-1 whitespace-nowrap transition-all">
-                <i class="fas fa-save"></i> Save Intel
-            </button>
-        </div>
-    </div>
-
-    <!-- Hidden PDF Logic (Retained for compatibility if needed in future, but hidden from UI) -->
-    <div id="resume-drop-zone" style="display:none;"></div>
-
-    <script>
-        // --- AUTH & DATA VARS ---
-        // --- AUTH & DATA VARS ---
-        // Token is now retrieved dynamically to prevent 401 Stale Errors
-        let currentUser = null;
+                <div id="mission-toolkit-grid" class="grid grid-cols-2 gap-3">
+                    <button onclick="shuttleToTool('/resume-analyzer.html')"
+                        class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
+                        <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                                class="fas fa-microscope text-blue-500 mr-2"></i>Resume Scanner</div>
+                        <div class="text-[10px] text-slate-500">Audit vs JD</div>
+                    </button>
+                    <button onclick="shuttleToTool('/resume-rewriter.html')"
+                        class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-yellow-500/50 rounded-lg text-left transition-all group">
+                        <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                                class="fas fa-pen-nib text-yellow-500 mr-2"></i>Executive Rewrite</div>
+                        <div class="text-[10px] text-slate-500">Targeted Optimization</div>
+                    </button>
+                    <button onclick="shuttleToTool('/cover-letter.html')"
+                        class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-purple-500/50 rounded-lg text-left transition-all group">
+                        <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
+                                class="fas fa-file-alt text-purple-500 mr-2"></i>Cover Letter</div>
+                        <div class="text-[10px] text-slate-500">Draft Narrative</div>
+                    </button>
+                    <button onclick="shuttleToTool('app.html#linkedin')"
+                        class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-400/50 rounded-lg text-left transition-all group">
+                        <script>
+                            // --- AUTH & DATA VARS ---
+                            // --- AUTH & DATA VARS ---
+                            // Token is now retrieved dynamically to prevent 401 Stale Errors
+                            let currentUser = null;
 
 
-        // --- UI REFS ---
-        const modal = document.getElementById('add-modal');
-        const modalContent = document.getElementById('modal-content');
-        const cols = {
-            'Identified': document.getElementById('col-identified'),
-            'Applied': document.getElementById('col-applied'),
-            'Interviewing': document.getElementById('col-interviewing'),
-            'Offer': document.getElementById('col-offer'),
-        };
-        const counts = {
-            'Engage': document.getElementById('count-engage'),
-            'Interviewing': document.getElementById('count-interviewing'),
-            'Offer': document.getElementById('count-offer'),
-        };
+                            // --- UI REFS ---
+                            const modal = document.getElementById('add-modal');
+                            const modalContent = document.getElementById('modal-content');
+                            const cols = {
+                                'Identified': document.getElementById('col-identified'),
+                                'Applied': document.getElementById('col-applied'),
+                                'Interviewing': document.getElementById('col-interviewing'),
+                                'Offer': document.getElementById('col-offer'),
+                            };
+                            const counts = {
+                                'Engage': document.getElementById('count-engage'),
+                                'Interviewing': document.getElementById('count-interviewing'),
+                                'Offer': document.getElementById('count-offer'),
+                            };
 
-        // --- INIT ---
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!getSession()) return; // redirect handled in head
+                            // --- INIT ---
+                            document.addEventListener('DOMContentLoaded', async () => {
+                                if (!getSession()) return; // redirect handled in head
 
-            // 1. Sidebar Init
-            initSidebar();
+                                // 1. Sidebar Init
+                                initSidebar();
 
-            // 2. Render Upgrade Hub
-            if (window.renderUpgradeHub) {
-                renderUpgradeHub('upgradeList');
-            }
+                                // 2. Render Upgrade Hub
+                                if (window.renderUpgradeHub) {
+                                    renderUpgradeHub('upgradeList');
+                                }
 
-            // 3. Fetch User & Stats
-            await loadUserProfile();
+                                // 3. Fetch User & Stats
+                                await loadUserProfile();
 
-            // 4. Fetch Jobs (Kanban)
-            loadJobs();
-        });
+                                // 4. Fetch Jobs (Kanban)
+                                loadJobs();
+                            });
 
-        // --- DOSSIER LOGIC ---
-        let currentJobId = null;
-        const dossier = document.getElementById('mission-dossier');
+                            // --- DOSSIER LOGIC ---
+                            let currentJobId = null;
+                            const dossier = document.getElementById('mission-dossier');
 
-        window.openDossier = async (id) => {
-            currentJobId = id;
-            const job = localJobsInfo.find(j => j.id === id);
-            if (!job) return;
+                            window.openDossier = async (id) => {
+                                currentJobId = id;
+                                const job = localJobsInfo.find(j => j.id === id);
+                                if (!job) return;
 
-            // Populate Fields
-            document.getElementById('dossier-title').innerText = job.job_title;
-            document.getElementById('dossier-company').innerText = job.company_name;
-            document.getElementById('dossier-jd').value = job.job_description || '';
-            document.getElementById('dossier-notes').value = job.notes || '';
-            document.getElementById('dossier-salary').value = job.salary_target || '';
+                                // Populate Fields
+                                document.getElementById('dossier-title').innerText = job.job_title;
+                                document.getElementById('dossier-company').innerText = job.company_name;
+                                document.getElementById('dossier-jd').value = job.job_description || '';
+                                document.getElementById('dossier-notes').value = job.notes || '';
+                                document.getElementById('dossier-salary').value = job.salary_target || '';
 
-            // Status Match (Handle variations)
-            const statusMap = {
-                'identified': 'Engage',
-                'engage': 'Engage',
-                'applied': 'Engage',
-                'interviewing': 'Interviewing',
-                'offer': 'Post Interview',
-                'post interview': 'Post Interview',
-                'closed': 'Closed'
-            };
-            let currentStatus = (job.status || 'Engage').toLowerCase();
-            // Normalize
-            if (currentStatus.includes('post') || currentStatus.includes('offer')) currentStatus = 'post interview';
-            else if (currentStatus.includes('interview')) currentStatus = 'interviewing';
+                                // Status Match (Handle variations)
+                                const statusMap = {
+                                    'identified': 'Engage',
+                                    'engage': 'Engage',
+                                    'applied': 'Engage',
+                                    'interviewing': 'Interviewing',
+                                    'offer': 'Post Interview',
+                                    'post interview': 'Post Interview',
+                                    'closed': 'Closed'
+                                };
+                                let currentStatus = (job.status || 'Engage').toLowerCase();
+                                // Normalize
+                                if (currentStatus.includes('post') || currentStatus.includes('offer')) currentStatus = 'post interview';
+                                else if (currentStatus.includes('interview')) currentStatus = 'interviewing';
 
-            document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Engage';
+                                document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Engage';
 
-            // UPDATE TOOLKIT BUTTONS based on Status
-            const toolkitGrid = document.getElementById('mission-toolkit-grid');
-            const statusDisplay = statusMap[currentStatus];
+                                // UPDATE TOOLKIT BUTTONS based on Status
+                                const toolkitGrid = document.getElementById('mission-toolkit-grid');
+                                const statusDisplay = statusMap[currentStatus];
 
-            if (statusDisplay === 'Post Interview') {
-                toolkitGrid.innerHTML = `
+                                if (statusDisplay === 'Post Interview') {
+                                    toolkitGrid.innerHTML = `
                 <button onclick="shuttleToTool('/strategy/closer.html')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
@@ -769,8 +744,8 @@
                     <div class="text-[10px] text-slate-500">Post-Process Logic</div>
                 </button>
                 `;
-            } else if (statusDisplay === 'Interviewing') {
-                toolkitGrid.innerHTML = `
+                                } else if (statusDisplay === 'Interviewing') {
+                                    toolkitGrid.innerHTML = `
                 <button onclick="shuttleToTool('/app.html')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-green-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
@@ -802,9 +777,9 @@
                     <div class="text-[10px] text-slate-500">Onboarding Strategy</div>
                 </button>
                  `;
-            } else {
-                // Default (Engage)
-                toolkitGrid.innerHTML = `
+                                } else {
+                                    // Default (Engage)
+                                    toolkitGrid.innerHTML = `
                 <button onclick="shuttleToTool('/resume-analyzer.html')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
@@ -830,206 +805,206 @@
                     <div class="text-[10px] text-slate-500">Profile Alignment</div>
                 </button>
                 `;
-            }
+                                }
 
-            // Slide In
-            dossier.classList.remove('translate-x-full');
-        };
+                                // Slide In
+                                dossier.classList.remove('translate-x-full');
+                            };
 
-        window.closeDossier = async () => {
-            // Autosave on close
-            if (currentJobId) {
-                await saveJobChanges(true); // Silent save
-            }
-            const dossier = document.getElementById('mission-dossier');
-            dossier.classList.add('translate-x-full');
-            currentJobId = null;
-        };
+                            window.closeDossier = async () => {
+                                // Autosave on close
+                                if (currentJobId) {
+                                    await saveJobChanges(true); // Silent save
+                                }
+                                const dossier = document.getElementById('mission-dossier');
+                                dossier.classList.add('translate-x-full');
+                                currentJobId = null;
+                            };
 
-        window.handleSaveIntel = async () => {
-            // Explicit save button
-            await saveJobChanges(false);
-        };
+                            window.handleSaveIntel = async () => {
+                                // Explicit save button
+                                await saveJobChanges(false);
+                            };
 
-        window.handleRefreshIntel = async () => {
-            const jdText = document.getElementById('dossier-jd').value;
-            const btn = document.getElementById('dossier-refresh-btn');
+                            window.handleRefreshIntel = async () => {
+                                const jdText = document.getElementById('dossier-jd').value;
+                                const btn = document.getElementById('dossier-refresh-btn');
 
-            if (!jdText || jdText.length < 50) {
-                alert("Please paste the Job Description first.");
-                return;
-            }
+                                if (!jdText || jdText.length < 50) {
+                                    alert("Please paste the Job Description first.");
+                                    return;
+                                }
 
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spin fa-sync"></i> GENERATING...';
-            btn.disabled = true;
+                                const originalText = btn.innerHTML;
+                                btn.innerHTML = '<i class="fas fa-spin fa-sync"></i> GENERATING...';
+                                btn.disabled = true;
 
-            try {
-                const session = getSession();
-                const response = await fetch('/api/generate-intel', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${session?.access_token}`
-                    },
-                    body: JSON.stringify({ job_description: jdText })
-                });
+                                try {
+                                    const session = getSession();
+                                    const response = await fetch('/api/generate-intel', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${session?.access_token}`
+                                        },
+                                        body: JSON.stringify({ job_description: jdText })
+                                    });
 
-                const data = await response.json();
-                if (data.intel) {
-                    document.getElementById('dossier-notes').value = data.intel;
-                    // Not autosaving immediately, user can review then click Save or Close (Autosave)
-                }
-            } catch (error) {
-                console.error("AI Generation failed:", error);
-                alert("Could not generate intel.");
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        };
+                                    const data = await response.json();
+                                    if (data.intel) {
+                                        document.getElementById('dossier-notes').value = data.intel;
+                                        // Not autosaving immediately, user can review then click Save or Close (Autosave)
+                                    }
+                                } catch (error) {
+                                    console.error("AI Generation failed:", error);
+                                    alert("Could not generate intel.");
+                                } finally {
+                                    btn.innerHTML = originalText;
+                                    btn.disabled = false;
+                                }
+                            };
 
-        // --- SAVE & AUTOSAVE LOGIC ---
-        // robust save function that handles UI updates and backend sync
-        async function saveJobChanges(silent = false) {
-            if (!currentJobId) return;
-            const btn = document.getElementById('dossier-save-btn');
-            const originalText = btn ? btn.innerHTML : ''; // Safe check if button exists
+                            // --- SAVE & AUTOSAVE LOGIC ---
+                            // robust save function that handles UI updates and backend sync
+                            async function saveJobChanges(silent = false) {
+                                if (!currentJobId) return;
+                                const btn = document.getElementById('dossier-save-btn');
+                                const originalText = btn ? btn.innerHTML : ''; // Safe check if button exists
 
-            if (!silent && btn) {
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
-            }
+                                if (!silent && btn) {
+                                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> SAVING...';
+                                }
 
-            const rawStatus = document.getElementById('dossier-status').value;
+                                const rawStatus = document.getElementById('dossier-status').value;
 
-            const updates = {
-                job_description: document.getElementById('dossier-jd').value,
-                notes: document.getElementById('dossier-notes').value,
-                salary_target: document.getElementById('dossier-salary').value,
-                status: rawStatus
-            };
+                                const updates = {
+                                    job_description: document.getElementById('dossier-jd').value,
+                                    notes: document.getElementById('dossier-notes').value,
+                                    salary_target: document.getElementById('dossier-salary').value,
+                                    status: rawStatus
+                                };
 
-            try {
-                const session = getSession();
-                const res = await fetch(`/api/jobs/${currentJobId}`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updates)
-                });
+                                try {
+                                    const session = getSession();
+                                    const res = await fetch(`/api/jobs/${currentJobId}`, {
+                                        method: 'PUT',
+                                        headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+                                        body: JSON.stringify(updates)
+                                    });
 
-                if (!res.ok) throw new Error("Save failed");
+                                    if (!res.ok) throw new Error("Save failed");
 
-                // Optimistic Local Update
-                const jobIndex = localJobsInfo.findIndex(j => j.id === currentJobId);
-                if (jobIndex > -1) {
-                    localJobsInfo[jobIndex] = { ...localJobsInfo[jobIndex], ...updates };
-                }
+                                    // Optimistic Local Update
+                                    const jobIndex = localJobsInfo.findIndex(j => j.id === currentJobId);
+                                    if (jobIndex > -1) {
+                                        localJobsInfo[jobIndex] = { ...localJobsInfo[jobIndex], ...updates };
+                                    }
 
-                if (!silent && btn) {
-                    // Visual feedback only if explicit save
-                    btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
-                    setTimeout(() => btn.innerHTML = originalText, 1500);
-                }
+                                    if (!silent && btn) {
+                                        // Visual feedback only if explicit save
+                                        btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
+                                        setTimeout(() => btn.innerHTML = originalText, 1500);
+                                    }
 
-                // Refresh Board to Reflect Moves
-                loadJobs();
+                                    // Refresh Board to Reflect Moves
+                                    loadJobs();
 
-            } catch (e) {
-                console.error("Autosave/Save Error:", e);
-                if (!silent) alert("Error saving: " + e.message);
-            } finally {
-                if (!silent && btn && btn.innerHTML.includes('SAVING')) {
-                    btn.innerHTML = originalText;
-                }
-            }
-        }
+                                } catch (e) {
+                                    console.error("Autosave/Save Error:", e);
+                                    if (!silent) alert("Error saving: " + e.message);
+                                } finally {
+                                    if (!silent && btn && btn.innerHTML.includes('SAVING')) {
+                                        btn.innerHTML = originalText;
+                                    }
+                                }
+                            }
 
-        // Launch Mission replaced by Refresh Intel in Dossier.
-        // Keeping this function if called from elsewhere or redirect needed?
-        // User requested removing Start Session button, but if we need a tool launcher:
-        window.launchToolFromCard = (id) => {
-            // Logic to launch tool from card if needed
-            window.openDossier(id);
-        }
+                            // Launch Mission replaced by Refresh Intel in Dossier.
+                            // Keeping this function if called from elsewhere or redirect needed?
+                            // User requested removing Start Session button, but if we need a tool launcher:
+                            window.launchToolFromCard = (id) => {
+                                // Logic to launch tool from card if needed
+                                window.openDossier(id);
+                            }
 
-        window.handleJobDelete = async () => {
-            if (!currentJobId) return;
-            if (!confirm("Are you sure you want to remove this job from your active list?")) return;
+                            window.handleJobDelete = async () => {
+                                if (!currentJobId) return;
+                                if (!confirm("Are you sure you want to remove this job from your active list?")) return;
 
-            try {
-                const session = getSession();
-                const res = await fetch(`/api/jobs/${currentJobId}`, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: 'closed' })
-                });
+                                try {
+                                    const session = getSession();
+                                    const res = await fetch(`/api/jobs/${currentJobId}`, {
+                                        method: 'PUT',
+                                        headers: { 'Authorization': `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({ status: 'closed' })
+                                    });
 
-                if (!res.ok) throw new Error("Delete failed");
+                                    if (!res.ok) throw new Error("Delete failed");
 
-                // alert("Job removed from active list."); // Removed intrusive alert
-                document.getElementById('mission-dossier').classList.add('translate-x-full'); // Manually close to skip autosave of deleted job
-                currentJobId = null;
+                                    // alert("Job removed from active list."); // Removed intrusive alert
+                                    document.getElementById('mission-dossier').classList.add('translate-x-full'); // Manually close to skip autosave of deleted job
+                                    currentJobId = null;
 
-                loadJobs(); // Refresh board
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
+                                    loadJobs(); // Refresh board
+                                } catch (e) {
+                                    alert("Error: " + e.message);
+                                }
+                            };
 
-        // --- JOB LOGIC ---
-        async function loadJobs() {
-            try {
-                const session = getSession();
-                const res = await fetch('/api/jobs', {
-                    headers: { 'Authorization': `Bearer ${session?.access_token}` }
-                });
-                if (!res.ok) return; // Silent fail if still syncing
-                const jobs = await res.json();
-                renderBoard(jobs);
-            } catch (e) { console.error(e); }
-        }
+                            // --- JOB LOGIC ---
+                            async function loadJobs() {
+                                try {
+                                    const session = getSession();
+                                    const res = await fetch('/api/jobs', {
+                                        headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                                    });
+                                    if (!res.ok) return; // Silent fail if still syncing
+                                    const jobs = await res.json();
+                                    renderBoard(jobs);
+                                } catch (e) { console.error(e); }
+                            }
 
-        function renderBoard(jobs) {
-            // Clear Columns
-            ['engage', 'interviewing', 'offer'].forEach(id => {
-                const col = document.getElementById(`col-${id}`);
-                if (col) col.innerHTML = '';
-                const count = document.getElementById(`count-${id}`);
-                if (count) count.innerText = '0';
-            });
+                            function renderBoard(jobs) {
+                                // Clear Columns
+                                ['engage', 'interviewing', 'offer'].forEach(id => {
+                                    const col = document.getElementById(`col-${id}`);
+                                    if (col) col.innerHTML = '';
+                                    const count = document.getElementById(`count-${id}`);
+                                    if (count) count.innerText = '0';
+                                });
 
-            // Update Active Strategy Count
-            const activeCount = jobs.filter(j => (j.status || 'identified').toLowerCase() !== 'closed').length;
-            const strategyCountEl = document.getElementById('strategy-count');
-            if (strategyCountEl) strategyCountEl.innerText = activeCount;
+                                // Update Active Strategy Count
+                                const activeCount = jobs.filter(j => (j.status || 'identified').toLowerCase() !== 'closed').length;
+                                const strategyCountEl = document.getElementById('strategy-count');
+                                if (strategyCountEl) strategyCountEl.innerText = activeCount;
 
-            // Sort & Render
-            // Sort & Render
-            jobs.forEach(job => {
-                let status = (job.status || 'Engage').toLowerCase();
+                                // Sort & Render
+                                // Sort & Render
+                                jobs.forEach(job => {
+                                    let status = (job.status || 'Engage').toLowerCase();
 
-                // Skip closed jobs
-                if (status === 'closed') return;
+                                    // Skip closed jobs
+                                    if (status === 'closed') return;
 
-                // Normalize for UI
-                // Backend might send: Engage, Interviewing, Post Interview, Closed
-                // Legacy: Identified, Applied, Offer
+                                    // Normalize for UI
+                                    // Backend might send: Engage, Interviewing, Post Interview, Closed
+                                    // Legacy: Identified, Applied, Offer
 
-                if (status.includes('post') || status.includes('offer')) status = 'offer'; // UI Col ID
-                else if (status.includes('interview')) status = 'interviewing'; // UI Col ID
-                else if (status.includes('appli')) status = 'engage'; // UI Col ID (Badge: Applied)
-                else status = 'engage'; // Default UI Col ID
+                                    if (status.includes('post') || status.includes('offer')) status = 'offer'; // UI Col ID
+                                    else if (status.includes('interview')) status = 'interviewing'; // UI Col ID
+                                    else if (status.includes('appli')) status = 'engage'; // UI Col ID (Badge: Applied)
+                                    else status = 'engage'; // Default UI Col ID
 
-                // Update Count & Column Selection
-                // columnKey matches HTML IDs: col-engage, col-interviewing, col-offer
-                let columnKey = status;
+                                    // Update Count & Column Selection
+                                    // columnKey matches HTML IDs: col-engage, col-interviewing, col-offer
+                                    let columnKey = status;
 
-                const countEl = document.getElementById(`count-${columnKey}`);
-                if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;
+                                    const countEl = document.getElementById(`count-${columnKey}`);
+                                    if (countEl) countEl.innerText = parseInt(countEl.innerText) + 1;
 
-                // Create Card
-                // FIX: Map backend keys (job_title, company_name) to UI
-                const card = `
+                                    // Create Card
+                                    // FIX: Map backend keys (job_title, company_name) to UI
+                                    const card = `
                 <div class="bg-slate-900 border border-slate-800 p-3 rounded mb-3 relative group hover:border-blue-500/30 transition-all cursor-pointer" onclick="window.openDossier('${job.id}')">
                     <h4 class="text-sm font-bold text-white truncate">${job.job_title || job.role || 'New Role'}</h4>
                     <p class="text-xs text-slate-400 truncate">${job.company_name || job.company || 'New Company'}</p>
@@ -1040,337 +1015,340 @@
                          <i class="fas fa-chevron-right text-slate-600"></i>
                     </div>
                 </div>`;
-                const col = document.getElementById(`col-${columnKey}`);
-                if (col) col.insertAdjacentHTML('beforeend', card);
-            });
+                                    const col = document.getElementById(`col-${columnKey}`);
+                                    if (col) col.insertAdjacentHTML('beforeend', card);
+                                });
 
-            // Re-store jobs for local access properly
-            localJobsInfo = jobs;
-        }
-
-
-        window.launchMission = (id) => {
-            const job = localJobsInfo.find(j => j.id === id);
-            if (job) smartLaunch(id, '/app.html#interview', job); // Default to Simulator
-        };
-
-        window.smartLaunch = (id, url, job) => {
-            const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description, jd: job.job_description };
-            localStorage.setItem('mission_context', JSON.stringify(context));
-            sessionStorage.setItem('missionLaunch', 'true');
-
-            // Construct URL with Query Param: /app.html?id=123#interview
-            if (url.includes('#')) {
-                const [path, hash] = url.split('#');
-                window.location.href = `${path}?id=${id}#${hash}`;
-            } else {
-                window.location.href = `${url}?id=${id}`;
-            }
-        };
-
-        // --- MODAL LOGIC ---
-        window.openModal = () => {
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                modalContent.classList.remove('scale-95');
-                modalContent.classList.add('scale-100');
-            }, 10);
-        }
-        window.closeModal = () => {
-            modal.classList.add('opacity-0');
-            modalContent.classList.remove('scale-100');
-            modalContent.classList.add('scale-95');
-            setTimeout(() => modal.classList.add('hidden'), 200);
-        }
-        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-
-        document.getElementById('add-job-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const btn = document.getElementById('btn-save');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = 'SAVING...'; btn.disabled = true;
-
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            data.status = 'Identified';
-
-            try {
-                const session = getSession();
-                const res = await fetch('/api/jobs', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
-                    body: JSON.stringify(data)
-                });
-                if (!res.ok) throw new Error("Failed");
-                closeModal();
-                e.target.reset();
-                loadJobs();
-            } catch (err) { alert(err.message); }
-            finally { btn.innerHTML = originalText; btn.disabled = false; }
-        });
+                                // Re-store jobs for local access properly
+                                localJobsInfo = jobs;
+                            }
 
 
-        // --- USER & SIDEBAR LOGIC ---
-        async function loadUserProfile() {
-            try {
-                // Get User from Supabase
-                const session = getSession();
-                const { data: { user } } = await supabase.auth.getUser(session?.access_token);
-                if (!user) throw new Error("No user");
+                            window.launchMission = (id) => {
+                                const job = localJobsInfo.find(j => j.id === id);
+                                if (job) smartLaunch(id, '/app.html#interview', job); // Default to Simulator
+                            };
 
-                // Get Profile
-                const { data: profile } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('id', user.id)
-                    .single();
+                            window.smartLaunch = (id, url, job) => {
+                                const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description, jd: job.job_description };
+                                localStorage.setItem('mission_context', JSON.stringify(context));
+                                sessionStorage.setItem('missionLaunch', 'true');
 
-                if (profile) {
-                    // Update UI
-                    const initials = profile.name ? profile.name.substring(0, 2).toUpperCase() : 'DK';
-                    document.getElementById('user-initials').innerText = initials;
-                    document.getElementById('user-display-header').innerText = profile.name || 'User';
-                    document.getElementById('user-display-kb').innerText = (profile.name || 'Candidate').split(' ')[0];
+                                // Construct URL with Query Param: /app.html?id=123#interview
+                                if (url.includes('#')) {
+                                    const [path, hash] = url.split('#');
+                                    window.location.href = `${path}?id=${id}#${hash}`;
+                                } else {
+                                    window.location.href = `${url}?id=${id}`;
+                                }
+                            };
 
-                    const isPro = profile.subscription_status === 'active';
-                    document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
+                            // --- MODAL LOGIC ---
+                            window.openModal = () => {
+                                modal.classList.remove('hidden');
+                                setTimeout(() => {
+                                    modal.classList.remove('opacity-0');
+                                    modalContent.classList.remove('scale-95');
+                                    modalContent.classList.add('scale-100');
+                                }, 10);
+                            }
+                            window.closeModal = () => {
+                                modal.classList.add('opacity-0');
+                                modalContent.classList.remove('scale-100');
+                                modalContent.classList.add('scale-95');
+                                setTimeout(() => modal.classList.add('hidden'), 200);
+                            }
+                            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-                    // Admin Check & Session Sync
-                    if (profile.role === 'admin') {
-                        const adminBtn = document.getElementById('admin-btn');
-                        if (adminBtn) adminBtn.classList.remove('hidden');
+                            document.getElementById('add-job-form').addEventListener('submit', async (e) => {
+                                e.preventDefault();
+                                const btn = document.getElementById('btn-save');
+                                const originalText = btn.innerHTML;
+                                btn.innerHTML = 'SAVING...'; btn.disabled = true;
 
-                        // Sync Session for Gatekeeper
-                        try {
-                            const sessionStr = localStorage.getItem('aceinterview_session');
-                            let session = sessionStr ? JSON.parse(sessionStr) : {};
-                            session.role = 'admin';
-                            session.email = profile.email || user.email;
-                            localStorage.setItem('aceinterview_session', JSON.stringify(session));
-                        } catch (e) {
-                            console.error("Session Sync Error", e);
-                        }
-                    }
+                                const formData = new FormData(e.target);
+                                const data = Object.fromEntries(formData.entries());
+                                data.status = 'Identified';
 
-                    // Plan & Credits Logic (Refactored to Smart Tiles)
-                    if (window.renderSmartTiles) {
-                        try {
-                            renderSmartTiles(profile);
-                        } catch (e) {
-                            console.error("Smart Tile Error:", e);
-                        }
-                    }
+                                try {
+                                    const session = getSession();
+                                    const res = await fetch('/api/jobs', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${session?.access_token}` },
+                                        body: JSON.stringify(data)
+                                    });
+                                    if (!res.ok) throw new Error("Failed");
+                                    closeModal();
+                                    e.target.reset();
+                                    loadJobs();
+                                } catch (err) { alert(err.message); }
+                                finally { btn.innerHTML = originalText; btn.disabled = false; }
+                            });
 
-                    // --- REAL-TIME STATS FETCHING ---
 
-                    // 1. Resume Health (Data-Wired: Check resume_text OR LocalStorage)
-                    const localRes = localStorage.getItem('master_resume_text');
-                    const resumeExists = (profile.resume_text && profile.resume_text.length > 50) || (localRes && localRes.length > 50);
+                            // --- USER & SIDEBAR LOGIC ---
+                            async function loadUserProfile() {
+                                try {
+                                    // Get User from Supabase
+                                    const session = getSession();
+                                    const { data: { user } } = await supabase.auth.getUser(session?.access_token);
+                                    if (!user) throw new Error("No user");
 
-                    // 1. Resume Health Logic Upgrade
-                    let resumeScore = 0;
+                                    // Get Profile
+                                    const { data: profile } = await supabase
+                                        .from('users')
+                                        .select('*')
+                                        .eq('id', user.id)
+                                        .single();
 
-                    const { data: resumeData } = await supabase
-                        .from('resumes')
-                        .select('overall_score')
-                        .eq('user_id', user.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1);
+                                    if (profile) {
+                                        // Update UI
+                                        const initials = profile.name ? profile.name.substring(0, 2).toUpperCase() : 'DK';
+                                        document.getElementById('user-initials').innerText = initials;
+                                        document.getElementById('user-display-header').innerText = profile.name || 'User';
+                                        document.getElementById('user-display-kb').innerText = (profile.name || 'Candidate').split(' ')[0];
 
-                    if (resumeData && resumeData.length > 0) {
-                        resumeScore = resumeData[0].overall_score || 0;
-                    } else {
-                        // Fallback
-                        resumeScore = resumeExists ? 100 : 0;
-                    }
+                                        const isPro = profile.subscription_status === 'active';
+                                        document.getElementById('user-plan-status').innerText = isPro ? 'PRO' : 'Free';
 
-                    setRing(resumeScore);
-                    document.getElementById('resume-score').textContent = resumeScore;
+                                        // Admin Check & Session Sync
+                                        if (profile.role === 'admin') {
+                                            const adminBtn = document.getElementById('admin-btn');
+                                            if (adminBtn) adminBtn.classList.remove('hidden');
 
-                    // 2. Avg Interview Score (Data-Wired: Calculate Average)
-                    const { data: interviewData } = await supabase
-                        .from('interviews')
-                        .select('overall_score') // Correct column name
-                        .eq('user_id', user.id);
+                                            // Sync Session for Gatekeeper
+                                            try {
+                                                const sessionStr = localStorage.getItem('aceinterview_session');
+                                                let session = sessionStr ? JSON.parse(sessionStr) : {};
+                                                session.role = 'admin';
+                                                session.email = profile.email || user.email;
+                                                localStorage.setItem('aceinterview_session', JSON.stringify(session));
+                                            } catch (e) {
+                                                console.error("Session Sync Error", e);
+                                            }
+                                        }
 
-                    if (interviewData && interviewData.length > 0) {
-                        const total = interviewData.reduce((acc, curr) => acc + (curr.overall_score || 0), 0);
-                        const avg = (total / interviewData.length).toFixed(1);
-                        document.getElementById('interview-score').innerHTML = `${avg}<span class="text-gray-500 text-xl">/5</span>`;
-                    } else {
-                        document.getElementById('interview-score').innerHTML = `0<span class="text-gray-500 text-xl">/5</span>`;
-                    }
-                }
-            } catch (e) {
-                console.error("Profile Load Error", e);
-            }
-        }
+                                        // Plan & Credits Logic (Refactored to Smart Tiles)
+                                        if (window.renderSmartTiles) {
+                                            try {
+                                                renderSmartTiles(profile);
+                                            } catch (e) {
+                                                console.error("Smart Tile Error:", e);
+                                            }
+                                        }
 
-        function setRing(score) {
-            const circle = document.querySelector('.ring-circle');
-            const radius = circle.r.baseVal.value;
-            const circumference = radius * 2 * Math.PI;
-            const offset = circumference - (score / 100) * circumference;
-            circle.style.strokeDashoffset = offset;
-            document.getElementById('resume-score').innerText = score;
-        }
+                                        // --- REAL-TIME STATS FETCHING ---
 
-        // Sidebar Toggles
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('mobile-overlay');
-            sb.classList.toggle('-translate-x-full');
-            ov.classList.toggle('hidden');
-        }
-        function toggleGroup(id) {
-            const g = document.getElementById(`group-${id}`);
-            const i = document.getElementById(`icon-${id}`);
-            g.classList.toggle('hidden');
-            i.classList.toggle('rotate-90');
-        }
-        function initSidebar() {
-            const path = window.location.pathname;
-            const links = document.querySelectorAll('[data-path]');
-            links.forEach(link => {
-                if (link.getAttribute('data-path') === path) {
-                    link.classList.add('text-teal', 'bg-teal/5');
-                    link.classList.remove('text-slate-400');
-                    // Open parent
-                    const parent = link.closest('.pl-4');
-                    if (parent) parent.classList.remove('hidden');
-                }
-            });
-        }
+                                        // 1. Resume Health (Data-Wired: Check resume_text OR LocalStorage)
+                                        const localRes = localStorage.getItem('master_resume_text');
+                                        const resumeExists = (profile.resume_text && profile.resume_text.length > 50) || (localRes && localRes.length > 50);
 
-        // --- SMART CONTEXT PASSING ---
-        // NEW: Shuttle Logic
-        window.shuttleToTool = (url) => {
-            // 1. Scrape Data from Dossier Inputs
-            const role = document.getElementById('dossier-title').innerText;
-            const company = document.getElementById('dossier-company').innerText;
-            const jd = document.getElementById('dossier-jd').value;
-            const notes = document.getElementById('dossier-notes').value;
-            const status = document.getElementById('dossier-status').value;
+                                        // 1. Resume Health Logic Upgrade
+                                        let resumeScore = 0;
 
-            if (!jd || jd.length < 50) {
-                if (!confirm("Warning: Job Description is empty or short. Tools work best with a full JD. Proceed anyway?")) return;
-            }
+                                        const { data: resumeData } = await supabase
+                                            .from('resumes')
+                                            .select('overall_score')
+                                            .eq('user_id', user.id)
+                                            .order('created_at', { ascending: false })
+                                            .limit(1);
 
-            // 2. Save Context
-            const context = {
-                role: role,
-                company: company,
-                jd: jd,
-                notes: notes,
-                status: status,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('mission_context', JSON.stringify(context));
+                                        if (resumeData && resumeData.length > 0) {
+                                            resumeScore = resumeData[0].overall_score || 0;
+                                        } else {
+                                            // Fallback
+                                            resumeScore = resumeExists ? 100 : 0;
+                                        }
 
-            // 3. Launch
-            console.log("Shuttling to " + url, context);
-            window.location.href = url;
-        };
+                                        setRing(resumeScore);
+                                        document.getElementById('resume-score').textContent = resumeScore;
 
-        window.launchTool = (jobId, destinationUrl) => {
-            const job = localJobsInfo.find(j => j.id === jobId);
-            if (!job) {
-                // Fallback if job not found (shouldn't happen)
-                window.location.href = destinationUrl;
-                return;
-            }
+                                        // 2. Avg Interview Score (Data-Wired: Calculate Average)
+                                        const { data: interviewData } = await supabase
+                                            .from('interviews')
+                                            .select('overall_score') // Correct column name
+                                            .eq('user_id', user.id);
 
-            const context = {
-                company: job.company_name,
-                role: job.job_title,
-                jd: job.job_description,
-                notes: job.notes
-            };
+                                        if (interviewData && interviewData.length > 0) {
+                                            const total = interviewData.reduce((acc, curr) => acc + (curr.overall_score || 0), 0);
+                                            const avg = (total / interviewData.length).toFixed(1);
+                                            document.getElementById('interview-score').innerHTML = `${avg}<span class="text-gray-500 text-xl">/5</span>`;
+                                        } else {
+                                            document.getElementById('interview-score').innerHTML = `0<span class="text-gray-500 text-xl">/5</span>`;
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error("Profile Load Error", e);
+                                }
+                            }
 
-            // Save context for receiver tools to pick up
-            localStorage.setItem('mission_context', JSON.stringify(context));
+                            function setRing(score) {
+                                const circle = document.querySelector('.ring-circle');
+                                const radius = circle.r.baseVal.value;
+                                const circumference = radius * 2 * Math.PI;
+                                const offset = circumference - (score / 100) * circumference;
+                                circle.style.strokeDashoffset = offset;
+                                document.getElementById('resume-score').innerText = score;
+                            }
 
-            // User Display Namequested explicit separate storage for Interview Lab
-            if (context.jd) {
-                localStorage.setItem('activeJobDescription', context.jd);
-            }
+                            // Sidebar Toggles
+                            function toggleSidebar() {
+                                const sb = document.getElementById('sidebar');
+                                const ov = document.getElementById('mobile-overlay');
+                                sb.classList.toggle('-translate-x-full');
+                                ov.classList.toggle('hidden');
+                            }
+                            function toggleGroup(id) {
+                                const g = document.getElementById(`group-${id}`);
+                                const i = document.getElementById(`icon-${id}`);
+                                g.classList.toggle('hidden');
+                                i.classList.toggle('rotate-90');
+                            }
+                            function initSidebar() {
+                                const path = window.location.pathname;
+                                const links = document.querySelectorAll('[data-path]');
+                                links.forEach(link => {
+                                    if (link.getAttribute('data-path') === path) {
+                                        link.classList.add('text-teal', 'bg-teal/5');
+                                        link.classList.remove('text-slate-400');
+                                        // Open parent
+                                        const parent = link.closest('.pl-4');
+                                        if (parent) parent.classList.remove('hidden');
+                                    }
+                                });
+                            }
 
-            // Redirect
-            window.location.href = destinationUrl;
-        };
+                            // --- SMART CONTEXT PASSING ---
+                            // NEW: Shuttle Logic
+                            window.shuttleToTool = (url) => {
+                                // 1. Scrape Data from Dossier Inputs
+                                const role = document.getElementById('dossier-title').innerText;
+                                const company = document.getElementById('dossier-company').innerText;
+                                const jd = document.getElementById('dossier-jd').value;
+                                const notes = document.getElementById('dossier-notes').value;
+                                const status = document.getElementById('dossier-status').value;
 
-        // window.buyCredits is now handled in app.js
+                                if (!jd || jd.length < 50) {
+                                    if (!confirm("Warning: Job Description is empty or short. Tools work best with a full JD. Proceed anyway?")) return;
+                                }
 
-        window.signOut = () => {
-            localStorage.removeItem(SESSION_KEY);
-            window.location.href = '/login.html';
-        }
+                                // 2. Save Context
+                                const context = {
+                                    role: role,
+                                    company: company,
+                                    jd: jd,
+                                    notes: notes,
+                                    status: status,
+                                    timestamp: Date.now()
+                                };
+                                localStorage.setItem('mission_context', JSON.stringify(context));
 
-        // INITIALIZATION: Load jobs on page load
-        (async function init() {
-            await loadJobs();
-        })();
+                                // 3. Launch
+                                console.log("Shuttling to " + url, context);
+                                window.location.href = url;
+                            };
 
-    </script>
-    <!-- UPGRADE DRAWER (Reusing Drawer Styles) -->
-    <div id="upgrade-drawer-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden transition-opacity"
-        onclick="closeUpgradeDrawer()"></div>
-    <aside id="upgrade-drawer"
-        class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
+                            window.launchTool = (jobId, destinationUrl) => {
+                                const job = localJobsInfo.find(j => j.id === jobId);
+                                if (!job) {
+                                    // Fallback if job not found (shouldn't happen)
+                                    window.location.href = destinationUrl;
+                                    return;
+                                }
 
-        <!-- Drawer Header -->
-        <div class="p-6 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
-            <div>
-                <h2 class="text-xs font-bold text-teal uppercase tracking-widest mb-1">PREMIUM ACCESS</h2>
-                <h3 class="text-xl font-bold text-white">Upgrade Hub</h3>
-            </div>
-            <button onclick="closeUpgradeDrawer()" class="text-slate-500 hover:text-white transition-colors">
-                <i class="fas fa-times text-xl"></i>
-            </button>
-        </div>
+                                const context = {
+                                    company: job.company_name,
+                                    role: job.job_title,
+                                    jd: job.job_description,
+                                    notes: job.notes
+                                };
 
-        <!-- Drawer Content -->
-        <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
-            <!-- Target for app.js Injection -->
-            <div id="upgradeList" class="space-y-8">
-                <!-- Content Injected by renderUpgradeHub() -->
-            </div>
-        </div>
-    </aside>
+                                // Save context for receiver tools to pick up
+                                localStorage.setItem('mission_context', JSON.stringify(context));
 
-    <script>
-        // --- UPGRADE DRAWER LOGIC ---
-        function openUpgradeDrawer() {
-            const drawer = document.getElementById('upgrade-drawer');
-            const overlay = document.getElementById('upgrade-drawer-overlay');
+                                // User Display Namequested explicit separate storage for Interview Lab
+                                if (context.jd) {
+                                    localStorage.setItem('activeJobDescription', context.jd);
+                                }
 
-            overlay.classList.remove('hidden');
-            // Small delay to allow display:block to apply before transition
-            requestAnimationFrame(() => {
-                drawer.classList.remove('translate-x-full');
-            });
-        }
+                                // Redirect
+                                window.location.href = destinationUrl;
+                            };
 
-        function closeUpgradeDrawer() {
-            const drawer = document.getElementById('upgrade-drawer');
-            const overlay = document.getElementById('upgrade-drawer-overlay');
+                            // window.buyCredits is now handled in app.js
 
-            drawer.classList.add('translate-x-full');
+                            window.signOut = () => {
+                                localStorage.removeItem(SESSION_KEY);
+                                window.location.href = '/login.html';
+                            }
 
-            // Wait for transition to finish before hiding overlay
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-            }, 300);
-        }
+                            // INITIALIZATION: Load jobs on page load
+                            (async function init() {
+                                await loadJobs();
+                            })();
 
-        // Close on escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                closeUpgradeDrawer();
-            }
-        });
-    </script>
+                        </script>
+                        <!-- UPGRADE DRAWER (Reusing Drawer Styles) -->
+                        <div id="upgrade-drawer-overlay"
+                            class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden transition-opacity"
+                            onclick="closeUpgradeDrawer()"></div>
+                        <aside id="upgrade-drawer"
+                            class="fixed inset-y-0 right-0 w-full md:w-[450px] bg-slate-900 border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out z-50 flex flex-col">
+
+                            <!-- Drawer Header -->
+                            <div class="p-6 border-b border-slate-700 bg-slate-950 flex justify-between items-center">
+                                <div>
+                                    <h2 class="text-xs font-bold text-teal uppercase tracking-widest mb-1">PREMIUM
+                                        ACCESS</h2>
+                                    <h3 class="text-xl font-bold text-white">Upgrade Hub</h3>
+                                </div>
+                                <button onclick="closeUpgradeDrawer()"
+                                    class="text-slate-500 hover:text-white transition-colors">
+                                    <i class="fas fa-times text-xl"></i>
+                                </button>
+                            </div>
+
+                            <!-- Drawer Content -->
+                            <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+                                <!-- Target for app.js Injection -->
+                                <div id="upgradeList" class="space-y-8">
+                                    <!-- Content Injected by renderUpgradeHub() -->
+                                </div>
+                            </div>
+                        </aside>
+
+                        <script>
+                            // --- UPGRADE DRAWER LOGIC ---
+                            function openUpgradeDrawer() {
+                                const drawer = document.getElementById('upgrade-drawer');
+                                const overlay = document.getElementById('upgrade-drawer-overlay');
+
+                                overlay.classList.remove('hidden');
+                                // Small delay to allow display:block to apply before transition
+                                requestAnimationFrame(() => {
+                                    drawer.classList.remove('translate-x-full');
+                                });
+                            }
+
+                            function closeUpgradeDrawer() {
+                                const drawer = document.getElementById('upgrade-drawer');
+                                const overlay = document.getElementById('upgrade-drawer-overlay');
+
+                                drawer.classList.add('translate-x-full');
+
+                                // Wait for transition to finish before hiding overlay
+                                setTimeout(() => {
+                                    overlay.classList.add('hidden');
+                                }, 300);
+                            }
+
+                            // Close on escape key
+                            document.addEventListener('keydown', (e) => {
+                                if (e.key === 'Escape') {
+                                    closeUpgradeDrawer();
+                                }
+                            });
+                        </script>
 </body>
 
 </html>
