@@ -1359,8 +1359,12 @@
             // --- UPGRADE DRAWER LOGIC ---
             function openUpgradeDrawer() {
                 // Ensure content is rendered (fix only partial loading race condition)
-                if (window.renderUpgradeHub) {
-                    renderUpgradeHub('upgradeList');
+                try {
+                    if (window.renderUpgradeHub) {
+                        renderUpgradeHub('upgradeList');
+                    }
+                } catch (e) {
+                    console.error("Error rendering upgrade hub:", e);
                 }
 
                 const drawer = document.getElementById('upgrade-drawer');
