@@ -1771,8 +1771,8 @@ function init() {
                     if (data.response.next_question) {
                         finalHtml += `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
                     }
-                    // SUPPRESSED: Duplicated final feedback
-                    // addMessage(finalHtml, 'system', true);
+                    // DISPLAY FINAL FEEDBACK (Now separated from report)
+                    addMessage(finalHtml, 'system', true);
                 }
 
                 // 3. Kill Mic
@@ -1784,8 +1784,8 @@ function init() {
                 }
 
                 // 4. Generate Report (Reuse the Feedback we just got!)
-                // Extract the RAW feedback text (not HTML) for saving
-                const finalReportText = data.response.feedback || "No Report Generated";
+                // Extract the HTML REPORT (newly separated from feedback)
+                const finalReportText = data.response.formatted_report || data.response.feedback || "No Report Generated";
                 // EXTRACT SCORE from API response (added in backend fix)
                 const finalScore = data.average_score || data.response.average_score || 0;
 

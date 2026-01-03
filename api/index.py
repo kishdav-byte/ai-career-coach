@@ -469,7 +469,8 @@ def get_feedback():
                  "  \"average_score\": \"X.X\",\n"
                  "  \"verdict_text\": \"RECOMMEND / RE-INTERVIEW / DO NOT RECOMMEND\",\n"
                  "  \"q6_analysis\": \"Analysis for the final question\",\n"
-                 "  \"q6_score\": 0\n"
+                 "  \"q6_score\": 0,\n"
+                 "  \"q6_feedback_spoken\": \"Brief feedback for the final answer (2-3 sentences).\"\n"
                  "}\n\n"
                  "### HTML TEMPLATE:\n"
                  "<div class='ace-report'>\n"
@@ -523,22 +524,23 @@ def get_feedback():
 
         # REPORT FORMATTING BRIDGE
         if "formatted_report" in ai_json:
-            ai_json["feedback"] = ai_json["formatted_report"]
-            ai_json["next_question"] = "Interview Complete." 
-        
+            # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
+            ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
+            ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
+            ai_json["next_question"] = "" # No next text needed in UI
+
         # 2. Audio Generation (Omit if empty text)
         audio_b64 = None
-        if ai_json.get('next_question'):
+        if ai_json.get('next_question') or (question_count > 6): # Allow audio logic to run for end
             voice = data.get('voice', 'alloy')
 
             # SPEAK LOGIC
-            speech_text = ai_json['next_question']
+            speech_text = ai_json.get('next_question', '')
             
             # FINAL REPORT AUDIO OVERRIDE
             if question_count > 6 and "average_score" in ai_json:
-                verdict = ai_json.get("verdict_text", "Final Verdict")
-                score = ai_json.get("average_score", "0.0")
-                speech_text = f"Interview Complete. Your Overall Score is {score} out of 5. The Verdict is {verdict}. Please review the full report on your dashboard."
+                q6_fb = ai_json.get("q6_feedback_spoken", "That concludes the interview.")
+                speech_text = f"Feedback: {q6_fb} That concludes the interview. Thank you for your time."
             
             # STANDARD FEEDBACK AUDIO
             elif ai_json.get('feedback'):
