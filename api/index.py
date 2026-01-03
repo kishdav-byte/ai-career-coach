@@ -428,9 +428,9 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Thank them.\n"
-                    "Step 2: Explain STAR Method briefly: 'For the next questions, please use the STAR method: Situation, Task, Action, Result.'\n"
-                    "Step 3: Ask the first Behavioral Question (Conflict, Failure, or Strategy)."
+                    "Step 1: Thank them (Put this in 'feedback' field).\n"
+                    "Step 2: Explain STAR Method: 'For the next questions, please use the STAR method: Situation, Task, Action, Result.' (Add to 'feedback' field).\n"
+                    "Step 3: Ask the first Behavioral Question (Conflict, Failure, or Strategy). (Put ONLY the Question in 'next_question' field)."
                 )
             })
 
@@ -439,9 +439,9 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Score (1-5) and provide brief feedback.\n"
-                    "Step 2: Say exactly: 'The next question that I have for you is...'\n"
-                    "Step 3: Ask the next behavioral question."
+                    "Step 1: Score (1-5) and provide brief feedback. (Put ONLY this critique in 'feedback' field).\n"
+                    "Step 2: Say exactly: 'The next question that I have for you is...' (Put this in 'next_question' field).\n"
+                    "Step 3: Ask the next behavioral question. (Append to 'next_question' field)."
                 )
              })
 
@@ -450,9 +450,9 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Score and Feedback.\n"
-                    "Step 2: Say exactly: 'The final question I have for you is...'\n"
-                    "Step 3: Ask the Final Question (The Closer)."
+                    "Step 1: Score and Feedback. (Put ONLY critique in 'feedback' field).\n"
+                    "Step 2: Say exactly: 'The final question I have for you is...' (Put this in 'next_question' field).\n"
+                    "Step 3: Ask the Final Question (The Closer). (Append to 'next_question' field)."
                 )
              })
 
@@ -503,8 +503,15 @@ def get_feedback():
                  "Use the {{Internal_Score}} calculated in Phase 3. Do not re-grade. Trust the Hardliner Logic.\n"
                  "Correction: If the text looks okay but the Score is '2', explain the 'Gap Logic' or 'Black Box' failure in the analysis.\n"
                  "IF a topic is missing (e.g. Q6 cut off), mark Score: 1 and Analysis: 'Incomplete/Cut-off Response'.\n\n"
-                 "### STEP 3: OUTPUT HTML TEMPLATE (Strict)\n"
-                 "Output raw HTML only. No Markdown.\n\n"
+                 "Correction: If the text looks okay but the Score is '2', explain the 'Gap Logic' or 'Black Box' failure in the analysis.\n"
+                 "IF a topic is missing (e.g. Q6 cut off), mark Score: 1 and Analysis: 'Incomplete/Cut-off Response'.\n\n"
+                 "### STEP 3: OUTPUT JSON FORMAT (Critical)\n"
+                 "You must output a single JSON object with these exact keys:\n"
+                 "- \"formatted_report\": The full HTML string (see template below).\n"
+                 "- \"average_score\": The calculated average (float, e.g. 3.2).\n"
+                 "- \"q6_feedback_spoken\": A 1-sentence closing remark to be spoken audio.\n"
+                 "- \"verdict_text\": 'RECOMMEND' or 'NO HIRE' or 'STRONG HIRE'.\n\n"
+                 "### HTML TEMPLATE (Put this string inside 'formatted_report' key)\n"
                  "<div class=\"ace-report\">\n"
                  "  <h1>Interview Scorecard</h1>\n"
                  "  <div class=\"summary\">\n"
