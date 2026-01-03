@@ -272,10 +272,12 @@ def get_feedback():
         seniority_level = "Tactical Execution" # Default
 
         # 1. SENIORITY SCALE (Global Calculation)
+        # 1. SENIORITY SCALE (Global Calculation)
         if any(x in role_title.upper() for x in ["SENIOR", "LEAD", "MANAGER"]):
             seniority_level = "Strategic Ownership"
         if any(x in role_title.upper() for x in ["DIRECTOR", "VP", "HEAD", "CHIEF", "C-LEVEL", "EXECUTIVE"]):
              seniority_level = "Vision, Culture, & ROI Dominance"
+        # DEFAULT (Intern/Junior/Associate) remains "Tactical Execution" unless overridden above
         
         if question_count == 2:
             rubric_text = (
@@ -285,12 +287,12 @@ def get_feedback():
                 "- Score 5: Strong executive summary. Clearly links past experience to this specific role's requirements.\n"
             )
         else:
-            # MASTER PROTOCOL v2.1 ENHANCEMENTS
+            # MASTER PROTOCOL v3.0 ENHANCEMENTS
             # 2. ARCHETYPE SELECTION (Refined)
             context_text = (role_title + " " + interviewer_intel).upper()
             
-            # ARCHETYPE: THE GUARDIAN
-            if any(x in context_text for x in ["HOSPITALITY", "SAFETY", "GUEST", "PATIENT", "MEDICAL", "SCHOOL", "NURSE", "DOCTOR", "CHEF", "RESTAURANT"]):
+            # ARCHETYPE: THE GUARDIAN (Safety/Medical/Hospitality)
+            if any(x in context_text for x in ["HOSPITALITY", "SAFETY", "GUEST", "PATIENT", "MEDICAL", "SCHOOL", "NURSE", "DOCTOR", "CHEF", "RESTAURANT", "CLINIC"]):
                 persona_role = "The Guardian (Safety & Culture First)"
                 rubric_text = (
                     "### ARCHETYPE: THE GUARDIAN\n"
@@ -299,8 +301,8 @@ def get_feedback():
                     "Scoring Focus: Reward protocols, training, and de-escalation.\n"
                 )
 
-            # ARCHETYPE: THE STEWARD
-            elif any(x in context_text for x in ["BANK", "AUDIT", "COMPLIANCE", "ACCOUNTANT", "RISK", "LEGAL", "CFO", "HEDGE FUND"]):
+            # ARCHETYPE: THE STEWARD (Finance/Legal/Audit)
+            elif any(x in context_text for x in ["BANK", "AUDIT", "COMPLIANCE", "ACCOUNTANT", "RISK", "LEGAL", "CFO", "HEDGE FUND", "ATTORNEY", "LAW"]):
                 persona_role = "The Steward (Accuracy & Risk Management)"
                 rubric_text = (
                     "### ARCHETYPE: THE STEWARD\n"
@@ -309,8 +311,8 @@ def get_feedback():
                     "Scoring Focus: Reward verification, controls, and governance.\n"
                 )
 
-            # ARCHETYPE: THE GROWTH OPERATOR
-            elif any(x in context_text for x in ["STARTUP", "GROWTH", "VC", "SPEED", "PRODUCT", "TECH", "SAAS", "VP"]) or (interviewer_intel and len(interviewer_intel) > 10):
+            # ARCHETYPE: THE GROWTH OPERATOR (Tech/Startup/Sales)
+            elif any(x in context_text for x in ["STARTUP", "GROWTH", "VC", "SPEED", "PRODUCT", "TECH", "SAAS", "VP", "SALES", "MARKETING"]) or (interviewer_intel and len(interviewer_intel) > 10):
                 persona_role = "The Growth Operator (Speed & ROI)"
                 rubric_text = (
                     "### ARCHETYPE: THE GROWTH OPERATOR\n"
@@ -328,20 +330,20 @@ def get_feedback():
                     "Scoring Focus: STAR Method, specific metrics, and clarity.\n"
                 )
 
-            # GLOBAL KILL SWITCHES (Apply to ALL)
+            # GLOBAL KILL SWITCHES & BLACK BOX CONSTRAINT
             rubric_text += (
                 "\n### GLOBAL KILL SWITCHES (Score cap: 1-2)\n"
                 "1. Toxic Leader: Shaming, blaming, or ruling by fear. (Max Score: 1)\n"
                 "2. Reckless Cowboy: Ignoring safety/legal for speed. (Max Score: 1)\n"
-                "3. Pyrrhic Victory: Winning the result but destroying the team. (Max Score: 2)\n"
-            )
-
-            # PHASE 4: MISSED OPPORTUNITY LOGIC
-            rubric_text += (
-                 "\n### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
-                 "For any score < 4:\n"
-                 "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
-                 "If YES, note this in the feedback."
+                "3. Pyrrhic Victory: Winning the result but destroying the team. (Max Score: 2)\n\n"
+                "### THE 'BLACK BOX' CONSTRAINT (Magic Wand Detector)\n"
+                "CRITICAL: Analyze the 'Action' portion of the STAR response.\n"
+                "- If the candidate describes the STATE of completion (e.g. 'I learned it', 'I handled it') without mechanics -> MAX SCORE: 3.\n"
+                "- Canidate MUST describe the MECHANICS (e.g. 'I drafted', 'I calculated', 'I sat down with').\n"
+                "### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
+                "For any score < 4:\n"
+                "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
+                "If YES, note this in the feedback."
             )
         
         # Build Context
@@ -426,7 +428,7 @@ def get_feedback():
 
              # 2. DEFINITIVE GOVERNANCE PROMPT (No ambiguity)
              final_report_system_prompt = (
-                 "### TASK: GENERATE ACE INTERVIEW REPORT (v2.1)\n"
+                 "### TASK: GENERATE ACE INTERVIEW REPORT (v3.0)\n"
                  "You are 'The Ace Evaluator'. Review the transcript and generate the final HTML report.\n\n"
                  "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
                  "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
@@ -436,17 +438,16 @@ def get_feedback():
                  "**LOGIC:**\n"
                  "- IF ANY Kill Switch is found -> Verdict IS ENTIRELY 'DO NOT RECOMMEND'. (Ignore the average score).\n"
                  "- IF NO Kill Switch found -> Proceed to Score Calculation.\n\n"
-                 "### PHASE 2: SCORE CALCULATION\n"
-                 "- **5 (Unicorn):** Verified ROI + Strategic Depth + Perfect STAR.\n"
-                 "- **4 (Strong):** Clear STAR + Specific Actions.\n"
-                 "- **3 (Average):** Vague STAR. Safe answer.\n"
-                 "- **2 (Weak):** Generic/Fluff.\n"
+                 "### PHASE 2: SCORE CALCULATION & BLACK BOX TEST\n"
+                 "- **5 (Unicorn):** Verified ROI + Strategic Depth + Perfect STAR. \n"
+                 "- **4 (Strong):** Clear Process (Passed 'Black Box' Test) + Specific Actions + Positive Result.\n"
+                 "- **3 (Average):** Vague Action/Result. 'Safe' answer. Lacks data. (Max Score for 'Magic Wand' action).\n"
+                 "- **2 (Weak):** Generic/Fluff. Action Missing.\n"
                  "- **1 (Fail):** Kill Switch or No Answer.\n\n"
                  "### PHASE 3: DETERMINE VERDICT\n"
                  "- **RECOMMEND:** Avg > 4.0 AND NO Kill Switches.\n"
                  "- **RE-INTERVIEW:** Avg 3.0-4.0 AND NO Kill Switches.\n"
-                 "- **DO NOT RECOMMEND:** Avg < 3.0 OR ANY Kill Switch Triggered.\n"
-                 "**CRITICAL: You are FORBIDDEN from using the word 'AVERAGE' as a Verdict. Use 'RE-INTERVIEW' instead.**\n\n"
+                 "- **DO NOT RECOMMEND:** Avg < 3.0 OR ANY Kill Switch Triggered.\n\n"
                  "### 4. OUTPUT STRUCTURE (JSON)\n"
                  "{\n"
                  "  \"formatted_report\": \"HTML String\",\n"
@@ -457,25 +458,29 @@ def get_feedback():
                  "}\n\n"
                  "### HTML TEMPLATE:\n"
                  "<div class='ace-report'>\n"
-                 "  <div class='summary mb-6 p-4 bg-white/5 rounded-xl border border-white/10'>\n"
-                 "    <h2 class='text-2xl font-bold text-white mb-2'>Overall Score: {{Average_Score}}/5</h2>\n"
-                 "    <h3 class='text-xl font-bold {{Verdict_Color_Class}}'>Verdict: {{Verdict}}</h3>\n"
-                 "  </div>\n"
-                 "  <div class='deep-dive space-y-4'>\n"
-                 "    <h3 class='text-teal font-bold uppercase tracking-wider text-sm'>Question Analysis</h3>\n"
+                 "  <h1>Interview Scorecard</h1>\n"
+                 "  <div class='summary'>\n"
+                 "    <h2>Overall Score: {{Average_Score}}/5</h2>\n"
+                 "    <h3 class='{{Verdict_Color_Class}}'>Verdict: {{Verdict}}</h3>\n"
+                 "  </div>\n\n"
+                 "  <div class='deep-dive'>\n"
+                 "    <h3>Question-by-Question Breakdown</h3>\n"
                  "    <!-- Iterate through ALL 6 Questions -->\n"
-                 "    <div class='question-block p-4 bg-black/20 rounded-lg'>\n"
-                 "      <p class='text-gray-300 text-sm mb-1'><strong>Q:</strong> {{Question_Summary}}</p>\n"
-                 "      <p class='text-white font-bold mb-2'>Score: {{Score}}/5</p>\n"
-                 "      <p class='text-gray-400 text-sm'>{{Analysis}}</p>\n"
+                 "    <div class='question-block'>\n"
+                 "      <p><strong>Q{{Number}}:</strong> {{Question_Text}}</p>\n"
+                 "      <p><strong>Score:</strong> {{Score}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Brief_Critique_Focusing_On_Action_And_Result}}</p>\n"
+                 "      <p style='color:#2563eb; font-style:italic; border-left: 3px solid #2563eb; padding-left: 10px;'>\n"
+                 "        <strong>💡 ACE Coaching:</strong> {{Missed_Opportunity_Msg_Or_None}}\n"
+                 "      </p>\n"
                  "    </div>\n"
-                 "  </div>\n"
-                 "  <div class='closing-thoughts mt-6 p-4 bg-white/5 rounded-xl'>\n"
-                 "    <h3 class='text-teal font-bold uppercase tracking-wider text-sm mb-2'>Critical Feedback</h3>\n"
-                 "    <ul class='list-disc list-inside text-gray-300 space-y-1'>\n"
-                 "      <li><strong>Strength:</strong> {{Top_Strength}}</li>\n"
-                 "      <li><strong>Red Flags:</strong> {{Kill_Switches_Triggered_OR_None}}</li>\n"
-                 "      <li><strong>Final Advice:</strong> {{Actionable_Improvement}}</li>\n"
+                 "  </div>\n\n"
+                 "  <div class='closing-thoughts'>\n"
+                 "    <h3>Critical Feedback</h3>\n"
+                 "    <ul>\n"
+                 "      <li><strong>Top Strength:</strong> {{Top_Strength}}</li>\n"
+                 "      <li><strong>Primary Weakness:</strong> {{Primary_Area_For_Improvement}}</li>\n"
+                 "      <li><strong>Final Advice:</strong> {{One_Specific_Actionable_Step}}</li>\n"
                  "    </ul>\n"
                  "  </div>\n"
                  "</div>"
