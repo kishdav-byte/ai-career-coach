@@ -32,11 +32,10 @@ def get_supabase():
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
     import traceback
-    try:
-        # 1. Extract Token
-        auth_header = request.headers.get('Authorization')
-        if not auth_header:
-            return jsonify({"error": "Missing Authorization Header"}), 401
+    # 1. Extract Token
+    auth_header = request.headers.get('Authorization')
+    if not auth_header:
+        return jsonify({"error": "Missing Authorization Header"}), 401
     
     try:
         token = auth_header.split(" ")[1]
@@ -56,7 +55,6 @@ def manage_jobs():
         
     # 3. Create RLS-Compatible Client
     # We create a new client and explicitly set the auth token for PostgREST.
-    try:
     try:
         from supabase import create_client, Client
         SUPABASE_URL = os.environ.get("SUPABASE_URL")
@@ -110,9 +108,6 @@ def manage_jobs():
             return jsonify(res.data), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 500
-
-    except Exception:
-        return jsonify({"error": "CRITICAL TRACE: " + traceback.format_exc()}), 500
 
 # 4. UPDATE JOB (PUT) - Saving Dossier Intel
 @app.route('/api/jobs/<job_id>', methods=['PUT'])
@@ -234,6 +229,10 @@ def analyze_jd():
             response_format={ "type": "json_object" }
         )
         
+        return jsonify(json.loads(completion.choices[0].message.content)), 200
+
+    except Exception as e:
+        print(f"Intel Error: {e}")
         return jsonify({"role": "Unknown Role", "company": "Unknown Company", "summary": "Analysis failed."}), 200
 
 # ------------------------------------------------------------------------------
