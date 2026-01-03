@@ -206,18 +206,52 @@ def analyze_jd():
             response_format={ "type": "json_object" }
         )
         
-        result = json.loads(completion.choices[0].message.content)
-        return jsonify(result), 200
-
-    except Exception as e:
-        print(f"Analyze JD Error: {e}")
         return jsonify({"role": "Unknown Role", "company": "Unknown Company", "summary": "Analysis failed."}), 200
 
-# 7. GET FEEDBACK / INTERVIEW LOOP (POST)
+# ------------------------------------------------------------------------------
+# HELPER: Sanitization Pre-Processor (v5.0)
+# ------------------------------------------------------------------------------
+def sanitize_input(text):
+    if not text: return None
+    import re
+    # 1. Strip Brackets [] or <> (System tags)
+    clean = re.sub(r'\[.*?\]', '', text)
+    clean = re.sub(r'<.*?>', '', clean)
+    
+    # 2. Remove System Artifacts/Prompt Injections
+    artifacts = [
+        "thoughtful use of diagrams", "generate image", "ignore previous instructions",
+        "system prompt", "internal score"
+    ]
+    for art in artifacts:
+        clean = re.sub(f'(?i){art}', '', clean)
+        
+    clean = clean.strip()
+    return clean if clean else "Null Input"
+
+# ------------------------------------------------------------------------------
+# ROUTE: Get AI Feedback & Next Question
+# ------------------------------------------------------------------------------
 @app.route('/api/get-feedback', methods=['POST'])
 def get_feedback():
     try:
         data = request.json
+        # v5.0 SANITIZATION
+        raw_message = data.get('message', '')
+        message = sanitize_input(raw_message)
+        
+        if message == "Null Input":
+             return jsonify({
+                "response": {
+                    "feedback": "Please provide a valid text response.", 
+                    "internal_score": 0, 
+                    "next_question": "Could you please rephrase your answer?"
+                },
+                "audio": None,
+                "is_complete": False
+            }), 200
+
+        history = data.get('history', [])
         action = data.get('action') 
 
         # OpenAI Config
@@ -251,7 +285,7 @@ def get_feedback():
                 if os.path.exists(temp_path): os.remove(temp_path)
 
         # --- B. FEEDBACK PATH (Existing) ---
-        message = data.get('message', '')
+        # message = data.get('message', '') # This is now sanitized above
         history = data.get('history', [])
         job_posting = data.get('jobPosting', '')
         resume_text = data.get('resumeText', '')
@@ -378,7 +412,11 @@ def get_feedback():
             "- Keep questions concise but challenging.\n"
             f"- This is Question {question_count} of 6.\n"
             "CRITICAL: Perform a 'STATE RESET' between questions. Forget the specific grading criteria of the previous question. Analyze the current user answer against the CURRENT question topic ONLY.\n"
-            "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }\n"
+            "[PHASE 3: THE 'SILENT JUDGE' SCORING LOGIC] (v5.0)\n"
+            "Assess every answer on the strict 1-5 Scale. Calculate the score internally, but DO NOT reveal it to the candidate.\n"
+            "Output JSON format: { \"feedback\": \"...\", \"internal_score\": X, \"next_question\": \"...\" }\n"
+            "FORBIDDEN: Do not output 'Score: X/5' in the feedback text.\n"
+            "REQUIRED: Output only the Feedback Text.\n"
         )
         
         messages = [{"role": "system", "content": system_prompt}]
@@ -436,7 +474,8 @@ def get_feedback():
         elif question_count > 6:
              # FINAL REPORT LOGIC (MASTER PROTOCOL v2.1)
              # 1. Build Full Transcript WITH LIVE SCORES (Binding)
-             full_transcript = "INTERVIEW_TRANSCRIPT:\n"
+             full_transcript = "INTERVIEW_TRANSCRIPT WITH SILENT METADATA:\n"
+             session_metadata = "SESSION_METADATA (SILENT SCORES):\n"
              for idx, h in enumerate(history):
                  q = h.get('question', '')
                  a = h.get('answer', '')
@@ -444,17 +483,27 @@ def get_feedback():
                  # v4.0 FIX: Skip "Greeting" or "System" noise (short Qs or simple 'Ready' answers)
                  if len(q) < 15 or len(a) < 3: continue 
 
-                 # BINDING: Include the ACTUAL feedback/score the user received live(history)
+                 # BINDING: Include the ACTUAL feedback/score the user received live
                  live_fb = h.get('feedback', 'No feedback recorded')
+                 
+                 # v5.0 SILENT SCORE RETRIEVAL
+                 # Check for 'internal_score' first (v5), then 'score' (v4 legacy), then parse feedback (v3)
+                 silent_score = h.get('internal_score') or h.get('score') or 0
+                 
                  full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\nLIVE_FEEDBACK: {live_fb}\n\n"
+                 session_metadata += f"Turn {idx+1} Score: {silent_score}\n"
              
              # CRITICAL FIX: Append the FINAL Answer (which is not in history yet)
              full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
+             # Final turn score is yet to be determined by the Auditor, so no metadata for it yet.
 
              # 2. DEFINITIVE GOVERNANCE PROMPT (No ambiguity)
              final_report_system_prompt = (
-                 "### TASK: GENERATE ACE INTERVIEW REPORT (v3.0)\n"
-                 "You are 'The Ace Evaluator'. Review the transcript and generate the final HTML report.\n\n"
+                 "### TASK: GENERATE ACE INTERVIEW REPORT (v5.0 - THE AUDITOR)\n"
+                 "You are 'The Ace Auditor'. Review the transcript and generate the final HTML report.\n\n"
+                 "### INPUT DATA:\n"
+                 "1. Interview_Transcript (The text conversations)\n"
+                 "2. Session_Metadata (The hidden SILENT SCORES assigned during live session)\n\n"
                  "### CRITICAL INSTRUCTION: CONTENT ANCHORING (v4.5)\n"
                  "Do not rely solely on chronological order (e.g. 'Turn 1'). You must ANCHOR the data based on the content topic to fix 'Off-by-One' errors.\n\n"
                  "### STEP 1: THE ANCHOR MAP\n"
@@ -465,9 +514,10 @@ def get_feedback():
                  "- **Q4 (Behavioral):** Locate the answer discussing 'Difficult Decision', 'New Skill', or 'Community'.\n"
                  "- **Q5 (Behavioral):** Locate the answer discussing 'Motivation', 'Performance', or 'Promoting a Program'.\n"
                  "- **Q6 (Final / Negative):** Locate the answer discussing 'Negative Dynamic', 'Turnaround', or 'Objections'.\n\n"
-                 "### STEP 2: LIVE DATA BINDING\n"
-                 "Once anchored, retrieve the specific scores/feedback generated during the live session (labeled LIVE_FEEDBACK) for that turn.\n"
-                 "Use the Live Score for Q1-Q5. Calculate Q6 freshly using the rubric (as it has no live feedback).\n"
+                 "### STEP 2: LIVE DATA BINDING & VERIFICATION\n"
+                 "Once anchored, retrieve the specific Session_Metadata (Silent Score) for that turn.\n"
+                 "CRITICAL: If the transcript text seems good but the Silent Score is '2', you must TRUST the Score. The live algorithms (Kill Switches, Black Box) are the superior judge.\n"
+                 "Use the Live Silent Score for Q1-Q5. Calculate Q6 freshly.\n"
                  "IF a topic is missing (e.g. Q6 cut off), mark Score: 1 and Analysis: 'Incomplete/Cut-off Response'.\n\n"
                  "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
                  "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
@@ -528,7 +578,7 @@ def get_feedback():
 
              messages = [
                  {"role": "system", "content": final_report_system_prompt},
-                 {"role": "user", "content": f"TRANSCRIPT:\n{full_transcript}\n\nRESUME:\n{resume_text}\n\nGenerate Final Report JSON."}
+                 {"role": "user", "content": f"TRANSCRIPT:\n{full_transcript}\n\nSESSION_METADATA:\n{session_metadata}\n\nRESUME:\n{resume_text}\n\nGenerate Final Report JSON."}
              ]
         else:
             messages.append({"role": "user", "content": message})

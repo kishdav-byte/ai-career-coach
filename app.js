@@ -1843,7 +1843,8 @@ function init() {
             interviewHistory.push({
                 question: currentQuestionText,
                 answer: message,
-                feedback: aiData.feedback || "No feedback provided."
+                feedback: aiData.feedback || "No feedback provided.",
+                internal_score: aiData.internal_score || aiData.score || 0
             });
 
             if (!isStart) questionCount++;
