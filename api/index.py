@@ -18,10 +18,12 @@ except Exception as e:
 # 3. THE JOBS ROUTE (Secure Mode)
 @app.route('/api/jobs', methods=['GET', 'POST'])
 def manage_jobs():
-    # 1. Extract Token
-    auth_header = request.headers.get('Authorization')
-    if not auth_header:
-        return jsonify({"error": "Missing Authorization Header"}), 401
+    import traceback
+    try:
+        # 1. Extract Token
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({"error": "Missing Authorization Header"}), 401
     
     try:
         token = auth_header.split(" ")[1]
@@ -88,6 +90,9 @@ def manage_jobs():
             return jsonify(res.data), 201
         except Exception as e:
             return jsonify({"error": str(e)}), 500
+
+    except Exception:
+        return jsonify({"error": "CRITICAL TRACE: " + traceback.format_exc()}), 500
 
 # 4. UPDATE JOB (PUT) - Saving Dossier Intel
 @app.route('/api/jobs/<job_id>', methods=['PUT'])
