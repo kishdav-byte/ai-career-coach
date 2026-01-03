@@ -653,9 +653,10 @@ def get_feedback():
 
         ai_json["average_score"] = ai_json["average_score"] # Ensure it sticks
         
-        # Encode
-        audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
-    
+        # Encode (Ensure audio_b64 is set)
+        # Note: audio_b64 is already set in the Try block above.
+        # If Try failed, audio_b64 is None.
+        
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
