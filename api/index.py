@@ -7,6 +7,11 @@ import stripe
 
 app = Flask(__name__)
 
+# 0. SANITY CHECK ROUTE (No Deps)
+@app.route('/api/health')
+def health_check():
+    return jsonify({"status": "ok", "message": "Server is bootable"}), 200
+
 # 1. SETUP SUPABASE
 try:
     SUPABASE_URL = os.environ.get("SUPABASE_URL")
