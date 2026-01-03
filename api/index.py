@@ -599,6 +599,10 @@ def get_feedback():
                  elif ai_json.get('feedback'):
                       speech_text = f"Feedback: {ai_json['feedback']} \n\n {ai_json['next_question']}"
 
+                 # GUARD: Prevent Empty String Crash (OpenAI 400)
+                 if not speech_text or not speech_text.strip():
+                     speech_text = "Analysis complete. Thank you."
+
                  audio_response = client.audio.speech.create(
                      model="tts-1-hd",
                      voice=voice,
