@@ -44,7 +44,7 @@ def manage_jobs():
         user_client.postgrest.auth(token)
     except Exception as e:
         print(f"Client Handshake Error: {e}")
-        return jsonify({"error": "Server Error"}), 500
+        return jsonify({"error": f"Server Error: {str(e)}"}), 500
 
     # B. GET Request (Loading the Dashboard)
     if request.method == 'GET':
@@ -52,7 +52,7 @@ def manage_jobs():
             # Query AS THE USER
             # Reverted to user_jobs. Map job_intel to notes for frontend compatibility.
             response = user_client.table('user_jobs').select(
-                "id, job_title, company_name, status, job_description, job_intel, salary_target"
+                "id,job_title,company_name,status,job_description,job_intel,salary_target"
             ).eq('user_id', user_id).execute()
 
             clean_jobs = []
