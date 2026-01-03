@@ -592,8 +592,8 @@ def get_feedback():
                  ai_json["next_question"] = "" # No next text needed in UI
 
              # SCORE COMPLIANCE (v6.1)
-             # Only apply mechanics for Q2-Q6 (Skip Greeting Q1)
-             if question_count > 1:
+             # Only apply mechanics if NOT START and Q2+
+             if question_count > 1 and not is_start:
                  # 1. Word Count Penalty (<20 words -> Score 1)
                  if len(message.split()) < 20:
                      print(f"PENALTY: Answer too short ({len(message.split())} words). Forcing Score 1.")
