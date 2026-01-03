@@ -1504,6 +1504,10 @@ function init() {
                 // START COUNTDOWN (Parallel with API calls)
                 startCountdown();
 
+                // Reset Memory
+                interviewHistory = [];
+                lastAiQuestion = "Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you?"; // Hardcoded Greeting Match
+
                 const intro = document.getElementById('interview-intro');
                 if (intro) intro.classList.add('hidden');
 
@@ -1638,6 +1642,10 @@ function init() {
     // sendVoiceMessage moved to global scope
 
 
+    // MEMORY PATCH: Frontend History Tracking
+    let interviewHistory = [];
+    let lastAiQuestion = "Interviewer Greetings"; // Initial value
+
     async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "", roleTitle = "") {
         const message = msg || (chatInput ? chatInput.value : '');
         if (!message) return;
@@ -1697,7 +1705,10 @@ function init() {
                     jobPosting: jobPosting,
                     resumeText: resumeText,
                     companyName: companyName,
+                    resumeText: resumeText,
+                    companyName: companyName,
                     interviewer_intel: interviewerIntel, // Pass Intel!
+                    history: interviewHistory, // MEMORY PATCH: Send full history
                     isStart: isStart,
                     questionCount: questionCount + 1,
                     email: email,
@@ -1719,6 +1730,22 @@ function init() {
             }
 
             const data = await response.json();
+
+            // MEMORY PATCH: Update History
+            if (message && lastAiQuestion) {
+                // Store the PAIR: The question that prompted this answer, and the answer itself
+                interviewHistory.push({
+                    question: lastAiQuestion,
+                    answer: message
+                });
+                // Keep history reasonable (last 20 turns)
+                if (interviewHistory.length > 20) interviewHistory.shift();
+            }
+
+            // MEMORY PATCH: Capture Next Question for next turn
+            if (data.response && data.response.next_question) {
+                lastAiQuestion = data.response.next_question;
+            }
 
             // --- REFEREE: CHECK FOR GAME OVER ---
             if (data.is_complete) {
@@ -1744,7 +1771,8 @@ function init() {
                     if (data.response.next_question) {
                         finalHtml += `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
                     }
-                    addMessage(finalHtml, 'system', true);
+                    // SUPPRESSED: Duplicated final feedback
+                    // addMessage(finalHtml, 'system', true);
                 }
 
                 // 3. Kill Mic
@@ -1755,8 +1783,13 @@ function init() {
                     recordBtn.textContent = '✅';
                 }
 
-                // 4. Generate Report
-                generateInterviewReport();
+                // 4. Generate Report (Reuse the Feedback we just got!)
+                // Extract the RAW feedback text (not HTML) for saving
+                const finalReportText = data.response.feedback || "No Report Generated";
+                // EXTRACT SCORE from API response (added in backend fix)
+                const finalScore = data.average_score || data.response.average_score || 0;
+
+                generateInterviewReport(finalReportText, finalScore);
                 return; // STOP HERE
             }
             // ------------------------------------
@@ -1785,8 +1818,11 @@ function init() {
             }
 
             // 1.5 PUBLISH MESSAGE
-            // Use addMessage to show the response in a new bubble (system/AI)
-            addMessage(displayHtml, 'system', true);
+            // ONLY if NOT complete (to avoid duplication with the Final Report Card)
+            if (!data.is_complete) {
+                // Use addMessage to show the response in a new bubble (system/AI)
+                addMessage(displayHtml, 'system', true);
+            }
 
             // 2. AUDIO PLAYBACK (Base64)
             if (audioBase64) {
@@ -1819,26 +1855,43 @@ function init() {
         }
     }
 
-    async function generateInterviewReport() {
-        const loadingId = addMessage('Generating Final Executive Coaching Report...', 'system');
+    async function generateInterviewReport(existingReport = null, existingScore = 0) {
+        const loadingId = addMessage('Saving Final Executive Coaching Report...', 'system');
 
         try {
             const session = getSession();
-            const email = session ? session.email : null;
-            const interviewJobPosting = document.getElementById('interview-job-posting');
-            const jobPosting = interviewJobPosting ? interviewJobPosting.value : '';
+            // ... (setup variables) ...
 
-            const response = await fetch('/api', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'generate_report',
-                    email: email,
-                    history: interviewHistory,
-                    jobPosting: jobPosting
-                })
-            });
-            const result = await response.json();
+            let result = {};
+
+            if (existingReport) {
+                // OPTIMIZATION: Reuse the report we already generated in the chat loop
+                console.log("Reusing existing report for DB save...");
+                result = {
+                    data: {
+                        report: existingReport,
+                        average_score: existingScore // USE THE SCORE WE GOT FORM BACKEND
+                    }
+                };
+            } else {
+                // Fallback: Generate new one (Legacy path)
+                const session = getSession();
+                const email = session ? session.email : null;
+                const interviewJobPosting = document.getElementById('interview-job-posting');
+                const jobPosting = interviewJobPosting ? interviewJobPosting.value : '';
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'generate_report',
+                        email: email,
+                        history: interviewHistory,
+                        jobPosting: jobPosting
+                    })
+                });
+                result = await response.json();
+            }
 
             const loadingEl = document.getElementById(loadingId);
             if (loadingEl) loadingEl.remove();

@@ -263,6 +263,20 @@ def get_feedback():
         # Question 2 evaluates the answer to Q1 (Background/Intro). 
         # Questions 3+ evaluate STAR answers.
         
+        # Prepare variables
+        interviewer_intel = str(data.get('interviewer_intel') or '')
+        role_title = str(data.get('job_title') or 'Candidate')
+        
+        rubric_text = ""
+        persona_role = "an Expert Interview Evaluator" # Default Persona
+        seniority_level = "Tactical Execution" # Default
+
+        # 1. SENIORITY SCALE (Global Calculation)
+        if any(x in role_title.upper() for x in ["SENIOR", "LEAD", "MANAGER"]):
+            seniority_level = "Strategic Ownership"
+        if any(x in role_title.upper() for x in ["DIRECTOR", "VP", "HEAD", "CHIEF", "C-LEVEL", "EXECUTIVE"]):
+             seniority_level = "Vision, Culture, & ROI Dominance"
+        
         if question_count == 2:
             rubric_text = (
                 "SCORING RUBRIC (BACKGROUND QUESTION):\n"
@@ -271,29 +285,80 @@ def get_feedback():
                 "- Score 5: Strong executive summary. Clearly links past experience to this specific role's requirements.\n"
             )
         else:
-            rubric_text = (
-                "SCORING RUBRIC (STAR METHOD):\n"
-                "- Score 1-2: User fails to provide a specific Situation, Action, or Result.\n"
-                "- Score 3-4: User provides S-A-R but lacks specific metrics or could be better organized.\n"
-                "- Score 5 (Unicorn): Perfect delivery. Relevant Situation, specific Action/Strategy, and measurable Result ($/%).\n"
+            # MASTER PROTOCOL v2.1 ENHANCEMENTS
+            # 2. ARCHETYPE SELECTION (Refined)
+            context_text = (role_title + " " + interviewer_intel).upper()
+            
+            # ARCHETYPE: THE GUARDIAN
+            if any(x in context_text for x in ["HOSPITALITY", "SAFETY", "GUEST", "PATIENT", "MEDICAL", "SCHOOL", "NURSE", "DOCTOR", "CHEF", "RESTAURANT"]):
+                persona_role = "The Guardian (Safety & Culture First)"
+                rubric_text = (
+                    "### ARCHETYPE: THE GUARDIAN\n"
+                    "Core Value: Protection of People (Guests/Patients/Staff).\n"
+                    "Kill Switch: Sacrificing safety for speed/money is an IMMEDIATE FAIL (Score 1).\n"
+                    "Scoring Focus: Reward protocols, training, and de-escalation.\n"
+                )
+
+            # ARCHETYPE: THE STEWARD
+            elif any(x in context_text for x in ["BANK", "AUDIT", "COMPLIANCE", "ACCOUNTANT", "RISK", "LEGAL", "CFO", "HEDGE FUND"]):
+                persona_role = "The Steward (Accuracy & Risk Management)"
+                rubric_text = (
+                    "### ARCHETYPE: THE STEWARD\n"
+                    "Core Value: Accuracy, Stability, Compliance.\n"
+                    "Kill Switch: Guessing or 'Moving Fast and Breaking Things' is an IMMEDIATE FAIL (Score 1).\n"
+                    "Scoring Focus: Reward verification, controls, and governance.\n"
+                )
+
+            # ARCHETYPE: THE GROWTH OPERATOR
+            elif any(x in context_text for x in ["STARTUP", "GROWTH", "VC", "SPEED", "PRODUCT", "TECH", "SAAS", "VP"]) or (interviewer_intel and len(interviewer_intel) > 10):
+                persona_role = "The Growth Operator (Speed & ROI)"
+                rubric_text = (
+                    "### ARCHETYPE: THE GROWTH OPERATOR\n"
+                    "Core Value: Speed, Action, Revenue.\n"
+                    "Kill Switch: Citing 'policy' as an excuse for inaction (The Bureaucrat) is a FAIL.\n"
+                    "Scoring Focus: Reward bias for action, MVP thinking, and revenue impact.\n"
+                )
+
+            # DEFAULT: STANDARD CORPORATE
+            else:
+                persona_role = "The Ace Evaluator (Standard Corporate)"
+                rubric_text = (
+                    "### ARCHETYPE: STANDARD CORPORATE\n"
+                    "Core Value: Structure & Competence.\n"
+                    "Scoring Focus: STAR Method, specific metrics, and clarity.\n"
+                )
+
+            # GLOBAL KILL SWITCHES (Apply to ALL)
+            rubric_text += (
+                "\n### GLOBAL KILL SWITCHES (Score cap: 1-2)\n"
+                "1. Toxic Leader: Shaming, blaming, or ruling by fear. (Max Score: 1)\n"
+                "2. Reckless Cowboy: Ignoring safety/legal for speed. (Max Score: 1)\n"
+                "3. Pyrrhic Victory: Winning the result but destroying the team. (Max Score: 2)\n"
+            )
+
+            # PHASE 4: MISSED OPPORTUNITY LOGIC
+            rubric_text += (
+                 "\n### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
+                 "For any score < 4:\n"
+                 "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
+                 "If YES, note this in the feedback."
             )
         
         # Build Context
-        # We explicitly set the "Target Role" using the passed title to avoid AI guessing.
         system_prompt = (
-            "You are an expert Executive Interview Coach. Your goal is to conduct a realistic, "
-            "high-stakes interview simulation. \n"
+            f"You are {persona_role}.\n"
+            f"SENIORITY EXPECTATION: {seniority_level}\n"
             f"CONTEXT:\nTarget Role: {role_title}\nJob Description: {job_posting}\nCandidate Resume: {resume_text}\n"
-            "BEHAVIOR:\n"
-            f"{rubric_text}"
+            f"INTEL NOTES (If any): {interviewer_intel}\n\n"
+            f"{rubric_text}\n\n"
             "BEHAVIOR:\n"
             "- Ask one hard, relevant question at a time.\n"
-            "- Provide brief, constructive feedback based on the rubric above.\n"
+            "- Prvide brief, constructive feedback based on the rubric.\n"
             "- Keep questions concise but challenging.\n"
-            f"- This is Question {question_count} of 5.\n"
-            "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }"
+            f"- This is Question {question_count} of 6.\n"
+            "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }\n"
         )
-
+        
         messages = [{"role": "system", "content": system_prompt}]
         
         # Add limited history to save context window
@@ -306,53 +371,121 @@ def get_feedback():
             # FORCE GREETING LOGIC
             greeting_instruction = (
                 "Start the interview. "
-                "1. Introduce yourself simply as 'the Hiring Manager' for the position mentioned in the Job context. Do NOT use a specific name. "
-                "2. Thank the candidate for spending the time with you. "
-                "3. Advise that the interview will be broken down into two components: 'First, I'll ask you to give me a high level overview of your experience, then I will ask you to share specific examples of different situations that you have experienced.' "
-                "4. Ask exactly: 'Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you.'\n"
-                "CRITICAL: This is the start of the interview. DO NOT provide any feedback or score. The user has not spoken yet. Just output the greeting as 'next_question'."
+                "1. Say exactly: 'Hello, and welcome. Thank you for joining me today. I am the Hiring Manager for the position.' "
+                "2. Set the stage: 'To give you an overview of our session: First, I'll ask for a high level overview of your background, and then we will dive into specific situational examples.' "
+                "3. Ask Question 1: 'Let's get started. Walk me through your background and why you are the right fit for this role?'\n"
+                "CRITICAL: DO NOT provide feedback yet. Output greeting as 'next_question'."
             )
-            messages.append({
-                "role": "user", 
-                "content": greeting_instruction
-            })
+            messages.append({"role": "user", "content": greeting_instruction})
+
         elif question_count == 2:
             messages.append({
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Thank the user for sharing that.\n"
-                    "Step 2: Transition to the STAR component. Say exactly: 'The next part of the interview will focus on situations that you have experienced. I'll ask you the question, and what I want you to provide is a Specific Situation or Task, the actions you took, and the results of your actions.'\n"
-                    "Step 3: Ask the first STAR question."
+                    "Step 1: Thank them.\n"
+                    "Step 2: Explain STAR Method briefly: 'For the next questions, please use the STAR method: Situation, Task, Action, Result.'\n"
+                    "Step 3: Ask the first Behavioral Question (Conflict, Failure, or Strategy)."
                 )
             })
-        elif question_count in [3, 4]:
+
+        elif question_count in [3, 4, 5]:
              messages.append({
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Provide brief feedback (score).\n"
-                    "Step 2: Say exactly: 'Thank you. The next question that I have for you is'\n"
-                    "Step 3: Ask the next interview question."
+                    "Step 1: Score (1-5) and provide brief feedback.\n"
+                    "Step 2: Say exactly: 'The next question that I have for you is...'\n"
+                    "Step 3: Ask the next behavioral question."
                 )
              })
-        elif question_count == 5:
+
+        elif question_count == 6:
              messages.append({
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Provide brief feedback (score).\n"
-                    "Step 2: Say exactly: 'The final question I have for you is'\n"
-                    "Step 3: Ask the final interview question."
+                    "Step 1: Score and Feedback.\n"
+                    "Step 2: Say exactly: 'The final question I have for you is...'\n"
+                    "Step 3: Ask the Final Question (The Closer)."
                 )
              })
-        elif question_count > 5:
-             messages.append({
-                 "role": "user",
-                 "content": f"User Answer: {message}. This was the final question. Provide feedback and end the interview by saying 'Those were all of the questions that I have for you, thank you for your time.' as the next_question."
-             })
+
+        elif question_count > 6:
+             # FINAL REPORT LOGIC (MASTER PROTOCOL v2.1)
+             # 1. Build Full Transcript
+             full_transcript = "INTERVIEW_TRANSCRIPT:\n"
+             for idx, h in enumerate(history):
+                 q = h.get('question', '')
+                 a = h.get('answer', '')
+                 # Regex to capture score from feedback history if present, else 0
+                 full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\n\n"
+             
+             # CRITICAL FIX: Append the FINAL Answer (which is not in history yet)
+             full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
+
+             # 2. DEFINITIVE GOVERNANCE PROMPT (No ambiguity)
+             final_report_system_prompt = (
+                 "### TASK: GENERATE ACE INTERVIEW REPORT (v2.1)\n"
+                 "You are 'The Ace Evaluator'. Review the transcript and generate the final HTML report.\n\n"
+                 "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
+                 "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
+                 "1. **Toxic Leader:** Shaming, blaming, or ruling by fear.\n"
+                 "2. **Reckless Cowboy:** Unsafe, illegal, or bypassing critical compliance/safety protocols.\n"
+                 "3. **Pyrrhic Victory:** Winning but destroying team.\n\n"
+                 "**LOGIC:**\n"
+                 "- IF ANY Kill Switch is found -> Verdict IS ENTIRELY 'DO NOT RECOMMEND'. (Ignore the average score).\n"
+                 "- IF NO Kill Switch found -> Proceed to Score Calculation.\n\n"
+                 "### PHASE 2: SCORE CALCULATION\n"
+                 "- **5 (Unicorn):** Verified ROI + Strategic Depth + Perfect STAR.\n"
+                 "- **4 (Strong):** Clear STAR + Specific Actions.\n"
+                 "- **3 (Average):** Vague STAR. Safe answer.\n"
+                 "- **2 (Weak):** Generic/Fluff.\n"
+                 "- **1 (Fail):** Kill Switch or No Answer.\n\n"
+                 "### PHASE 3: DETERMINE VERDICT\n"
+                 "- **RECOMMEND:** Avg > 4.0 AND NO Kill Switches.\n"
+                 "- **RE-INTERVIEW:** Avg 3.0-4.0 AND NO Kill Switches.\n"
+                 "- **DO NOT RECOMMEND:** Avg < 3.0 OR ANY Kill Switch Triggered.\n"
+                 "**CRITICAL: You are FORBIDDEN from using the word 'AVERAGE' as a Verdict. Use 'RE-INTERVIEW' instead.**\n\n"
+                 "### 4. OUTPUT STRUCTURE (JSON)\n"
+                 "{\n"
+                 "  \"formatted_report\": \"HTML String\",\n"
+                 "  \"average_score\": \"X.X\",\n"
+                 "  \"verdict_text\": \"RECOMMEND / RE-INTERVIEW / DO NOT RECOMMEND\",\n"
+                 "  \"q6_analysis\": \"Analysis for the final question\",\n"
+                 "  \"q6_score\": 0\n"
+                 "}\n\n"
+                 "### HTML TEMPLATE:\n"
+                 "<div class='ace-report'>\n"
+                 "  <div class='summary mb-6 p-4 bg-white/5 rounded-xl border border-white/10'>\n"
+                 "    <h2 class='text-2xl font-bold text-white mb-2'>Overall Score: {{Average_Score}}/5</h2>\n"
+                 "    <h3 class='text-xl font-bold {{Verdict_Color_Class}}'>Verdict: {{Verdict}}</h3>\n"
+                 "  </div>\n"
+                 "  <div class='deep-dive space-y-4'>\n"
+                 "    <h3 class='text-teal font-bold uppercase tracking-wider text-sm'>Question Analysis</h3>\n"
+                 "    <!-- Iterate through ALL 6 Questions -->\n"
+                 "    <div class='question-block p-4 bg-black/20 rounded-lg'>\n"
+                 "      <p class='text-gray-300 text-sm mb-1'><strong>Q:</strong> {{Question_Summary}}</p>\n"
+                 "      <p class='text-white font-bold mb-2'>Score: {{Score}}/5</p>\n"
+                 "      <p class='text-gray-400 text-sm'>{{Analysis}}</p>\n"
+                 "    </div>\n"
+                 "  </div>\n"
+                 "  <div class='closing-thoughts mt-6 p-4 bg-white/5 rounded-xl'>\n"
+                 "    <h3 class='text-teal font-bold uppercase tracking-wider text-sm mb-2'>Critical Feedback</h3>\n"
+                 "    <ul class='list-disc list-inside text-gray-300 space-y-1'>\n"
+                 "      <li><strong>Strength:</strong> {{Top_Strength}}</li>\n"
+                 "      <li><strong>Red Flags:</strong> {{Kill_Switches_Triggered_OR_None}}</li>\n"
+                 "      <li><strong>Final Advice:</strong> {{Actionable_Improvement}}</li>\n"
+                 "    </ul>\n"
+                 "  </div>\n"
+                 "</div>"
+             )
+
+             messages = [
+                 {"role": "system", "content": final_report_system_prompt},
+                 {"role": "user", "content": f"TRANSCRIPT:\n{full_transcript}\n\nRESUME:\n{resume_text}\n\nGenerate Final Report JSON."}
+             ]
         else:
-            # Fallback for any other state (shouldn't be hit if logic is perfect, but safe)
             messages.append({"role": "user", "content": message})
 
         # 1. Text Generation
@@ -363,16 +496,32 @@ def get_feedback():
         )
         
         ai_response_text = chat_completion.choices[0].message.content
-        ai_json = json.loads(ai_response_text) 
+        try:
+             ai_json = json.loads(ai_response_text)
+        except:
+             ai_json = { "feedback": ai_response_text, "next_question": "End of Interview." }
+
+        # REPORT FORMATTING BRIDGE
+        if "formatted_report" in ai_json:
+            ai_json["feedback"] = ai_json["formatted_report"]
+            ai_json["next_question"] = "Interview Complete." 
         
         # 2. Audio Generation (Omit if empty text)
         audio_b64 = None
         if ai_json.get('next_question'):
             voice = data.get('voice', 'alloy')
 
-            # SPEAK FEEDBACK + QUESTION
+            # SPEAK LOGIC
             speech_text = ai_json['next_question']
-            if ai_json.get('feedback'):
+            
+            # FINAL REPORT AUDIO OVERRIDE
+            if question_count > 6 and "average_score" in ai_json:
+                verdict = ai_json.get("verdict_text", "Final Verdict")
+                score = ai_json.get("average_score", "0.0")
+                speech_text = f"Interview Complete. Your Overall Score is {score} out of 5. The Verdict is {verdict}. Please review the full report on your dashboard."
+            
+            # STANDARD FEEDBACK AUDIO
+            elif ai_json.get('feedback'):
                  speech_text = f"Feedback: {ai_json['feedback']} \n\n {ai_json['next_question']}"
 
             audio_response = client.audio.speech.create(
@@ -380,13 +529,51 @@ def get_feedback():
                 voice=voice,
                 input=speech_text
             )
+            # MATH ENFORCER v2: Calculate Actual Average
+            try:
+                # 1. Extract Scores from History
+                extracted_scores = []
+                import re
+                
+                # A. From History (Q1-Q5)
+                for turn in history:
+                    # Look for "Score: 3/5" or "Score: 3" in previous feedbacks
+                    feedback = turn.get('formatted_feedback') or turn.get('feedback', '')
+                    match = re.search(r'Score:\s*(\d+(\.\d+)?)', feedback, re.IGNORECASE)
+                    if match:
+                        extracted_scores.append(float(match.group(1)))
+                
+                # B. From Q6 (Current Response)
+                # We asked AI to output q6_score in JSON
+                q6_score = ai_json.get("q6_score", 0)
+                if q6_score:
+                    extracted_scores.append(float(q6_score))
+                
+                # C. Calculate
+                if extracted_scores:
+                    real_avg = sum(extracted_scores) / len(extracted_scores)
+                    ai_json["average_score"] = round(real_avg, 1)
+                    print(f"Verified Score: {ai_json['average_score']} (from {extracted_scores})")
+                else:
+                    # Fallback to AI's guess
+                    raw_score = str(ai_json.get("average_score", "0"))
+                    clean_score = raw_score.split('/')[0].strip()
+                    ai_json["average_score"] = float(clean_score)
+
+            except Exception as e:
+                print(f"Score Math Error: {e}")
+                ai_json["average_score"] = 0.0
+
+            ai_json["average_score"] = ai_json["average_score"] # Ensure it sticks
+            
             # Encode
             audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
         
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
-            "is_complete": question_count > 5
+            "is_complete": question_count > 6,
+            "average_score": ai_json.get("average_score", 0.0)
         }), 200
 
     except Exception as e:
@@ -707,12 +894,18 @@ def general_api():
 
                 TASK:
                 Generate a 2-sentence personalized greeting.
-                1. Acknowledge the user's current status (e.g., "I see you are interviewing for...").
-                2. OFFER to research current news/announcements for that company.
+                1. Acknowledge the user's current status found in CONTEXT.
+                   - IF CONTEXT contains specific Role/Company, mention them.
+                   - IF CONTEXT is generic (e.g. "General Strategy"), simply welcome the user to the Strategy Lab.
+                   - DO NOT use placeholders like "[Job Title]" or "[Company Name]".
+                2. OFFER to research current news and announcements for that company (if specific company exists).
                 3. Ask how you can help.
 
-                EXAMPLE:
-                "I see you are in the [Status] phase for the [Role] position at [Company]. I can attempt to research current news and announcements for this company if you'd like. Please tell me how I can help you today."
+                EXAMPLE (Specific):
+                "I see you are in the Interviewing phase for the Product Manager role at Google. I can attempt to research current news for them if you'd like. Please tell me how I can help you today."
+                
+                EXAMPLE (Generic):
+                "Welcome to the Strategy Lab. I am ready to assist with your career planning or negotiation strategy. How can I help you advance your position today?"
                 """
                 completion = client.chat.completions.create(
                     model="gpt-4o",
