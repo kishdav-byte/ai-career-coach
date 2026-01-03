@@ -370,7 +370,8 @@ def get_feedback():
             "### LOGIC GATES (Automatic Penalties)\n"
             "1. Gap Logic Detector: IF Candidate describes Situation + Result but skips the Action -> MAX SCORE: 2.\n"
             "2. Black Box Constraint: IF Action is vague ('I led', 'I handled') without mechanics -> MAX SCORE: 3.\n"
-            "3. Kill Switches: Toxic, Reckless, or Pyrrhic behavior -> MAX SCORE: 1.\n\n"
+            "3. Kill Switches: Toxic, Reckless, or Pyrrhic behavior -> MAX SCORE: 1.\n"
+            "4. Magic Wand Penalty: IF answer describes feelings/energy without mechanics -> MAX SCORE: 2.\n\n"
             "### THE HARDLINER RUBRIC (Do Not Grade on a Curve)\n"
             "- 5 (Exceptional): Specific Metric (%, $) AND innovative strategy. (<5% of candidates).\n"
             "- 4 (High Performer): Perfect STAR structure + Specific Nouns/Tools + Positive Result.\n"
@@ -588,7 +589,23 @@ def get_feedback():
                  # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
                  ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
                  ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
+                 ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
                  ai_json["next_question"] = "" # No next text needed in UI
+
+             # SCORE COMPLIANCE (v6.1)
+             # 1. Word Count Penalty (<20 words -> Score 1)
+             # Only apply for Q2-Q6 (Skip Greeting Q1)
+             if question_count > 1 and len(message.split()) < 20:
+                 print(f"PENALTY: Answer too short ({len(message.split())} words). Forcing Score 1.")
+                 ai_json["internal_score"] = 1
+                 ai_json["score"] = 1
+                 ai_json["feedback"] = ai_json.get("feedback", "") + " (System Note: Response was too brief to score higher.)"
+
+             # 2. Force Minimum Score 1
+             current_int_score = ai_json.get("internal_score") or ai_json.get("score")
+             if current_int_score is None or float(current_int_score) < 1:
+                  ai_json["internal_score"] = 1
+                  ai_json["score"] = 1
 
              # 2. Audio Generation (Omit if empty text)
              audio_b64 = None
@@ -1118,6 +1135,13 @@ def general_api():
                 "content": """
                 Analyze the user's latest response in the context of the story so far.
                 
+                3. KILL SWITCHES (Immediate MAX Score: 1):
+                - Triggers: Ethical breach, reckless risk, 'saving the day' alone (Hero Complex), ignoring data.
+                - Verdict: 'DO NOT RECOMMEND'.
+                4. MAGIC WAND PENALTY (Feeling vs Action):
+                - IF answer describes feelings ('I shifted energy', 'I made them feel safe') BUT misses mechanics ('I held a meeting'):
+                - PENALTY: This is a 'Magic Wand' answer. MAX SCORE: 2.
+                - Reason: 'Vague/Emotional Response'.
                 DECISION LOGIC:
                 1. IF the story is missing key details (e.g. vague Action, no Result, unclear Task), output status "clarify" and ask ONE follow-up question.
                 2. IF the story is solid and complete, output status "complete" and extract the S.T.A.R. data.
