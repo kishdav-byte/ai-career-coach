@@ -558,87 +558,99 @@ def get_feedback():
             messages.append({"role": "user", "content": message})
 
         # 1. Text Generation
-        chat_completion = client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            response_format={ "type": "json_object" }
-        )
-        
-        ai_response_text = chat_completion.choices[0].message.content
+        print(f"DEBUG: Generating Final Report for count {question_count}...")
         try:
-             ai_json = json.loads(ai_response_text)
-        except:
-             ai_json = { "feedback": ai_response_text, "next_question": "End of Interview." }
+             chat_completion = client.chat.completions.create(
+                 model="gpt-4o",
+                 messages=messages,
+                 response_format={ "type": "json_object" }
+             )
+             
+             ai_response_text = chat_completion.choices[0].message.content
+             print(f"DEBUG: AI Response: {ai_response_text[:100]}...")
+             
+             try:
+                  ai_json = json.loads(ai_response_text)
+             except Exception as json_err:
+                  print(f"DEBUG JSON Error: {json_err}")
+                  ai_json = { "feedback": ai_response_text, "next_question": "End of Interview (JSON Error).", "formatted_report": f"<h1>Error Generating Report</h1><p>{str(json_err)}</p>" }
 
-        # REPORT FORMATTING BRIDGE
-        if "formatted_report" in ai_json:
-            # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
-            ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
-            ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
-            ai_json["next_question"] = "" # No next text needed in UI
+             # REPORT FORMATTING BRIDGE
+             if "formatted_report" in ai_json:
+                 # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
+                 ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
+                 ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
+                 ai_json["next_question"] = "" # No next text needed in UI
 
-        # 2. Audio Generation (Omit if empty text)
-        audio_b64 = None
-        if ai_json.get('next_question') or (question_count > 6): # Allow audio logic to run for end
-            voice = data.get('voice', 'alloy')
+             # 2. Audio Generation (Omit if empty text)
+             audio_b64 = None
+             if ai_json.get('next_question') or (question_count > 6): # Allow audio logic to run for end
+                 voice = data.get('voice', 'alloy')
 
-            # SPEAK LOGIC
-            speech_text = ai_json.get('next_question', '')
-            
-            # FINAL REPORT AUDIO OVERRIDE
-            if question_count > 6 and "average_score" in ai_json:
-                q6_fb = ai_json.get("q6_feedback_spoken", "That concludes the interview.")
-                speech_text = f"Feedback: {q6_fb} That concludes the interview. Thank you for your time."
-            
-            # STANDARD FEEDBACK AUDIO
-            elif ai_json.get('feedback'):
-                 speech_text = f"Feedback: {ai_json['feedback']} \n\n {ai_json['next_question']}"
+                 # SPEAK LOGIC
+                 speech_text = ai_json.get('next_question', '')
+                 
+                 # FINAL REPORT AUDIO OVERRIDE
+                 if question_count > 6 and "average_score" in ai_json:
+                     q6_fb = ai_json.get("q6_feedback_spoken", "That concludes the interview.")
+                     speech_text = f"Feedback: {q6_fb} That concludes the interview. Thank you for your time."
+                 
+                 # STANDARD FEEDBACK AUDIO
+                 elif ai_json.get('feedback'):
+                      speech_text = f"Feedback: {ai_json['feedback']} \n\n {ai_json['next_question']}"
 
-            audio_response = client.audio.speech.create(
-                model="tts-1-hd",
-                voice=voice,
-                input=speech_text
-            )
-            # MATH ENFORCER v2: Calculate Actual Average
-            try:
-                # 1. Extract Scores from History
-                extracted_scores = []
-                import re
-                
-                # A. From History (Q1-Q5)
-                for turn in history:
-                    # Look for "Score: 3/5" or "Score: 3" in previous feedbacks
-                    feedback = turn.get('formatted_feedback') or turn.get('feedback', '')
-                    match = re.search(r'Score:\s*(\d+(\.\d+)?)', feedback, re.IGNORECASE)
-                    if match:
-                        extracted_scores.append(float(match.group(1)))
-                
-                # B. From Q6 (Current Response)
-                # We asked AI to output q6_score in JSON
-                q6_score = ai_json.get("q6_score", 0)
-                if q6_score:
-                    extracted_scores.append(float(q6_score))
-                
-                # C. Calculate
-                if extracted_scores:
-                    real_avg = sum(extracted_scores) / len(extracted_scores)
-                    ai_json["average_score"] = round(real_avg, 1)
-                    print(f"Verified Score: {ai_json['average_score']} (from {extracted_scores})")
-                else:
-                    # Fallback to AI's guess
-                    raw_score = str(ai_json.get("average_score", "0"))
-                    clean_score = raw_score.split('/')[0].strip()
-                    ai_json["average_score"] = float(clean_score)
-
-            except Exception as e:
-                print(f"Score Math Error: {e}")
-                ai_json["average_score"] = 0.0
-
-            ai_json["average_score"] = ai_json["average_score"] # Ensure it sticks
-            
-            # Encode
-            audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
+                 audio_response = client.audio.speech.create(
+                     model="tts-1-hd",
+                     voice=voice,
+                     input=speech_text
+                 )
+                 import base64
+                 audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
         
+        except Exception as e:
+             import traceback
+             print(f"CRITICAL REPORT ERROR: {traceback.format_exc()}")
+             return jsonify({"error": f"Report Gen Error: {str(e)}", "details": traceback.format_exc()}), 500
+        # MATH ENFORCER v2: Calculate Actual Average
+        try:
+            # 1. Extract Scores from History
+            extracted_scores = []
+            import re
+            
+            # A. From History (Q1-Q5)
+            for turn in history:
+                # Look for "Score: 3/5" or "Score: 3" in previous feedbacks
+                feedback = turn.get('formatted_feedback') or turn.get('feedback', '')
+                match = re.search(r'Score:\s*(\d+(\.\d+)?)', feedback, re.IGNORECASE)
+                if match:
+                    extracted_scores.append(float(match.group(1)))
+            
+            # B. From Q6 (Current Response)
+            # We asked AI to output q6_score in JSON
+            q6_score = ai_json.get("q6_score", 0)
+            if q6_score:
+                extracted_scores.append(float(q6_score))
+            
+            # C. Calculate
+            if extracted_scores:
+                real_avg = sum(extracted_scores) / len(extracted_scores)
+                ai_json["average_score"] = round(real_avg, 1)
+                print(f"Verified Score: {ai_json['average_score']} (from {extracted_scores})")
+            else:
+                # Fallback to AI's guess
+                raw_score = str(ai_json.get("average_score", "0"))
+                clean_score = raw_score.split('/')[0].strip()
+                ai_json["average_score"] = float(clean_score)
+
+        except Exception as e:
+            print(f"Score Math Error: {e}")
+            ai_json["average_score"] = 0.0
+
+        ai_json["average_score"] = ai_json["average_score"] # Ensure it sticks
+        
+        # Encode
+        audio_b64 = base64.b64encode(audio_response.content).decode('utf-8')
+    
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
