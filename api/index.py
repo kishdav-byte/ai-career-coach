@@ -560,8 +560,9 @@ def get_feedback():
         # 1. Text Generation
         print(f"DEBUG: Generating Final Report for count {question_count}...")
         try:
+             # OPTIMIZATION: Use gpt-4o-mini for faster report generation (prevents Vercel timeout)
              chat_completion = client.chat.completions.create(
-                 model="gpt-4o",
+                 model="gpt-4o-mini",
                  messages=messages,
                  response_format={ "type": "json_object" }
              )
