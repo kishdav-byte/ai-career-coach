@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify
-from supabase import create_client, Client
 import os
 import json
 import base64
-import stripe
+# External libs will be lazy imported to prevent boot crashes
+# from supabase import create_client, Client
+# import stripe
 
 app = Flask(__name__)
 
@@ -13,12 +14,19 @@ def health_check():
     return jsonify({"status": "ok", "message": "Server is bootable"}), 200
 
 # 1. SETUP SUPABASE
-try:
-    SUPABASE_URL = os.environ.get("SUPABASE_URL")
-    SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-except Exception as e:
-    print(f"Supabase Init Error: {e}")
+# 1. SETUP SUPABASE (Lazy Loader)
+def get_supabase():
+    from supabase import create_client, Client
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    return create_client(url, key)
+
+# No top-level init
+# try:
+#     SUPABASE_URL = os.environ.get("SUPABASE_URL")
+#     ...
+# except Exception as e:
+#     print(f"Supabase Init Error: {e}")
 
 # 3. THE JOBS ROUTE (Secure Mode)
 @app.route('/api/jobs', methods=['GET', 'POST'])
@@ -38,6 +46,8 @@ def manage_jobs():
     # 2. Verify User (Gatekeeper)
     # Use the global client to verify the token is valid and get the ID.
     try:
+        # Lazy Load Supabase
+        supabase = get_supabase()
         user_response = supabase.auth.get_user(token)
         user_id = user_response.user.id
     except Exception as e:
@@ -47,6 +57,11 @@ def manage_jobs():
     # 3. Create RLS-Compatible Client
     # We create a new client and explicitly set the auth token for PostgREST.
     try:
+    try:
+        from supabase import create_client, Client
+        SUPABASE_URL = os.environ.get("SUPABASE_URL")
+        SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+        
         user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
         user_client.postgrest.auth(token)
     except Exception as e:
@@ -107,6 +122,10 @@ def update_job(job_id):
     if not auth_header: return jsonify({"error": "No Token"}), 401
     
     try:
+        from supabase import create_client, Client
+        SUPABASE_URL = os.environ.get("SUPABASE_URL")
+        SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+        
         token = auth_header.split(" ")[1]
         user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
         user_client.postgrest.auth(token)
@@ -140,19 +159,18 @@ def generate_intel():
     if not auth_header: return jsonify({"error": "Unauthorized"}), 401
 
     try:
-        data = request.json
-        jd_text = data.get('job_description', '')
-        
-        if len(jd_text) < 50:
-            return jsonify({"error": "JD too short"}), 400
-
-        # 2. Configure OpenAI (Triggering Redeploy)
         from openai import OpenAI
         OPENAI_KEY = os.environ.get("OPENAI_API_KEY")
         if not OPENAI_KEY:
              return jsonify({"error": "Server Config Error: Missing AI Key"}), 500
         
         client = OpenAI(api_key=OPENAI_KEY)
+
+        data = request.json
+        jd_text = data.get('job_description', '')
+        
+        if len(jd_text) < 50:
+            return jsonify({"error": "JD too short"}), 400
 
         # 3. Generate Intel
         prompt = (
