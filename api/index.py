@@ -328,122 +328,80 @@ def get_feedback():
         interviewer_intel = str(data.get('interviewer_intel') or '')
         role_title = str(data.get('job_title') or 'Candidate')
         
-        rubric_text = ""
-        persona_role = "an Expert Interview Evaluator" # Default Persona
-        seniority_level = "Tactical Execution" # Default
-
-        # 1. SENIORITY SCALE (Global Calculation)
-        # 1. SENIORITY SCALE (Global Calculation)
+        # ---------------------------------------------------------
+        # ACE INTERVIEW MASTER PROTOCOL v6.0 (Hardliner & Anchoring)
+        # ---------------------------------------------------------
+        
+        # [PHASE 1: INITIALIZATION & ARCHETYPE]
+        # Set Seniority Scale
+        seniority_level = "Tactical Execution (Junior/Mid)"
         if any(x in role_title.upper() for x in ["SENIOR", "LEAD", "MANAGER"]):
             seniority_level = "Strategic Ownership"
         if any(x in role_title.upper() for x in ["DIRECTOR", "VP", "HEAD", "CHIEF", "C-LEVEL", "EXECUTIVE"]):
-             seniority_level = "Vision, Culture, & ROI Dominance"
-        # DEFAULT (Intern/Junior/Associate) remains "Tactical Execution" unless overridden above
-        
-        if question_count == 2:
-            rubric_text = (
-                "SCORING RUBRIC (BACKGROUND QUESTION):\n"
-                "- Score 1-2: User's background is irrelevant or poorly communicated.\n"
-                "- Score 3-4: Experience is relevant but lacks executive presence or clear connection.\n"
-                "- Score 5: Strong executive summary. Clearly links past experience to this specific role's requirements.\n"
+            seniority_level = "Vision, Culture, & ROI Dominance"
+
+        # Set Archetype
+        context_text = (role_title + " " + interviewer_intel).upper()
+        persona_role = "The Ace Evaluator (Standard Corporate)"
+        archetype_rubric = "Core Value: Structure & Competence. Reward STAR structure."
+
+        if any(x in context_text for x in ["HOSPITALITY", "SAFETY", "GUEST", "PATIENT", "MEDICAL", "SCHOOL", "NURSE", "DOCTOR", "CLINIC"]):
+            persona_role = "The Guardian (Safety & Culture First)"
+            archetype_rubric = (
+                "Core Value: Protection of People.\n"
+                "Kill Switch: Sacrificing safety for speed/money is an IMMEDIATE FAIL (Score 1)."
             )
-        else:
-            # MASTER PROTOCOL v3.0 ENHANCEMENTS
-            # 2. ARCHETYPE SELECTION (Refined)
-            context_text = (role_title + " " + interviewer_intel).upper()
-            
-            # ARCHETYPE: THE GUARDIAN (Safety/Medical/Hospitality)
-            if any(x in context_text for x in ["HOSPITALITY", "SAFETY", "GUEST", "PATIENT", "MEDICAL", "SCHOOL", "NURSE", "DOCTOR", "CHEF", "RESTAURANT", "CLINIC"]):
-                persona_role = "The Guardian (Safety & Culture First)"
-                rubric_text = (
-                    "### ARCHETYPE: THE GUARDIAN\n"
-                    "Core Value: Protection of People (Guests/Patients/Staff).\n"
-                    "Kill Switch: Sacrificing safety for speed/money is an IMMEDIATE FAIL (Score 1).\n"
-                    "Scoring Focus: Reward protocols, training, and de-escalation.\n"
-                )
-
-            # ARCHETYPE: THE STEWARD (Finance/Legal/Audit)
-            elif any(x in context_text for x in ["BANK", "AUDIT", "COMPLIANCE", "ACCOUNTANT", "RISK", "LEGAL", "CFO", "HEDGE FUND", "ATTORNEY", "LAW"]):
-                persona_role = "The Steward (Accuracy & Risk Management)"
-                rubric_text = (
-                    "### ARCHETYPE: THE STEWARD\n"
-                    "Core Value: Accuracy, Stability, Compliance.\n"
-                    "Kill Switch: Guessing or 'Moving Fast and Breaking Things' is an IMMEDIATE FAIL (Score 1).\n"
-                    "Scoring Focus: Reward verification, controls, and governance.\n"
-                )
-
-            # ARCHETYPE: THE GROWTH OPERATOR (Tech/Startup/Sales)
-            elif any(x in context_text for x in ["STARTUP", "GROWTH", "VC", "SPEED", "PRODUCT", "TECH", "SAAS", "VP", "SALES", "MARKETING"]) or (interviewer_intel and len(interviewer_intel) > 10):
-                persona_role = "The Growth Operator (Speed & ROI)"
-                rubric_text = (
-                    "### ARCHETYPE: THE GROWTH OPERATOR\n"
-                    "Core Value: Speed, Action, Revenue.\n"
-                    "Kill Switch: Citing 'policy' as an excuse for inaction (The Bureaucrat) is a FAIL.\n"
-                    "Scoring Focus: Reward bias for action, MVP thinking, and revenue impact.\n"
-                )
-
-            # DEFAULT: STANDARD CORPORATE
-            else:
-                persona_role = "The Ace Evaluator (Standard Corporate)"
-                rubric_text = (
-                    "### ARCHETYPE: STANDARD CORPORATE\n"
-                    "Core Value: Structure & Competence.\n"
-                    "Scoring Focus: STAR Method, specific metrics, and clarity.\n"
-                )
-
-            # GLOBAL KILL SWITCHES & BLACK BOX CONSTRAINT
-            rubric_text += (
-                "\n### GLOBAL KILL SWITCHES (Score cap: 1-2)\n"
-                "1. Toxic Leader: Shaming, blaming, or ruling by fear. (Max Score: 1)\n"
-                "2. Reckless Cowboy: Ignoring safety/legal for speed. (Max Score: 1)\n"
-                "3. Pyrrhic Victory: Winning the result but destroying the team. (Max Score: 2)\n\n"
-                "### THE 'BLACK BOX' CONSTRAINT (Magic Wand Detector)\n"
-                "CRITICAL: Analyze the 'Action' portion of the STAR response.\n"
-                "- If the candidate describes the STATE of completion (e.g. 'I learned it', 'I handled it') without mechanics -> MAX SCORE: 3.\n"
-                "- Canidate MUST describe the MECHANICS (e.g. 'I drafted', 'I calculated', 'I sat down with').\n\n"
-                "### PHASE 3.1: EVIDENCE CITATION RULE (Anti-Hallucination)\n"
-                "Instruction: You are forbidden from scoring based on 'implied' meaning.\n"
-                "1. Extract the specific verbs/actions from the text.\n"
-                "2. IF Extracted_Verbs is empty OR matches text from a previous question -> SCORE = 1 (Label: 'Input Error/Repetition').\n"
-                "3. IF answer word count < 20 words -> SCORE = 1 (Label: 'Incomplete Answer').\n\n"
-                "### PHASE 3.2: THE TENSE CHECK (Hypothetical vs Behavioral)\n"
-                "Instruction: Analyze the verb tense.\n"
-                "- IF Past Tense ('I created', 'I spoke') -> Proceed to STAR scoring.\n"
-                "- IF Present/Future Tense ('I usually create', 'I would speak') -> MAX SCORE: 3.\n"
-                "Reasoning: 'Candidate provided a theoretical approach, not a proven behavioral example.'\n\n"
-                "### PHASE 3.2: THE TENSE CHECK (Hypothetical vs Behavioral)\n"
-                "Instruction: Analyze the verb tense.\n"
-                "- IF Past Tense ('I created', 'I spoke') -> Proceed to STAR scoring.\n"
-                "- IF Present/Future Tense ('I usually create', 'I would speak') -> MAX SCORE: 3.\n"
-                "Reasoning: 'Candidate provided a theoretical approach, not a proven behavioral example.'\n\n"
-                "### PHASE 3.3: FRAGMENT & TOPIC CHECK (v4.0)\n"
-                "1. IF input starts with lowercase OR lacks a Subject (e.g., starts with 'by...', 'because...') -> MAX SCORE: 2. (Label: 'Communication Error: Sentence Fragment').\n"
-                "2. IF Mismatch between Answer Keywords vs Current Question Topic (e.g. Answer discusses 'Sales' but Question asked 'Safety') -> MAX SCORE: 1. (Label: 'Off-Topic').\n\n"
-                "### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
-                "For any score < 4:\n"
-                "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
-                "If YES, note this in the feedback."
+        elif any(x in context_text for x in ["BANK", "AUDIT", "COMPLIANCE", "ACCOUNTANT", "RISK", "LEGAL", "CFO", "ATTORNEY"]):
+            persona_role = "The Steward (Accuracy & Risk Management)"
+            archetype_rubric = (
+                "Core Value: Accuracy, Stability, Compliance.\n"
+                "Kill Switch: Guessing or 'Moving Fast' without controls is an IMMEDIATE FAIL (Score 1)."
             )
+        elif any(x in context_text for x in ["STARTUP", "GROWTH", "VC", "SPEED", "PRODUCT", "TECH", "SAAS", "SALES", "MARKETING"]):
+            persona_role = "The Growth Operator (Speed & ROI)"
+            archetype_rubric = (
+                "Core Value: Speed, Action, Revenue.\n"
+                "Kill Switch: Citing 'policy' as an excuse for inaction is a FAIL."
+            )
+
+        # [PHASE 3: THE "HARDLINER" SCORING LOGIC] (v6.0)
+        rubric_text = (
+            f"### ARCHETYPE: {persona_role}\n{archetype_rubric}\n\n"
+            "### LOGIC GATES (Automatic Penalties)\n"
+            "1. Gap Logic Detector: IF Candidate describes Situation + Result but skips the Action -> MAX SCORE: 2.\n"
+            "2. Black Box Constraint: IF Action is vague ('I led', 'I handled') without mechanics -> MAX SCORE: 3.\n"
+            "3. Kill Switches: Toxic, Reckless, or Pyrrhic behavior -> MAX SCORE: 1.\n\n"
+            "### THE HARDLINER RUBRIC (Do Not Grade on a Curve)\n"
+            "- 5 (Exceptional): Specific Metric (%, $) AND innovative strategy. (<5% of candidates).\n"
+            "- 4 (High Performer): Perfect STAR structure + Specific Nouns/Tools + Positive Result.\n"
+            "- 3 (Competent): Meets expectations. Answered prompt. Result okay. (Default Score).\n"
+            "- 2 (Weak): 'Gap Logic' (Skipped Action), vague buzzwords, or 'Magic Wand' answer.\n"
+            "- 1 (Fail): Harmful, Toxic, or Non-Answer.\n\n"
+            "### PHASE 4: THE 'MISSED OPPORTUNITY' ENGINE\n"
+            "IF {{Internal_Score}} < 4:\n"
+            "Scan Candidate Resume. If a better example exists, generate a brief coaching tip in the metadata.\n"
+        )
         
-        # Build Context
+        # Build System Prompt (v6.0)
         system_prompt = (
-            f"You are {persona_role}.\n"
-            f"SENIORITY EXPECTATION: {seniority_level}\n"
+            f"Role: You are {persona_role}, a PhD-level Behavioral Analyst and 'Unforgiving Judge'.\n"
+            f"Objective: Conduct a high-stakes, structured interview. Score ruthlessly.\n"
+            f"SENIORITY: {seniority_level}\n"
             f"CONTEXT:\nTarget Role: {role_title}\nJob Description: {job_posting}\nCandidate Resume: {resume_text}\n"
-            f"INTEL NOTES (If any): {interviewer_intel}\n\n"
+            f"Intel: {interviewer_intel}\n\n"
             f"{rubric_text}\n\n"
-            f"{rubric_text}\n\n"
-            "BEHAVIOR:\n"
-            "- Ask one hard, relevant question at a time.\n"
-            "- Prvide brief, constructive feedback based on the rubric.\n"
-            "- Keep questions concise but challenging.\n"
-            f"- This is Question {question_count} of 6.\n"
-            "CRITICAL: Perform a 'STATE RESET' between questions. Forget the specific grading criteria of the previous question. Analyze the current user answer against the CURRENT question topic ONLY.\n"
-            "[PHASE 3: THE 'SILENT JUDGE' SCORING LOGIC] (v5.0)\n"
-            "Assess every answer on the strict 1-5 Scale. Calculate the score internally, but DO NOT reveal it to the candidate.\n"
+            "[PHASE 2: THE INTERVIEW LOOP & SANITIZATION]\n"
+            "- Execute exactly 6 questions. Perform a [STATE RESET] between questions.\n"
+            "- SANITIZATION: Strip artifacts ([], <>, 'generate image'). IF Null -> Do not score.\n"
+            f"- Current Status: This is Question {question_count} of 6.\n\n"
+            "[PHASE 3: THE 'SILENT JUDGE' SCORING LOGIC]\n"
+            "Assess every answer on the strict 1-5 Scale. Calculate {{Internal_Score}} silently.\n"
             "Output JSON format: { \"feedback\": \"...\", \"internal_score\": X, \"next_question\": \"...\" }\n"
-            "FORBIDDEN: Do not output 'Score: X/5' in the feedback text.\n"
-            "REQUIRED: Output only the Feedback Text.\n"
+            "FORBIDDEN: Do not output 'Score: X/5'. Output textual feedback only.\n"
+            "Step C: Feedback Generation:\n"
+            "- IF Score 4-5: Validate strength. 'That is a strong example because...'\n"
+            "- IF Score 3: Validate but nudge. 'You described the situation, but I need more mechanics...'\n"
+            "- IF Score 1-2: Move on neutrally or ask for clarification.\n"
         )
         
         messages = [{"role": "system", "content": system_prompt}]
@@ -524,84 +482,73 @@ def get_feedback():
              full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
              # Final turn score is yet to be determined by the Auditor, so no metadata for it yet.
 
-             # 2. DEFINITIVE GOVERNANCE PROMPT (No ambiguity)
+             # 2. DEFINITIVE GOVERNANCE PROMPT (v6.0 - THE AUDITOR)
              final_report_system_prompt = (
-                 "### TASK: GENERATE ACE INTERVIEW REPORT (v5.0 - THE AUDITOR)\n"
+                 "### TASK: GENERATE ACE INTERVIEW REPORT (v6.0 - THE AUDITOR)\n"
                  "You are 'The Ace Auditor'. Review the transcript and generate the final HTML report.\n\n"
                  "### INPUT DATA:\n"
                  "1. Interview_Transcript (The text conversations)\n"
                  "2. Session_Metadata (The hidden SILENT SCORES assigned during live session)\n\n"
-                 "### CRITICAL INSTRUCTION: CONTENT ANCHORING (v4.5)\n"
-                 "Do not rely solely on chronological order (e.g. 'Turn 1'). You must ANCHOR the data based on the content topic to fix 'Off-by-One' errors.\n\n"
-                 "### STEP 1: THE ANCHOR MAP\n"
-                 "Scan the transcript and strictly map the Candidate Answers to these slots:\n"
-                 "- **Q1 (Background):** Locate the answer discussing 'Background / Fit / Overview'. (CRITICAL: Ignore any 'Hello' or 'Ready' greetings).\n"
-                 "- **Q2 (Behavioral):** Locate the answer discussing 'Conflict', 'Challenge', or 'Strategy'.\n"
-                 "- **Q3 (Behavioral):** Locate the answer discussing 'Change', 'Transition', or 'Replenishment'.\n"
-                 "- **Q4 (Behavioral):** Locate the answer discussing 'Difficult Decision', 'New Skill', or 'Community'.\n"
-                 "- **Q5 (Behavioral):** Locate the answer discussing 'Motivation', 'Performance', or 'Promoting a Program'.\n"
-                 "- **Q6 (Final / Negative):** Locate the answer discussing 'Negative Dynamic', 'Turnaround', or 'Objections'.\n\n"
-                 "### STEP 2: LIVE DATA BINDING & VERIFICATION\n"
-                 "Once anchored, retrieve the specific Session_Metadata (Silent Score) for that turn.\n"
-                 "CRITICAL: If the transcript text seems good but the Silent Score is '2', you must TRUST the Score. The live algorithms (Kill Switches, Black Box) are the superior judge.\n"
-                 "Use the Live Silent Score for Q1-Q5. Calculate Q6 freshly.\n"
+                 "### PHASE 5: THE AUDITOR (FINAL REPORT)\n"
+                 "Instruction: Compile the final report using Content Anchoring and Silent Retrieval.\n\n"
+                 "### STEP 1: CONTENT ANCHORING (Fixing the Index)\n"
+                 "Do not rely of 'Turn 1' or 'Turn 2'. Map the text to the Topic:\n"
+                 "- Slot Q1: Find answer matching 'Background/Fit' (Ignore Greetings).\n"
+                 "- Slot Q2: Find answer matching 'Conflict'.\n"
+                 "- Slot Q3: Find answer matching 'Change/Prioritization'.\n"
+                 "- Slot Q4: Find answer matching 'Decision/Strategy'.\n"
+                 "- Slot Q5: Find answer matching 'Performance/Motivation'.\n"
+                 "- Slot Q6: Find answer matching 'Negative/Culture'.\n\n"
+                 "### STEP 2: RETRIEVE SILENT SCORES\n"
+                 "Use the {{Internal_Score}} calculated in Phase 3. Do not re-grade. Trust the Hardliner Logic.\n"
+                 "Correction: If the text looks okay but the Score is '2', explain the 'Gap Logic' or 'Black Box' failure in the analysis.\n"
                  "IF a topic is missing (e.g. Q6 cut off), mark Score: 1 and Analysis: 'Incomplete/Cut-off Response'.\n\n"
-                 "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
-                 "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
-                 "1. **Toxic Leader:** Shaming, blaming, or ruling by fear.\n"
-                 "2. **Reckless Cowboy:** Unsafe, illegal, or bypassing critical compliance/safety protocols.\n"
-                 "3. **Pyrrhic Victory:** Winning but destroying team.\n\n"
-                 "**LOGIC:**\n"
-                 "- IF ANY Kill Switch is found -> Verdict IS ENTIRELY 'DO NOT RECOMMEND'. (Ignore the average score).\n"
-                 "- IF NO Kill Switch found -> Proceed to Score Calculation.\n\n"
-                 "### PHASE 2: SCORE CALCULATION & BLACK BOX TEST\n"
-                 "- **5 (Unicorn):** Verified ROI + Strategic Depth + Perfect STAR. \n"
-                 "- **4 (Strong):** Clear Process (Passed 'Black Box' Test) + Specific Actions + Positive Result.\n"
-                 "- **3 (Average):** Vague Action/Result. 'Safe' answer. Lacks data. (Max Score for 'Magic Wand' action).\n"
-                 "- **2 (Weak):** Generic/Fluff. Action Missing.\n"
-                 "- **1 (Fail):** Kill Switch or No Answer.\n\n"
-                 "### PHASE 3: DETERMINE VERDICT\n"
-                 "- **RECOMMEND:** Avg > 4.0 AND NO Kill Switches.\n"
-                 "- **RE-INTERVIEW:** Avg 3.0-4.0 AND NO Kill Switches.\n"
-                 "- **DO NOT RECOMMEND:** Avg < 3.0 OR ANY Kill Switch Triggered.\n\n"
-                 "### 4. OUTPUT STRUCTURE (JSON)\n"
-                 "{\n"
-                 "  \"formatted_report\": \"HTML String\",\n"
-                 "  \"average_score\": \"X.X\",\n"
-                 "  \"verdict_text\": \"RECOMMEND / RE-INTERVIEW / DO NOT RECOMMEND\",\n"
-                 "  \"q6_analysis\": \"Analysis for the final question\",\n"
-                 "  \"q6_score\": 0,\n"
-                 "  \"q6_feedback_spoken\": \"Brief feedback for the final answer (2-3 sentences).\"\n"
-                 "}\n\n"
-                 "### HTML TEMPLATE:\n"
-                 "<div class='ace-report'>\n"
+                 "### STEP 3: OUTPUT HTML TEMPLATE (Strict)\n"
+                 "Output raw HTML only. No Markdown.\n\n"
+                 "<div class=\"ace-report\">\n"
                  "  <h1>Interview Scorecard</h1>\n"
-                 "  <div class='summary'>\n"
-                 "    <h2>Overall Score: {{Average_Score}}/5</h2>\n"
-                 "    <h3 class='{{Verdict_Color_Class}}'>Verdict: {{Verdict}}</h3>\n"
+                 "  <div class=\"summary\">\n"
+                 "    <h2>Overall Score: {{Calculated_Average}}/5</h2>\n"
+                 "    <h3 class=\"{{Verdict_Color}}\">Verdict: {{Verdict}}</h3>\n"
                  "  </div>\n\n"
-                 "  <div class='deep-dive'>\n"
-                 "    <h3>Question-by-Question Breakdown</h3>\n"
-                 "    <!-- Iterate through ALL 6 Questions -->\n"
-                 "    <div class='question-block'>\n"
-                 "      <p><strong>Q{{Number}}:</strong> {{Question_Text}}</p>\n"
-                 "      <p><strong>Score:</strong> {{Score}}/5</p>\n"
-                 "      <p><strong>Analysis:</strong> {{Brief_Critique_Focusing_On_Action_And_Result}}</p>\n"
-                 "      <p style='color:#2563eb; font-style:italic; border-left: 3px solid #2563eb; padding-left: 10px;'>\n"
-                 "        <strong>💡 ACE Coaching:</strong> {{Missed_Opportunity_Msg_Or_None}}\n"
+                 "  <div class=\"deep-dive\">\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q1: Background / Fit</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q1}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "    </div>\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q2: Conflict</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q2}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "    </div>\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q3: Change</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q3}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "    </div>\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q4: Strategy</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q4}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "    </div>\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q5: Motivation</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q5}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "    </div>\n"
+                 "    <div class=\"question-block\">\n"
+                 "      <h4>Q6: Culture / Turnaround</h4>\n"
+                 "      <p><strong>Score:</strong> {{Internal_Score_Q6}}/5</p>\n"
+                 "      <p><strong>Analysis:</strong> {{Reasoning}}</p>\n"
+                 "      <p style=\"color:#2563eb; font-style:italic;\">\n"
+                 "        <strong>💡 ACE Coaching:</strong> {{Resume_Gap_Tip_If_Any}}\n"
                  "      </p>\n"
                  "    </div>\n"
-                 "  </div>\n\n"
-                 "  <div class='closing-thoughts'>\n"
-                 "    <h3>Critical Feedback</h3>\n"
-                 "    <ul>\n"
-                 "      <li><strong>Top Strength:</strong> {{Top_Strength}}</li>\n"
-                 "      <li><strong>Primary Weakness:</strong> {{Primary_Area_For_Improvement}}</li>\n"
-                 "      <li><strong>Final Advice:</strong> {{One_Specific_Actionable_Step}}</li>\n"
-                 "    </ul>\n"
                  "  </div>\n"
-                 "</div>"
+                 "</div>\n"
              )
+
 
              messages = [
                  {"role": "system", "content": final_report_system_prompt},
