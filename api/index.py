@@ -589,23 +589,23 @@ def get_feedback():
                  # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
                  ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
                  ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
-                 ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
                  ai_json["next_question"] = "" # No next text needed in UI
 
              # SCORE COMPLIANCE (v6.1)
-             # 1. Word Count Penalty (<20 words -> Score 1)
-             # Only apply for Q2-Q6 (Skip Greeting Q1)
-             if question_count > 1 and len(message.split()) < 20:
-                 print(f"PENALTY: Answer too short ({len(message.split())} words). Forcing Score 1.")
-                 ai_json["internal_score"] = 1
-                 ai_json["score"] = 1
-                 ai_json["feedback"] = ai_json.get("feedback", "") + " (System Note: Response was too brief to score higher.)"
+             # Only apply mechanics for Q2-Q6 (Skip Greeting Q1)
+             if question_count > 1:
+                 # 1. Word Count Penalty (<20 words -> Score 1)
+                 if len(message.split()) < 20:
+                     print(f"PENALTY: Answer too short ({len(message.split())} words). Forcing Score 1.")
+                     ai_json["internal_score"] = 1
+                     ai_json["score"] = 1
+                     ai_json["feedback"] = ai_json.get("feedback", "") + " (System Note: Response was too brief to score higher.)"
 
-             # 2. Force Minimum Score 1
-             current_int_score = ai_json.get("internal_score") or ai_json.get("score")
-             if current_int_score is None or float(current_int_score) < 1:
-                  ai_json["internal_score"] = 1
-                  ai_json["score"] = 1
+                 # 2. Force Minimum Score 1 (No Zeros)
+                 current_int_score = ai_json.get("internal_score") or ai_json.get("score")
+                 if current_int_score is None or float(current_int_score) < 1:
+                      ai_json["internal_score"] = 1
+                      ai_json["score"] = 1
 
              # 2. Audio Generation (Omit if empty text)
              audio_b64 = None
