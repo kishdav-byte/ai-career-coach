@@ -350,6 +350,14 @@ def get_feedback():
                 "- IF Past Tense ('I created', 'I spoke') -> Proceed to STAR scoring.\n"
                 "- IF Present/Future Tense ('I usually create', 'I would speak') -> MAX SCORE: 3.\n"
                 "Reasoning: 'Candidate provided a theoretical approach, not a proven behavioral example.'\n\n"
+                "### PHASE 3.2: THE TENSE CHECK (Hypothetical vs Behavioral)\n"
+                "Instruction: Analyze the verb tense.\n"
+                "- IF Past Tense ('I created', 'I spoke') -> Proceed to STAR scoring.\n"
+                "- IF Present/Future Tense ('I usually create', 'I would speak') -> MAX SCORE: 3.\n"
+                "Reasoning: 'Candidate provided a theoretical approach, not a proven behavioral example.'\n\n"
+                "### PHASE 3.3: FRAGMENT & TOPIC CHECK (v4.0)\n"
+                "1. IF input starts with lowercase OR lacks a Subject (e.g., starts with 'by...', 'because...') -> MAX SCORE: 2. (Label: 'Communication Error: Sentence Fragment').\n"
+                "2. IF Mismatch between Answer Keywords vs Current Question Topic (e.g. Answer discusses 'Sales' but Question asked 'Safety') -> MAX SCORE: 1. (Label: 'Off-Topic').\n\n"
                 "### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
                 "For any score < 4:\n"
                 "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
@@ -363,11 +371,13 @@ def get_feedback():
             f"CONTEXT:\nTarget Role: {role_title}\nJob Description: {job_posting}\nCandidate Resume: {resume_text}\n"
             f"INTEL NOTES (If any): {interviewer_intel}\n\n"
             f"{rubric_text}\n\n"
+            f"{rubric_text}\n\n"
             "BEHAVIOR:\n"
             "- Ask one hard, relevant question at a time.\n"
             "- Prvide brief, constructive feedback based on the rubric.\n"
             "- Keep questions concise but challenging.\n"
             f"- This is Question {question_count} of 6.\n"
+            "CRITICAL: Perform a 'STATE RESET' between questions. Forget the specific grading criteria of the previous question. Analyze the current user answer against the CURRENT question topic ONLY.\n"
             "- Output JSON format: { \"feedback\": \"...\", \"score\": X, \"next_question\": \"...\" }\n"
         )
         
@@ -430,7 +440,11 @@ def get_feedback():
              for idx, h in enumerate(history):
                  q = h.get('question', '')
                  a = h.get('answer', '')
-                 # BINDING: Include the ACTUAL feedback/score the user received live
+                 
+                 # v4.0 FIX: Skip "Greeting" or "System" noise (short Qs or simple 'Ready' answers)
+                 if len(q) < 15 or len(a) < 3: continue 
+
+                 # BINDING: Include the ACTUAL feedback/score the user received live(history)
                  live_fb = h.get('feedback', 'No feedback recorded')
                  full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\nLIVE_FEEDBACK: {live_fb}\n\n"
              
@@ -441,10 +455,11 @@ def get_feedback():
              final_report_system_prompt = (
                  "### TASK: GENERATE ACE INTERVIEW REPORT (v3.0)\n"
                  "You are 'The Ace Evaluator'. Review the transcript and generate the final HTML report.\n\n"
-                 "### CRITICAL INSTRUCTION: BIND TO LIVE DATA\n"
+                 "### CRITICAL INSTRUCTION: BIND TO LIVE DATA (v4.0)\n"
                  "Do not re-calculate the scores from scratch for Turns 1-5. Retrieve the specific scores and feedback generated during the live session (labeled LIVE_FEEDBACK).\n"
                  "Your job is to SUMMARIZE the live data, not re-adjudicate the interview (which causes drift/hallucination).\n"
-                 "For the Final Turn (Turn 6), apply the rubric freshly as it has no live feedback yet.\n\n"
+                 "For the Final Turn (Turn 6), apply the rubric freshly as it has no live feedback yet.\n"
+                 "STRICT ARRAY MAPPING: Ignore any greetings, system glitches, or 'I'm ready' messages. Map the data strictly by Question Index (Q1..Q6).\n\n"
                  "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
                  "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
                  "1. **Toxic Leader:** Shaming, blaming, or ruling by fear.\n"
