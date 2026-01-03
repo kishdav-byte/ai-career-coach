@@ -339,7 +339,17 @@ def get_feedback():
                 "### THE 'BLACK BOX' CONSTRAINT (Magic Wand Detector)\n"
                 "CRITICAL: Analyze the 'Action' portion of the STAR response.\n"
                 "- If the candidate describes the STATE of completion (e.g. 'I learned it', 'I handled it') without mechanics -> MAX SCORE: 3.\n"
-                "- Canidate MUST describe the MECHANICS (e.g. 'I drafted', 'I calculated', 'I sat down with').\n"
+                "- Canidate MUST describe the MECHANICS (e.g. 'I drafted', 'I calculated', 'I sat down with').\n\n"
+                "### PHASE 3.1: EVIDENCE CITATION RULE (Anti-Hallucination)\n"
+                "Instruction: You are forbidden from scoring based on 'implied' meaning.\n"
+                "1. Extract the specific verbs/actions from the text.\n"
+                "2. IF Extracted_Verbs is empty OR matches text from a previous question -> SCORE = 1 (Label: 'Input Error/Repetition').\n"
+                "3. IF answer word count < 20 words -> SCORE = 1 (Label: 'Incomplete Answer').\n\n"
+                "### PHASE 3.2: THE TENSE CHECK (Hypothetical vs Behavioral)\n"
+                "Instruction: Analyze the verb tense.\n"
+                "- IF Past Tense ('I created', 'I spoke') -> Proceed to STAR scoring.\n"
+                "- IF Present/Future Tense ('I usually create', 'I would speak') -> MAX SCORE: 3.\n"
+                "Reasoning: 'Candidate provided a theoretical approach, not a proven behavioral example.'\n\n"
                 "### CRITICAL: THE 'ACE INSIGHT' CHECK\n"
                 "For any score < 4:\n"
                 "Scan the Candidate Resume. Did they have a better example they failed to use? (e.g., they told a college story but have a major merger on their resume?)\n"
@@ -415,13 +425,14 @@ def get_feedback():
 
         elif question_count > 6:
              # FINAL REPORT LOGIC (MASTER PROTOCOL v2.1)
-             # 1. Build Full Transcript
+             # 1. Build Full Transcript WITH LIVE SCORES (Binding)
              full_transcript = "INTERVIEW_TRANSCRIPT:\n"
              for idx, h in enumerate(history):
                  q = h.get('question', '')
                  a = h.get('answer', '')
-                 # Regex to capture score from feedback history if present, else 0
-                 full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\n\n"
+                 # BINDING: Include the ACTUAL feedback/score the user received live
+                 live_fb = h.get('feedback', 'No feedback recorded')
+                 full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\nLIVE_FEEDBACK: {live_fb}\n\n"
              
              # CRITICAL FIX: Append the FINAL Answer (which is not in history yet)
              full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
@@ -430,6 +441,10 @@ def get_feedback():
              final_report_system_prompt = (
                  "### TASK: GENERATE ACE INTERVIEW REPORT (v3.0)\n"
                  "You are 'The Ace Evaluator'. Review the transcript and generate the final HTML report.\n\n"
+                 "### CRITICAL INSTRUCTION: BIND TO LIVE DATA\n"
+                 "Do not re-calculate the scores from scratch for Turns 1-5. Retrieve the specific scores and feedback generated during the live session (labeled LIVE_FEEDBACK).\n"
+                 "Your job is to SUMMARIZE the live data, not re-adjudicate the interview (which causes drift/hallucination).\n"
+                 "For the Final Turn (Turn 6), apply the rubric freshly as it has no live feedback yet.\n\n"
                  "### PHASE 1: THE KILL SWITCH CHECK (CRITICAL)\n"
                  "Before calculating any score, scan the transcript for these FATAL ERRORS:\n"
                  "1. **Toxic Leader:** Shaming, blaming, or ruling by fear.\n"
