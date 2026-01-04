@@ -396,25 +396,26 @@ def get_feedback():
             "- SANITIZATION: Strip artifacts ([], <>, 'generate image'). IF Null -> Do not score.\n"
             f"- Current Status: This is Question {question_count} of 6.\n\n"
             "[PHASE 3: THE 'CONTEXT-AWARE JUDGE' SCORING LOGIC]\n"
-            "Assess every answer on a strict 1-5 Scale. Calculate {{Internal_Score}} silently.\n"
-            "Output JSON format: { \"feedback\": \"...\", \"internal_score\": X, \"next_question\": \"...\" }\n\n"
-            "Step A: Question Type Detection (Context-Aware)\n"
-            "IS THIS Q1 (Background/Fit Question)?\n"
-            "  - Rule: Do NOT enforce STAR method for Q1.\n"
-            "  - Score on: Relevance to JD, Clarity of experience, Professionalism.\n"
-            "IS THIS Q2-Q6 (Behavioral Question)?\n"
-            "  - Rule: ENFORCE STAR method.\n"
-            "  - Apply Gap Logic (Missing Action -> Max Score: 2).\n"
-            "  - Apply Magic Wand (Vague Action -> Max Score: 3).\n\n"
-            "Step B: Feedback Generation (Ultra-Strict Firewall)\n"
-            "Output: Provide encouraging or corrective feedback text ONLY.\n"
-            "CRITICAL CONSTRAINT - SELF-CHECK PROTOCOL:\n"
-            "  1. Write your feedback text.\n"
-            "  2. SCAN IT: Does it contain 'Score:', 'Rating:', or patterns like '1/5', '3/5'?\n"
-            "  3. IF YES -> REWRITE the sentence to remove the forbidden phrase. Say the same thing differently.\n"
-            "  4. OUTPUT the cleaned feedback.\n"
-            "FORBIDDEN PHRASES: 'Score:', 'Rating:', '1/5', '2/5', '3/5', '4/5', '5/5'.\n\n"
-            "Step C: Score Guidance\n"
+            "Assess every answer on a strict 1-5 Scale.\n\n"
+            "CRITICAL OUTPUT FORMAT (STRICT JSON ENFORCEMENT):\n"
+            "You are forbidden from outputting conversational text. You must output a single, valid JSON object containing exactly these three fields:\n\n"
+            "{\n"
+            '  "feedback": "[String: Polite, encouraging feedback only. NO scores. NO numbers.]",\n'
+            '  "internal_score": [Integer: 1-5],\n'
+            '  "next_question": "[String: The transition and the next interview question.]"\n'
+            "}\n\n"
+            "SCORING RULES (The 'Fair Judge'):\n"
+            "1. SCORE 5: Specific Metrics (%, $) AND Strategy.\n"
+            "2. SCORE 4: Strong STAR format + Tools + Result.\n"
+            "3. SCORE 3: Competent answer. Relevant to prompt. (DEFAULT).\n"
+            "4. SCORE 2: Weak action or vague.\n"
+            "5. SCORE 1: Toxic, empty, or <15 words.\n\n"
+            "RUBRIC OVERRIDES:\n"
+            "- IF Question is Q1 (Background): Do NOT enforce STAR. Grade on clarity/relevance.\n"
+            "- IF Question is Q2-Q6 (Behavioral): Enforce STAR. Missing Action = Max Score 2.\n\n"
+            "SAFETY CHECK:\n"
+            'Before outputting, verify that "feedback" and "next_question" contain ZERO integers or rating references (e.g., "5/5").\n'
+
             "- IF Score 4-5: Validate strength. 'That is a strong example because...'\n"
             "- IF Score 3: Validate but nudge. 'You described the situation, but I need more mechanics...'\n"
             "- IF Score 1-2: Move on neutrally or ask for clarification.\n"
@@ -599,17 +600,23 @@ def get_feedback():
              try:
                   ai_json = json.loads(ai_response_text)
                   
-                  # v7.1 REGEX SAFETY NET: Scrub leaked scores from feedback
+                  # v7.2 REGEX SAFETY NET: Scrub leaked scores from BOTH fields
+                  import re
+                  score_pattern = r'\b(Score|Rating):\s*\d+/\d+\b'
+                  
                   if "feedback" in ai_json:
-                      import re
                       feedback = ai_json["feedback"]
-                      # Remove "Score: X/5" or "Rating: X/5" patterns
-                      feedback = re.sub(r'\b(Score|Rating):\s*\d/5\b', '', feedback, flags=re.IGNORECASE)
-                      # Remove standalone "X/5" patterns
-                      feedback = re.sub(r'\b\d/5\b', '', feedback)
-                      # Clean up extra spaces
+                      feedback = re.sub(score_pattern, '', feedback, flags=re.IGNORECASE)
+                      feedback = re.sub(r'\b\d+/\d+\b', '', feedback)  # Catch standalone "1/5"
                       feedback = re.sub(r'\s+', ' ', feedback).strip()
                       ai_json["feedback"] = feedback
+                  
+                  if "next_question" in ai_json:
+                      next_q = ai_json["next_question"]
+                      next_q = re.sub(score_pattern, '', next_q, flags=re.IGNORECASE)
+                      next_q = re.sub(r'\b\d+/\d+\b', '', next_q)
+                      next_q = re.sub(r'\s+', ' ', next_q).strip()
+                      ai_json["next_question"] = next_q
                       
              except Exception as json_err:
                   print(f"DEBUG JSON Error: {json_err}")
