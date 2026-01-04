@@ -645,9 +645,31 @@ def get_feedback():
 
              # REPORT FORMATTING BRIDGE
              if "formatted_report" in ai_json:
-                 # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
-                 ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
-                 ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
+                  # v7.3 BACKEND MATH ENFORCEMENT & SCORE OVERRIDE
+                  # Extract all scores from history and calculate correct average
+                  all_scores = []
+                  for h in history:
+                      score = h.get('internal_score') or h.get('score') or 0
+                      if score > 0:  # Only count valid scores
+                          all_scores.append(score)
+                  
+                  # Calculate Python-enforced average (AI math is unreliable)
+                  if len(all_scores) >= 6:
+                      correct_average = round(sum(all_scores) / len(all_scores), 1)
+                      print(f"DEBUG: Backend calculated average: {correct_average} (AI reported: {ai_json.get('average_score')})")
+                      
+                      # OVERRIDE AI's incorrect math
+                      ai_json["average_score"] = correct_average
+                      
+                      # Update verdict based on correct average
+                      if correct_average >= 3.5:
+                          ai_json["verdict_text"] = "RECOMMEND"
+                      else:
+                          ai_json["verdict_text"] = "NO HIRE"
+                  
+                  # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
+                  ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
+                  ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
                  ai_json["next_question"] = "" # No next text needed in UI
 
              # SCORE COMPLIANCE (v6.1)
