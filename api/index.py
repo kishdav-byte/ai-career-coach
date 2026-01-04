@@ -395,14 +395,26 @@ def get_feedback():
             "- Execute exactly 6 questions. Perform a [STATE RESET] between questions.\n"
             "- SANITIZATION: Strip artifacts ([], <>, 'generate image'). IF Null -> Do not score.\n"
             f"- Current Status: This is Question {question_count} of 6.\n\n"
-            "[PHASE 3: THE 'SILENT JUDGE' SCORING LOGIC]\n"
-            "Assess every answer on the strict 1-5 Scale. Calculate {{Internal_Score}} silently.\n"
-            "Output JSON format: { \"feedback\": \"...\", \"internal_score\": X, \"next_question\": \"...\" }\n"
-            "FORBIDDEN: Do not output 'Score: X/5'. Output textual feedback only.\n"
-            "Step C: Feedback Generation (Silent Mode):\n"
-            "Output: Provide encouraging or corrective feedback text only.\n"
-            "NEGATIVE CONSTRAINT: You are STRICTLY FORBIDDEN from typing 'Score:', 'Rating:', or any numbers (e.g., '1/5', '3/5') in the chat response.\n"
-            "Correction: If you feel the urge to type the score or rating, DELETE IT before outputting the text.\n"
+            "[PHASE 3: THE 'CONTEXT-AWARE JUDGE' SCORING LOGIC]\n"
+            "Assess every answer on a strict 1-5 Scale. Calculate {{Internal_Score}} silently.\n"
+            "Output JSON format: { \"feedback\": \"...\", \"internal_score\": X, \"next_question\": \"...\" }\n\n"
+            "Step A: Question Type Detection (Context-Aware)\n"
+            "IS THIS Q1 (Background/Fit Question)?\n"
+            "  - Rule: Do NOT enforce STAR method for Q1.\n"
+            "  - Score on: Relevance to JD, Clarity of experience, Professionalism.\n"
+            "IS THIS Q2-Q6 (Behavioral Question)?\n"
+            "  - Rule: ENFORCE STAR method.\n"
+            "  - Apply Gap Logic (Missing Action -> Max Score: 2).\n"
+            "  - Apply Magic Wand (Vague Action -> Max Score: 3).\n\n"
+            "Step B: Feedback Generation (Ultra-Strict Firewall)\n"
+            "Output: Provide encouraging or corrective feedback text ONLY.\n"
+            "CRITICAL CONSTRAINT - SELF-CHECK PROTOCOL:\n"
+            "  1. Write your feedback text.\n"
+            "  2. SCAN IT: Does it contain 'Score:', 'Rating:', or patterns like '1/5', '3/5'?\n"
+            "  3. IF YES -> REWRITE the sentence to remove the forbidden phrase. Say the same thing differently.\n"
+            "  4. OUTPUT the cleaned feedback.\n"
+            "FORBIDDEN PHRASES: 'Score:', 'Rating:', '1/5', '2/5', '3/5', '4/5', '5/5'.\n\n"
+            "Step C: Score Guidance\n"
             "- IF Score 4-5: Validate strength. 'That is a strong example because...'\n"
             "- IF Score 3: Validate but nudge. 'You described the situation, but I need more mechanics...'\n"
             "- IF Score 1-2: Move on neutrally or ask for clarification.\n"
@@ -586,6 +598,19 @@ def get_feedback():
              
              try:
                   ai_json = json.loads(ai_response_text)
+                  
+                  # v7.1 REGEX SAFETY NET: Scrub leaked scores from feedback
+                  if "feedback" in ai_json:
+                      import re
+                      feedback = ai_json["feedback"]
+                      # Remove "Score: X/5" or "Rating: X/5" patterns
+                      feedback = re.sub(r'\b(Score|Rating):\s*\d/5\b', '', feedback, flags=re.IGNORECASE)
+                      # Remove standalone "X/5" patterns
+                      feedback = re.sub(r'\b\d/5\b', '', feedback)
+                      # Clean up extra spaces
+                      feedback = re.sub(r'\s+', ' ', feedback).strip()
+                      ai_json["feedback"] = feedback
+                      
              except Exception as json_err:
                   print(f"DEBUG JSON Error: {json_err}")
                   ai_json = { "feedback": ai_response_text, "next_question": "End of Interview (JSON Error).", "formatted_report": f"<h1>Error Generating Report</h1><p>{str(json_err)}</p>" }
