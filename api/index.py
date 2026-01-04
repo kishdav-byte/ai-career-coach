@@ -670,7 +670,7 @@ def get_feedback():
                   # SEPARATION FIX: Feedback is the SPOKEN feedback, report is passed separately
                   ai_json["formatted_report"] = ai_json["formatted_report"] # Keep the reference
                   ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
-                 ai_json["next_question"] = "" # No next text needed in UI
+                  ai_json["next_question"] = "" # No next text needed in UI
 
              # SCORE COMPLIANCE (v6.1)
              # Only apply mechanics if NOT START and Q2+
