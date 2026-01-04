@@ -672,6 +672,32 @@ def get_feedback():
                   ai_json["feedback"] = ai_json.get("q6_feedback_spoken", "Interview Complete.")
                   ai_json["next_question"] = "" # No next text needed in UI
 
+             # v8.0 SCORE VALIDATOR (Tier 1 Enforcement)
+             # Validate and correct AI-assigned scores BEFORE saving to history
+             if question_count > 1 and not is_start:
+                  ai_assigned_score = ai_json.get("internal_score") or ai_json.get("score") or 1
+                  word_count = len(message.split())
+                  
+                  # Rule 1: Score 1 is RESERVED for toxic/empty/short answers ONLY
+                  if ai_assigned_score == 1 and word_count >= 20:
+                      print(f"v8.0 OVERRIDE Q{question_count}: Answer has {word_count} words (substantial). Changing 1 -> 2")
+                      ai_json["internal_score"] = 2
+                      ai_json["score"] = 2
+                  elif ai_assigned_score > 5:
+                      print(f"v8.0 OVERRIDE Q{question_count}: Score {ai_assigned_score} exceeds max. Capping at 5")
+                      ai_json["internal_score"] = 5
+                      ai_json["score"] = 5
+                  elif ai_assigned_score < 1:
+                      print(f"v8.0 OVERRIDE Q{question_count}: Score {ai_assigned_score} below min. Setting to 1")
+                      ai_json["internal_score"] = 1
+                      ai_json["score"] = 1
+                  
+                  # Original word count penalty (still applies)
+                  if word_count < 20:
+                      print(f"PENALTY: Answer too short ({word_count} words). Forcing Score 1.")
+                      ai_json["internal_score"] = 1
+                      ai_json["score"] = 1
+
              # SCORE COMPLIANCE (v6.1)
              # Only apply mechanics if NOT START and Q2+
              if question_count > 1 and not is_start:
