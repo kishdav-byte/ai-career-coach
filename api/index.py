@@ -364,7 +364,7 @@ def get_feedback():
                 "Kill Switch: Citing 'policy' as an excuse for inaction is a FAIL."
             )
 
-        # [PHASE 3: THE "HARDLINER" SCORING LOGIC] (v6.0)
+        # [PHASE 3: THE "FAIR JUDGE" SCORING LOGIC] (v7.0)
         rubric_text = (
             f"### ARCHETYPE: {persona_role}\n{archetype_rubric}\n\n"
             "### LOGIC GATES (Automatic Penalties)\n"
@@ -372,21 +372,21 @@ def get_feedback():
             "2. Black Box Constraint: IF Action is vague ('I led', 'I handled') without mechanics -> MAX SCORE: 3.\n"
             "3. Kill Switches: Toxic, Reckless, or Pyrrhic behavior -> MAX SCORE: 1.\n"
             "4. Magic Wand Penalty: IF answer describes feelings/energy without mechanics -> MAX SCORE: 2.\n\n"
-            "### THE HARDLINER RUBRIC (Do Not Grade on a Curve)\n"
-            "- 5 (Exceptional): Specific Metric (%, $) AND innovative strategy. (<5% of candidates).\n"
-            "- 4 (High Performer): Perfect STAR structure + Specific Nouns/Tools + Positive Result.\n"
-            "- 3 (Competent): Meets expectations. Answered prompt. Result okay. (Default Score).\n"
-            "- 2 (Weak): 'Gap Logic' (Skipped Action), vague buzzwords, or 'Magic Wand' answer.\n"
-            "- 1 (Fail): Harmful, Toxic, or Non-Answer.\n\n"
+            "### THE FAIR JUDGE RUBRIC (Score Accurately, Not Harshly)\n"
+            "- 5 (Exceptional): Specific Metric (%, $) AND Innovative Strategy. (< 10% of candidates).\n"
+            "- 4 (Strong): Perfect STAR structure + Specific Nouns/Tools + Positive Result.\n"
+            "- 3 (Competent): Answered the prompt relevantly. Followed STAR. Result was okay. (DEFAULT SCORE).\n"
+            "- 2 (Weak): 'Gap Logic' (Skipped Action), vague buzzwords, or off-topic.\n"
+            "- 1 (Fail): Non-Answer, Toxic, or < 15 words.\n\n"
             "### PHASE 4: THE 'MISSED OPPORTUNITY' ENGINE\n"
             "IF {{Internal_Score}} < 4:\n"
             "Scan Candidate Resume. If a better example exists, generate a brief coaching tip in the metadata.\n"
         )
         
-        # Build System Prompt (v6.0)
+        # Build System Prompt (v7.0)
         system_prompt = (
-            f"Role: You are {persona_role}, a PhD-level Behavioral Analyst and 'Unforgiving Judge'.\n"
-            f"Objective: Conduct a high-stakes, structured interview. Score ruthlessly.\n"
+            f"Role: You are {persona_role}, a PhD-level Behavioral Analyst and 'Fair Judge'.\n"
+            f"Objective: Conduct a high-stakes, structured interview. Score accurately but silently.\n"
             f"SENIORITY: {seniority_level}\n"
             f"CONTEXT:\nTarget Role: {role_title}\nJob Description: {job_posting}\nCandidate Resume: {resume_text}\n"
             f"Intel: {interviewer_intel}\n\n"
@@ -401,8 +401,8 @@ def get_feedback():
             "FORBIDDEN: Do not output 'Score: X/5'. Output textual feedback only.\n"
             "Step C: Feedback Generation (Silent Mode):\n"
             "Output: Provide encouraging or corrective feedback text only.\n"
-            "NEGATIVE CONSTRAINT: You are STRICTLY FORBIDDEN from typing the word 'Score:' or any numbers (e.g., '1/5') in the chat response.\n"
-            "Correction: If you feel the urge to type the score, DELETE IT before outputting the text.\n"
+            "NEGATIVE CONSTRAINT: You are STRICTLY FORBIDDEN from typing 'Score:', 'Rating:', or any numbers (e.g., '1/5', '3/5') in the chat response.\n"
+            "Correction: If you feel the urge to type the score or rating, DELETE IT before outputting the text.\n"
             "- IF Score 4-5: Validate strength. 'That is a strong example because...'\n"
             "- IF Score 3: Validate but nudge. 'You described the situation, but I need more mechanics...'\n"
             "- IF Score 1-2: Move on neutrally or ask for clarification.\n"
@@ -469,9 +469,9 @@ def get_feedback():
                  q = h.get('question', '')
                  a = h.get('answer', '')
                  
-                 # v6.3 FIX: Strict Purge (Filter System Triggers)
-                 # Ignore "Start", "Ready", "Begin" or short messages to align Q1 correctly.
-                 if len(q) < 15 or len(a) < 3 or a.strip().lower() in ["start", "ready", "hello", "begin", "hi"]: continue 
+                 # v7.0 FIX: Improved Purge (< 20 words + System Triggers)
+                 # Aggressively filter greetings/start commands to prevent indexing shift.
+                 if len(q) < 15 or len(a.split()) < 20 or a.strip().lower() in ["start", "ready", "hello", "begin", "hi"]: continue 
 
                  # BINDING: Include the ACTUAL feedback/score the user received live
                  live_fb = h.get('feedback', 'No feedback recorded')
@@ -487,30 +487,32 @@ def get_feedback():
              full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
              # Final turn score is yet to be determined by the Auditor, so no metadata for it yet.
 
-             # 2. DEFINITIVE GOVERNANCE PROMPT (v6.0 - THE AUDITOR)
+             # 2. DEFINITIVE GOVERNANCE PROMPT (v7.0 - THE AUDITOR)
              final_report_system_prompt = (
-                 "### TASK: GENERATE ACE INTERVIEW REPORT (v6.0 - THE AUDITOR)\n"
+                 "### TASK: GENERATE ACE INTERVIEW REPORT (v7.0 - THE AUDITOR)\n"
                  "You are 'The Ace Auditor'. Review the transcript and generate the final HTML report.\n\n"
                  "### INPUT DATA:\n"
                  "1. Interview_Transcript (The text conversations)\n"
                  "2. Session_Metadata (The hidden SILENT SCORES assigned during live session)\n\n"
                  "### PHASE 5: THE AUDITOR (FINAL REPORT)\n"
-                 "Instruction: Compile the final report using Content Anchoring and Silent Retrieval.\n\n"
-                 "### STEP 0: GREETING FILTER (The Firewall)\n"
-                 "Look at the FIRST user message (Index 0). TEST: Does this text contain specific biographical details (e.g. 'years of experience', 'my background', 'I worked at')?\n"
-                 "- NO: It is a Greeting/Start command. DELETE IT. Move to Index 1 (Treat that as Q1).\n"
-                 "- YES: It is the Answer to Q1. Grade it.\n\n"
-                 "### STEP 1: DYNAMIC ANCHORING & SMART HEADERS\n"
-                 "1. Identify the *actual* topic asked in each turn (e.g. 'Automation', 'Conflict').\n"
-                 "2. Generate a 3-5 word 'Smart Header' for each question (e.g. 'Q1: Background Overview', 'Q5: Python Automation').\n"
-                 "- Slot Q1: Intro/Background (Ignore Greetings).\n"
-                 "- Slot Q2-Q6: Map precisely to the question asked. Do NOT force hard-coded topics.\n"
-                 "FATAL ERROR PREVENTION: Do NOT use generic headers like 'Q1: Question'. Use specific content like 'Q1: Data Pipeline Design'.\n\n"
-                 "### STEP 2: RETRIEVE SILENT SCORES\n"
-                 "Use the {{Internal_Score}} calculated in Phase 3. Do not re-grade. Trust the Hardliner Logic.\n"
-                 "DEFAULT FLOOR: If a Score is 0 or Null (and answer exists), Force Score: 1.\n"
-                 "MAX SCORE: 5. (No zeroes allowed).\n\n"
-                 "### STEP 3: OUTPUT JSON FORMAT\n"
+                 "Instruction: Compile the final report using Topic Anchoring and Silent Retrieval.\n\n"
+                 "### STEP 1: THE GREETING PURGE\n"
+                 "Rule: Ignore any turn that contains 'Start', 'Hello', 'Ready', or is < 20 words. Do not map these to Question Slots.\n\n"
+                 "### STEP 2: TOPIC MAPPING (The Anchor)\n"
+                 "Scan the remaining answers and map them to the best fit:\n"
+                 "- Slot Q1: Find answer matching 'Background/Fit/History'.\n"
+                 "- Slot Q2: Find answer matching 'Conflict/Challenge'.\n"
+                 "- Slot Q3: Find answer matching 'Change/Adaptability'.\n"
+                 "- Slot Q4: Find answer matching 'Strategy/Decision'.\n"
+                 "- Slot Q5: Find answer matching 'Motivation/Performance/Automation'.\n"
+                 "- Slot Q6: Find answer matching 'Culture/Turnaround'.\n"
+                 "Fallback: If a topic doesn't align perfectly, map the remaining answers in Chronological Order.\n\n"
+                 "### STEP 3: SMART HEADERS\n"
+                 "For each question, generate a 3-5 word summary of the candidate's actual content.\n"
+                 "Example: If they discuss Python automation, use 'Q5: Python Automation', NOT 'Q5: Motivation'.\n\n"
+                 "### STEP 4: THE FLOOR ENFORCEMENT\n"
+                 "Constraint: IF {{Internal_Score}} is 0, Null, or None -> Set Score = 1.\n\n"
+                 "### STEP 5: OUTPUT JSON FORMAT\n"
                  "You must output a single JSON object with keys:\n"
                  "- \"formatted_report\": The full HTML string.\n"
                  "- \"average_score\": The calculated average.\n"
