@@ -517,9 +517,9 @@ def get_feedback():
                  "You are 'The Ace Auditor'. Review the transcript and generate the final HTML report.\n\n"
                  "### INPUT DATA:\n"
                  "1. Interview_Transcript (The text conversations)\n"
-                 "2. Session_Metadata (The hidden SILENT SCORES assigned during live session)\n\n"
+                 "2. Question_Scores (The scores assigned to each question during the interview)\n\n"
                  "### PHASE 5: THE AUDITOR (FINAL REPORT)\n"
-                 "Instruction: Compile the final report using Topic Anchoring and Silent Retrieval.\n\n"
+                 "Instruction: Compile the final report using Topic Anchoring and the provided scores.\n\n"
                  "### STEP 1: THE GREETING PURGE\n"
                  "Rule: Ignore any turn that contains 'Start', 'Hello', 'Ready', or is < 20 words. Do not map these to Question Slots.\n\n"
                  "### STEP 2: TOPIC MAPPING (The Anchor)\n"
@@ -535,12 +535,12 @@ def get_feedback():
                  "For each question, generate a 3-5 word summary of the candidate's actual content.\n"
                  "Example: If they discuss Python automation, use 'Q5: Python Automation', NOT 'Q5: Motivation'.\n\n"
                  "### STEP 4: SCORING CONSTRAINTS (CRITICAL)\n"
-                 "When reviewing the Silent Scores from Session Metadata:\n"
+                 "Use the provided Question Scores from the session data:\n"
                  "- IF a score is 0, Null, or None -> Set Score = 1.\n"
-                 "- TRUST the Silent Scores UNLESS they violate these rules:\n"
+                 "- TRUST the provided scores UNLESS they violate these rules:\n"
                  "  * Score 1 is RESERVED for toxic/harmful/empty answers ONLY.\n"
-                 "  * IF an answer has clear content (20+ words) but missing Action/Result -> MAX Score should be 2 (NOT 1).\n"
-                 "  * IF Silent Score = 1 but answer is substantial -> OVERRIDE to Score = 2.\n\n"
+                 "  * IF an answer has clear content (20+ words) but score is 1 -> OVERRIDE to Score = 2.\n"
+                 "- CRITICAL: Do NOT mention scores, metadata, or any internal system terminology in the analysis text visible to the user.\n\n"
                  "### STEP 5: CALCULATE OVERALL SCORE (CRITICAL MATH)\n"
                  "Formula: Overall_Score = (Q1_Score + Q2_Score + Q3_Score + Q4_Score + Q5_Score + Q6_Score) / 6\n"
                  "IMPORTANT: Use proper division. Round to 1 decimal place.\n"
@@ -620,7 +620,7 @@ def get_feedback():
              
              # v9.0 RUBRIC PARSING: Check for two-part format
              ai_json = None
-             if "|||RUBRIC|||" in ai_response_text and question_count > 1:
+             if "|||RUBRIC|||" in ai_response_text and question_count >= 1:
                  parts = ai_response_text.split("|||RUBRIC|||")
                  feedback_text = parts[0].strip()
                  rubric_json_str = parts[1].strip()
