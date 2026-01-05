@@ -618,30 +618,60 @@ def get_feedback():
              ai_response_text = chat_completion.choices[0].message.content
              print(f"DEBUG: AI Response: {ai_response_text[:100]}...")
              
-             try:
-                  ai_json = json.loads(ai_response_text)
-                  
-                  # v7.2 REGEX SAFETY NET: Scrub leaked scores from BOTH fields
-                  import re
-                  score_pattern = r'\b(Score|Rating):\s*\d+/\d+\b'
-                  
-                  if "feedback" in ai_json:
-                      feedback = ai_json["feedback"]
-                      feedback = re.sub(score_pattern, '', feedback, flags=re.IGNORECASE)
-                      feedback = re.sub(r'\b\d+/\d+\b', '', feedback)  # Catch standalone "1/5"
-                      feedback = re.sub(r'\s+', ' ', feedback).strip()
-                      ai_json["feedback"] = feedback
-                  
-                  if "next_question" in ai_json:
-                      next_q = ai_json["next_question"]
-                      next_q = re.sub(score_pattern, '', next_q, flags=re.IGNORECASE)
-                      next_q = re.sub(r'\b\d+/\d+\b', '', next_q)
-                      next_q = re.sub(r'\s+', ' ', next_q).strip()
-                      ai_json["next_question"] = next_q
+             # v9.0 RUBRIC PARSING: Check for two-part format
+             ai_json = None
+             if "|||RUBRIC|||" in ai_response_text and question_count > 1:
+                 parts = ai_response_text.split("|||RUBRIC|||")
+                 feedback_text = parts[0].strip()
+                 rubric_json_str = parts[1].strip()
+                 
+                 try:
+                     rubric_data = json.loads(rubric_json_str)
+                     print(f"DEBUG: Rubric parsed - Q{question_count}")
+                     
+                     calculated_score, override_reason = calculate_rubric_score(
+                         rubric_data, f"Q{question_count}", message
+                     )
+                     
+                     ai_json = {
+                         "feedback": feedback_text,
+                         "internal_score": calculated_score,
+                         "next_question": rubric_data.get("next_question", ""),
+                         "rubric_data": rubric_data,
+                         "gap_analysis": override_reason or rubric_data.get("gap_analysis", "")
+                     }
+                     print(f"DEBUG: Q{question_count} Score={calculated_score}")
+                 except Exception as rubric_err:
+                     print(f"WARN: Rubric parse failed: {rubric_err}")
+                     ai_json = None
+             
+             # Fallback to standard JSON parsing
+             if ai_json is None:
+                 try:
+                      ai_json = json.loads(ai_response_text)
                       
-             except Exception as json_err:
-                  print(f"DEBUG JSON Error: {json_err}")
-                  ai_json = { "feedback": ai_response_text, "next_question": "End of Interview (JSON Error).", "formatted_report": f"<h1>Error Generating Report</h1><p>{str(json_err)}</p>" }
+                      # v7.2 REGEX SAFETY NET
+                      import re
+                      score_pattern = r'\b(Score|Rating):\s*\d+/\d+\b'
+                      
+                      if "feedback" in ai_json:
+                          feedback = ai_json["feedback"]
+                          feedback = re.sub(score_pattern, '', feedback, flags=re.IGNORECASE)
+                          feedback = re.sub(r'\b\d+/\d+\b', '', feedback)
+                          feedback = re.sub(r'\s+', ' ', feedback).strip()
+                          ai_json["feedback"] = feedback
+                      
+                      if "next_question" in ai_json:
+                          next_q = ai_json["next_question"]
+                          next_q = re.sub(score_pattern, '', next_q, flags=re.IGNORECASE)
+                          next_q = re.sub(r'\b\d+/\d+\b', '', next_q)
+                          next_q = re.sub(r'\s+', ' ', next_q).strip()
+                          ai_json["next_question"] = next_q
+                          
+                 except Exception as json_err:
+                      print(f"DEBUG JSON Error: {json_err}")
+                      ai_json = {"feedback": ai_response_text, "next_question": "End of Interview (JSON Error).", "formatted_report": f"<h1>Error Generating Report</h1><p>{str(json_err)}</p>"}
+
 
              # REPORT FORMATTING BRIDGE
              if "formatted_report" in ai_json:

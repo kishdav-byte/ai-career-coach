@@ -1261,11 +1261,15 @@
             // NEW: Shuttle Logic
             window.shuttleToTool = (url) => {
                 // 1. Scrape Data from Dossier Inputs
-                const role = document.getElementById('dossier-title').innerText;
-                const company = document.getElementById('dossier-company').innerText;
+                let role = document.getElementById('dossier-title').innerText;
+                let company = document.getElementById('dossier-company').innerText;
                 const jd = document.getElementById('dossier-jd').value;
                 const notes = document.getElementById('dossier-notes').value;
                 const status = document.getElementById('dossier-status').value;
+
+                // PREVENT DEFAULTS: If user didn't select a job, these will be "Job Title" / "Company Name"
+                if (role === 'Job Title') role = '';
+                if (company === 'Company Name') company = '';
 
                 if (!jd || jd.length < 50) {
                     if (!confirm("Warning: Job Description is empty or short. Tools work best with a full JD. Proceed anyway?")) return;
@@ -1273,8 +1277,8 @@
 
                 // 2. Save Context
                 const context = {
-                    role: role,
-                    company: company,
+                    role: role || 'General Strategy', // Fallback to generic
+                    company: company || 'General Market',
                     jd: jd,
                     notes: notes,
                     status: status,

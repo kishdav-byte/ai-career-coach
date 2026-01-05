@@ -1105,13 +1105,22 @@
                     return;
                 }
 
-                const data = await response.json(); // Renamed 'result' to 'data' to match user's snippet
-
-                if (data.error) {
-                    alert(data.error);
+                let rawResult = await response.json();
+                if (rawResult.error) {
+                    alert(rawResult.error);
                     btn.disabled = false;
                     btn.innerHTML = originalHTML;
                     return;
+                }
+
+                // Parse nested JSON if data is a string
+                let data = rawResult.data;
+                if (typeof data === 'string') {
+                    try {
+                        data = JSON.parse(data);
+                    } catch (e) {
+                        console.error("Failed to parse nested JSON:", e);
+                    }
                 }
 
                 // 4. Update UI with Optimized Content

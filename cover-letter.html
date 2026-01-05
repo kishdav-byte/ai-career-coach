@@ -513,7 +513,33 @@
                     console.log("Target IS Hospitality. Keeping 'Restaurant' keywords for relevance.");
                 }
 
-                // 3. SEND CLEAN DATA
+                // 3. FETCH USER IDENTITY (To avoid placeholders)
+                let userData = {
+                    personal: {
+                        name: "Your Name",
+                        email: userEmail,
+                        phone: "",
+                        location: ""
+                    }
+                };
+
+                try {
+                    const { data: profile } = await supabaseClient
+                        .from('profiles')
+                        .select('full_name, phone_number, location')
+                        .eq('id', userId)
+                        .single();
+
+                    if (profile) {
+                        userData.personal.name = profile.full_name || userData.personal.name;
+                        userData.personal.phone = profile.phone_number || "";
+                        userData.personal.location = profile.location || "";
+                    }
+                } catch (e) {
+                    console.warn("Could not fetch profile for Cover Letter identity", e);
+                }
+
+                // 4. SEND CLEAN DATA
                 const res = await fetch('/api', {
                     method: 'POST',
                     headers: {
@@ -524,7 +550,8 @@
                         action: 'cover_letter',
                         email: userEmail,
                         jobDesc: jd,
-                        resume: cleanResumeText
+                        resume: cleanResumeText,
+                        user_data: userData // Send structured identity
                     })
                 });
 

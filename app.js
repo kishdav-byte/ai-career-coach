@@ -1844,8 +1844,11 @@ function init() {
                 question: currentQuestionText,
                 answer: message,
                 feedback: aiData.feedback || "No feedback provided.",
-                internal_score: aiData.internal_score || aiData.score || 0
+                internal_score: aiData.internal_score || aiData.score || 0,
+                rubric_data: aiData.rubric_data || null,  // Capture rubric checklist data
+                gap_analysis: aiData.gap_analysis || null
             });
+
 
             if (!isStart) questionCount++;
             currentQuestionText = aiData.next_question;
@@ -1930,18 +1933,43 @@ function init() {
                             }
                         } catch (e) { }
 
+                        // Extract individual question scores and rubric data
+                        const questionScores = {};
+                        const rubricData = {};
+
+                        interviewHistory.forEach((turn, idx) => {
+                            const questionNum = idx + 1;
+                            const scoreKey = `q${questionNum}_score`;
+                            questionScores[scoreKey] = turn.internal_score || 0;
+
+                            // Aggregate rubric data if present
+                            if (turn.rubric_data) {
+                                rubricData[`Q${questionNum}`] = turn.rubric_data.checklist;
+                            }
+                        });
+
                         const { error } = await supabase
                             .from('interviews')
                             .insert({
                                 user_id: user.id,
-                                overall_score: result.data.average_score || 0, // Mapped to 'overall_score'
+                                overall_score: result.data.average_score || 0,
                                 transcript: JSON.stringify(interviewHistory),
-                                questions: interviewHistory, // Keep questions if column exists, else it might be feedback_json
-                                executive_report: result.data.report, // Save the full HTML report
+                                questions: interviewHistory,
+                                executive_report: result.data.report,
                                 session_name: `Interview ${new Date().toLocaleDateString()}`,
                                 job_title: jobTitle,
-                                company: companyName
+                                company: companyName,
+                                // Individual question scores
+                                q1_score: questionScores.q1_score || null,
+                                q2_score: questionScores.q2_score || null,
+                                q3_score: questionScores.q3_score || null,
+                                q4_score: questionScores.q4_score || null,
+                                q5_score: questionScores.q5_score || null,
+                                q6_score: questionScores.q6_score || null,
+                                // Rubric checklist data (JSONB)
+                                rubric_data: Object.keys(rubricData).length > 0 ? rubricData : null
                             });
+
 
                         if (error) {
                             console.error("DB Save Error:", error);

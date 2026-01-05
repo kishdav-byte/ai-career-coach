@@ -9,8 +9,13 @@ print(f"DEBUG: Loading .env from {env_path}")
 print(f"DEBUG: OPENAI_API_KEY present: {'OPENAI_API_KEY' in os.environ}")
 print(f"DEBUG: OPENAI_API_KEY_ present: {'OPENAI_API_KEY_' in os.environ}")
 
+# Polyfill API Key if using underscore variant
+if 'OPENAI_API_KEY' not in os.environ and 'OPENAI_API_KEY_' in os.environ:
+    print("DEBUG: Polyfilling OPENAI_API_KEY from OPENAI_API_KEY_")
+    os.environ['OPENAI_API_KEY'] = os.environ['OPENAI_API_KEY_']
+
 from flask import send_from_directory, request
-from api.app import app
+from api.index import app
 
 print(f"DEBUG: BASE_DIR: {BASE_DIR}")
 print(f"DEBUG: App Root Path (before): {app.root_path}")
@@ -48,5 +53,5 @@ def serve_static(path):
     return "File not found", 404
 
 if __name__ == '__main__':
-    print(f"🚀 Starting AI Career Coach locally at http://localhost:3000")
-    app.run(port=3000, debug=True)
+    print(f"🚀 Starting AI Career Coach locally at http://localhost:5001")
+    app.run(port=5001, debug=True)

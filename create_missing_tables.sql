@@ -18,7 +18,7 @@ CREATE POLICY "Users can view their own scans" ON resume_scans FOR SELECT USING 
 CREATE TABLE IF NOT EXISTS interviews (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID REFERENCES users(id),
-    average_score INT,
+    average_score DECIMAL,
     questions JSONB,
     transcript TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
