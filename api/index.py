@@ -728,8 +728,8 @@ def get_feedback():
                       ai_json["score"] = 1
 
              # SCORE COMPLIANCE (v6.1)
-             # Only apply mechanics if NOT START and Q2+
-             if question_count > 1 and not is_start:
+             # Only apply mechanics if NOT START and Q2-Q7 (Active Interview)
+             if (question_count > 1 and question_count <= 7) and not is_start:
                  # 1. Word Count Penalty (<20 words -> Score 1)
                  if len(message.split()) < 20:
                      print(f"PENALTY: Answer too short ({len(message.split())} words). Forcing Score 1.")
@@ -754,6 +754,8 @@ def get_feedback():
                  # FINAL REPORT AUDIO OVERRIDE
                  if question_count > 7 and "average_score" in ai_json:
                      q6_fb = ai_json.get("q6_feedback_spoken", "That concludes the interview.")
+                     # SCRUB: Remove system notes from spoken feedback just in case
+                     q6_fb = q6_fb.replace("(System Note: Response was too brief to score higher.)", "").strip()
                      speech_text = f"Feedback: {q6_fb} That concludes the interview. Thank you for your time."
                  
                  # STANDARD FEEDBACK AUDIO
