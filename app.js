@@ -780,16 +780,27 @@ async function initiateCheckout(productKey, userEmail, userId) {
         }
 
         // 2. Call Supabase Edge Function (STRICTLY)
-        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-            body: {
-                price_id: actualPriceId,
-                return_url: window.location.href,
+        // 2. Call Python API (Replaces Edge Function)
+        const token = localStorage.getItem('supabase.auth.token');
+        if (!token) throw new Error("User not authenticated");
+
+        const res = await fetch('/api/create-checkout-session', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                plan_type: productKey,
+                userId: userId,
                 email: userEmail,
-                user_id: userId,
-                mode: mode,
-                plan_type: productKey
-            }
+                successUrl: window.location.href,
+                mode: mode
+            })
         });
+
+        const data = await res.json();
+        if (data.error) throw new Error(data.error);
 
         if (error) throw error;
 

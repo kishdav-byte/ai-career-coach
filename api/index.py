@@ -1543,12 +1543,16 @@ def create_checkout_session():
         if not price_id:
             return jsonify({"error": f"Invalid Plan Type: {plan_type}"}), 400
 
+        # Determine Mode
+        is_sub = plan_type in ['monthly_unlimited', 'strategy_mock']
+        mode = data.get('mode', 'subscription' if is_sub else 'payment')
+
         checkout_session = stripe.checkout.Session.create(
             line_items=[{
                 'price': price_id,
                 'quantity': 1,
             }],
-            mode='payment',
+            mode=mode,
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
