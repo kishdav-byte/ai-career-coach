@@ -518,8 +518,10 @@ def get_feedback():
                  full_transcript += f"Turn {idx+1}:\nQ: {q}\nA: {a}\nLIVE_FEEDBACK: {live_fb}\n\n"
                  session_metadata += f"Turn {idx+1} Score: {silent_score}\n"
              
-             # CRITICAL FIX: Append the FINAL Answer (which is not in history yet)
-             full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
+             # CRITICAL FIX v7.1: Do NOT append the current message if it's just a system trigger
+             # Since we are at count > 7, the real Q6 answer is already in 'history'.
+             if "GENERATE_REPORT" not in message and len(message) > 15:
+                 full_transcript += f"Turn {len(history)+1} (FINAL QUESTION):\nQ: {lastAiQuestion if 'lastAiQuestion' in locals() else 'Final Question'}\nA: {message}\n\n"
              # Final turn score is yet to be determined by the Auditor, so no metadata for it yet.
 
              # 2. DEFINITIVE GOVERNANCE PROMPT (v7.0 - THE AUDITOR)
