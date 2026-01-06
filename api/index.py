@@ -1472,10 +1472,19 @@ def create_checkout_session():
     if not auth_header: return jsonify({"error": "No Token"}), 401
 
     try:
+        # Securely extract User ID from Token
+        token = auth_header.split(" ")[1]
+        user_response = supabase.auth.get_user(token)
+        user_id = user_response.user.id if user_response.user else None
+        
         data = request.json
         plan_type = data.get('plan_type')
         success_url = data.get('successUrl', 'https://tryaceinterview.com/dashboard.html')
         cancel_url = success_url # Just go back
+        
+        # Use token ID over body ID for security, fallback to body if token fails (unlikely)
+        target_user_id = user_id or data.get('userId')
+        if not target_user_id: return jsonify({"error": "Creating checkout failed: Unknown User"}), 400
         
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
         if not stripe.api_key: return jsonify({"error": "Server Missing Stripe Key"}), 500
@@ -1537,7 +1546,7 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
-                "user_id": data.get('userId'), # Pass user ID for webhook fulfillment
+                "user_id": target_user_id, # Verified User ID
                 "plan_type": plan_type
             }
         )
