@@ -1823,7 +1823,8 @@ function init() {
 
                 // AUTO-TRIGGER FINAL REPORT (Option 1 Fix)
                 // If closing message is detected, silently trigger the next turn to generate report
-                if (aiData.next_question && (
+                // GUARD: Only trigger if we are at the END of the interview (Q6+)
+                if (aiData.next_question && questionCount >= 6 && (
                     aiData.next_question.includes("Thank you") ||
                     aiData.next_question.includes("concludes") ||
                     aiData.next_question.includes("pleasure speaking")
