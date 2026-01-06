@@ -1526,7 +1526,7 @@ def create_checkout_session():
             # I'll map 'strategy_interview_sim' to Interview ID.
             
             'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',    # Executive Rewrite ($12.99)
-            'strategy_interview_sim': 'price_1SeRRnlH1WTKNasqQFCJDxH5', # Interview Sim ($9.99)
+            'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', # Interview Sim ($9.99)
             'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',      # Bundle ($29.99)
             'pro_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',           # Alias for Bundle
             'monthly_unlimited': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'     # Monthly ($49.99)

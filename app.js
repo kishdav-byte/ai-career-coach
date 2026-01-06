@@ -519,7 +519,7 @@ const PRODUCTS = [
         title: 'Interview Simulator',
         price: '$9.99',
         desc: 'Mock Interview Session + Scoring',
-        stripeId: 'price_1SeRRnlH1WTKNasqQFCJDxH5'
+        stripeId: 'price_1SeRRnIH1WTKNasqQFCJDxH5'
     },
     {
         id: 'plan_30_60_90',
@@ -737,7 +737,7 @@ async function initiateCheckout(productKey, userEmail, userId) {
         const product = PRODUCTS.find(p => p.id === productKey);
         // Fallback to legacy keys if not in array (e.g. from old buttons)
         const legacyMap = {
-            'strategy_interview_sim': 'price_1SeRRnlH1WTKNasqQFCJDxH5',
+            'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5',
             'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',
             'monthly_unlimited': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',
             'strategy_plan': 'price_1SePlolH1WTKNasq64loXSAv',
