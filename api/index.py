@@ -467,7 +467,7 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Score (1-5) and provide brief feedback. (Put ONLY this critique in 'feedback' field).\n"
+                    "Step 1: Provide brief, constructive feedback on their answer. (Put ONLY this critique in 'feedback' field).\n"
                     "Step 2: Say exactly: 'The next question that I have for you is...' (Put this in 'next_question' field).\n"
                     "Step 3: Ask the next behavioral question. (Append to 'next_question' field)."
                 )
@@ -478,9 +478,9 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Score and Feedback. (Put ONLY critique in 'feedback' field).\n"
-                    "Step 2: Say exactly: 'The final question I have for you is...' (Put this in 'next_question' field).\n"
-                    "Step 3: Ask the Final Question (The Closer). (Append to 'next_question' field)."
+                    "Step 1: Provide brief, constructive feedback. (Put ONLY this critique in 'feedback' field).\n"
+                    "Step 2: Generate closing transition: 'The final question I have for you is...' (Put in 'next_question' field).\n"
+                    "Step 3: Ask the final behavioral question. (Append to 'next_question' field)."
                 )
              })
 
