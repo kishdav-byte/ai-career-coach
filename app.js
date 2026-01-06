@@ -1751,30 +1751,9 @@ function init() {
             if (data.is_complete) {
                 console.log("Referee: Interview Complete.");
 
-                // 1. Play Final Audio
-                if (data.audio) {
-                    const audio = new Audio("data:audio/mp3;base64," + data.audio);
-                    audio.play().catch(e => console.error("Playback failed:", e));
-                }
+                // 1. Audio Playback Delayed (Moved to Step B)
 
-                // 2. Show Closing Message + Feedback
-                if (data.response) {
-                    let finalHtml = "";
-                    // Render Feedback if present
-                    if (data.response.feedback) {
-                        finalHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
-                            <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
-                            <div class="text-sm leading-relaxed">${data.response.feedback}</div>
-                        </div>`;
-                    }
-                    if (data.response.next_question) {
-                        finalHtml += `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
-                    }
-                    // DISPLAY FINAL FEEDBACK (Now separated from report)
-                    addMessage(finalHtml, 'system', true);
-                }
-
-                // 3. Kill Mic
+                // 2. Kill Mic immediately
                 const recordBtn = document.getElementById('record-btn');
                 if (recordBtn) {
                     recordBtn.disabled = true;
@@ -1782,13 +1761,40 @@ function init() {
                     recordBtn.textContent = '✅';
                 }
 
-                // 4. Generate Report (Reuse the Feedback we just got!)
-                // Extract the HTML REPORT (newly separated from feedback)
-                const finalReportText = data.response.formatted_report || data.response.feedback || "No Report Generated";
-                // EXTRACT SCORE from API response (added in backend fix)
-                const finalScore = data.average_score || data.response.average_score || 0;
+                // 3. SEQUENCED REVEAL
+                if (data.response) {
+                    // Step A: Show Feedback Immediately
+                    if (data.response.feedback) {
+                        const feedbackHtml = `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
+                            <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
+                            <div class="text-sm leading-relaxed">${data.response.feedback}</div>
+                        </div>`;
+                        addMessage(feedbackHtml, 'system', true);
+                    }
 
-                generateInterviewReport(finalReportText, finalScore);
+                    // Step B: Wait 5 Seconds -> Show Closing Message ("Thank you...") + Play Audio
+                    setTimeout(() => {
+                        // Play Audio NOW (Synced with "Thank You" text)
+                        if (data.audio) {
+                            const audio = new Audio("data:audio/mp3;base64," + data.audio);
+                            audio.play().catch(e => console.error("Playback failed:", e));
+                        }
+
+                        if (data.response.next_question) {
+                            const closingHtml = `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
+                            addMessage(closingHtml, 'system', true);
+                        }
+
+                        // Step C: Wait another 5 Seconds -> Generate Report
+                        setTimeout(() => {
+                            const finalReportText = data.response.formatted_report || data.response.feedback || "No Report Generated";
+                            const finalScore = data.average_score || data.response.average_score || 0;
+                            generateInterviewReport(finalReportText, finalScore);
+                        }, 5000);
+
+                    }, 5000);
+                }
+
                 return; // STOP HERE
             }
             // ------------------------------------
@@ -2876,3 +2882,83 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error("Error auto-loading JD:", e);
     }
 });
+
+// --- UPGRADE HUB RENDERER ---
+window.renderUpgradeHub = function (containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = `
+        <!-- FEATURED: Monthly Unlimited -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-teal/30 hover:border-teal/60 transition-all relative overflow-hidden mb-6">
+            <div class="absolute top-0 right-0 bg-teal text-slate-900 text-[10px] font-bold px-3 py-1 rounded-bl-lg">BEST VALUE</div>
+            <h3 class="text-xl font-bold text-white mb-2">Monthly Unlimited</h3>
+            <p class="text-xs text-slate-400 mb-4">Unlimited Text Tools + 50 Voice Sessions/mo</p>
+            <div class="text-3xl font-bold text-white mb-4">$49.99 <span class="text-xs font-normal text-slate-500">/mo</span></div>
+            <button onclick="initiateCheckout('monthly_unlimited')" class="w-full bg-teal hover:bg-teal/90 text-slate-900 font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)]">
+                Go Unlimited
+            </button>
+        </div>
+
+        <!-- Strategy Bundle -->
+        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-purple-500/50 transition-all mb-4">
+            <h3 class="text-lg font-bold text-white mb-1">Strategy Bundle</h3>
+            <p class="text-xs text-slate-400 mb-3">5 Universal Credits (Save ~$15)</p>
+            <div class="flex justify-between items-center">
+                <div class="text-2xl font-bold text-white">$29.99</div>
+                <button onclick="initiateCheckout('strategy_bundle')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
+                    Purchase
+                </button>
+            </div>
+        </div>
+
+        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-6">A La Carte Tools</h4>
+        
+        <div class="grid grid-cols-1 gap-3">
+            <!-- Executive Rewrite -->
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-yellow-500/30 transition-all">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Executive Rewrite</h3>
+                    <p class="text-[10px] text-slate-400">$12.99 / use</p>
+                </div>
+                <button onclick="initiateCheckout('strategy_rewrite')" class="text-xs bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
+            </div>
+
+            <!-- Interview Simulator -->
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-green-500/30 transition-all">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Interview Simulator</h3>
+                    <p class="text-[10px] text-slate-400">$9.99 / session</p>
+                </div>
+                <button onclick="initiateCheckout('strategy_interview_sim')" class="text-xs bg-slate-700 hover:bg-green-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
+            </div>
+
+            <!-- 30-60-90 Plan -->
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-cyan-500/30 transition-all">
+                <div>
+                    <h3 class="text-sm font-bold text-white">30-60-90 Day Plan</h3>
+                    <p class="text-[10px] text-slate-400">$8.99 / plan</p>
+                </div>
+                <button onclick="initiateCheckout('strategy_plan')" class="text-xs bg-slate-700 hover:bg-cyan-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
+            </div>
+
+            <!-- The Closer -->
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-teal-500/30 transition-all">
+                <div>
+                    <h3 class="text-sm font-bold text-white">The Closer</h3>
+                    <p class="text-[10px] text-slate-400">$6.99 / use</p>
+                </div>
+                <button onclick="initiateCheckout('strategy_closer')" class="text-xs bg-slate-700 hover:bg-teal-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
+            </div>
+            
+            <!-- Value Follow Up -->
+            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-rose-500/30 transition-all">
+                <div>
+                    <h3 class="text-sm font-bold text-white">Value Follow-Up</h3>
+                    <p class="text-[10px] text-slate-400">$6.99 / use</p>
+                </div>
+                <button onclick="initiateCheckout('strategy_followup')" class="text-xs bg-slate-700 hover:bg-rose-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
+            </div>
+        </div>
+    `;
+};
