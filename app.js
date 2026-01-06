@@ -128,7 +128,7 @@ function getSession() {
     }
 }
 
-async function checkAccess(requiredType = 'interview_credits') {
+async function checkAccess(requiredType = 'interview_credits', autoPrompt = true) {
     const { data: { user } } = await supabase.auth.getUser();
 
     // 1. Handle "Not Logged In"
@@ -209,15 +209,17 @@ async function checkAccess(requiredType = 'interview_credits') {
     if (isSubscribed || specificBalance > 0 || universalBalance > 0) {
         return true;
     } else {
-        // Prompt user to upgrade
-        if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                initiateCheckout('strategy_interview_sim', user.email, user.id);
-            } else {
-                // Fallback to session
-                const session = getSession();
-                initiateCheckout('strategy_interview_sim', session ? session.email : null, session ? session.user_id : null);
+        // Prompt user to upgrade (Only if autoPrompt is enabled)
+        if (autoPrompt) {
+            if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (user) {
+                    initiateCheckout('strategy_interview_sim', user.email, user.id);
+                } else {
+                    // Fallback to session
+                    const session = getSession();
+                    initiateCheckout('strategy_interview_sim', session ? session.email : null, session ? session.user_id : null);
+                }
             }
         }
         return false;
@@ -2823,8 +2825,8 @@ if (urlParams.get('status') === 'success') {
     // 2. Unlock Feature (Visual)
     localStorage.setItem(storageKey, 'true');
 
-    // Refresh User Data (Credits)
-    checkAccess().then(() => {
+    // Refresh User Data (Credits) - Silent check
+    checkAccess('interview_credits', false).then(() => {
         console.log("Credits refreshed.");
     });
 
@@ -3092,6 +3094,6 @@ window.renderUpgradeHub = function (containerId) {
 document.addEventListener('DOMContentLoaded', () => {
     // Only run if we are on a page that uses app.js logic (has supabase)
     if (window.supabase) {
-        checkAccess('interview_credits').catch(e => console.log("Init Check Failed:", e));
+        checkAccess('interview_credits', false).catch(e => console.log("Init Check Failed:", e));
     }
 });
