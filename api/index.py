@@ -1472,6 +1472,9 @@ def create_checkout_session():
     if not auth_header: return jsonify({"error": "No Token"}), 401
 
     try:
+        # Lazy Import Deps
+        import stripe
+        
         # Initialize Client
         supabase = get_supabase()
 
