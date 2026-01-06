@@ -1820,6 +1820,19 @@ function init() {
             if (!data.is_complete) {
                 // Use addMessage to show the response in a new bubble (system/AI)
                 addMessage(displayHtml, 'system', true);
+
+                // AUTO-TRIGGER FINAL REPORT (Option 1 Fix)
+                // If closing message is detected, silently trigger the next turn to generate report
+                if (aiData.next_question && (
+                    aiData.next_question.includes("Thank you") ||
+                    aiData.next_question.includes("concludes") ||
+                    aiData.next_question.includes("pleasure speaking")
+                )) {
+                    console.log("Referee: Closing message detected. Auto-triggering Final Report...");
+                    setTimeout(() => {
+                        sendChatMessage("GENERATE_REPORT", false, true); // skipUI=true (silent)
+                    }, 2500); // 2.5s delay to let audio start
+                }
             }
 
             // 2. AUDIO PLAYBACK (Base64)
