@@ -484,7 +484,18 @@ def get_feedback():
                 )
              })
 
-        elif question_count > 6:
+        elif question_count == 7:
+             # NEW: Provide feedback on Q6 (final behavioral question) before ending
+             messages.append({
+                "role": "user",
+                "content": (
+                    f"User Answer: {message}. \n"
+                    "Step 1: Provide brief, constructive feedback on this final answer. (Put in 'feedback' field).\n"
+                    "Step 2: Generate a closing statement thanking them for completing the interview. (Put in 'next_question' field)."
+                )
+             })
+
+        elif question_count > 7:
              # FINAL REPORT LOGIC (MASTER PROTOCOL v2.1)
              # 1. Build Full Transcript WITH LIVE SCORES (Binding)
              full_transcript = "INTERVIEW_TRANSCRIPT WITH SILENT METADATA:\n"
@@ -732,14 +743,14 @@ def get_feedback():
 
              # 2. Audio Generation (Omit if empty text)
              audio_b64 = None
-             if ai_json.get('next_question') or (question_count > 6): # Allow audio logic to run for end
+             if ai_json.get('next_question') or (question_count > 7): # Allow audio logic to run for end
                  voice = data.get('voice', 'alloy')
 
                  # SPEAK LOGIC
                  speech_text = ai_json.get('next_question', '')
                  
                  # FINAL REPORT AUDIO OVERRIDE
-                 if question_count > 6 and "average_score" in ai_json:
+                 if question_count > 7 and "average_score" in ai_json:
                      q6_fb = ai_json.get("q6_feedback_spoken", "That concludes the interview.")
                      speech_text = f"Feedback: {q6_fb} That concludes the interview. Thank you for your time."
                  
@@ -807,7 +818,7 @@ def get_feedback():
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
-            "is_complete": question_count > 6,
+            "is_complete": question_count > 7,
             "average_score": ai_json.get("average_score", 0.0)
         }), 200
 
