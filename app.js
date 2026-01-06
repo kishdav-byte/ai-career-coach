@@ -32,6 +32,26 @@ function getVoiceSettings() {
     return { voice, speed };
 }
 
+// --- DYNAMIC TOOL BELT CONFIG ---
+const TOOL_CONFIG = {
+    // Prep
+    'tool-card-scanner': { type: 'free' },
+    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'rewrite_credits', label: 'Credit' },
+    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'cover_credits', label: 'Credit' },
+    'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
+
+    // Interview
+    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'interview_credits', label: 'Session' },
+    'tool-card-star': { type: 'free' }, // STAR Drill is free capability
+    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'strategy_inquisitor_credits', label: 'Credit' },
+
+    // Post
+    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'strategy_followup_credits', label: 'Credit' },
+    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'strategy_closer_credits', label: 'Credit' },
+    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'strategy_plan_credits', label: 'Plan' },
+    'tool-card-lab': { type: 'free' } // Hub is free
+};
+
 // Global scope definition for verifyInterviewAccess to allow external calls
 function verifyInterviewAccess(session) {
     if (!session) return;
@@ -247,24 +267,7 @@ function updateCreditDisplay(session) {
 }
 
 // --- DYNAMIC TOOL BELT LOGIC ---
-const TOOL_CONFIG = {
-    // Prep
-    'tool-card-scanner': { type: 'free' },
-    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'rewrite_credits', label: 'Credit' },
-    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'cover_credits', label: 'Credit' },
-    'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
 
-    // Interview
-    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'interview_credits', label: 'Session' },
-    'tool-card-star': { type: 'free' }, // STAR Drill is free capability
-    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'strategy_inquisitor_credits', label: 'Credit' },
-
-    // Post
-    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'strategy_followup_credits', label: 'Credit' },
-    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'strategy_closer_credits', label: 'Credit' },
-    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'strategy_plan_credits', label: 'Plan' },
-    'tool-card-lab': { type: 'free' } // Hub is free
-};
 
 function updateToolBelt(session) {
     if (!session) return;
