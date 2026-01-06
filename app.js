@@ -3069,3 +3069,12 @@ window.renderUpgradeHub = function (containerId) {
         </div>
     `;
 };
+
+// --- INITIALIZATION ---
+// Automatically fetch profile and update tool belt on load
+document.addEventListener('DOMContentLoaded', () => {
+    // Only run if we are on a page that uses app.js logic (has supabase)
+    if (window.supabase) {
+        checkAccess('interview_credits').catch(e => console.log("Init Check Failed:", e));
+    }
+});
