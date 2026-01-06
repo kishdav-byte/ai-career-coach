@@ -208,6 +208,12 @@ async function checkAccess(requiredType = 'interview_credits') {
 
 function updateCreditDisplay(session) {
     if (!session) return;
+
+    // Trigger Dynamic Tool Belt Update (Safe Call)
+    if (typeof updateToolBelt === 'function') {
+        updateToolBelt(session);
+    }
+
     const countEl = document.getElementById('rb-credit-count');
     const displayEl = document.getElementById('rb-credit-display');
     const generateBtn = document.getElementById('rb-generate-btn');
@@ -238,6 +244,104 @@ function updateCreditDisplay(session) {
             }
         }
     }
+}
+
+// --- DYNAMIC TOOL BELT LOGIC ---
+const TOOL_CONFIG = {
+    // Prep
+    'tool-card-scanner': { type: 'free' },
+    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'rewrite_credits', label: 'Credit' },
+    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'cover_credits', label: 'Credit' },
+    'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
+
+    // Interview
+    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'interview_credits', label: 'Session' },
+    'tool-card-star': { type: 'free' }, // STAR Drill is free capability
+    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'strategy_inquisitor_credits', label: 'Credit' },
+
+    // Post
+    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'strategy_followup_credits', label: 'Credit' },
+    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'strategy_closer_credits', label: 'Credit' },
+    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'strategy_plan_credits', label: 'Plan' },
+    'tool-card-lab': { type: 'free' } // Hub is free
+};
+
+function updateToolBelt(session) {
+    if (!session) return;
+    const isUnlimited = session.is_unlimited || session.subscription_status === 'active';
+    const universalCredits = session.credits || 0; // Universal Credits
+
+    Object.entries(TOOL_CONFIG).forEach(([id, config]) => {
+        const card = document.getElementById(id);
+        if (!card) return;
+
+        // Clear existing badges to prevent duplicates
+        const existingBadge = card.querySelector('.dynamic-badge');
+        if (existingBadge) existingBadge.remove();
+
+        let badgeHtml = '';
+
+        // 1. FREE TOOLS
+        if (config.type === 'free') {
+            badgeHtml = `<span class="dynamic-badge inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-slate-700 text-slate-300 ml-auto border border-slate-600">Free</span>`;
+        }
+
+        // 2. PAID TOOLS
+        else {
+            // Check specific credit balance OR universal credits OR subscription
+            const specificBalance = session[config.creditKey] || 0;
+            const isUnlocked = isUnlimited || (specificBalance > 0) || (universalCredits > 0);
+
+            if (isUnlocked) {
+                // Active / Unlocked
+                let text = "Active";
+                let subtext = "";
+
+                if (config.type === 'subscription') {
+                    // Subscription Logic (Mock Interview)
+                    if (isUnlimited) {
+                        text = "Unlimited";
+                        // If we had reset date: subtext = "Resets ...";
+                        if (session.current_period_end) {
+                            const date = new Date(session.current_period_end * 1000).toLocaleDateString();
+                            subtext = `Resets ${date}`;
+                        }
+                    } else if (specificBalance > 0) {
+                        text = `${specificBalance} Left`;
+                    } else if (universalCredits > 0) {
+                        text = "Unlocked"; // via Universal
+                    }
+                } else {
+                    // Credit Logic
+                    if (isUnlimited) {
+                        text = "Included";
+                    } else if (specificBalance > 0) {
+                        text = `${specificBalance} Left`;
+                    } else {
+                        text = "Use Credit"; // Universal
+                    }
+                }
+
+                badgeHtml = `<div class="dynamic-badge ml-auto text-right">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-teal/20 text-teal border border-teal/30">
+                        <i class="fas fa-check-circle mr-1"></i> ${text}
+                    </span>
+                    ${subtext ? `<div class="text-[9px] text-slate-500 mt-0.5 px-1">${subtext}</div>` : ''}
+                 </div>`;
+            } else {
+                // Locked
+                badgeHtml = `<span class="dynamic-badge inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-slate-900 text-slate-400 ml-auto border border-slate-700 group-hover:border-slate-500 transition-colors">
+                    <i class="fas fa-lock mr-1.5 text-xs"></i> ${config.price}
+                </span>`;
+            }
+        }
+
+        // Inject into the main flex container
+        const mainFlex = card.querySelector('.flex.items-center');
+        if (mainFlex) {
+            mainFlex.insertAdjacentHTML('beforeend', badgeHtml);
+        }
+    });
 }
 
 // Global state variables for interview tracking
