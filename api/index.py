@@ -1472,6 +1472,9 @@ def create_checkout_session():
     if not auth_header: return jsonify({"error": "No Token"}), 401
 
     try:
+        # Initialize Client
+        supabase = get_supabase()
+
         # Securely extract User ID from Token
         token = auth_header.split(" ")[1]
         user_response = supabase.auth.get_user(token)
