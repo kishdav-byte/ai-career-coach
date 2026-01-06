@@ -238,7 +238,63 @@
         }
 
         // --- CORE LOGIC ---
-        // ... sendMessage ... 
+        // --- CORE LOGIC ---
+        function sendMessage() {
+            const text = userInput.value.trim();
+            if (!text) return;
+
+            // 1. User Message
+            appendMessage('user', text);
+            userInput.value = '';
+            isProcessing = true;
+            sendBtn.disabled = true;
+
+            // 2. Scroll
+            scrollToBottom();
+
+            // 3. Thinking State
+            const loadingId = showThinking();
+            scrollToBottom();
+
+            // 4. API Call
+            let token = null;
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                token = session?.access_token;
+            } catch (e) { }
+
+            fetch('/api', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token ? `Bearer ${token}` : ''
+                },
+                body: JSON.stringify({
+                    action: 'lab_assistant_chat',
+                    message: text,
+                    context: system_prompt_context // Pass context if available
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    removeThinking(loadingId);
+
+                    if (data.response) {
+                        streamResponse(data.response);
+                    } else if (data.error) {
+                        streamResponse("**System Error:** " + data.error);
+                        isProcessing = false;
+                        sendBtn.disabled = false;
+                    }
+                })
+                .catch(err => {
+                    removeThinking(loadingId);
+                    streamResponse("**Connection Error:** Unable to reach the Neural Net. Please try again.");
+                    console.error(err);
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                });
+        }
 
         function appendMessage(role, text) {
             const div = document.createElement('div');
@@ -353,8 +409,8 @@
                     if (matchedTrigger) {
                         const colors = getChipColors(matchedTrigger.color);
                         const chipHtml = `
-            < button onclick = "window.location.href='${matchedTrigger.action}'"
-        class="mt-6 group flex items-center justify-between w-full max-w-xs backdrop-blur-md border rounded-lg p-3 transition-all duration-300 text-left ${colors} hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] cursor-pointer" >
+                        <button onclick="window.location.href='${matchedTrigger.action}'"
+                            class="mt-6 group flex items-center justify-between w-full max-w-xs backdrop-blur-md border rounded-lg p-3 transition-all duration-300 text-left ${colors} hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] cursor-pointer">
                             <div class="flex items-center gap-3">
                                 <div class="w-8 h-8 rounded-md bg-slate-950/50 flex items-center justify-center border border-white/10 shrink-0">
                                     ${matchedTrigger.icon}
@@ -370,7 +426,7 @@
                             <div class="opacity-50 group-hover:opacity-100 group-hover:translate-x-1 transition-transform">
                                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                             </div>
-                        </button >
+                        </button>
                         `;
                         finalHtml += chipHtml;
                     }
