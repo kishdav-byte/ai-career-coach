@@ -1688,13 +1688,13 @@ def decrement_strategy_credit(user_id, tool_type, token):
         # Map tool to credit column
         updated = False
         col_map = {
-            'closer': 'strategy_closer_credits',
-            'inquisitor': 'strategy_inquisitor_credits',
-            'followup': 'strategy_followup_credits',
-            'plan': 'strategy_plan_credits',
-            'rewrite': 'rewrite_credits',
+            'closer': 'credits_negotiation',
+            'inquisitor': 'credits_inquisitor',
+            'followup': 'credits_followup',
+            'plan': 'credits_30_60_90',
+            'rewrite': 'rewrite_credits', # Assuming this one is correct based on schema file
             'linkedin': 'credits_linkedin',
-            'cover': 'cover_credits' # Verify if column matches
+            'cover': 'credits_cover_letter'
         }
         
         target_col = col_map.get(tool_type)

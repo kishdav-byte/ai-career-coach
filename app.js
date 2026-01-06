@@ -37,18 +37,18 @@ const TOOL_CONFIG = {
     // Prep
     'tool-card-scanner': { type: 'free' },
     'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'rewrite_credits', label: 'Credit' },
-    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'cover_credits', label: 'Credit' },
+    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'credits_cover_letter', label: 'Credit' },
     'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
 
     // Interview
     'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'interview_credits', label: 'Session' },
     'tool-card-star': { type: 'free' }, // STAR Drill is free capability
-    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'strategy_inquisitor_credits', label: 'Credit' },
+    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'credits_inquisitor', label: 'Credit' },
 
     // Post
-    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'strategy_followup_credits', label: 'Credit' },
-    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'strategy_closer_credits', label: 'Credit' },
-    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'strategy_plan_credits', label: 'Plan' },
+    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'credits_followup', label: 'Credit' },
+    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'credits_negotiation', label: 'Credit' },
+    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'credits_30_60_90', label: 'Plan' },
     'tool-card-lab': { type: 'free' } // Hub is free
 };
 
