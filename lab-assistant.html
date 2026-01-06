@@ -318,9 +318,7 @@
             div.innerHTML = `
                 ${icon}
                 <div class="${bubbleClass}">
-                    <div class="text-sm leading-relaxed prose prose-invert max-w-none break-words whitespace-pre-wrap text-left">
-                        ${role === 'user' ? text : ''} <!-- AI Text filled later if streaming -->
-                    </div>
+                    <div class="text-sm leading-relaxed prose prose-invert max-w-none break-words whitespace-pre-wrap text-left">${role === 'user' ? text : ''}</div>
                 </div>
             `;
 
