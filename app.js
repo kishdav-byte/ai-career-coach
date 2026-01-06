@@ -804,7 +804,7 @@ async function initiateCheckout(productKey, userEmail, userId) {
         const data = await res.json();
         if (data.error) throw new Error(data.error);
 
-        if (error) throw error;
+
 
         if (data?.url) {
             window.location.href = data.url;
