@@ -491,7 +491,7 @@ def get_feedback():
                 "content": (
                     f"User Answer: {message}. \n"
                     "Step 1: Provide brief, constructive feedback on this final answer. (Put in 'feedback' field).\n"
-                    "Step 2: Generate a closing statement thanking them for completing the interview. (Put in 'next_question' field)."
+                    "Step 2: Generate a closing statement: 'Thank you for completing the interview. We appreciate your time and insights today. Please stand by while the final report is generated.' (Put in 'next_question' field)."
                 )
              })
 
