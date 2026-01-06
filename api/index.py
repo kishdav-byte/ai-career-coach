@@ -1664,11 +1664,73 @@ def generate_strategy_tool():
         )
         track_cost_chat(completion, "gpt-4o", "Generate Strategy Tool")
         
+        # SUCCESS: Decrement Credits
+        try:
+            token = auth_header.split(" ")[1]
+            # Verify user for ID (Lazy way since we trust token for cost tracking but needed for DB)
+            # Actually decrement function extracts user? No, it takes user_id.
+            # We need to get user_id here.
+            sb = get_supabase()
+            u_res = sb.auth.get_user(token)
+            if u_res and u_res.user:
+                decrement_strategy_credit(u_res.user.id, tool_type, token)
+        except Exception as ded_err:
+            print(f"Decrement Failed: {ded_err}")
+        
         return jsonify({"content": completion.choices[0].message.content}), 200
 
     except Exception as e:
         print(f"Strategy Gen Error: {e}")
         return jsonify({"error": str(e)}), 500
+
+def decrement_strategy_credit(user_id, tool_type, token):
+    try:
+        # Map tool to credit column
+        updated = False
+        col_map = {
+            'closer': 'strategy_closer_credits',
+            'inquisitor': 'strategy_inquisitor_credits',
+            'followup': 'strategy_followup_credits',
+            'plan': 'strategy_plan_credits',
+            'rewrite': 'rewrite_credits',
+            'linkedin': 'credits_linkedin',
+            'cover': 'cover_credits' # Verify if column matches
+        }
+        
+        target_col = col_map.get(tool_type)
+        if not target_col: return # Unknown tool
+        
+        # Init Client
+        from supabase import create_client
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY")
+        client = create_client(url, key)
+        client.postgrest.auth(token)
+        
+        # Fetch Current Balance
+        # Select target specific credit AND universal credit
+        res = client.table('users').select(f"{target_col}, credits, is_unlimited").eq('id', user_id).single().execute()
+        user = res.data
+        
+        if not user: return
+        if user.get('is_unlimited'): return # No deduction for unlimited
+        
+        # Logic: Specific First, Then Universal
+        specific_bal = user.get(target_col, 0)
+        universal_bal = user.get('credits', 0)
+        
+        if specific_bal > 0:
+            client.table('users').update({ target_col: specific_bal - 1 }).eq('id', user_id).execute()
+            print(f"Deducted 1 {target_col} for user {user_id}")
+        elif universal_bal > 0:
+            client.table('users').update({ 'credits': universal_bal - 1 }).eq('id', user_id).execute()
+            print(f"Deducted 1 Universal Credit for user {user_id}")
+        else:
+            print(f"User {user_id} has NO CREDITS for {tool_type}. Bypassed via Frontend?")
+            
+    except Exception as e:
+        print(f"Credit Deduction Error: {e}")
+        # Non-blocking failure
 
 # Expose app
 app = app
