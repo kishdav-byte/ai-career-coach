@@ -735,8 +735,14 @@ async function initiateCheckout(productKey, userEmail, userId) {
         const product = PRODUCTS.find(p => p.id === productKey);
         // Fallback to legacy keys if not in array (e.g. from old buttons)
         const legacyMap = {
-            'strategy_interview_sim': 'price_1Sgsf9IH1WTKNasqxvk528yY',
-            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'
+            'strategy_interview_sim': 'price_1SeRRnlH1WTKNasqQFCJDxH5',
+            'monthly_plan': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',
+            'monthly_unlimited': 'price_1Sbq1WIH1WTKNasqXrlCBDSD',
+            'strategy_plan': 'price_1SePlolH1WTKNasq64loXSAv',
+            'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',
+            'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',
+            'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',
+            'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm'
         };
 
         const actualPriceId = product ? product.stripeId : legacyMap[productKey];
