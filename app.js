@@ -1764,8 +1764,7 @@ function init() {
                     if (data.response.feedback) {
                         finalHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
                             <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
-                            <div class="test-sm text-gray-300">${data.response.feedback}</div>
-                            ${data.response.score ? `<div class="mt-2 text-xs font-mono text-yellow-400">Score: ${data.response.score}/5</div>` : ''}
+                            <div class="text-sm leading-relaxed">${data.response.feedback}</div>
                         </div>`;
                     }
                     if (data.response.next_question) {
@@ -1804,8 +1803,7 @@ function init() {
             if (aiData.feedback) {
                 displayHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
                     <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
-                    <div class="test-sm text-gray-300">${aiData.feedback}</div>
-                    ${aiData.score ? `<div class="mt-2 text-xs font-mono text-yellow-400">Score: ${aiData.score}/5</div>` : ''}
+                    <div class="text-sm leading-relaxed">${aiData.feedback}</div>
                 </div>`;
             }
 
