@@ -223,44 +223,14 @@
                     system_prompt_context = `CONTEXT:\nRole: ${ctx.role}\nCompany: ${ctx.company}\nStatus: ${ctx.status || 'Active'}\nJD: ${ctx.jd}\nNotes: ${ctx.notes}`;
 
                     // Silent Open
-                    generateOpening();
+                    // generateOpening(); // Removed to prevent double-message / overwrite of hardcoded text
 
                 } catch (e) { console.error("Context Error", e); }
             }
         });
 
-        function generateOpening() {
-            // Retrieve Token for Auth
-            let token = null;
-            try {
-                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
-                token = session?.access_token;
-            } catch (e) { }
+        // Mock Responses
 
-            fetch('/api', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token ? `Bearer ${token}` : ''
-                },
-                body: JSON.stringify({
-                    action: 'lab_assistant_chat',
-                    message: "GENERATE_OPENING_GREETING", // Special trigger
-                    context: system_prompt_context
-                })
-            })
-                .then(res => res.json())
-                .then(data => {
-                    if (data.response) {
-                        // Update Welcome Text smoothly
-                        const welcomeEl = document.getElementById('ai-welcome-text');
-                        welcomeEl.innerHTML = marked.parse(data.response);
-                    }
-                })
-                .catch(err => console.error("Opening generation failed", err));
-        }
-
-        // -- MOCK RESPONSES --
         const mockResponses = {
             "default": "I've analyzed your input. Based on current market trends, I suggest we focus on quantifying your impact. Can you provide specific metrics regarding your last role?",
             "star": "The **STAR Method** (Situation, Task, Action, Result) is the gold standard for behavioral interviews.\n\n* **Situation**: Briefly set the scene.\n* **Task**: Describe your specific responsibility.\n* **Action**: Detail the steps *you* took (use 'I', not 'We').\n* **Result**: Quantify the outcome (e.g., 'Increased revenue by 20%').\n\nWould you like to practice a STAR response?",
