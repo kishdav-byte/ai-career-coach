@@ -946,10 +946,30 @@ function init() {
 
         if (credits > 0 || isUnlimited) {
             overlay.classList.add('hidden');
-            if (optimizeBtn) optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
+            if (optimizeBtn) {
+                optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
+                optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+                optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                optimizeBtn.onclick = null; // Revert to default binding (handled elsewhere)
+            }
         } else {
             overlay.classList.remove('hidden');
-            if (optimizeBtn) optimizeBtn.innerHTML = 'UNLOCK & OPTIMIZE';
+            if (optimizeBtn) {
+                optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
+                optimizeBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                optimizeBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+
+                // Direct Checkout Trigger
+                optimizeBtn.onclick = async () => {
+                    const btn = document.getElementById('optimize-linkedin-btn');
+                    if (btn) {
+                        btn.textContent = 'Redirecting...';
+                        btn.disabled = true;
+                    }
+                    const { data: { user } } = await supabase.auth.getUser();
+                    initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
+                };
+            }
         }
     }
 
