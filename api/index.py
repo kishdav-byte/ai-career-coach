@@ -1481,7 +1481,9 @@ def create_checkout_session():
         # Securely extract User ID from Token
         token = auth_header.split(" ")[1]
         user_response = supabase.auth.get_user(token)
-        user_id = user_response.user.id if user_response.user else None
+        user_obj = user_response.user if user_response else None
+        user_id = user_obj.id if user_obj else None
+        user_email = user_obj.email if user_obj else None
         
         data = request.json
         plan_type = data.get('plan_type')
@@ -1490,6 +1492,8 @@ def create_checkout_session():
         
         # Use token ID over body ID for security, fallback to body if token fails (unlikely)
         target_user_id = user_id or data.get('userId')
+        target_email = user_email or data.get('email')
+        
         if not target_user_id: return jsonify({"error": "Creating checkout failed: Unknown User"}), 400
         
         stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -1548,6 +1552,7 @@ def create_checkout_session():
         mode = data.get('mode', 'subscription' if is_sub else 'payment')
 
         checkout_session = stripe.checkout.Session.create(
+            customer_email=target_email,
             line_items=[{
                 'price': price_id,
                 'quantity': 1,
@@ -1556,7 +1561,7 @@ def create_checkout_session():
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
-                "user_id": target_user_id, # Verified User ID
+                "userId": target_user_id, # Fixed key to match Webhook (userId)
                 "plan_type": plan_type
             }
         )
