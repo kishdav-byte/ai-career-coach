@@ -212,7 +212,7 @@
                 <h2 class="text-2xl font-bold text-white mb-2">Unlock The Inquisitor</h2>
                 <p class="text-slate-400 mb-6 max-w-sm">Reveal high-impact questions to flip the interview dynamic.</p>
                 <button id="btn-unlock"
-                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                    class="bg-purple-600 hover:bg-purple-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-purple-900/20">
                     Unlock Tool ($6.99)
                 </button>
             </div>
@@ -291,7 +291,7 @@
 
                     // Unlocked Style (Purple/Blue - Standard Action)
                     btnGenerate.innerHTML = `<span class="btn-text">GENERATE QUESTIONS</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>`;
-                    btnGenerate.classList.remove('bg-green-600', 'hover:bg-green-500', 'shadow-green-900/20');
+                    btnGenerate.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
                     btnGenerate.classList.add('bg-purple-600', 'hover:bg-purple-500');
                     btnGenerate.onclick = null; // Default submit behavior
 
@@ -301,10 +301,10 @@
                     // Locked State
                     btnGenerate.disabled = false; // Enable for payment click
 
-                    // Locked Style (Green - Purchase Action)
+                    // Locked Style (Purple - Purchase Action, matches branding)
                     btnGenerate.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
-                    btnGenerate.classList.remove('bg-purple-600', 'hover:bg-purple-500');
-                    btnGenerate.classList.add('bg-green-600', 'hover:bg-green-500', 'shadow-green-900/20');
+                    btnGenerate.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
+                    btnGenerate.classList.add('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
 
                     // Override Submit to triggers checkout
                     btnGenerate.onclick = (e) => {
