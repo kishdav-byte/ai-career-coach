@@ -207,18 +207,40 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
 
     // 4. Decision Gate
     if (isSubscribed || specificBalance > 0 || universalBalance > 0) {
+        // Unlock UI if it exists
+        const interviewOverlay = document.getElementById('interview-unlock-overlay');
+        if (interviewOverlay) interviewOverlay.classList.add('hidden');
+
         return true;
     } else {
-        // Prompt user to upgrade (Only if autoPrompt is enabled)
+        // LOCKED STATE
         if (autoPrompt) {
-            if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
-                const { data: { user } } = await supabase.auth.getUser();
-                if (user) {
-                    initiateCheckout('strategy_interview_sim', user.email, user.id);
-                } else {
-                    // Fallback to session
-                    const session = getSession();
-                    initiateCheckout('strategy_interview_sim', session ? session.email : null, session ? session.user_id : null);
+            // Check if we are on a page with the new overlay
+            const interviewOverlay = document.getElementById('interview-unlock-overlay');
+
+            if (interviewOverlay) {
+                // Use New Overlay UI
+                interviewOverlay.classList.remove('hidden');
+
+                // Wire up the button if not already done (Idempotent)
+                const unlockBtn = document.getElementById('btn-unlock-interview-overlay');
+                if (unlockBtn) {
+                    unlockBtn.onclick = async () => {
+                        // Standard Checkout Flow
+                        const { data: { user } } = await supabase.auth.getUser();
+                        initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
+                    };
+                }
+            } else {
+                // Fallback to Alert for other pages
+                if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (user) {
+                        initiateCheckout('strategy_interview_sim', user.email, user.id);
+                    } else {
+                        const session = getSession();
+                        initiateCheckout('strategy_interview_sim', session ? session.email : null, session ? session.user_id : null);
+                    }
                 }
             }
         }
@@ -1596,6 +1618,10 @@ function init() {
     const startInterviewBtn = document.getElementById('start-interview-btn');
     if (startInterviewBtn) {
         startInterviewBtn.addEventListener('click', async () => {
+            // Permission Check (Silent check first, then prompt if failed)
+            const hasAccess = await checkAccess('interview_credits', true);
+            if (!hasAccess) return;
+
             // Prioritize Context Accordion inputs, fallback to sidebar
             const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
             const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';

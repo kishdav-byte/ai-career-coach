@@ -323,7 +323,7 @@
             <!-- VIEW: INTERVIEW LAB OUTPUT -->
             <div id="view-interview-main" class="tool-main-view">
 
-                <!-- Empty/Intro State -->
+                <!-- INTRO STATE (Standard) -->
                 <div id="interview-intro" class="text-center mt-20">
                     <div
                         class="w-24 h-24 bg-slate-900/80 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800 shadow-2xl">
@@ -332,6 +332,22 @@
                     <h3 class="text-xl font-bold text-slate-200 mb-2">AI Interview Simulator</h3>
                     <p class="text-slate-500 max-w-md mx-auto">Click Start to begin a real-time voice interview. The AI
                         will ask questions based on your target role.</p>
+                </div>
+
+                <!-- LOCKED STATE OVERLAY (New) -->
+                <div id="interview-unlock-overlay"
+                    class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                    <div
+                        class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                        <i class="fas fa-lock text-2xl text-slate-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Unlock Interview Simulator</h2>
+                    <p class="text-slate-400 mb-6 max-w-sm">Realistic mock interviews require premium access. Get
+                        instant access with a single credit.</p>
+                    <button id="btn-unlock-interview-overlay"
+                        class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                        Unlock Tool ($9.99)
+                    </button>
                 </div>
 
                 <!-- Loading/Countdown Overlay -->
