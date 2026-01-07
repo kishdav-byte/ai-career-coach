@@ -823,7 +823,8 @@ async function initiateCheckout(productKey, userEmail, userId) {
             'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',
             'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',
             'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',
-            'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm'
+            'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',
+            'strategy_linkedin': 'price_1ShWBJIH1WTKNasqd7p9VA5f'
         };
 
         const actualPriceId = product ? product.stripeId : legacyMap[productKey];
