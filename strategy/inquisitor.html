@@ -289,10 +289,10 @@
                     unlockOverlay.classList.add('hidden');
                     btnGenerate.disabled = false;
 
-                    // Unlocked Style (Purple/Blue - Standard Action)
+                    // Unlocked Style (Purple - Standard Action)
                     btnGenerate.innerHTML = `<span class="btn-text">GENERATE QUESTIONS</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>`;
-                    btnGenerate.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
-                    btnGenerate.classList.add('bg-purple-600', 'hover:bg-purple-500');
+                    // Button is already purple by default, just remove shadow if it was added
+                    btnGenerate.classList.remove('shadow-purple-900/20');
                     btnGenerate.onclick = null; // Default submit behavior
 
                     statusDot.classList.remove('bg-slate-600');
@@ -303,8 +303,8 @@
 
                     // Locked Style (Purple - Purchase Action, matches branding)
                     btnGenerate.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
-                    btnGenerate.classList.remove('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
-                    btnGenerate.classList.add('bg-purple-600', 'hover:bg-purple-500', 'shadow-purple-900/20');
+                    // Button is already purple, just add stronger shadow for locked state
+                    btnGenerate.classList.add('shadow-purple-900/20');
 
                     // Override Submit to triggers checkout
                     btnGenerate.onclick = (e) => {
@@ -318,6 +318,17 @@
                 }
             } catch (e) {
                 console.error("Auth check failed", e);
+                // FALLBACK: Assume locked state if API fails
+                btnGenerate.disabled = false;
+                btnGenerate.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
+                btnGenerate.classList.add('shadow-purple-900/20');
+                btnGenerate.onclick = (e) => {
+                    e.preventDefault();
+                    alert('Unable to verify credits. Please refresh the page or try again.');
+                };
+                btnUnlock.onclick = () => {
+                    alert('Unable to verify credits. Please refresh the page or try again.');
+                };
             }
 
             // 2. Handle Generation
