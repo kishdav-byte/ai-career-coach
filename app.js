@@ -956,8 +956,8 @@ function init() {
             overlay.classList.remove('hidden');
             if (optimizeBtn) {
                 optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
-                optimizeBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-                optimizeBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500'); // Ensure green is removed
+                optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
 
                 // Direct Checkout Trigger
                 optimizeBtn.onclick = async () => {
