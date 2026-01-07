@@ -1772,6 +1772,7 @@ def test_fulfillment():
 # STRIPE WEBHOOK HANDLER (New Fulfillment Logic)
 # ------------------------------------------------------------------------------
 @app.route('/api/webhook', methods=['POST'])
+@app.route('/api/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     import stripe
     stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
