@@ -211,12 +211,22 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
         const interviewOverlay = document.getElementById('interview-unlock-overlay');
         if (interviewOverlay) interviewOverlay.classList.add('hidden');
 
-        // UPDATE BUTTON: Active State
+        // UPDATE BUTTON: Active State (Interview)
         const startBtn = document.getElementById('start-interview-btn');
         if (startBtn) {
             startBtn.innerHTML = `START SESSION`;
             startBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
             startBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+            startBtn.onclick = null; // Remove direct checkout if it was added
+        }
+
+        // UPDATE BUTTON: Active State (LinkedIn)
+        const linkedinBtn = document.getElementById('optimize-linkedin-btn');
+        if (linkedinBtn) {
+            linkedinBtn.innerHTML = `OPTIMIZE PROFILE`;
+            linkedinBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+            linkedinBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+            // Original Onclick is likely bound in HTML or elsewhere, so we just reset visual
         }
 
         return true;
@@ -246,6 +256,26 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
                         }
                         const { data: { user } } = await supabase.auth.getUser();
                         initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
+                    };
+                }
+
+                // UPDATE BUTTON: Locked State (LinkedIn)
+                // NOTE: This runs if we are on the LinkedIn View (controlled by url/hash check usually, or we just update both if elements exist)
+                const linkedinBtn = document.getElementById('optimize-linkedin-btn');
+                if (linkedinBtn) {
+                    linkedinBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
+                    linkedinBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                    linkedinBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+
+                    // Direct Checkout Trigger
+                    linkedinBtn.onclick = async () => {
+                        const btn = document.getElementById('optimize-linkedin-btn');
+                        if (btn) {
+                            btn.textContent = 'Redirecting...';
+                            btn.disabled = true;
+                        }
+                        const { data: { user } } = await supabase.auth.getUser();
+                        initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
                     };
                 }
 
