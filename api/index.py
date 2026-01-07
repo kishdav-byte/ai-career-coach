@@ -1741,6 +1741,34 @@ def decrement_strategy_credit(user_id, tool_type, token):
         print(f"Credit Deduction Error: {e}")
 
 # ------------------------------------------------------------------------------
+# DEBUG ROUTE: Test Fulfillment Logic (Temporary)
+# ------------------------------------------------------------------------------
+@app.route('/api/test-fulfillment', methods=['GET'])
+def test_fulfillment():
+    # Hardcoded safety check - only allow if matching specific user text or similar if needed
+    # For now, open but obscure.
+    
+    user_id = request.args.get('user_id')
+    plan_type = request.args.get('plan', 'strategy_interview_sim')
+    
+    if not user_id:
+        return jsonify({"error": "Missing user_id"}), 400
+
+    fake_session = {
+        "metadata": {
+            "userId": user_id,
+            "plan_type": plan_type
+        },
+        "customer": "cus_TEST"
+    }
+
+    try:
+        handle_checkout_fulfillment(fake_session)
+        return jsonify({"status": "Triggered fulfillment", "data": fake_session}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ------------------------------------------------------------------------------
 # STRIPE WEBHOOK HANDLER (New Fulfillment Logic)
 # ------------------------------------------------------------------------------
 @app.route('/api/webhook', methods=['POST'])
