@@ -1772,8 +1772,15 @@ def handle_checkout_fulfillment(session):
 
     print(f"Fulfilling Order: {plan_type} for User: {user_id}")
     
-    # Initialize Supabase
-    supabase_client = get_supabase()
+    # Initialize Supabase with SERVICE ROLE KEY to bypass RLS
+    from supabase import create_client
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    if not key:
+        print("CRITICAL WARNING: SUPABASE_SERVICE_ROLE_KEY missing. Fulfillment may fail RLS.")
+        key = os.environ.get("SUPABASE_KEY")
+        
+    supabase_client = create_client(url, key)
     
     updates = {}
     
