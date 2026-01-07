@@ -1734,7 +1734,107 @@ def decrement_strategy_credit(user_id, tool_type, token):
             
     except Exception as e:
         print(f"Credit Deduction Error: {e}")
-        # Non-blocking failure
+
+# ------------------------------------------------------------------------------
+# STRIPE WEBHOOK HANDLER (New Fulfillment Logic)
+# ------------------------------------------------------------------------------
+@app.route('/api/webhook', methods=['POST'])
+def stripe_webhook():
+    import stripe
+    stripe.api_key = STRIPE_SECRET_KEY
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, webhook_secret
+        )
+    except ValueError as e:
+        return jsonify({'error': 'Invalid payload'}), 400
+    except stripe.error.SignatureVerificationError as e:
+        return jsonify({'error': 'Invalid signature'}), 400
+
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        handle_checkout_fulfillment(session)
+
+    return jsonify({'status': 'success'}), 200
+
+def handle_checkout_fulfillment(session):
+    metadata = session.get('metadata', {})
+    plan_type = metadata.get('plan_type')
+    user_id = metadata.get('userId')
+    
+    if not user_id or not plan_type:
+        print(f"Skipping fulfillment: Missing metadata. Plan: {plan_type}, User: {user_id}")
+        return
+
+    print(f"Fulfilling Order: {plan_type} for User: {user_id}")
+    
+    # Initialize Supabase
+    supabase_client = get_supabase()
+    
+    updates = {}
+    
+    if plan_type == 'strategy_interview_sim':
+        # Increment Interview Credits
+        try:
+            user_data = supabase_client.table('users').select('interview_credits').eq('id', user_id).single().execute()
+            current = user_data.data.get('interview_credits', 0) if user_data.data else 0
+            updates['interview_credits'] = current + 1
+        except Exception as e:
+            print(f"Error fetching current credits: {e}")
+            updates['interview_credits'] = 1
+        
+    elif plan_type == 'monthly_unlimited':
+        updates['subscription_status'] = 'active'
+        updates['subscription_tier'] = 'unlimited'
+        updates['stripe_customer_id'] = session.get('customer')
+        
+    elif plan_type == 'strategy_rewrite':
+        try:
+            user_data = supabase_client.table('users').select('rewrite_credits').eq('id', user_id).single().execute()
+            current = user_data.data.get('rewrite_credits', 0) if user_data.data else 0
+            updates['rewrite_credits'] = current + 1
+        except: updates['rewrite_credits'] = 1
+        
+    elif plan_type == 'strategy_bundle':
+         # 5 Universal Credits
+        try:
+            user_data = supabase_client.table('users').select('credits').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits', 0) if user_data.data else 0
+            updates['credits'] = current + 5
+        except: updates['credits'] = 5
+        
+    elif plan_type == 'strategy_closer':
+        try:
+            user_data = supabase_client.table('users').select('credits_negotiation').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_negotiation', 0) if user_data.data else 0
+            updates['credits_negotiation'] = current + 1
+        except: updates['credits_negotiation'] = 1
+
+    elif plan_type == 'strategy_followup':
+        try:
+            user_data = supabase_client.table('users').select('credits_followup').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_followup', 0) if user_data.data else 0
+            updates['credits_followup'] = current + 1
+        except: updates['credits_followup'] = 1
+
+    elif plan_type == 'strategy_plan':
+        try:
+            user_data = supabase_client.table('users').select('credits_30_60_90').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_30_60_90', 0) if user_data.data else 0
+            updates['credits_30_60_90'] = current + 1
+        except: updates['credits_30_60_90'] = 1
+        
+    if updates:
+        try:
+            supabase_client.table('users').update(updates).eq('id', user_id).execute()
+            print("Fulfillment Successful")
+        except Exception as e:
+            print(f"Fulfillment DB Error: {e}")
+
 
 # Expose app
 app = app
