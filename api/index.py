@@ -1741,7 +1741,7 @@ def decrement_strategy_credit(user_id, tool_type, token):
 @app.route('/api/webhook', methods=['POST'])
 def stripe_webhook():
     import stripe
-    stripe.api_key = STRIPE_SECRET_KEY
+    stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
     payload = request.get_data()
     sig_header = request.headers.get('Stripe-Signature')
     webhook_secret = os.environ.get('STRIPE_WEBHOOK_SECRET')
@@ -1827,6 +1827,27 @@ def handle_checkout_fulfillment(session):
             current = user_data.data.get('credits_30_60_90', 0) if user_data.data else 0
             updates['credits_30_60_90'] = current + 1
         except: updates['credits_30_60_90'] = 1
+
+    elif plan_type == 'strategy_cover':
+        try:
+            user_data = supabase_client.table('users').select('credits_cover_letter').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_cover_letter', 0) if user_data.data else 0
+            updates['credits_cover_letter'] = current + 1
+        except: updates['credits_cover_letter'] = 1
+
+    elif plan_type == 'strategy_linkedin':
+        try:
+            user_data = supabase_client.table('users').select('credits_linkedin').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_linkedin', 0) if user_data.data else 0
+            updates['credits_linkedin'] = current + 1
+        except: updates['credits_linkedin'] = 1
+
+    elif plan_type == 'strategy_inquisitor':
+        try:
+            user_data = supabase_client.table('users').select('credits_inquisitor').eq('id', user_id).single().execute()
+            current = user_data.data.get('credits_inquisitor', 0) if user_data.data else 0
+            updates['credits_inquisitor'] = current + 1
+        except: updates['credits_inquisitor'] = 1
         
     if updates:
         try:
