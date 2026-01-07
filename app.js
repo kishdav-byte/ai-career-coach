@@ -1097,7 +1097,7 @@ function init() {
         unlockLinkedInBtn.addEventListener('click', async () => {
             const session = getSession();
             if (!session) return window.location.href = '/login.html';
-            initiateCheckout('linkedin_optimize', session.email, session.user_id); // Pass ID!
+            initiateCheckout('strategy_linkedin', session.email, session.user_id); // Pass ID!
         });
     }
 
@@ -1120,7 +1120,7 @@ function init() {
             if (!isUnlimited && credits <= 0) {
                 // Trigger Checkout
                 if (confirm("Unlock this feature for $6.99?")) {
-                    initiateCheckout('linkedin_optimize', session.email, session.user_id);
+                    initiateCheckout('strategy_linkedin', session.email, session.user_id);
                 }
                 return;
             }
@@ -1143,7 +1143,7 @@ function init() {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        action: 'linkedin_optimize',
+                        action: 'strategy_linkedin',
                         email: email,
                         aboutMe: input
                     })
@@ -2432,7 +2432,7 @@ if (document.getElementById('generate-plan-btn')) {
             const response = await fetch('/api', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: 'linkedin_optimize', aboutMe })
+                body: JSON.stringify({ action: 'strategy_linkedin', aboutMe })
             });
             const result = await response.json();
 
