@@ -226,8 +226,13 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
             linkedinBtn.innerHTML = `OPTIMIZE PROFILE`;
             linkedinBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
             linkedinBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+            linkedinBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+            linkedinBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
             // Original Onclick is likely bound in HTML or elsewhere, so we just reset visual
         }
+
+        // Also run the dedicated LinkedIn verification (Overlay Logic) with FRESH session
+        verifyLinkedInAccess(session);
 
         return true;
     } else {
@@ -1071,8 +1076,9 @@ function init() {
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.target.id === 'view-linkedin-sidebar' && !mutation.target.classList.contains('hidden')) {
-                const session = getSession();
-                verifyLinkedInAccess(session);
+                // Remove premature check to prevent flicker. Rely on checkAccess() or user action.
+                // const session = getSession();
+                // verifyLinkedInAccess(session);
             }
         });
     });
@@ -1084,7 +1090,7 @@ function init() {
     // Initial Check if already on linkedin
     if (window.location.hash === '#linkedin') {
         const session = getSession();
-        verifyLinkedInAccess(session);
+        // verifyLinkedInAccess(session); // Disabled to prevent flicker
     }
 
     // Bind Unlock Button for Interview Logic
