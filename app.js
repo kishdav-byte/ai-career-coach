@@ -236,6 +236,17 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
                     startBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($9.99)`;
                     startBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
                     startBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+
+                    // Direct Checkout Trigger
+                    startBtn.onclick = async () => {
+                        const startBtn = document.getElementById('start-interview-btn');
+                        if (startBtn) {
+                            startBtn.textContent = 'Redirecting...';
+                            startBtn.disabled = true;
+                        }
+                        const { data: { user } } = await supabase.auth.getUser();
+                        initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
+                    };
                 }
 
                 // Wire up the button if not already done (Idempotent)
