@@ -257,7 +257,7 @@
                 <p class="text-slate-400 mb-6 max-w-sm">Premium AI-driven writing requires access. Get instant result
                     with a single credit.</p>
                 <button id="btn-unlock-overlay"
-                    class="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-blue-900/20">
+                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
                     Unlock Tool ($6.99)
                 </button>
             </div>
@@ -357,21 +357,38 @@
             const isUnlimited = profile?.is_unlimited || false;
 
             // GATEKEEPING LOGIC
+            // GATEKEEPING LOGIC
             const overlay = document.getElementById('unlock-overlay');
             const genBtn = document.getElementById('generate-btn');
+            const overlayBtn = document.getElementById('btn-unlock-overlay');
+
+            // Hardcode overlay button to Green (Unlock Style)
+            if (overlayBtn) {
+                overlayBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                overlayBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                overlayBtn.onclick = triggerCheckout;
+            }
 
             if (isUnlimited || credits > 0) {
                 isLocked = false;
                 overlay.classList.add('hidden');
                 genBtn.innerHTML = '<span>DRAFT COVER LETTER</span><i class="fas fa-pen-nib"></i>';
+
+                // Standard Action Style (Blue)
+                genBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+                genBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+                genBtn.onclick = generateCoverLetter; // Normal Function
+
             } else {
                 isLocked = true;
                 overlay.classList.remove('hidden');
                 genBtn.innerHTML = '<span>UNLOCK ($6.99)</span><i class="fas fa-lock"></i>';
-            }
 
-            // Bind Unlock Button
-            document.getElementById('btn-unlock-overlay').onclick = triggerCheckout;
+                // Unlock Action Style (Green)
+                genBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                genBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                genBtn.onclick = triggerCheckout; // Direct Checkout
+            }
         });
 
         async function triggerCheckout() {
