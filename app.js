@@ -294,6 +294,9 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
                     };
                 }
             } else {
+                // Fallback for non-overlay pages (e.g. old approach) but we rely on verifyLinkedInAccess mostly now.
+                // Still good to run it.
+                verifyLinkedInAccess(session);
                 // Fallback to Alert for other pages
                 if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
                     const { data: { user } } = await supabase.auth.getUser();
