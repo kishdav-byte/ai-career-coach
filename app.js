@@ -97,6 +97,55 @@ function verifyInterviewAccess(session) {
     }
 }
 
+// LinkedIn Visual Unlock Logic (Global Scope for checkAccess to call)
+function verifyLinkedInAccess(session) {
+    if (!session) return;
+
+    // New Overlay Ref
+    const overlay = document.getElementById('linkedin-unlock-overlay');
+    const optimizeBtn = document.getElementById('optimize-linkedin-btn');
+    // We no longer toggle the sidebar inputs - they are always open (Freemium Style)
+
+    if (!overlay) return;
+
+    // Prevent Flicker: If session data is incomplete (e.g. valid session but missing credit keys from old cache),
+    // do NOT force lock yet. Wait for checkAccess() to populate fresh data.
+    if (session.credits_linkedin === undefined && session.credits === undefined && !session.is_unlimited) {
+        return;
+    }
+
+    const credits = (session.credits_linkedin || 0) + (session.credits || 0);
+    const isUnlimited = session.is_unlimited || false;
+
+    if (credits > 0 || isUnlimited) {
+        overlay.classList.add('hidden');
+        if (optimizeBtn) {
+            optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
+            optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+            optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+            optimizeBtn.onclick = null; // Revert to default binding (handled elsewhere)
+        }
+    } else {
+        overlay.classList.remove('hidden');
+        if (optimizeBtn) {
+            optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
+            optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500'); // Ensure green is removed
+            optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+
+            // Direct Checkout Trigger
+            optimizeBtn.onclick = async () => {
+                const btn = document.getElementById('optimize-linkedin-btn');
+                if (btn) {
+                    btn.textContent = 'Redirecting...';
+                    btn.disabled = true;
+                }
+                const { data: { user } } = await supabase.auth.getUser();
+                initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
+            };
+        }
+    }
+}
+
 // Session Helper (Duplicated from dashboard for standalone app usage)
 // Session Helper (Duplicated from dashboard for standalone app usage)
 const SESSION_KEY = 'aceinterview_session';
@@ -933,384 +982,331 @@ function init() {
         if (el) el.addEventListener('click', handler);
     }
 
-    // LinkedIn Visual Unlock Logic (UPDATED Phase 9.4)
-    function verifyLinkedInAccess(session) {
-        if (!session) return;
+}
 
-        // New Overlay Ref
-        const overlay = document.getElementById('linkedin-unlock-overlay');
-        const optimizeBtn = document.getElementById('optimize-linkedin-btn');
-        // We no longer toggle the sidebar inputs - they are always open (Freemium Style)
+// Auto-analysis logic moved to end of init function
 
-        if (!overlay) return;
+// ---------------------------------------------------------
+// VIEW CONTROLLER (Phase 21: Cross-Nav Removal)
+// ---------------------------------------------------------
+const hash = window.location.hash;
 
-        // Prevent Flicker: If session data is incomplete (e.g. valid session but missing credit keys from old cache),
-        // do NOT force lock yet. Wait for checkAccess() to populate fresh data.
-        if (session.credits_linkedin === undefined && session.credits === undefined && !session.is_unlimited) {
+// Clear ALL active tabs first to prevent overlap
+const allPanes = document.querySelectorAll('.tab-pane');
+allPanes.forEach(pane => pane.classList.remove('active'));
+
+const resumeSection = document.getElementById('resume');
+const interviewSection = document.getElementById('interview');
+
+// Show based on Hash
+const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
+
+if (hash === '#interview') {
+    if (interviewSection) interviewSection.classList.add('active');
+    document.title = "Interview Coach - AI Career Coach";
+} else if (adminHashes.includes(hash)) {
+    // Do not activate Resume section. Wait for Admin Check to reveal specific tool.
+    // We can set title here though
+    document.title = "Admin Tool - AI Career Coach";
+
+    // Temporarily activate it so we can see it if we are already logged in as admin?
+    // Admin check later will unhide the *container* or specific elements, 
+    // but we need the 'active' class on the pane for it to be visible in the layout.
+    // The checkAccess function (lines 119-136) handles adding 'active', 
+    // BUT it runs async. We might want to add 'active' here if we assume it's valid, 
+    // or let the async check handle it. 
+    // Given the bug, let's let checkAccess handle the specific admin tool activation 
+    // to avoid showing it to non-admins.
+} else {
+    // Default to Resume (or if hash is #resume)
+    if (resumeSection) resumeSection.classList.add('active');
+    document.title = "Resume Analysis - AI Career Coach";
+}
+
+// Initialize Global Variables
+if (!window.interviewHistory) window.interviewHistory = [];
+if (!window.questionCount) window.questionCount = 0;
+
+// Chat UI Helper Expose
+// This function is defined later in the DOMContentLoaded listener,
+// so we'll expose it there. For now, ensure it's not exposed prematurely.
+// window.addMessage = addMessage; // This line will be moved to DOMContentLoaded
+
+// Tab Switching Logic (This logic is now replaced by hash routing for main sections)
+// The tab-btn elements might still exist for sub-sections if any, but the main
+// 'resume' and 'interview' tabs are handled by the hash.
+// Navigation Logic for Sidebar
+const navItems = document.querySelectorAll('.nav-item');
+const panes = document.querySelectorAll('.tab-pane');
+
+navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+        // Check if it's a real link (back to dash)
+        if (!item.getAttribute('data-tab')) return;
+
+        e.preventDefault();
+
+        // Remove active class from all
+        navItems.forEach(t => t.classList.remove('active'));
+        panes.forEach(p => p.classList.remove('active'));
+
+        // Add active class to clicked nav item and corresponding pane
+        item.classList.add('active');
+        const tabId = item.getAttribute('data-tab');
+        const targetPane = document.getElementById(tabId);
+        if (targetPane) targetPane.classList.add('active');
+
+        // Allow hash update for bookmarking (optional, but good for refresh)
+        window.location.hash = tabId;
+
+        // Scroll to top
+        window.scrollTo(0, 0);
+
+        // SPECIAL: Init Interview Tab Logic if clicking on it
+        if (tabId === 'interview') {
+            const session = getSession();
+            verifyInterviewAccess(session);
+        }
+    });
+});
+
+// Special: Verify LinkedIn on Load/Hash Change (since it's not a tab pane in the same way)
+// We hook into the existing hash change listener in app.html, but we can also check here based on view
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.target.id === 'view-linkedin-sidebar' && !mutation.target.classList.contains('hidden')) {
+            // Remove premature check to prevent flicker. Rely on checkAccess() or user action.
+            // const session = getSession();
+            // verifyLinkedInAccess(session);
+        }
+    });
+});
+const linkedinSidebar = document.getElementById('view-linkedin-sidebar');
+if (linkedinSidebar) {
+    observer.observe(linkedinSidebar, { attributes: true, attributeFilter: ['class'] });
+}
+
+// Initial Check if already on linkedin
+if (window.location.hash === '#linkedin') {
+    const session = getSession();
+    // verifyLinkedInAccess(session); // Disabled to prevent flicker
+}
+
+// Bind Unlock Button for Interview Logic
+const unlockInterviewBtn = document.getElementById('btn-unlock-interview');
+if (unlockInterviewBtn) {
+    unlockInterviewBtn.addEventListener('click', async () => {
+        const session = getSession();
+        if (!session) return window.location.href = '/login.html';
+
+        initiateCheckout('strategy_interview_sim', session.email);
+    });
+}
+
+// Bind Unlock Button for LinkedIn Logic (Overlay Button)
+const unlockLinkedInBtn = document.getElementById('btn-unlock-linkedin-overlay');
+if (unlockLinkedInBtn) {
+    unlockLinkedInBtn.addEventListener('click', async () => {
+        const session = getSession();
+        if (!session) return window.location.href = '/login.html';
+        initiateCheckout('strategy_linkedin', session.email, session.user_id); // Pass ID!
+    });
+}
+
+// Bind Optimize LinkedIn Action
+const optimizeLinkedinBtn = document.getElementById('optimize-linkedin-btn');
+if (optimizeLinkedinBtn) {
+    optimizeLinkedinBtn.addEventListener('click', async () => {
+        const inputEl = document.getElementById('linkedin-input');
+        const input = inputEl ? inputEl.value : '';
+
+        console.log("Capturing LinkedIn Input:", input.substring(0, 50) + "..."); // Debug Log
+
+        if (!input.trim()) return alert("Please paste your 'About' section content.");
+
+        // CHECK ACCESS BEFORE PROCEEDING
+        const session = getSession();
+        const credits = (session?.credits_linkedin || 0) + (session?.credits || 0);
+        const isUnlimited = session?.is_unlimited || false;
+
+        if (!isUnlimited && credits <= 0) {
+            // Trigger Checkout
+            if (confirm("Unlock this feature for $6.99?")) {
+                initiateCheckout('strategy_linkedin', session.email, session.user_id);
+            }
             return;
         }
 
-        const credits = (session.credits_linkedin || 0) + (session.credits || 0);
-        const isUnlimited = session.is_unlimited || false;
+        // UI Loading State
+        const originalText = optimizeLinkedinBtn.innerHTML;
+        optimizeLinkedinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OPTIMIZING...';
+        optimizeLinkedinBtn.disabled = true;
 
-        // If has access, HIDE the overlay. If locked, SHOW it (but primarily when they try to view results)
-        // Actually, we want the overlay to be visible over the "Placeholder" if they are locked?
-        // OR better: The overlay should appear if they try to click optimize? 
-        // User Request: "UI styling that the Executive Rewrite tool has when locked" which means Overlay is visible immediately on the right?
-        // Yes, let's show it immediately if locked to drive the point home.
-
-        if (credits > 0 || isUnlimited) {
-            overlay.classList.add('hidden');
-            if (optimizeBtn) {
-                optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
-                optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
-                optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-                optimizeBtn.onclick = null; // Revert to default binding (handled elsewhere)
-            }
-        } else {
-            overlay.classList.remove('hidden');
-            if (optimizeBtn) {
-                optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
-                optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500'); // Ensure green is removed
-                optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-
-                // Direct Checkout Trigger
-                optimizeBtn.onclick = async () => {
-                    const btn = document.getElementById('optimize-linkedin-btn');
-                    if (btn) {
-                        btn.textContent = 'Redirecting...';
-                        btn.disabled = true;
-                    }
-                    const { data: { user } } = await supabase.auth.getUser();
-                    initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
-                };
-            }
-        }
-    }
-
-    // Auto-analysis logic moved to end of init function
-
-    // ---------------------------------------------------------
-    // VIEW CONTROLLER (Phase 21: Cross-Nav Removal)
-    // ---------------------------------------------------------
-    const hash = window.location.hash;
-
-    // Clear ALL active tabs first to prevent overlap
-    const allPanes = document.querySelectorAll('.tab-pane');
-    allPanes.forEach(pane => pane.classList.remove('active'));
-
-    const resumeSection = document.getElementById('resume');
-    const interviewSection = document.getElementById('interview');
-
-    // Show based on Hash
-    const adminHashes = ['#career-plan', '#linkedin', '#cover-letter', '#resume-builder'];
-
-    if (hash === '#interview') {
-        if (interviewSection) interviewSection.classList.add('active');
-        document.title = "Interview Coach - AI Career Coach";
-    } else if (adminHashes.includes(hash)) {
-        // Do not activate Resume section. Wait for Admin Check to reveal specific tool.
-        // We can set title here though
-        document.title = "Admin Tool - AI Career Coach";
-
-        // Temporarily activate it so we can see it if we are already logged in as admin?
-        // Admin check later will unhide the *container* or specific elements, 
-        // but we need the 'active' class on the pane for it to be visible in the layout.
-        // The checkAccess function (lines 119-136) handles adding 'active', 
-        // BUT it runs async. We might want to add 'active' here if we assume it's valid, 
-        // or let the async check handle it. 
-        // Given the bug, let's let checkAccess handle the specific admin tool activation 
-        // to avoid showing it to non-admins.
-    } else {
-        // Default to Resume (or if hash is #resume)
-        if (resumeSection) resumeSection.classList.add('active');
-        document.title = "Resume Analysis - AI Career Coach";
-    }
-
-    // Initialize Global Variables
-    if (!window.interviewHistory) window.interviewHistory = [];
-    if (!window.questionCount) window.questionCount = 0;
-
-    // Chat UI Helper Expose
-    // This function is defined later in the DOMContentLoaded listener,
-    // so we'll expose it there. For now, ensure it's not exposed prematurely.
-    // window.addMessage = addMessage; // This line will be moved to DOMContentLoaded
-
-    // Tab Switching Logic (This logic is now replaced by hash routing for main sections)
-    // The tab-btn elements might still exist for sub-sections if any, but the main
-    // 'resume' and 'interview' tabs are handled by the hash.
-    // Navigation Logic for Sidebar
-    const navItems = document.querySelectorAll('.nav-item');
-    const panes = document.querySelectorAll('.tab-pane');
-
-    navItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            // Check if it's a real link (back to dash)
-            if (!item.getAttribute('data-tab')) return;
-
-            e.preventDefault();
-
-            // Remove active class from all
-            navItems.forEach(t => t.classList.remove('active'));
-            panes.forEach(p => p.classList.remove('active'));
-
-            // Add active class to clicked nav item and corresponding pane
-            item.classList.add('active');
-            const tabId = item.getAttribute('data-tab');
-            const targetPane = document.getElementById(tabId);
-            if (targetPane) targetPane.classList.add('active');
-
-            // Allow hash update for bookmarking (optional, but good for refresh)
-            window.location.hash = tabId;
-
-            // Scroll to top
-            window.scrollTo(0, 0);
-
-            // SPECIAL: Init Interview Tab Logic if clicking on it
-            if (tabId === 'interview') {
-                const session = getSession();
-                verifyInterviewAccess(session);
-            }
-        });
-    });
-
-    // Special: Verify LinkedIn on Load/Hash Change (since it's not a tab pane in the same way)
-    // We hook into the existing hash change listener in app.html, but we can also check here based on view
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.target.id === 'view-linkedin-sidebar' && !mutation.target.classList.contains('hidden')) {
-                // Remove premature check to prevent flicker. Rely on checkAccess() or user action.
-                // const session = getSession();
-                // verifyLinkedInAccess(session);
-            }
-        });
-    });
-    const linkedinSidebar = document.getElementById('view-linkedin-sidebar');
-    if (linkedinSidebar) {
-        observer.observe(linkedinSidebar, { attributes: true, attributeFilter: ['class'] });
-    }
-
-    // Initial Check if already on linkedin
-    if (window.location.hash === '#linkedin') {
-        const session = getSession();
-        // verifyLinkedInAccess(session); // Disabled to prevent flicker
-    }
-
-    // Bind Unlock Button for Interview Logic
-    const unlockInterviewBtn = document.getElementById('btn-unlock-interview');
-    if (unlockInterviewBtn) {
-        unlockInterviewBtn.addEventListener('click', async () => {
-            const session = getSession();
-            if (!session) return window.location.href = '/login.html';
-
-            initiateCheckout('strategy_interview_sim', session.email);
-        });
-    }
-
-    // Bind Unlock Button for LinkedIn Logic (Overlay Button)
-    const unlockLinkedInBtn = document.getElementById('btn-unlock-linkedin-overlay');
-    if (unlockLinkedInBtn) {
-        unlockLinkedInBtn.addEventListener('click', async () => {
-            const session = getSession();
-            if (!session) return window.location.href = '/login.html';
-            initiateCheckout('strategy_linkedin', session.email, session.user_id); // Pass ID!
-        });
-    }
-
-    // Bind Optimize LinkedIn Action
-    const optimizeLinkedinBtn = document.getElementById('optimize-linkedin-btn');
-    if (optimizeLinkedinBtn) {
-        optimizeLinkedinBtn.addEventListener('click', async () => {
-            const inputEl = document.getElementById('linkedin-input');
-            const input = inputEl ? inputEl.value : '';
-
-            console.log("Capturing LinkedIn Input:", input.substring(0, 50) + "..."); // Debug Log
-
-            if (!input.trim()) return alert("Please paste your 'About' section content.");
-
-            // CHECK ACCESS BEFORE PROCEEDING
-            const session = getSession();
-            const credits = (session?.credits_linkedin || 0) + (session?.credits || 0);
-            const isUnlimited = session?.is_unlimited || false;
-
-            if (!isUnlimited && credits <= 0) {
-                // Trigger Checkout
-                if (confirm("Unlock this feature for $6.99?")) {
-                    initiateCheckout('strategy_linkedin', session.email, session.user_id);
-                }
-                return;
-            }
-
-            // UI Loading State
-            const originalText = optimizeLinkedinBtn.innerHTML;
-            optimizeLinkedinBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> OPTIMIZING...';
-            optimizeLinkedinBtn.disabled = true;
-
-            const resultsArea = document.getElementById('linkedin-results-area');
-            const placeholder = document.getElementById('linkedin-placeholder');
-            const recommendationsEl = document.getElementById('linkedin-recommendations');
-            const refinedEl = document.getElementById('linkedin-refined-sample');
-
-            try {
-                const session = getSession();
-                const email = session ? session.email : null;
-
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'strategy_linkedin',
-                        email: email,
-                        aboutMe: input
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.error) {
-                    alert('Error: ' + result.error);
-                    if (result.redirect) window.location.href = result.redirect;
-                } else {
-                    // Success: Show Results
-                    placeholder.classList.add('hidden');
-                    resultsArea.classList.remove('hidden');
-
-                    // Render Recommendations
-                    if (result.recommendations && Array.isArray(result.recommendations)) {
-                        recommendationsEl.innerHTML = result.recommendations.map(rec =>
-                            `<div class="flex gap-2 items-start"><span class="text-blue-500">•</span> <p>${rec}</p></div>`
-                        ).join('');
-                    } else {
-                        recommendationsEl.innerHTML = '<p>Profile analyzed. See refined version below.</p>';
-                    }
-
-                    // Render Refined Text
-                    refinedEl.textContent = result.refined_content || "Optimization complete.";
-                }
-
-            } catch (error) {
-                console.error(error);
-                alert('Connection Error: ' + error.message);
-            } finally {
-                optimizeLinkedinBtn.innerHTML = originalText;
-                optimizeLinkedinBtn.disabled = false;
-            }
-        });
-    }
-
-
-
-
-    // Handle Deep Linking on Load
-    function handleDeepLink() {
-        const hash = window.location.hash.substring(1); // remove #
-        if (hash) {
-            const targetNav = document.querySelector(`.nav-item[data-tab="${hash}"]`);
-            if (targetNav) {
-                targetNav.click();
-            }
-        }
-    }
-    handleDeepLink();
-
-    // Helper function for API calls
-    async function callApi(action, data, resultElementId) {
-        const resultEl = document.getElementById(resultElementId);
-        resultEl.innerHTML = '<em>Processing...</em>';
-        resultEl.style.display = 'block';
+        const resultsArea = document.getElementById('linkedin-results-area');
+        const placeholder = document.getElementById('linkedin-placeholder');
+        const recommendationsEl = document.getElementById('linkedin-recommendations');
+        const refinedEl = document.getElementById('linkedin-refined-sample');
 
         try {
+            const session = getSession();
+            const email = session ? session.email : null;
+
             const response = await fetch('/api', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ action, ...data }),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'strategy_linkedin',
+                    email: email,
+                    aboutMe: input
+                })
             });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
 
             const result = await response.json();
 
             if (result.error) {
-                resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+                alert('Error: ' + result.error);
+                if (result.redirect) window.location.href = result.redirect;
             } else {
-                // Convert newlines to <br> for simple text display, or use a markdown parser if available
-                // For now, simple text replacement
-                resultEl.innerHTML = result.data.replace(/\n/g, '<br>');
+                // Success: Show Results
+                placeholder.classList.add('hidden');
+                resultsArea.classList.remove('hidden');
+
+                // Render Recommendations
+                if (result.recommendations && Array.isArray(result.recommendations)) {
+                    recommendationsEl.innerHTML = result.recommendations.map(rec =>
+                        `<div class="flex gap-2 items-start"><span class="text-blue-500">•</span> <p>${rec}</p></div>`
+                    ).join('');
+                } else {
+                    recommendationsEl.innerHTML = '<p>Profile analyzed. See refined version below.</p>';
+                }
+
+                // Render Refined Text
+                refinedEl.textContent = result.refined_content || "Optimization complete.";
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert('Connection Error: ' + error.message);
+        } finally {
+            optimizeLinkedinBtn.innerHTML = originalText;
+            optimizeLinkedinBtn.disabled = false;
+        }
+    });
+}
+
+
+
+
+// Handle Deep Linking on Load
+function handleDeepLink() {
+    const hash = window.location.hash.substring(1); // remove #
+    if (hash) {
+        const targetNav = document.querySelector(`.nav-item[data-tab="${hash}"]`);
+        if (targetNav) {
+            targetNav.click();
+        }
+    }
+}
+handleDeepLink();
+
+// Helper function for API calls
+async function callApi(action, data, resultElementId) {
+    const resultEl = document.getElementById(resultElementId);
+    resultEl.innerHTML = '<em>Processing...</em>';
+    resultEl.style.display = 'block';
+
+    try {
+        const response = await fetch('/api', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ action, ...data }),
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.error) {
+            resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+        } else {
+            // Convert newlines to <br> for simple text display, or use a markdown parser if available
+            // For now, simple text replacement
+            resultEl.innerHTML = result.data.replace(/\n/g, '<br>');
+        }
+    } catch (error) {
+        resultEl.innerHTML = `<strong style="color:red">Connection Error: ${error.message}</strong>`;
+    }
+}
+
+// Tab 1: Resume Analysis (only on /app page)
+if (document.getElementById('analyze-resume-btn')) {
+    document.getElementById('analyze-resume-btn').addEventListener('click', async () => {
+        const resumeText = document.getElementById('resume-input').value;
+        if (!resumeText) return alert('Please paste your resume.');
+
+        const resultEl = document.getElementById('resume-result');
+        const actionsEl = document.getElementById('resume-result-actions');
+        resultEl.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center">Analyzing... This may take up to 30 seconds.</p>';
+        resultEl.style.display = 'block';
+        actionsEl.style.display = 'none';
+
+        try {
+            const session = getSession();
+            const email = session ? session.email : null;
+
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'analyze_resume', email: email, resume: resumeText })
+            });
+            const result = await response.json();
+
+            if (result.error) {
+                resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
+            } else if (!result.data) {
+                resultEl.innerHTML = `<strong style="color:red">Error: No data received.</strong>`;
+            } else {
+                let data = result.data;
+
+                // Handle case where data is a string (rare with json_mode but possible)
+                if (typeof data === 'string') {
+                    try {
+                        // Try to fix markdown json if present
+                        let clean = data.trim();
+                        if (clean.startsWith('```json')) clean = clean.slice(7);
+                        if (clean.startsWith('```')) clean = clean.slice(3);
+                        if (clean.endsWith('```')) clean = clean.slice(0, -3);
+                        data = JSON.parse(clean);
+                    } catch (e) {
+                        // Fallback to text display if not JSON
+                        console.error("Could not parse JSON", e);
+                        resultEl.innerHTML = data.replace(/\n/g, '<br>');
+                        actionsEl.style.display = 'flex';
+                        return;
+                    }
+                }
+
+                // Render the UI
+                renderResumeReport(data, resultEl);
+                actionsEl.style.display = 'flex';
             }
         } catch (error) {
             resultEl.innerHTML = `<strong style="color:red">Connection Error: ${error.message}</strong>`;
         }
-    }
+    });
 
-    // Tab 1: Resume Analysis (only on /app page)
-    if (document.getElementById('analyze-resume-btn')) {
-        document.getElementById('analyze-resume-btn').addEventListener('click', async () => {
-            const resumeText = document.getElementById('resume-input').value;
-            if (!resumeText) return alert('Please paste your resume.');
+    function renderResumeReport(data, container) {
+        // Helper for priority colors
+        const getPriorityColor = (p) => {
+            const map = { 'HIGH': '#dc3545', 'MEDIUM': '#ffc107', 'LOW': '#28a745' };
+            return map[p] || '#6c757d';
+        };
 
-            const resultEl = document.getElementById('resume-result');
-            const actionsEl = document.getElementById('resume-result-actions');
-            resultEl.innerHTML = '<div class="loading-spinner"></div><p style="text-align:center">Analyzing... This may take up to 30 seconds.</p>';
-            resultEl.style.display = 'block';
-            actionsEl.style.display = 'none';
-
-            try {
-                const session = getSession();
-                const email = session ? session.email : null;
-
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'analyze_resume', email: email, resume: resumeText })
-                });
-                const result = await response.json();
-
-                if (result.error) {
-                    resultEl.innerHTML = `<strong style="color:red">Error: ${result.error}</strong>`;
-                } else if (!result.data) {
-                    resultEl.innerHTML = `<strong style="color:red">Error: No data received.</strong>`;
-                } else {
-                    let data = result.data;
-
-                    // Handle case where data is a string (rare with json_mode but possible)
-                    if (typeof data === 'string') {
-                        try {
-                            // Try to fix markdown json if present
-                            let clean = data.trim();
-                            if (clean.startsWith('```json')) clean = clean.slice(7);
-                            if (clean.startsWith('```')) clean = clean.slice(3);
-                            if (clean.endsWith('```')) clean = clean.slice(0, -3);
-                            data = JSON.parse(clean);
-                        } catch (e) {
-                            // Fallback to text display if not JSON
-                            console.error("Could not parse JSON", e);
-                            resultEl.innerHTML = data.replace(/\n/g, '<br>');
-                            actionsEl.style.display = 'flex';
-                            return;
-                        }
-                    }
-
-                    // Render the UI
-                    renderResumeReport(data, resultEl);
-                    actionsEl.style.display = 'flex';
-                }
-            } catch (error) {
-                resultEl.innerHTML = `<strong style="color:red">Connection Error: ${error.message}</strong>`;
-            }
-        });
-
-        function renderResumeReport(data, container) {
-            // Helper for priority colors
-            const getPriorityColor = (p) => {
-                const map = { 'HIGH': '#dc3545', 'MEDIUM': '#ffc107', 'LOW': '#28a745' };
-                return map[p] || '#6c757d';
-            };
-
-            const html = `
+        const html = `
                 <div class="resume-report">
                 
                 <!-- 0. DISCLAIMER (Moved to Top) -->
@@ -1555,60 +1551,60 @@ function init() {
                     <p>${data.interview_tip || "Practice your STAR method answers."}</p>
                 </div>
             `;
-            container.innerHTML = html;
+        container.innerHTML = html;
 
-            // Activate Checkout Button
-            setTimeout(() => {
-                const checkoutBtn = document.getElementById('unlock-rewrite-btn');
-                if (checkoutBtn) {
-                    checkoutBtn.addEventListener('click', async () => {
-                        checkoutBtn.disabled = true;
-                        checkoutBtn.textContent = "Processing...";
-                        try {
-                            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                                body: {
-                                    price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
-                                    return_url: window.location.origin + '/app.html?status=success#resume-builder'
-                                }
-                            });
+        // Activate Checkout Button
+        setTimeout(() => {
+            const checkoutBtn = document.getElementById('unlock-rewrite-btn');
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', async () => {
+                    checkoutBtn.disabled = true;
+                    checkoutBtn.textContent = "Processing...";
+                    try {
+                        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
+                            body: {
+                                price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
+                                return_url: window.location.origin + '/app.html?status=success#resume-builder'
+                            }
+                        });
 
-                            if (error) throw error;
-                            if (data?.url) window.location.href = data.url;
-                        } catch (e) {
-                            console.error(e);
-                            alert("Checkout failed.");
-                        } finally {
-                            checkoutBtn.disabled = false;
-                            checkoutBtn.textContent = "Unlock One-Click Rewrite ($9.99)";
-                        }
-                    });
-                }
-            }, 500);
+                        if (error) throw error;
+                        if (data?.url) window.location.href = data.url;
+                    } catch (e) {
+                        console.error(e);
+                        alert("Checkout failed.");
+                    } finally {
+                        checkoutBtn.disabled = false;
+                        checkoutBtn.textContent = "Unlock One-Click Rewrite ($9.99)";
+                    }
+                });
+            }
+        }, 500);
 
-            // Hide Input Form
-            const inputContainer = document.getElementById('resume-input');
-            const analyzeBtn = document.getElementById('analyze-resume-btn');
-            // Actually, we want to hide the whole inputs, maybe just style display none on them
-            if (inputContainer) inputContainer.style.display = 'none';
-            if (analyzeBtn) analyzeBtn.style.display = 'none';
-            // Also the placeholder text p tag
-            // A bit hacky to find it via DOM traversal, but okay for now or selecting specifically
-            // The Start Over button in disclaimer handles the reset via reload.
-        }
-
-
+        // Hide Input Form
+        const inputContainer = document.getElementById('resume-input');
+        const analyzeBtn = document.getElementById('analyze-resume-btn');
+        // Actually, we want to hide the whole inputs, maybe just style display none on them
+        if (inputContainer) inputContainer.style.display = 'none';
+        if (analyzeBtn) analyzeBtn.style.display = 'none';
+        // Also the placeholder text p tag
+        // A bit hacky to find it via DOM traversal, but okay for now or selecting specifically
+        // The Start Over button in disclaimer handles the reset via reload.
     }
 
-    // Resume Analysis Print Button
-    const printBtn = document.getElementById('resume-print-btn');
-    if (printBtn) {
-        printBtn.addEventListener('click', () => {
-            const content = document.getElementById('resume-result').innerHTML;
 
-            // Open a new window with styled content for printing
-            const printWindow = window.open('', '_blank', 'width=800,height=600');
-            if (printWindow) {
-                printWindow.document.write(`
+}
+
+// Resume Analysis Print Button
+const printBtn = document.getElementById('resume-print-btn');
+if (printBtn) {
+    printBtn.addEventListener('click', () => {
+        const content = document.getElementById('resume-result').innerHTML;
+
+        // Open a new window with styled content for printing
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        if (printWindow) {
+            printWindow.document.write(`
             < !DOCTYPE html >
                 <html>
                     <head>
@@ -1674,629 +1670,629 @@ function init() {
                     </body>
                 </html>
         `);
-                printWindow.document.close();
-            }
-        });
-    }
-
-    // Resume Analysis Copy Button
-    const copyBtn = document.getElementById('resume-copy-btn');
-    if (copyBtn) {
-        copyBtn.addEventListener('click', async () => {
-            const content = document.getElementById('resume-result');
-            try {
-                await navigator.clipboard.writeText(content.innerText);
-                const btn = document.getElementById('resume-copy-btn');
-                const originalText = btn.textContent;
-                btn.textContent = 'Copied!';
-                setTimeout(() => btn.textContent = originalText, 2000);
-            } catch (err) {
-                alert('Failed to copy. Please select text manually.');
-            }
-        });
-    }
-
-    // Tab 2: Interview Coach
-    const chatWindow = document.getElementById('chat-window');
-    const chatInput = document.getElementById('chat-input');
-
-    const sendChatBtn = document.getElementById('send-chat-btn');
-    if (sendChatBtn) {
-        sendChatBtn.addEventListener('click', () => {
-            primeAudio();
-            showThinkingState(); // Trigger UI for text input too
-            sendChatMessage();
-        });
-    }
-    const startInterviewBtn = document.getElementById('start-interview-btn');
-    if (startInterviewBtn) {
-        startInterviewBtn.addEventListener('click', async () => {
-            // Permission Check (Silent check first, then prompt if failed)
-            const hasAccess = await checkAccess('interview_credits', true);
-            if (!hasAccess) return;
-
-            // Prioritize Context Accordion inputs, fallback to sidebar
-            const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
-            const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
-
-            let jobPosting = accordionJD || sidebarJD;
-
-            // MISSION BRIEF LOGIC: Construct composite string if structured data exists
-            try {
-                const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-                if (mCtx && mCtx.role && mCtx.company) {
-                    jobPosting = `MISSION BRIEFING:\nTarget Role: ${mCtx.role} at ${mCtx.company}.\n\nMISSION PRIORITIES (FOCUS AREAS):\n${mCtx.jd || "No specific priorities set."}`;
-                    console.log("Constructed Mission Brief Payload:", jobPosting);
-                }
-            } catch (e) { console.warn("Mission Context Parse Error", e); }
-
-            const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
-
-            const chatInterface = document.getElementById('chat-interface');
-            const activeState = document.getElementById('interview-active-state');
-
-            if (jobPosting.trim()) {
-                primeAudio();
-                primeAudio();
-                questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
-                interviewHistory = []; // Reset history
-
-                // Show Chat Interface, Hide Intro & Setup
-                // Show Chat Interface, Hide Intro & Setup
-                if (activeState) activeState.classList.add('hidden');
-                // Chat Interface will be revealed by finishSetup() after countdown
-
-                // START COUNTDOWN (Parallel with API calls)
-                startCountdown();
-
-                // Reset Memory
-                interviewHistory = [];
-                lastAiQuestion = "Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you?"; // Hardcoded Greeting Match
-
-                const intro = document.getElementById('interview-intro');
-                if (intro) intro.classList.add('hidden');
-
-                // UI: Toggle Sidebar Buttons
-                const startBtn = document.getElementById('start-interview-btn');
-                const activeControls = document.getElementById('active-session-controls');
-                if (startBtn) startBtn.classList.add('hidden');
-                if (activeControls) activeControls.classList.remove('hidden');
-
-                console.log("Starting Interview Flow...");
-                await processJobDescription(); // Analyze JD before starting
-
-                // Pass resume info & Company Name & Interviewer Intel & Role
-                let companyName = "the target company";
-                let roleTitle = "the open position"; // Default
-                let interviewerIntel = "";
-
-                try {
-                    const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-                    if (mCtx) {
-                        if (mCtx.company) companyName = mCtx.company;
-                        if (mCtx.role) roleTitle = mCtx.role; // Use exact analyzed role
-                        if (mCtx.notes) interviewerIntel = mCtx.notes;
-                    }
-                } catch (e) { }
-
-                sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel, roleTitle);
-            } else {
-                alert("Please paste a job description first.");
-            }
-        });
-    }
-
-
-    function primeAudio() {
-        const audioPlayer = document.getElementById('ai-audio-player');
-        // Attempt to play and immediately pause to unlock audio context
-        audioPlayer.play().catch(() => { });
-        audioPlayer.pause();
-    }
-    if (chatInput) {
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendChatMessage();
-        });
-    }
-
-    // JD Analyzer Logic
-    let jobData = { role: "", company: "", summary: "" };
-
-    async function processJobDescription() {
-        const jdInput = document.getElementById('job-description-input') || document.getElementById('interview-job-posting');
-        const rawText = jdInput ? jdInput.value : "";
-
-        if (!rawText || rawText.length < 50) {
-            console.log("JD too short, skipping analysis.");
-            jobData = { role: "this role", company: "the company", summary: "" };
-            return;
+            printWindow.document.close();
         }
+    });
+}
 
-        console.log("Analyzing JD...");
-        // Show lightweight indicator if needed, but for now we just block briefly
-
+// Resume Analysis Copy Button
+const copyBtn = document.getElementById('resume-copy-btn');
+if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+        const content = document.getElementById('resume-result');
         try {
-            const response = await fetch('/api/analyze-jd', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ job_description: rawText })
-            });
-
-            jobData = await response.json();
-            console.log("Analysis Complete:", jobData);
-
-        } catch (error) {
-            console.error("Analysis Failed", error);
-            // Fallback defaults
-            jobData = { role: "this role", company: "the company", summary: "" };
+            await navigator.clipboard.writeText(content.innerText);
+            const btn = document.getElementById('resume-copy-btn');
+            const originalText = btn.textContent;
+            btn.textContent = 'Copied!';
+            setTimeout(() => btn.textContent = originalText, 2000);
+        } catch (err) {
+            alert('Failed to copy. Please select text manually.');
         }
-    }
+    });
+}
 
-    // Voice Logic - Global Scope
-    let mediaRecorder;
-    let audioChunks = [];
+// Tab 2: Interview Coach
+const chatWindow = document.getElementById('chat-window');
+const chatInput = document.getElementById('chat-input');
 
-    window.toggleRecording = async function () {
-        const recordBtn = document.getElementById('record-btn');
-        console.log("toggleRecording called");
+const sendChatBtn = document.getElementById('send-chat-btn');
+if (sendChatBtn) {
+    sendChatBtn.addEventListener('click', () => {
+        primeAudio();
+        showThinkingState(); // Trigger UI for text input too
+        sendChatMessage();
+    });
+}
+const startInterviewBtn = document.getElementById('start-interview-btn');
+if (startInterviewBtn) {
+    startInterviewBtn.addEventListener('click', async () => {
+        // Permission Check (Silent check first, then prompt if failed)
+        const hasAccess = await checkAccess('interview_credits', true);
+        if (!hasAccess) return;
 
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            console.log("Stopping recording...");
-            mediaRecorder.stop();
-            if (recordBtn) {
-                recordBtn.textContent = '🎤';
-                recordBtn.style.background = '#dc3545'; // Red (default)
-            }
-        } else {
-            console.log("Starting recording...");
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
-                audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = async () => {
-                    console.log("Recording stopped, processing...");
-                    showThinkingState(); // Trigger Thinking UI immediately
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.readAsDataURL(audioBlob);
-                    reader.onloadend = () => {
-                        const base64Audio = reader.result;
-                        sendVoiceMessage(base64Audio);
-                    };
-                    // Stop all tracks to release microphone
-                    stream.getTracks().forEach(track => track.stop());
-                };
-
-                mediaRecorder.start();
-                if (recordBtn) {
-                    recordBtn.textContent = '⏹️';
-                    recordBtn.style.background = '#28a745'; // Green (recording)
-                }
-            } catch (err) {
-                console.error("Error accessing microphone:", err);
-                alert("Could not access microphone. Please allow permissions. Error: " + err.message);
-            }
-        }
-    };
-
-    // sendVoiceMessage moved to global scope
-
-
-    // MEMORY PATCH: Frontend History Tracking
-    let interviewHistory = [];
-    let lastAiQuestion = "Interviewer Greetings"; // Initial value
-
-    async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "", roleTitle = "") {
-        const message = msg || (chatInput ? chatInput.value : '');
-        if (!message) return;
-
-        // Note: In a real app, we'd send chat history. For prototype, we just send the last message.
-        // To make it better, we could grab the last few messages from the DOM.
-
-        // Skip adding message to UI if it's the hidden start command
-        if (!isStart && !skipUI) {
-            // Add user message
-            addMessage(message, 'user');
-        }
-        if (chatInput) chatInput.value = '';
-
-        // REMOVED: Old Thinking Interval Logic (Refactored to showThinkingState)
-
-
-        // Prioritize Accordion JD, fallback to sidebar
+        // Prioritize Context Accordion inputs, fallback to sidebar
         const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
         const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
-        const jobPosting = accordionJD || sidebarJD || "No Job Description Provided.";
 
-        const { voice, speed } = getVoiceSettings();
+        let jobPosting = accordionJD || sidebarJD;
 
-        // Get Email from Session for Credit Deduction
-        let email = null;
+        // MISSION BRIEF LOGIC: Construct composite string if structured data exists
         try {
-            const sessionItem = localStorage.getItem(SESSION_KEY);
-            if (sessionItem) {
-                const sessionObj = JSON.parse(sessionItem);
-                email = sessionObj.email || sessionObj.user?.email;
+            const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+            if (mCtx && mCtx.role && mCtx.company) {
+                jobPosting = `MISSION BRIEFING:\nTarget Role: ${mCtx.role} at ${mCtx.company}.\n\nMISSION PRIORITIES (FOCUS AREAS):\n${mCtx.jd || "No specific priorities set."}`;
+                console.log("Constructed Mission Brief Payload:", jobPosting);
             }
-        } catch (e) { console.error("Error fetching email from session", e); }
+        } catch (e) { console.warn("Mission Context Parse Error", e); }
 
-        const processedData = {
-            message: message,
-            jobPosting: jobPosting,
-            resumeText: resumeText,
-            companyName: companyName,
-            interviewer_intel: interviewerIntel, // Pass Intel!
-            isStart: isStart,
-            questionCount: questionCount + 1,
-            email: email,
-            voice: voice, // Pass voice preference
-            role_title: isStart ? jobData.role : roleTitle, // Use analyzed role if starting, else the passed roleTitle
-            company_name: isStart ? jobData.company : undefined,
-            role_summary: isStart ? jobData.summary : undefined
-        };
+        const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
 
-        try {
-            // NEW: BLOCKING ARCHITECTURE (Quality Fix)
-            const response = await fetch('/api/get-feedback', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    message: message,
-                    jobPosting: jobPosting,
-                    resumeText: resumeText,
-                    companyName: companyName,
-                    resumeText: resumeText,
-                    companyName: companyName,
-                    interviewer_intel: interviewerIntel, // Pass Intel!
-                    history: interviewHistory, // MEMORY PATCH: Send full history
-                    isStart: isStart,
-                    questionCount: questionCount + 1,
-                    email: email,
-                    voice: voice, // Pass voice preference
+        const chatInterface = document.getElementById('chat-interface');
+        const activeState = document.getElementById('interview-active-state');
 
-                    // Pass Analyzed Data (if available and isStart)
-                    role_title: isStart ? jobData.role : undefined,
-                    company_name: isStart ? jobData.company : undefined,
-                    role_summary: isStart ? jobData.summary : undefined
-                })
-            });
+        if (jobPosting.trim()) {
+            primeAudio();
+            primeAudio();
+            questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
+            interviewHistory = []; // Reset history
 
-            // Clear Thinking UI
-            hideThinkingState();
+            // Show Chat Interface, Hide Intro & Setup
+            // Show Chat Interface, Hide Intro & Setup
+            if (activeState) activeState.classList.add('hidden');
+            // Chat Interface will be revealed by finishSetup() after countdown
 
-            // Check errors
-            if (!response.ok) {
-                throw new Error("API Failed");
-            }
+            // START COUNTDOWN (Parallel with API calls)
+            startCountdown();
 
-            const data = await response.json();
+            // Reset Memory
+            interviewHistory = [];
+            lastAiQuestion = "Let's start with your work history. Can you tell me about your previous roles and why this position is the right next step for you?"; // Hardcoded Greeting Match
 
-            // MEMORY PATCH: Update History
-            if (message && lastAiQuestion) {
-                // Store the PAIR: The question that prompted this answer, and the answer itself
-                interviewHistory.push({
-                    question: lastAiQuestion,
-                    answer: message
-                });
-                // Keep history reasonable (last 20 turns)
-                if (interviewHistory.length > 20) interviewHistory.shift();
-            }
+            const intro = document.getElementById('interview-intro');
+            if (intro) intro.classList.add('hidden');
 
-            // MEMORY PATCH: Capture Next Question for next turn
-            if (data.response && data.response.next_question) {
-                lastAiQuestion = data.response.next_question;
-            }
+            // UI: Toggle Sidebar Buttons
+            const startBtn = document.getElementById('start-interview-btn');
+            const activeControls = document.getElementById('active-session-controls');
+            if (startBtn) startBtn.classList.add('hidden');
+            if (activeControls) activeControls.classList.remove('hidden');
 
-            // --- REFEREE: CHECK FOR GAME OVER ---
-            if (data.is_complete) {
-                console.log("Referee: Interview Complete.");
+            console.log("Starting Interview Flow...");
+            await processJobDescription(); // Analyze JD before starting
 
-                // 1. Audio Playback Delayed (Moved to Step B)
+            // Pass resume info & Company Name & Interviewer Intel & Role
+            let companyName = "the target company";
+            let roleTitle = "the open position"; // Default
+            let interviewerIntel = "";
 
-                // 2. Kill Mic immediately
-                const recordBtn = document.getElementById('record-btn');
-                if (recordBtn) {
-                    recordBtn.disabled = true;
-                    recordBtn.style.background = '#6c757d'; // Gray
-                    recordBtn.textContent = '✅';
+            try {
+                const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+                if (mCtx) {
+                    if (mCtx.company) companyName = mCtx.company;
+                    if (mCtx.role) roleTitle = mCtx.role; // Use exact analyzed role
+                    if (mCtx.notes) interviewerIntel = mCtx.notes;
                 }
+            } catch (e) { }
 
-                // 3. SEQUENCED REVEAL
-                if (data.response) {
-                    // Step A: Show Feedback Immediately
-                    if (data.response.feedback) {
-                        const feedbackHtml = `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
+            sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel, roleTitle);
+        } else {
+            alert("Please paste a job description first.");
+        }
+    });
+}
+
+
+function primeAudio() {
+    const audioPlayer = document.getElementById('ai-audio-player');
+    // Attempt to play and immediately pause to unlock audio context
+    audioPlayer.play().catch(() => { });
+    audioPlayer.pause();
+}
+if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+}
+
+// JD Analyzer Logic
+let jobData = { role: "", company: "", summary: "" };
+
+async function processJobDescription() {
+    const jdInput = document.getElementById('job-description-input') || document.getElementById('interview-job-posting');
+    const rawText = jdInput ? jdInput.value : "";
+
+    if (!rawText || rawText.length < 50) {
+        console.log("JD too short, skipping analysis.");
+        jobData = { role: "this role", company: "the company", summary: "" };
+        return;
+    }
+
+    console.log("Analyzing JD...");
+    // Show lightweight indicator if needed, but for now we just block briefly
+
+    try {
+        const response = await fetch('/api/analyze-jd', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ job_description: rawText })
+        });
+
+        jobData = await response.json();
+        console.log("Analysis Complete:", jobData);
+
+    } catch (error) {
+        console.error("Analysis Failed", error);
+        // Fallback defaults
+        jobData = { role: "this role", company: "the company", summary: "" };
+    }
+}
+
+// Voice Logic - Global Scope
+let mediaRecorder;
+let audioChunks = [];
+
+window.toggleRecording = async function () {
+    const recordBtn = document.getElementById('record-btn');
+    console.log("toggleRecording called");
+
+    if (mediaRecorder && mediaRecorder.state === 'recording') {
+        console.log("Stopping recording...");
+        mediaRecorder.stop();
+        if (recordBtn) {
+            recordBtn.textContent = '🎤';
+            recordBtn.style.background = '#dc3545'; // Red (default)
+        }
+    } else {
+        console.log("Starting recording...");
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = event => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                console.log("Recording stopped, processing...");
+                showThinkingState(); // Trigger Thinking UI immediately
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const reader = new FileReader();
+                reader.readAsDataURL(audioBlob);
+                reader.onloadend = () => {
+                    const base64Audio = reader.result;
+                    sendVoiceMessage(base64Audio);
+                };
+                // Stop all tracks to release microphone
+                stream.getTracks().forEach(track => track.stop());
+            };
+
+            mediaRecorder.start();
+            if (recordBtn) {
+                recordBtn.textContent = '⏹️';
+                recordBtn.style.background = '#28a745'; // Green (recording)
+            }
+        } catch (err) {
+            console.error("Error accessing microphone:", err);
+            alert("Could not access microphone. Please allow permissions. Error: " + err.message);
+        }
+    }
+};
+
+// sendVoiceMessage moved to global scope
+
+
+// MEMORY PATCH: Frontend History Tracking
+let interviewHistory = [];
+let lastAiQuestion = "Interviewer Greetings"; // Initial value
+
+async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "", roleTitle = "") {
+    const message = msg || (chatInput ? chatInput.value : '');
+    if (!message) return;
+
+    // Note: In a real app, we'd send chat history. For prototype, we just send the last message.
+    // To make it better, we could grab the last few messages from the DOM.
+
+    // Skip adding message to UI if it's the hidden start command
+    if (!isStart && !skipUI) {
+        // Add user message
+        addMessage(message, 'user');
+    }
+    if (chatInput) chatInput.value = '';
+
+    // REMOVED: Old Thinking Interval Logic (Refactored to showThinkingState)
+
+
+    // Prioritize Accordion JD, fallback to sidebar
+    const accordionJD = document.getElementById('job-description-input') ? document.getElementById('job-description-input').value : '';
+    const sidebarJD = document.getElementById('interview-job-posting') ? document.getElementById('interview-job-posting').value : '';
+    const jobPosting = accordionJD || sidebarJD || "No Job Description Provided.";
+
+    const { voice, speed } = getVoiceSettings();
+
+    // Get Email from Session for Credit Deduction
+    let email = null;
+    try {
+        const sessionItem = localStorage.getItem(SESSION_KEY);
+        if (sessionItem) {
+            const sessionObj = JSON.parse(sessionItem);
+            email = sessionObj.email || sessionObj.user?.email;
+        }
+    } catch (e) { console.error("Error fetching email from session", e); }
+
+    const processedData = {
+        message: message,
+        jobPosting: jobPosting,
+        resumeText: resumeText,
+        companyName: companyName,
+        interviewer_intel: interviewerIntel, // Pass Intel!
+        isStart: isStart,
+        questionCount: questionCount + 1,
+        email: email,
+        voice: voice, // Pass voice preference
+        role_title: isStart ? jobData.role : roleTitle, // Use analyzed role if starting, else the passed roleTitle
+        company_name: isStart ? jobData.company : undefined,
+        role_summary: isStart ? jobData.summary : undefined
+    };
+
+    try {
+        // NEW: BLOCKING ARCHITECTURE (Quality Fix)
+        const response = await fetch('/api/get-feedback', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                message: message,
+                jobPosting: jobPosting,
+                resumeText: resumeText,
+                companyName: companyName,
+                resumeText: resumeText,
+                companyName: companyName,
+                interviewer_intel: interviewerIntel, // Pass Intel!
+                history: interviewHistory, // MEMORY PATCH: Send full history
+                isStart: isStart,
+                questionCount: questionCount + 1,
+                email: email,
+                voice: voice, // Pass voice preference
+
+                // Pass Analyzed Data (if available and isStart)
+                role_title: isStart ? jobData.role : undefined,
+                company_name: isStart ? jobData.company : undefined,
+                role_summary: isStart ? jobData.summary : undefined
+            })
+        });
+
+        // Clear Thinking UI
+        hideThinkingState();
+
+        // Check errors
+        if (!response.ok) {
+            throw new Error("API Failed");
+        }
+
+        const data = await response.json();
+
+        // MEMORY PATCH: Update History
+        if (message && lastAiQuestion) {
+            // Store the PAIR: The question that prompted this answer, and the answer itself
+            interviewHistory.push({
+                question: lastAiQuestion,
+                answer: message
+            });
+            // Keep history reasonable (last 20 turns)
+            if (interviewHistory.length > 20) interviewHistory.shift();
+        }
+
+        // MEMORY PATCH: Capture Next Question for next turn
+        if (data.response && data.response.next_question) {
+            lastAiQuestion = data.response.next_question;
+        }
+
+        // --- REFEREE: CHECK FOR GAME OVER ---
+        if (data.is_complete) {
+            console.log("Referee: Interview Complete.");
+
+            // 1. Audio Playback Delayed (Moved to Step B)
+
+            // 2. Kill Mic immediately
+            const recordBtn = document.getElementById('record-btn');
+            if (recordBtn) {
+                recordBtn.disabled = true;
+                recordBtn.style.background = '#6c757d'; // Gray
+                recordBtn.textContent = '✅';
+            }
+
+            // 3. SEQUENCED REVEAL
+            if (data.response) {
+                // Step A: Show Feedback Immediately
+                if (data.response.feedback) {
+                    const feedbackHtml = `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
                             <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
                             <div class="text-sm leading-relaxed">${data.response.feedback}</div>
                         </div>`;
-                        addMessage(feedbackHtml, 'system', true);
-                    }
-
-                    // Step B: Wait 5 Seconds -> Show Closing Message ("Thank you...") + Play Audio
-                    setTimeout(() => {
-                        // Play Audio NOW (Synced with "Thank You" text)
-                        if (data.audio) {
-                            const audio = new Audio("data:audio/mp3;base64," + data.audio);
-                            audio.play().catch(e => console.error("Playback failed:", e));
-                        }
-
-                        if (data.response.next_question) {
-                            const closingHtml = `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
-                            addMessage(closingHtml, 'system', true);
-                        }
-
-                        // Step C: Wait another 5 Seconds -> Generate Report
-                        setTimeout(() => {
-                            const finalReportText = data.response.formatted_report || data.response.feedback || "No Report Generated";
-                            const finalScore = data.average_score || data.response.average_score || 0;
-                            generateInterviewReport(finalReportText, finalScore);
-                        }, 5000);
-
-                    }, 5000);
+                    addMessage(feedbackHtml, 'system', true);
                 }
 
-                return; // STOP HERE
+                // Step B: Wait 5 Seconds -> Show Closing Message ("Thank you...") + Play Audio
+                setTimeout(() => {
+                    // Play Audio NOW (Synced with "Thank You" text)
+                    if (data.audio) {
+                        const audio = new Audio("data:audio/mp3;base64," + data.audio);
+                        audio.play().catch(e => console.error("Playback failed:", e));
+                    }
+
+                    if (data.response.next_question) {
+                        const closingHtml = `<div class="text-white text-lg font-medium leading-relaxed">${data.response.next_question}</div>`;
+                        addMessage(closingHtml, 'system', true);
+                    }
+
+                    // Step C: Wait another 5 Seconds -> Generate Report
+                    setTimeout(() => {
+                        const finalReportText = data.response.formatted_report || data.response.feedback || "No Report Generated";
+                        const finalScore = data.average_score || data.response.average_score || 0;
+                        generateInterviewReport(finalReportText, finalScore);
+                    }, 5000);
+
+                }, 5000);
             }
-            // ------------------------------------
 
-            const aiData = data.response; // The structured JSON from backend
-            const audioBase64 = data.audio;
+            return; // STOP HERE
+        }
+        // ------------------------------------
 
-            // 1. VISUAL UPDATE
-            // Construct a nice display HTML
-            let displayHtml = "";
+        const aiData = data.response; // The structured JSON from backend
+        const audioBase64 = data.audio;
 
-            if (aiData.feedback) {
-                displayHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
+        // 1. VISUAL UPDATE
+        // Construct a nice display HTML
+        let displayHtml = "";
+
+        if (aiData.feedback) {
+            displayHtml += `<div class="mb-4 p-3 bg-gray-800 rounded border border-gray-700">
                     <div class="text-xs text-indigo-400 font-bold mb-1 uppercase tracking-wider">Feedback</div>
                     <div class="text-sm leading-relaxed">${aiData.feedback}</div>
                 </div>`;
-            }
-
-            // The main question bubbles
-            if (aiData.next_question) {
-                displayHtml += `<div class="text-white text-lg font-medium leading-relaxed">${aiData.next_question}</div>`;
-            } else {
-                // Fallback if structure missing
-                displayHtml += `<div class="text-white">${JSON.stringify(aiData)}</div>`;
-            }
-
-            // 1.5 PUBLISH MESSAGE
-            // ONLY if NOT complete (to avoid duplication with the Final Report Card)
-            if (!data.is_complete) {
-                // Use addMessage to show the response in a new bubble (system/AI)
-                addMessage(displayHtml, 'system', true);
-
-                // AUTO-TRIGGER FINAL REPORT (Option 1 Fix)
-                // If closing message is detected, silently trigger the next turn to generate report
-                // GUARD: Only trigger if we are at the END of the interview (Q6+)
-                if (aiData.next_question && questionCount >= 6 && (
-                    aiData.next_question.includes("Thank you") ||
-                    aiData.next_question.includes("concludes") ||
-                    aiData.next_question.includes("pleasure speaking")
-                )) {
-                    console.log("Referee: Closing message detected. Auto-triggering Final Report...");
-                    setTimeout(() => {
-                        sendChatMessage("GENERATE_REPORT", false, true); // skipUI=true (silent)
-                    }, 2500); // 2.5s delay to let audio start
-                }
-            }
-
-            // 2. AUDIO PLAYBACK (Base64)
-            if (audioBase64) {
-                console.log("[Audio] Received audio from backend.");
-                try {
-                    const audio = new Audio("data:audio/mp3;base64," + audioBase64);
-                    audio.play().catch(e => console.error("Playback failed:", e));
-                    console.log("Audio playing...");
-                } catch (e) {
-                    console.error("Audio setup error:", e);
-                }
-            } else {
-                console.warn("[Audio] No audio returned from backend.");
-            }
-
-            // POST-STREAM STATE UPDATES
-            // POST-STREAM STATE UPDATES
-            interviewHistory.push({
-                question: currentQuestionText,
-                answer: message,
-                feedback: aiData.feedback || "No feedback provided.",
-                internal_score: aiData.internal_score || aiData.score || 0,
-                rubric_data: aiData.rubric_data || null,  // Capture rubric checklist data
-                gap_analysis: aiData.gap_analysis || null
-            });
-
-
-            if (!isStart) questionCount++;
-            currentQuestionText = aiData.next_question;
-
-        } catch (e) {
-            hideThinkingState();
-            addMessage('Stream Error: ' + e.message, 'system');
         }
+
+        // The main question bubbles
+        if (aiData.next_question) {
+            displayHtml += `<div class="text-white text-lg font-medium leading-relaxed">${aiData.next_question}</div>`;
+        } else {
+            // Fallback if structure missing
+            displayHtml += `<div class="text-white">${JSON.stringify(aiData)}</div>`;
+        }
+
+        // 1.5 PUBLISH MESSAGE
+        // ONLY if NOT complete (to avoid duplication with the Final Report Card)
+        if (!data.is_complete) {
+            // Use addMessage to show the response in a new bubble (system/AI)
+            addMessage(displayHtml, 'system', true);
+
+            // AUTO-TRIGGER FINAL REPORT (Option 1 Fix)
+            // If closing message is detected, silently trigger the next turn to generate report
+            // GUARD: Only trigger if we are at the END of the interview (Q6+)
+            if (aiData.next_question && questionCount >= 6 && (
+                aiData.next_question.includes("Thank you") ||
+                aiData.next_question.includes("concludes") ||
+                aiData.next_question.includes("pleasure speaking")
+            )) {
+                console.log("Referee: Closing message detected. Auto-triggering Final Report...");
+                setTimeout(() => {
+                    sendChatMessage("GENERATE_REPORT", false, true); // skipUI=true (silent)
+                }, 2500); // 2.5s delay to let audio start
+            }
+        }
+
+        // 2. AUDIO PLAYBACK (Base64)
+        if (audioBase64) {
+            console.log("[Audio] Received audio from backend.");
+            try {
+                const audio = new Audio("data:audio/mp3;base64," + audioBase64);
+                audio.play().catch(e => console.error("Playback failed:", e));
+                console.log("Audio playing...");
+            } catch (e) {
+                console.error("Audio setup error:", e);
+            }
+        } else {
+            console.warn("[Audio] No audio returned from backend.");
+        }
+
+        // POST-STREAM STATE UPDATES
+        // POST-STREAM STATE UPDATES
+        interviewHistory.push({
+            question: currentQuestionText,
+            answer: message,
+            feedback: aiData.feedback || "No feedback provided.",
+            internal_score: aiData.internal_score || aiData.score || 0,
+            rubric_data: aiData.rubric_data || null,  // Capture rubric checklist data
+            gap_analysis: aiData.gap_analysis || null
+        });
+
+
+        if (!isStart) questionCount++;
+        currentQuestionText = aiData.next_question;
+
+    } catch (e) {
+        hideThinkingState();
+        addMessage('Stream Error: ' + e.message, 'system');
     }
+}
 
-    async function generateInterviewReport(existingReport = null, existingScore = 0) {
-        const loadingId = addMessage('Saving Final Executive Coaching Report...', 'system');
+async function generateInterviewReport(existingReport = null, existingScore = 0) {
+    const loadingId = addMessage('Saving Final Executive Coaching Report...', 'system');
 
-        try {
+    try {
+        const session = getSession();
+        // ... (setup variables) ...
+
+        let result = {};
+
+        if (existingReport) {
+            // OPTIMIZATION: Reuse the report we already generated in the chat loop
+            console.log("Reusing existing report for DB save...");
+            result = {
+                data: {
+                    report: existingReport,
+                    average_score: existingScore // USE THE SCORE WE GOT FORM BACKEND
+                }
+            };
+        } else {
+            // Fallback: Generate new one (Legacy path)
             const session = getSession();
-            // ... (setup variables) ...
+            const email = session ? session.email : null;
+            const interviewJobPosting = document.getElementById('interview-job-posting');
+            const jobPosting = interviewJobPosting ? interviewJobPosting.value : '';
 
-            let result = {};
+            const response = await fetch('/api', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'generate_report',
+                    email: email,
+                    history: interviewHistory,
+                    jobPosting: jobPosting
+                })
+            });
+            result = await response.json();
+        }
 
-            if (existingReport) {
-                // OPTIMIZATION: Reuse the report we already generated in the chat loop
-                console.log("Reusing existing report for DB save...");
-                result = {
-                    data: {
-                        report: existingReport,
-                        average_score: existingScore // USE THE SCORE WE GOT FORM BACKEND
-                    }
-                };
-            } else {
-                // Fallback: Generate new one (Legacy path)
-                const session = getSession();
-                const email = session ? session.email : null;
-                const interviewJobPosting = document.getElementById('interview-job-posting');
-                const jobPosting = interviewJobPosting ? interviewJobPosting.value : '';
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) loadingEl.remove();
 
-                const response = await fetch('/api', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        action: 'generate_report',
-                        email: email,
-                        history: interviewHistory,
-                        jobPosting: jobPosting
-                    })
-                });
-                result = await response.json();
-            }
+        // Disable input to prevent further messages
+        const chatInputEl = document.getElementById('chat-input');
+        if (chatInputEl) {
+            chatInputEl.disabled = true;
+            chatInputEl.placeholder = "Interview Complete";
+        }
 
-            const loadingEl = document.getElementById(loadingId);
-            if (loadingEl) loadingEl.remove();
+        const sendBtn = document.getElementById('send-chat-btn');
+        if (sendBtn) sendBtn.disabled = true;
 
-            // Disable input to prevent further messages
-            const chatInputEl = document.getElementById('chat-input');
-            if (chatInputEl) {
-                chatInputEl.disabled = true;
-                chatInputEl.placeholder = "Interview Complete";
-            }
+        const recordBtn = document.getElementById('record-btn');
+        if (recordBtn) recordBtn.disabled = true;
 
-            const sendBtn = document.getElementById('send-chat-btn');
-            if (sendBtn) sendBtn.disabled = true;
+        if (result.data && result.data.report) {
 
-            const recordBtn = document.getElementById('record-btn');
-            if (recordBtn) recordBtn.disabled = true;
+            // SAVE TO DB LOGIC
+            // SAVE TO DB LOGIC
+            try {
+                // Use Supabase Auth User (Source of Truth for RLS)
+                const { data: { user } } = await supabase.auth.getUser();
 
-            if (result.data && result.data.report) {
+                if (user) {
+                    // Retrieve Context for Metadata
+                    let jobTitle = "Interview";
+                    let companyName = "Unknown Company";
+                    try {
+                        const mCtx = JSON.parse(localStorage.getItem('mission_context'));
+                        if (mCtx) {
+                            if (mCtx.role) jobTitle = mCtx.role;
+                            if (mCtx.company) companyName = mCtx.company;
+                        }
+                    } catch (e) { }
 
-                // SAVE TO DB LOGIC
-                // SAVE TO DB LOGIC
-                try {
-                    // Use Supabase Auth User (Source of Truth for RLS)
-                    const { data: { user } } = await supabase.auth.getUser();
+                    // Extract individual question scores and rubric data
+                    const questionScores = {};
+                    const rubricData = {};
 
-                    if (user) {
-                        // Retrieve Context for Metadata
-                        let jobTitle = "Interview";
-                        let companyName = "Unknown Company";
-                        try {
-                            const mCtx = JSON.parse(localStorage.getItem('mission_context'));
-                            if (mCtx) {
-                                if (mCtx.role) jobTitle = mCtx.role;
-                                if (mCtx.company) companyName = mCtx.company;
-                            }
-                        } catch (e) { }
+                    interviewHistory.forEach((turn, idx) => {
+                        const questionNum = idx + 1;
+                        const scoreKey = `q${questionNum}_score`;
+                        questionScores[scoreKey] = turn.internal_score || 0;
 
-                        // Extract individual question scores and rubric data
-                        const questionScores = {};
-                        const rubricData = {};
+                        // Aggregate rubric data if present
+                        if (turn.rubric_data) {
+                            rubricData[`Q${questionNum}`] = turn.rubric_data.checklist;
+                        }
+                    });
 
-                        interviewHistory.forEach((turn, idx) => {
-                            const questionNum = idx + 1;
-                            const scoreKey = `q${questionNum}_score`;
-                            questionScores[scoreKey] = turn.internal_score || 0;
-
-                            // Aggregate rubric data if present
-                            if (turn.rubric_data) {
-                                rubricData[`Q${questionNum}`] = turn.rubric_data.checklist;
-                            }
+                    const { error } = await supabase
+                        .from('interviews')
+                        .insert({
+                            user_id: user.id,
+                            overall_score: result.data.average_score || 0,
+                            transcript: JSON.stringify(interviewHistory),
+                            questions: interviewHistory,
+                            executive_report: result.data.report,
+                            session_name: `Interview ${new Date().toLocaleDateString()}`,
+                            job_title: jobTitle,
+                            company: companyName,
+                            // Individual question scores
+                            q1_score: questionScores.q1_score || null,
+                            q2_score: questionScores.q2_score || null,
+                            q3_score: questionScores.q3_score || null,
+                            q4_score: questionScores.q4_score || null,
+                            q5_score: questionScores.q5_score || null,
+                            q6_score: questionScores.q6_score || null,
+                            // Rubric checklist data (JSONB)
+                            rubric_data: Object.keys(rubricData).length > 0 ? rubricData : null
                         });
 
-                        const { error } = await supabase
-                            .from('interviews')
-                            .insert({
-                                user_id: user.id,
-                                overall_score: result.data.average_score || 0,
-                                transcript: JSON.stringify(interviewHistory),
-                                questions: interviewHistory,
-                                executive_report: result.data.report,
-                                session_name: `Interview ${new Date().toLocaleDateString()}`,
-                                job_title: jobTitle,
-                                company: companyName,
-                                // Individual question scores
-                                q1_score: questionScores.q1_score || null,
-                                q2_score: questionScores.q2_score || null,
-                                q3_score: questionScores.q3_score || null,
-                                q4_score: questionScores.q4_score || null,
-                                q5_score: questionScores.q5_score || null,
-                                q6_score: questionScores.q6_score || null,
-                                // Rubric checklist data (JSONB)
-                                rubric_data: Object.keys(rubricData).length > 0 ? rubricData : null
-                            });
 
-
-                        if (error) {
-                            console.error("DB Save Error:", error);
-                            alert("Warning: Could not save interview result to database. Error: " + error.message + " (Details: " + error.details + ")");
-                        } else {
-                            console.log("Interview Saved Successfully");
-                            // Optional: Small toast or console log is enough usually, but let's be sure
-                        }
+                    if (error) {
+                        console.error("DB Save Error:", error);
+                        alert("Warning: Could not save interview result to database. Error: " + error.message + " (Details: " + error.details + ")");
                     } else {
-                        console.error("Save Failed: No authenticated user found.");
-                        alert("Warning: You do not appear to be logged in. Interview result was NOT saved.");
+                        console.log("Interview Saved Successfully");
+                        // Optional: Small toast or console log is enough usually, but let's be sure
                     }
-                } catch (dbErr) {
-                    console.error("DB Save Exception:", dbErr);
-                    alert("System Error: Could not save interview. " + dbErr.message);
+                } else {
+                    console.error("Save Failed: No authenticated user found.");
+                    alert("Warning: You do not appear to be logged in. Interview result was NOT saved.");
                 }
-
-                // RENDER THE EXECUTIVE REPORT FROM AI
-                addMessage(result.data.report, 'system', true);
-
-                // Add a small return link after the report
-                addMessage('<div class="mt-4"><a href="/dashboard.html" class="text-blue-500 hover:underline">← Return to Dashboard</a></div>', 'system', true);
-            } else {
-                addMessage("Error: Could not generate structured report. Please check your connection.", 'system');
+            } catch (dbErr) {
+                console.error("DB Save Exception:", dbErr);
+                alert("System Error: Could not save interview. " + dbErr.message);
             }
 
-        } catch (e) {
-            const loadingEl = document.getElementById(loadingId);
-            if (loadingEl) loadingEl.remove();
-            addMessage("Error generating report: " + e.message, 'system');
-        }
-    }
+            // RENDER THE EXECUTIVE REPORT FROM AI
+            addMessage(result.data.report, 'system', true);
 
-    // Payment alert function for upsell buttons
-    window.showPaymentAlert = function () {
-        // Redirect to pricing page
-        window.location.href = '/pricing.html';
-    };
-
-    function addMessage(text, sender, isHtml = false) {
-        const div = document.createElement('div');
-        // Map generic 'user'/'system' to our specific CSS classes
-        const cssClass = sender === 'user' ? 'msg-user' : 'msg-system';
-        div.classList.add('msg-bubble', cssClass);
-        div.id = 'msg-' + Date.now();
-
-        if (isHtml) {
-            div.innerHTML = text;
+            // Add a small return link after the report
+            addMessage('<div class="mt-4"><a href="/dashboard.html" class="text-blue-500 hover:underline">← Return to Dashboard</a></div>', 'system', true);
         } else {
-            div.textContent = text;
+            addMessage("Error: Could not generate structured report. Please check your connection.", 'system');
         }
 
-        if (chatWindow) {
-            chatWindow.appendChild(div);
-            // Ensure we scroll the parent container, not just the window div if it's not the scroller
-            // The scroller is #view-interview-main or .overflow-auto parent
-            div.scrollIntoView({ behavior: 'smooth' });
-        }
-        return div.id;
+    } catch (e) {
+        const loadingEl = document.getElementById(loadingId);
+        if (loadingEl) loadingEl.remove();
+        addMessage("Error generating report: " + e.message, 'system');
     }
-    // Expose functions to global scope for sendVoiceMessage and button handlers
-    window.addMessage = addMessage;
-    window.sendChatMessage = sendChatMessage;
-    window.generateInterviewReport = generateInterviewReport;
+}
+
+// Payment alert function for upsell buttons
+window.showPaymentAlert = function () {
+    // Redirect to pricing page
+    window.location.href = '/pricing.html';
+};
+
+function addMessage(text, sender, isHtml = false) {
+    const div = document.createElement('div');
+    // Map generic 'user'/'system' to our specific CSS classes
+    const cssClass = sender === 'user' ? 'msg-user' : 'msg-system';
+    div.classList.add('msg-bubble', cssClass);
+    div.id = 'msg-' + Date.now();
+
+    if (isHtml) {
+        div.innerHTML = text;
+    } else {
+        div.textContent = text;
+    }
+
+    if (chatWindow) {
+        chatWindow.appendChild(div);
+        // Ensure we scroll the parent container, not just the window div if it's not the scroller
+        // The scroller is #view-interview-main or .overflow-auto parent
+        div.scrollIntoView({ behavior: 'smooth' });
+    }
+    return div.id;
+}
+// Expose functions to global scope for sendVoiceMessage and button handlers
+window.addMessage = addMessage;
+window.sendChatMessage = sendChatMessage;
+window.generateInterviewReport = generateInterviewReport;
 } // End of Interview Page (Resume Analysis + Interview Coach)
 
 
