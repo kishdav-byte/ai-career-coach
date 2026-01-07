@@ -936,6 +936,12 @@ function init() {
 
         if (!overlay) return;
 
+        // Prevent Flicker: If session data is incomplete (e.g. valid session but missing credit keys from old cache),
+        // do NOT force lock yet. Wait for checkAccess() to populate fresh data.
+        if (session.credits_linkedin === undefined && session.credits === undefined && !session.is_unlimited) {
+            return;
+        }
+
         const credits = (session.credits_linkedin || 0) + (session.credits || 0);
         const isUnlimited = session.is_unlimited || false;
 
