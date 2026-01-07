@@ -1440,21 +1440,34 @@ def get_user_profile():
     
     try:
         token = auth_header.split(" ")[1]
-        user_response = supabase.auth.get_user(token)
-        user_id = user_response.user.id
         
-        # Use RLS client to query public.users
-        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
-        user_client.postgrest.auth(token)
+        # Verify token and get user
+        try:
+            user_response = supabase.auth.get_user(token)
+            user_id = user_response.user.id
+            user_email = user_response.user.email
+        except Exception as auth_error:
+            print(f"Auth Error: {auth_error}")
+            return jsonify({"error": "Invalid token"}), 401
         
-        # Fetch detailed profile from public table
-        res = user_client.table('users').select('*').eq('id', user_id).single().execute()
-        
-        if not res.data:
-            # Fallback if no public profile yet (should exist via trigger, but safe to handle)
+        # Fetch detailed profile from public table using service role
+        try:
+            res = supabase.table('users').select('*').eq('id', user_id).single().execute()
+        except Exception as db_error:
+            print(f"DB Query Error: {db_error}")
+            # Return minimal profile if query fails
             return jsonify({
                 "id": user_id,
-                "email": user_response.user.email,
+                "email": user_email,
+                "credits": 0,
+                "is_unlimited": False
+            }), 200
+        
+        if not res.data:
+            # Fallback if no public profile yet
+            return jsonify({
+                "id": user_id,
+                "email": user_email,
                 "credits": 0,
                 "is_unlimited": False
             }), 200
@@ -1463,6 +1476,8 @@ def get_user_profile():
 
     except Exception as e:
         print(f"Profile Fetch Error: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # 10. CREATE CHECKOUT SESSION (POST)
