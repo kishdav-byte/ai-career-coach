@@ -1883,8 +1883,7 @@ window.toggleRecording = async function () {
 // sendVoiceMessage moved to global scope
 
 
-// MEMORY PATCH: Frontend History Tracking
-let interviewHistory = [];
+// MEMORY PATCH: Frontend History Tracking (interviewHistory already declared at line 490)
 let lastAiQuestion = "Interviewer Greetings"; // Initial value
 
 async function sendChatMessage(msg = null, isStart = false, skipUI = false, resumeText = '', companyName = null, interviewerIntel = "", roleTitle = "") {
