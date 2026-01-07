@@ -725,25 +725,42 @@
                     if (unlockOverlay) unlockOverlay.classList.add('hidden');
                     if (btnGenerate) {
                         btnGenerate.disabled = false;
-                        // Update button text to reflect cost status
-                        const costText = profile.is_unlimited ? 'UNLIMITED' : '1 CREDIT';
-                        // Keep the icon and structure, just append text if needed, or leave as simple "GENERATE"
-                        // btnGenerate.querySelector('span').textContent = `GENERATE & OPTIMIZE (${costText})`;
+                        btnGenerate.innerHTML = `
+                            <span>GENERATE & OPTIMIZE</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>`;
+                        btnGenerate.onclick = generateResume; // Restore original function
+                        btnGenerate.classList.remove('bg-green-600', 'hover:bg-green-500');
+                        btnGenerate.classList.add('bg-blue-600', 'hover:bg-blue-500');
                     }
                 } else {
-                    // Locked Logic -> Wire Unlock Button
-                    if (btnUnlock) {
-                        btnUnlock.onclick = async () => {
-                            const btn = btnUnlock;
-                            const oldText = btn.textContent;
-                            btn.textContent = 'Redirecting...';
+                    // LOCKED STATE
+                    // 1. Show Overlay (Keep existing behavior)
+                    // if (unlockOverlay) unlockOverlay.classList.remove('hidden');
+
+                    // 2. Transform Main Button to Unlock Trigger
+                    if (btnGenerate) {
+                        btnGenerate.disabled = false; // Enable it so they can click to pay
+                        btnGenerate.innerHTML = `
+                            <i class="fas fa-lock text-lg"></i>
+                            <span>UNLOCK TOOL ($12.99)</span>
+                        `;
+                        btnGenerate.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                        btnGenerate.classList.add('bg-green-600', 'hover:bg-green-500'); // Use Green for Purchase
+
+                        // Direct Checkout Action
+                        btnGenerate.onclick = async () => {
+                            const btn = btnGenerate;
+                            const oldHtml = btn.innerHTML;
+                            btn.textContent = 'REDIRECTING...';
                             btn.disabled = true;
 
                             try {
                                 const { data, error } = await window.supabase.functions.invoke('create-checkout-session', {
                                     body: {
                                         price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY',
-                                        plan_type: 'rewrite', // CRITICAL: Required for Webhook to fulfill credits
+                                        plan_type: 'rewrite',
                                         return_url: window.location.href,
                                         email: user.email
                                     }
@@ -751,14 +768,18 @@
 
                                 if (error) throw error;
                                 if (data?.url) window.location.href = data.url;
-                                else throw new Error("No checkout URL returned");
                             } catch (e) {
-                                console.error("Checkout Failed:", e);
-                                alert("Checkout failed: " + e.message);
-                                btn.textContent = oldText;
+                                console.error("Checkout Error", e);
+                                alert("Checkout failed. Please try again.");
+                                btn.innerHTML = oldHtml;
                                 btn.disabled = false;
                             }
                         };
+                    }
+
+                    // Wire Overlay Button (Redundant but keeps overlay functional)
+                    if (btnUnlock) {
+                        btnUnlock.onclick = btnGenerate.onclick;
                     }
                 }
             } catch (e) {

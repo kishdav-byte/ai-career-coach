@@ -211,6 +211,14 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
         const interviewOverlay = document.getElementById('interview-unlock-overlay');
         if (interviewOverlay) interviewOverlay.classList.add('hidden');
 
+        // UPDATE BUTTON: Active State
+        const startBtn = document.getElementById('start-interview-btn');
+        if (startBtn) {
+            startBtn.innerHTML = `START SESSION`;
+            startBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+            startBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+        }
+
         return true;
     } else {
         // LOCKED STATE
@@ -221,6 +229,14 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
             if (interviewOverlay) {
                 // Use New Overlay UI
                 interviewOverlay.classList.remove('hidden');
+
+                // UPDATE BUTTON: Locked State
+                const startBtn = document.getElementById('start-interview-btn');
+                if (startBtn) {
+                    startBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($9.99)`;
+                    startBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                    startBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                }
 
                 // Wire up the button if not already done (Idempotent)
                 const unlockBtn = document.getElementById('btn-unlock-interview-overlay');
