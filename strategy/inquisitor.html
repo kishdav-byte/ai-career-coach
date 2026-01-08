@@ -18,6 +18,9 @@
     <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <!-- Supabase Client for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/app.js"></script>
 
     <style>
         body {
@@ -237,8 +240,20 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) window.location.href = '/login.html';
+            // Initialize Supabase client if not already loaded from app.js
+            if (!window.supabase) {
+                const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+                window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            }
+
+            // Get fresh session using Supabase client
+            const { data: { session }, error } = await window.supabase.auth.getSession();
+            if (!session || error) {
+                window.location.href = '/login.html';
+                return;
+            }
+            const token = session.access_token;
 
             const form = document.getElementById('tool-form');
             const resultDiv = document.getElementById('result-content');
