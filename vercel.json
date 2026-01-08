@@ -22,14 +22,11 @@
             "use": "@vercel/static"
         }
     ],
-    "routes": [
+    "cleanUrls": true,
+    "rewrites": [
         {
-            "src": "/api/(.*)",
-            "dest": "/api/index.py"
-        },
-        {
-            "src": "/(.*)",
-            "dest": "/$1"
+            "source": "/api/:path*",
+            "destination": "/api/index.py"
         }
     ]
 }

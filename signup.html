@@ -48,14 +48,26 @@
         }
 
         .logo {
-            text-align: center;
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
             margin-bottom: 2rem;
+        }
+
+        .logo .top-line {
+            font-size: 0.875rem;
+            color: var(--success);
+            text-transform: lowercase;
+            font-weight: 700;
+        }
+
+        .logo .bottom-line {
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.05em;
         }
 
         h1 {
@@ -218,7 +230,10 @@
 
 <body>
     <div class="signup-container">
-        <div class="logo">AceInterview</div>
+        <div class="logo">
+            <span class="top-line">total package</span>
+            <span class="bottom-line">INTERVIEW</span>
+        </div>
         <h1>Create Account</h1>
         <p class="subtitle">Get started with your interview prep</p>
 
@@ -360,7 +375,7 @@
                 }
             } catch (error) {
                 console.error('Signup error:', error);
-                showAlert('Unable to create account. Please try again or contact support@tryaceinterview.com', 'error');
+                showAlert('Unable to create account. Please try again or contact support@totalpackageinterview.com', 'error');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Create Account';
             }

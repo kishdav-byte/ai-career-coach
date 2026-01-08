@@ -757,16 +757,27 @@
                             btn.disabled = true;
 
                             try {
-                                const { data, error } = await window.supabase.functions.invoke('create-checkout-session', {
-                                    body: {
-                                        price_id: 'price_1Sgsf9IH1WTKNasqxvk528yY',
-                                        plan_type: 'rewrite',
-                                        return_url: window.location.href,
-                                        email: user.email
-                                    }
+                                // USE PYTHON API (Standard 2.0)
+                                const token = localStorage.getItem('supabase.auth.token');
+                                if (!token) throw new Error("User not authenticated");
+
+                                const res = await fetch('/api/create-checkout-session', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({
+                                        plan_type: 'strategy_rewrite',
+                                        userId: user.id,
+                                        email: user.email,
+                                        successUrl: window.location.href,
+                                        mode: 'payment'
+                                    })
                                 });
 
-                                if (error) throw error;
+                                const data = await res.json();
+                                if (data.error) throw new Error(data.error);
                                 if (data?.url) window.location.href = data.url;
                             } catch (e) {
                                 console.error("Checkout Error", e);

@@ -17,10 +17,12 @@ try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
     
     # Try to select the new columns from one user
-    print("Attempting to select 'analysis_count' and 'last_analysis_date' from 'users' table...")
+    print("Attempting to select strategy credit columns from 'users' table...")
+    
+    columns_to_check = "id, email, credits_cover_letter"
     
     # We limit to 1 row just to check schema validity
-    response = supabase.table('users').select('analysis_count, last_analysis_date').limit(1).execute()
+    response = supabase.table('users').select(columns_to_check).limit(1).execute()
     
     print("SUCCESS! Columns found.")
     print(f"Data sample (one row): {response.data}")

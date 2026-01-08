@@ -18,6 +18,9 @@
     <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
+    <!-- Supabase Client for Auth -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="/app.js"></script>
 
     <style>
         body {
@@ -134,10 +137,6 @@
             color: #2563eb;
             font-weight: 600;
         }
-
-
-
-        /* Blue bold for emphasis */
     </style>
 </head>
 
@@ -286,142 +285,218 @@
     </main>
 
     <script>
+        // Use window.supabase from app.js or initialize fallback
+        const initSupabase = () => {
+            if (window.supabase) return window.supabase;
+            const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+            window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            return window.supabase;
+        };
+
+        const supabaseClient = initSupabase();
+
+        // Global State
+        let isLocked = true;
+        let userEmail = null;
+        let userId = null;
+        let authToken = null;
+
         document.addEventListener('DOMContentLoaded', async () => {
-            const token = localStorage.getItem('supabase.auth.token');
-            if (!token) window.location.href = '/login.html';
+            // 1. Auth Check
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (!session || error) {
+                console.warn("No session found, redirecting to login");
+                window.location.href = '../login.html';
+                return;
+            }
+            authToken = session.access_token;
 
+            // 2. Fetch Profile & Credits via API
+            await verifyAccess(authToken);
+
+            // Bind Events
             const form = document.getElementById('tool-form');
-            const resultDiv = document.getElementById('result-content');
-            const loadDiv = document.getElementById('loading');
-            const emptyState = document.getElementById('empty-state');
-            const unlockOverlay = document.getElementById('unlock-overlay');
-            const btnGenerate = document.getElementById('btn-generate');
-            const btnText = btnGenerate.querySelector('.btn-text');
-            const btnUnlock = document.getElementById('btn-unlock');
-            const btnCopy = document.getElementById('btn-copy');
+            form.addEventListener('submit', handleGeneration);
+
+            document.getElementById('btn-copy').addEventListener('click', copyContent);
+        });
+
+        async function verifyAccess(token) {
+            const overlay = document.getElementById('unlock-overlay');
+            const genBtn = document.getElementById('btn-generate');
             const statusDot = document.getElementById('status-dot');
-
-            let userEmail = '';
-            let user = null;
-
-            // 1. Check Credits
-            // Default Unlock Handler (Safeguard)
-            btnUnlock.onclick = () => initiateCheckout('strategy_closer', userEmail || '');
+            const btnUnlock = document.getElementById('btn-unlock');
 
             try {
-                // Initial Lock State
-                unlockOverlay.classList.remove('hidden');
-                btnGenerate.disabled = true;
+                // Ensure overlay is blocking by default
+                overlay.classList.remove('hidden');
+                genBtn.disabled = true;
+
+                // FALLBACK: Get user details from Session immediately
+                const { data: { user: sessionUser } } = await supabaseClient.auth.getUser();
+                if (sessionUser) {
+                    userEmail = sessionUser.email;
+                    userId = sessionUser.id;
+                }
 
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!res.ok) throw new Error("Failed to fetch profile");
+                let userProfile = null;
 
-                user = await res.json();
-                userEmail = user.email; // Update email if successful
+                if (res.ok) {
+                    userProfile = await res.json();
+                } else {
+                    console.warn(`Profile Fetch Failed (${res.status}). Attempting Direct DB Fallback.`);
+                    // Direct DB Fallback
+                    if (userId) {
+                        const { data: dbUser, error: dbError } = await supabaseClient
+                            .from('users')
+                            .select('*')
+                            .eq('id', userId)
+                            .single();
 
-                // Check Specific Credit
-                const hasCredit = user.is_unlimited || (user.credits_negotiation && user.credits_negotiation > 0) || (user.credits && user.credits > 0);
+                        if (dbUser && !dbError) {
+                            console.log("Recovered profile from Direct DB query");
+                            userProfile = dbUser;
+                        } else {
+                            console.error("Direct DB Query failed:", dbError);
+                        }
+                    }
+                }
+
+                // Credit Check: 'credits_negotiation' (Stnd) OR 'strategy_closer_credits' (Legacy) OR Universal
+                const hasCredit = userProfile ? (
+                    userProfile.is_unlimited
+                    || (userProfile.credits_negotiation && userProfile.credits_negotiation > 0)
+                    || (userProfile.strategy_closer_credits && userProfile.strategy_closer_credits > 0)
+                    || (userProfile.credits && userProfile.credits > 0)
+                ) : false;
 
                 if (hasCredit) {
-                    unlockOverlay.classList.add('hidden');
-                    btnGenerate.disabled = false;
-                    btnText.textContent = `GENERATE STRATEGY (${user.is_unlimited ? 'UNLIMITED' : '1 CREDIT'})`;
+                    // UNLOCKED
+                    isLocked = false;
+                    overlay.classList.add('hidden');
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = `<span class="btn-text">GENERATE NEGOTIATION SCRIPT</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>`;
+                    genBtn.classList.remove('shadow-blue-900/20'); // Was using blue for closer
                     statusDot.classList.remove('bg-slate-600');
                     statusDot.classList.add('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.6)]');
                 } else {
-                    // Update Handler with verified email
-                    btnUnlock.onclick = () => initiateCheckout('strategy_closer', user.email);
+                    // LOCKED
+                    isLocked = true;
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
+                    genBtn.classList.add('shadow-blue-900/20');
+
+                    // Bind Purchase
+                    const buyHandler = (e) => {
+                        e.preventDefault();
+                        initiateCheckout('strategy_closer', userEmail);
+                    };
+                    genBtn.onclick = buyHandler;
+                    btnUnlock.onclick = () => initiateCheckout('strategy_closer', userEmail);
                 }
+
             } catch (e) {
-                console.error("Auth check failed", e);
-                // Button remains active with default handler
-            }
-
-            // 2. Handle Generation
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const inputs = Object.fromEntries(formData.entries());
-
-                loadDiv.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-                resultDiv.classList.add('hidden');
-                btnGenerate.disabled = true;
-                btnCopy.classList.add('hidden');
-
-                try {
-                    const res = await fetch('/api/generate-strategy-tool', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            email: userEmail,
-                            tool_type: 'closer',
-                            inputs: inputs
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (data.error) throw new Error(data.error);
-
-                    resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.classList.remove('hidden');
-                    btnCopy.classList.remove('hidden');
-
-                } catch (err) {
-                    alert("Error: " + err.message);
-                    emptyState.classList.remove('hidden');
-                } finally {
-                    loadDiv.classList.add('hidden');
-                    if (unlockOverlay.classList.contains('hidden')) btnGenerate.disabled = false;
-                }
-            });
-
-            // 3. Checkout Logic
-            async function initiateCheckout(planType, email) {
-                const btn = event.target;
-                const oldText = btn.textContent;
-                btn.textContent = 'Processing...';
-                btn.disabled = true;
-
-                try {
-                    const res = await fetch('/api/create-checkout-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({
-                            plan_type: planType,
-                            email: email,
-                            plan_type: planType,
-                            email: email,
-                            userId: user ? user.id : null, // Pass ID if available, else null (backend handles token)
-                            successUrl: window.location.href
-                        })
-                    });
-                    const json = await res.json();
-                    if (json.url) window.location.href = json.url;
-                    else throw new Error(json.error);
-                } catch (e) {
-                    alert(e.message);
-                    btn.textContent = oldText;
-                    btn.disabled = false;
+                console.error("Access verification error:", e);
+                // Allow stay on page
+                genBtn.disabled = false;
+                genBtn.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
+                if (userEmail) {
+                    genBtn.onclick = (event) => { event.preventDefault(); initiateCheckout('strategy_closer', userEmail); };
+                    btnUnlock.onclick = () => initiateCheckout('strategy_closer', userEmail);
                 }
             }
+        }
 
-            // 4. Copy Logic
-            btnCopy.addEventListener('click', () => {
-                const text = resultDiv.innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    const original = btnCopy.innerHTML;
-                    btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                    setTimeout(() => btnCopy.innerHTML = original, 2000);
+        async function initiateCheckout(planType, email) {
+            const btn = document.activeElement;
+            const originalText = btn.innerHTML;
+            if (btn) { btn.innerHTML = 'Processing...'; btn.disabled = true; }
+
+            try {
+                const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({
+                        plan_type: planType,
+                        email: email,
+                        userId: userId,
+                        successUrl: window.location.href
+                    })
                 });
+                const json = await res.json();
+                if (json.url) window.location.href = json.url;
+                else throw new Error(json.error || "Checkout failed");
+            } catch (e) {
+                alert("Checkout Error: " + e.message);
+                if (btn) { btn.innerHTML = originalText; btn.disabled = false; }
+            }
+        }
+
+        async function handleGeneration(e) {
+            e.preventDefault();
+            if (isLocked) return;
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const inputs = Object.fromEntries(formData.entries());
+
+            const resultDiv = document.getElementById('result-content');
+            const loadDiv = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
+            const btnGenerate = document.getElementById('btn-generate');
+            const btnCopy = document.getElementById('btn-copy');
+
+            loadDiv.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            resultDiv.classList.add('hidden');
+            btnGenerate.disabled = true;
+            btnCopy.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/generate-strategy-tool', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        email: userEmail,
+                        tool_type: 'closer',
+                        inputs: inputs
+                    })
+                });
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                resultDiv.innerHTML = marked.parse(data.content);
+                resultDiv.classList.remove('hidden');
+                btnCopy.classList.remove('hidden');
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                emptyState.classList.remove('hidden');
+            } finally {
+                loadDiv.classList.add('hidden');
+                btnGenerate.disabled = false;
+            }
+        }
+
+        function copyContent() {
+            const resultDiv = document.getElementById('result-content');
+            const btnCopy = document.getElementById('btn-copy');
+            const text = resultDiv.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = btnCopy.innerHTML;
+                btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => btnCopy.innerHTML = original, 2000);
             });
-        });
+        }
     </script>
 </body>
 

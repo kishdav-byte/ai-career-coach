@@ -286,64 +286,66 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
         return true;
     } else {
         // LOCKED STATE
-        if (autoPrompt) {
-            // Check if we are on a page with the new overlay
-            const interviewOverlay = document.getElementById('interview-unlock-overlay');
 
-            if (interviewOverlay) {
-                // Use New Overlay UI
-                interviewOverlay.classList.remove('hidden');
+        // Check if we are on a page with the new overlay
+        const interviewOverlay = document.getElementById('interview-unlock-overlay');
 
-                // UPDATE BUTTON: Locked State
-                const startBtn = document.getElementById('start-interview-btn');
-                if (startBtn) {
-                    startBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($9.99)`;
-                    startBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-                    startBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+        if (interviewOverlay) {
+            // ALWAYS Update UI if overlay exists (Non-intrusive)
+            interviewOverlay.classList.remove('hidden');
 
-                    // Direct Checkout Trigger
-                    startBtn.onclick = async () => {
-                        const startBtn = document.getElementById('start-interview-btn');
-                        if (startBtn) {
-                            startBtn.textContent = 'Redirecting...';
-                            startBtn.disabled = true;
-                        }
-                        const { data: { user } } = await supabase.auth.getUser();
-                        initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
-                    };
-                }
+            // UPDATE BUTTON: Locked State
+            const startBtn = document.getElementById('start-interview-btn');
+            if (startBtn) {
+                startBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($9.99)`;
+                startBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                startBtn.classList.add('bg-green-600', 'hover:bg-green-500');
 
-                // UPDATE BUTTON: Locked State (LinkedIn)
-                // NOTE: This runs if we are on the LinkedIn View (controlled by url/hash check usually, or we just update both if elements exist)
-                const linkedinBtn = document.getElementById('optimize-linkedin-btn');
-                if (linkedinBtn) {
-                    linkedinBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
-                    linkedinBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
-                    linkedinBtn.classList.add('bg-green-600', 'hover:bg-green-500');
+                // Direct Checkout Trigger
+                startBtn.onclick = async () => {
+                    const startBtn = document.getElementById('start-interview-btn');
+                    if (startBtn) {
+                        startBtn.textContent = 'Redirecting...';
+                        startBtn.disabled = true;
+                    }
+                    const { data: { user } } = await supabase.auth.getUser();
+                    initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
+                };
+            }
 
-                    // Direct Checkout Trigger
-                    linkedinBtn.onclick = async () => {
-                        const btn = document.getElementById('optimize-linkedin-btn');
-                        if (btn) {
-                            btn.textContent = 'Redirecting...';
-                            btn.disabled = true;
-                        }
-                        const { data: { user } } = await supabase.auth.getUser();
-                        initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
-                    };
-                }
+            // UPDATE BUTTON: Locked State (LinkedIn)
+            // NOTE: This runs if we are on the LinkedIn View (controlled by url/hash check usually, or we just update both if elements exist)
+            const linkedinBtn = document.getElementById('optimize-linkedin-btn');
+            if (linkedinBtn) {
+                linkedinBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
+                linkedinBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+                linkedinBtn.classList.add('bg-green-600', 'hover:bg-green-500');
 
-                // Wire up the button if not already done (Idempotent)
-                const unlockBtn = document.getElementById('btn-unlock-interview-overlay');
-                if (unlockBtn) {
-                    unlockBtn.onclick = async () => {
-                        // Standard Checkout Flow
-                        const { data: { user } } = await supabase.auth.getUser();
-                        initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
-                    };
-                }
-            } else {
-                // Fallback to Alert for other pages
+                // Direct Checkout Trigger
+                linkedinBtn.onclick = async () => {
+                    const btn = document.getElementById('optimize-linkedin-btn');
+                    if (btn) {
+                        btn.textContent = 'Redirecting...';
+                        btn.disabled = true;
+                    }
+                    const { data: { user } } = await supabase.auth.getUser();
+                    initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
+                };
+            }
+
+            // Wire up the button if not already done (Idempotent)
+            const unlockBtn = document.getElementById('btn-unlock-interview-overlay');
+            if (unlockBtn) {
+                unlockBtn.onclick = async () => {
+                    // Standard Checkout Flow
+                    const { data: { user } } = await supabase.auth.getUser();
+                    initiateCheckout('strategy_interview_sim', user ? user.email : null, user ? user.id : null);
+                };
+            }
+        } else {
+            // Fallback to Alert for other pages (e.g. Dashboard)
+            // ONLY if autoPrompt is true
+            if (autoPrompt) {
                 if (confirm('You have 0 credits. Upgrade now to start your Mock Interview? ($9.99)')) {
                     const { data: { user } } = await supabase.auth.getUser();
                     if (user) {
@@ -361,6 +363,7 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
         return false;
     }
 }
+
 
 
 
@@ -971,10 +974,10 @@ function init() {
     versionDisplay.textContent = 'v9.0';
     document.body.appendChild(versionDisplay);
 
-    // Run Access Check (BUT Skip on Dashboard to avoid annoyance)
-    if (!window.location.pathname.includes('dashboard.html')) {
-        checkAccess();
-    }
+    // Run Access Check
+    // Auto-Prompt ONLY if we are directly landing on the interview section to avoid dashboard annoyance
+    const isInterviewContext = window.location.hash === '#interview' || window.location.hash === '#simulator';
+    checkAccess('interview_credits', isInterviewContext);
 
     // Helper: Safely add event listener (only if el exists)
     function addClickListener(id, handler) {

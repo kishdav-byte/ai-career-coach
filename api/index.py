@@ -1502,7 +1502,7 @@ def create_checkout_session():
         
         data = request.json
         plan_type = data.get('plan_type')
-        success_url = data.get('successUrl', 'https://tryaceinterview.com/dashboard.html')
+        success_url = data.get('successUrl', 'https://totalpackageinterview.com/dashboard.html')
         cancel_url = success_url # Just go back
         
         # Use token ID over body ID for security, fallback to body if token fails (unlikely)
@@ -1517,9 +1517,10 @@ def create_checkout_session():
         # PRICE MAPPING - Source of Truth: User Provided Table
         PRICE_MAP = {
             # Strategy Tools ($6.99 - $8.99)
-            'strategy_cover': 'price_1Shc7tlH1WTKNasqQNu7O5fL',     # Cover Letter ($6.99)
+            'strategy_cover': 'price_1Shc7tIH1WTKNasqQNu7O5fL',     # Cover Letter ($6.99)
+            'cover_letter': 'price_1Shc7tIH1WTKNasqQNu7O5fL',       # Alias for Dashboard
             'strategy_linkedin': 'price_1ShWBJIH1WTKNasqd7p9VA5f',  # LinkedIn Opt ($6.99)
-            'strategy_plan': 'price_1SePlolH1WTKNasq64loXSAv',      # 30-60-90 Plan ($8.99)
+            'strategy_plan': 'price_1SePloIH1WTKNasq64loXSAv',      # 30-60-90 Plan ($8.99)
             'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',   # Value Follow-Up ($6.99)
             'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',     # The Closer/Negotiation ($6.99)
             'strategy_inquisitor': 'price_1Sgsf9IH1WTKNasqxvk528yY', # Inquisitor/Executive Rewrite? WAIT. Image says Executive Rewrite is ...528yY.
@@ -1545,6 +1546,7 @@ def create_checkout_session():
             # I'll map 'strategy_interview_sim' to Interview ID.
             
             'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',    # Executive Rewrite ($12.99)
+            'rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',             # Alias for Rewrite
             'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', # Interview Sim ($9.99)
             'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',      # Bundle ($29.99)
             'pro_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',           # Alias for Bundle
@@ -1804,65 +1806,76 @@ def stripe_webhook():
     except stripe.error.SignatureVerificationError as e:
         return jsonify({'error': 'Invalid signature'}), 400
 
-    if event['type'] == 'checkout.session.completed':
-        session = event['data']['object']
-        handle_checkout_fulfillment(session)
-
-    return jsonify({'status': 'success'}), 200
+    try:
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            result = handle_checkout_fulfillment(session)
+            return jsonify(result), 200
+        return jsonify({'status': 'ignored'}), 200
+    except Exception as e:
+        import traceback
+        return jsonify({'status': 'crash', 'error': str(e), 'trace': traceback.format_exc()}), 200
 
 def handle_checkout_fulfillment(session):
     metadata = session.get('metadata', {})
     plan_type = metadata.get('plan_type')
-    user_id = metadata.get('userId')
+    user_id = metadata.get('userId') or metadata.get('user_id')
     
+    # NORMALIZE ALIASES
+    if plan_type == 'cover_letter': plan_type = 'strategy_cover'
+    if plan_type == 'rewrite': plan_type = 'strategy_rewrite'
+
     if not user_id or not plan_type:
         print(f"Skipping fulfillment: Missing metadata. Plan: {plan_type}, User: {user_id}")
         return
 
-    print(f"Fulfilling Order: {plan_type} for User: {user_id}")
+    logs = []
+    logs.append(f"Processing {plan_type} for {user_id}")
     
-    # Initialize Supabase with SERVICE ROLE KEY to bypass RLS
+    # Initialize Supabase
     from supabase import create_client
     url = os.environ.get("SUPABASE_URL")
     key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+    key_type = "SERVICE"
     if not key:
-        print("CRITICAL WARNING: SUPABASE_SERVICE_ROLE_KEY missing. Fulfillment may fail RLS.")
+        logs.append("WARNING: Service Key Missing. Using Anon.")
         key = os.environ.get("SUPABASE_KEY")
+        key_type = "ANON"
         
     supabase_client = create_client(url, key)
     
     updates = {}
     
+    # ... [Logic Sections] ...
+    # Adaptation of existing logic to append to 'updates' dict
+    # We need to maintain the full existing logic mapping!
+    
     if plan_type == 'strategy_interview_sim':
-        # Increment Interview Credits
         try:
             user_data = supabase_client.table('users').select('interview_credits').eq('id', user_id).single().execute()
             current = user_data.data.get('interview_credits', 0) if user_data.data else 0
             updates['interview_credits'] = current + 1
-        except Exception as e:
-            print(f"Error fetching current credits: {e}")
-            updates['interview_credits'] = 1
-        
+        except: updates['interview_credits'] = 1
+
     elif plan_type == 'monthly_unlimited':
         updates['subscription_status'] = 'active'
         updates['subscription_tier'] = 'unlimited'
         updates['stripe_customer_id'] = session.get('customer')
-        
+
     elif plan_type == 'strategy_rewrite':
         try:
             user_data = supabase_client.table('users').select('rewrite_credits').eq('id', user_id).single().execute()
             current = user_data.data.get('rewrite_credits', 0) if user_data.data else 0
             updates['rewrite_credits'] = current + 1
         except: updates['rewrite_credits'] = 1
-        
+
     elif plan_type == 'strategy_bundle':
-         # 5 Universal Credits
         try:
             user_data = supabase_client.table('users').select('credits').eq('id', user_id).single().execute()
             current = user_data.data.get('credits', 0) if user_data.data else 0
             updates['credits'] = current + 5
         except: updates['credits'] = 5
-        
+
     elif plan_type == 'strategy_closer':
         try:
             user_data = supabase_client.table('users').select('credits_negotiation').eq('id', user_id).single().execute()
@@ -1871,30 +1884,15 @@ def handle_checkout_fulfillment(session):
         except: updates['credits_negotiation'] = 1
 
     elif plan_type == 'strategy_followup':
-        # ROBUSTNESS FIX: Try both potential column names
-        fulfilled = False
-        
-        # 1. Try Standard 'credits_followup'
-        try:
-            user_data = supabase_client.table('users').select('credits_followup').eq('id', user_id).single().execute()
-            current = user_data.data.get('credits_followup', 0) if user_data.data else 0
-            updates['credits_followup'] = current + 1
-            fulfilled = True
-        except: 
-            print("Standard 'credits_followup' not found or read error.")
-
-        # 2. Try Legacy 'strategy_followup_credits' (Just in case)
-        try:
-            user_data = supabase_client.table('users').select('strategy_followup_credits').eq('id', user_id).single().execute()
-            current = user_data.data.get('strategy_followup_credits', 0) if user_data.data else 0
-            updates['strategy_followup_credits'] = current + 1
-            fulfilled = True
-        except:
-            print("Legacy 'strategy_followup_credits' not found.")
-            
-        if not fulfilled:
-             # Force add standard column if neither worked (will error if schema truly broken, but worth a try)
-             updates['credits_followup'] = 1
+        for col in ['credits_followup', 'strategy_followup_credits']:
+            try:
+                user_data = supabase_client.table('users').select(col).eq('id', user_id).single().execute()
+                current = user_data.data.get(col, 0) if user_data.data else 0
+                updates[col] = current + 1
+                logs.append(f"Matched {col}")
+                break
+            except: pass
+        if not updates: updates['credits_followup'] = 1
 
     elif plan_type == 'strategy_plan':
         try:
@@ -1904,11 +1902,22 @@ def handle_checkout_fulfillment(session):
         except: updates['credits_30_60_90'] = 1
 
     elif plan_type == 'strategy_cover':
-        try:
-            user_data = supabase_client.table('users').select('credits_cover_letter').eq('id', user_id).single().execute()
-            current = user_data.data.get('credits_cover_letter', 0) if user_data.data else 0
-            updates['credits_cover_letter'] = current + 1
-        except: updates['credits_cover_letter'] = 1
+        # Double Write Logic
+        matched = False
+        for col in ['credits_cover_letter', 'strategy_cover_credits', 'credits_cover']:
+            try:
+                user_data = supabase_client.table('users').select(col).eq('id', user_id).single().execute()
+                current = user_data.data.get(col, 0) if user_data.data else 0
+                updates[col] = current + 1
+                logs.append(f"Matched {col}")
+                matched = True
+                # Continue loop to update ALL that exist? Or just one?
+                # User complaint was "didn't update". Let's update ALL matching.
+            except: pass
+        
+        if not matched:
+            logs.append("No columns matched read. Forcing write to credits_cover_letter.")
+            updates['credits_cover_letter'] = 1
 
     elif plan_type == 'strategy_linkedin':
         try:
@@ -1923,13 +1932,17 @@ def handle_checkout_fulfillment(session):
             current = user_data.data.get('credits_inquisitor', 0) if user_data.data else 0
             updates['credits_inquisitor'] = current + 1
         except: updates['credits_inquisitor'] = 1
-        
+
     if updates:
         try:
-            supabase_client.table('users').update(updates).eq('id', user_id).execute()
-            print("Fulfillment Successful")
+            res = supabase_client.table('users').update(updates).eq('id', user_id).execute()
+            logs.append(f"Update Success. Rows: {len(res.data) if res.data else 0}")
+            return {'status': 'success', 'logs': logs, 'updates': updates, 'key_type': key_type}
         except Exception as e:
-            print(f"Fulfillment DB Error: {e}")
+            logs.append(f"Update Failed: {str(e)}")
+            return {'status': 'error', 'logs': logs, 'error': str(e), 'key_type': key_type}
+    
+    return {'status': 'no_updates', 'logs': logs}
 
 
 # Expose app
