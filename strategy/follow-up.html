@@ -383,14 +383,29 @@
                 if (res.ok) {
                     userProfile = await res.json();
                 } else {
-                    console.warn(`Profile Fetch Failed (${res.status}). Defaulting to locked state.`);
-                    // We DO NOT redirect here. Use Session User + Locked Defaults.
+                    console.warn(`Profile Fetch Failed (${res.status}). Attempting Direct DB Fallback.`);
+                    // Direct DB Fallback (Matches Dashboard Logic)
+                    if (userId) {
+                        const { data: dbUser, error: dbError } = await supabaseClient
+                            .from('users')
+                            .select('*')
+                            .eq('id', userId)
+                            .single();
+
+                        if (dbUser && !dbError) {
+                            console.log("Recovered profile from Direct DB query");
+                            userProfile = dbUser;
+                        } else {
+                            console.error("Direct DB Query failed:", dbError);
+                        }
+                    }
                 }
 
                 // If we got a profile, use it. Otherwise default to 0 credits.
                 const hasCredit = userProfile ? (
                     userProfile.is_unlimited
                     || (userProfile.credits_followup && userProfile.credits_followup > 0)
+                    || (userProfile.strategy_followup_credits && userProfile.strategy_followup_credits > 0)
                     || (userProfile.credits && userProfile.credits > 0)
                 ) : false;
 

@@ -1871,11 +1871,30 @@ def handle_checkout_fulfillment(session):
         except: updates['credits_negotiation'] = 1
 
     elif plan_type == 'strategy_followup':
+        # ROBUSTNESS FIX: Try both potential column names
+        fulfilled = False
+        
+        # 1. Try Standard 'credits_followup'
         try:
             user_data = supabase_client.table('users').select('credits_followup').eq('id', user_id).single().execute()
             current = user_data.data.get('credits_followup', 0) if user_data.data else 0
             updates['credits_followup'] = current + 1
-        except: updates['credits_followup'] = 1
+            fulfilled = True
+        except: 
+            print("Standard 'credits_followup' not found or read error.")
+
+        # 2. Try Legacy 'strategy_followup_credits' (Just in case)
+        try:
+            user_data = supabase_client.table('users').select('strategy_followup_credits').eq('id', user_id).single().execute()
+            current = user_data.data.get('strategy_followup_credits', 0) if user_data.data else 0
+            updates['strategy_followup_credits'] = current + 1
+            fulfilled = True
+        except:
+            print("Legacy 'strategy_followup_credits' not found.")
+            
+        if not fulfilled:
+             # Force add standard column if neither worked (will error if schema truly broken, but worth a try)
+             updates['credits_followup'] = 1
 
     elif plan_type == 'strategy_plan':
         try:
