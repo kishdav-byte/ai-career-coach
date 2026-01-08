@@ -366,25 +366,33 @@
                 overlay.classList.remove('hidden');
                 genBtn.disabled = true;
 
+                // FALLBACK: Get user details from Session immediately
+                // This ensures we have ID/Email even if /api/user-profile fails
+                const { data: { user: sessionUser } } = await supabaseClient.auth.getUser();
+                if (sessionUser) {
+                    userEmail = sessionUser.email;
+                    userId = sessionUser.id;
+                }
+
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (res.status === 401) {
-                    console.error("401 Unauthorized from /api/user-profile");
-                    // Try to refresh session?
-                    throw new Error("Session invalid or expired");
+                let userProfile = null;
+
+                if (res.ok) {
+                    userProfile = await res.json();
+                } else {
+                    console.warn(`Profile Fetch Failed (${res.status}). Defaulting to locked state.`);
+                    // We DO NOT redirect here. Use Session User + Locked Defaults.
                 }
 
-                if (!res.ok) throw new Error("Failed to load profile");
-
-                const user = await res.json();
-                userEmail = user.email;
-                userId = user.id;
-
-                const hasCredit = user.is_unlimited
-                    || (user.credits_followup && user.credits_followup > 0)
-                    || (user.credits && user.credits > 0);
+                // If we got a profile, use it. Otherwise default to 0 credits.
+                const hasCredit = userProfile ? (
+                    userProfile.is_unlimited
+                    || (userProfile.credits_followup && userProfile.credits_followup > 0)
+                    || (userProfile.credits && userProfile.credits > 0)
+                ) : false;
 
                 if (hasCredit) {
                     // UNLOCKED
@@ -406,23 +414,21 @@
                     // Bind Purchase
                     const buyHandler = (e) => {
                         e.preventDefault();
-                        initiateCheckout('strategy_followup', user.email);
+                        initiateCheckout('strategy_followup', userEmail);
                     };
                     genBtn.onclick = buyHandler;
-                    btnUnlock.onclick = () => initiateCheckout('strategy_followup', user.email);
+                    btnUnlock.onclick = () => initiateCheckout('strategy_followup', userEmail);
                 }
 
             } catch (e) {
                 console.error("Access verification error:", e);
-                // Fallback: Allow purchase attempt even if profile fetch failed?
-                // No, we need email/ID. 
+                // Allow stay on page
                 genBtn.disabled = false;
-                genBtn.innerHTML = `<span>RETRY CONNECTION</span><i class="fas fa-sync"></i>`;
-                genBtn.onclick = () => window.location.reload();
-
-                if (e.message.includes("Session")) {
-                    alert("Your session has expired. Please log in again.");
-                    window.location.href = '../login.html';
+                genBtn.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
+                // If critical session error, we might log it but don't kick out unless absolutely necessary
+                // Fallback binding
+                if (userEmail) {
+                    genBtn.onclick = (event) => { event.preventDefault(); initiateCheckout('strategy_followup', userEmail); };
                 }
             }
         }
