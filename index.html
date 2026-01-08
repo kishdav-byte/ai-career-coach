@@ -76,12 +76,29 @@
         }
 
         .nav-logo {
-            font-size: 1.5rem;
             font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            line-height: 1;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-logo .top-line {
+            font-size: 0.75rem;
+            color: #20C997;
+            /* Lime green/teal */
+            text-transform: lowercase;
+            font-weight: 700;
+        }
+
+        .nav-logo .bottom-line {
+            font-size: 1.25rem;
+            color: #20C997;
+            /* Lime green/teal */
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.05em;
         }
 
         .nav-links {
@@ -830,7 +847,10 @@
     <!-- Navigation -->
     <nav class="nav">
         <div class="nav-container">
-            <div class="nav-logo">AI Career Coach</div>
+            <div class="nav-logo">
+                <span class="top-line">total package</span>
+                <span class="bottom-line">INTERVIEW</span>
+            </div>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
                 <span></span>
                 <span></span>
