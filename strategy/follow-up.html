@@ -15,6 +15,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
     <!-- Libs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
@@ -108,6 +113,23 @@
         }
 
         /* Green bold */
+        .highlight-placeholder {
+            background-color: #fde047;
+            /* Bright Yellow */
+            color: #0f172a;
+            /* Dark Text */
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px dashed #ca8a04;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
     </style>
 </head>
 
@@ -132,6 +154,37 @@
 
         <!-- Scrollable Form -->
         <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
+            <!-- Resume Upload (Missing in previous view, added back for functionality) -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Your Resume
+                </label>
+                <div id="dropzone"
+                    class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-8 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                    <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+                    <div id="upload-idle">
+                        <div
+                            class="w-12 h-12 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                            <i class="fas fa-cloud-upload-alt text-xl text-slate-400 group-hover:text-blue-400"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[9px] text-slate-500 mt-1 font-mono uppercase">Parses context & skills</p>
+                    </div>
+                    <div id="upload-success" class="hidden">
+                        <div
+                            class="w-12 h-12 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <i class="fas fa-check text-green-400"></i>
+                        </div>
+                        <p class="text-xs font-semibold text-white truncate px-2" id="filename-display">resume.pdf</p>
+                        <button onclick="resetUpload(event)"
+                            class="text-[9px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-2 font-bold transition-colors">Change
+                            File</button>
+                    </div>
+                </div>
+            </div>
+
             <form id="tool-form" class="space-y-6">
 
                 <!-- Input: Scenario -->
@@ -169,7 +222,7 @@
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-3">Key Value /
                         Conversation Topic</label>
                     <div class="relative group">
-                        <textarea name="context" rows="6" required
+                        <textarea name="context" rows="6" required id="context-input"
                             class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-green-500 outline-none resize-none custom-scroll transition-all group-hover:border-slate-600"
                             placeholder="e.g. We discussed the scale issues in Python. I have 3 ideas for migrating to Go..."></textarea>
                     </div>
@@ -250,180 +303,290 @@
     </main>
 
     <script>
+        // Use window.supabase from app.js or initialize fallback
+        const initSupabase = () => {
+            if (window.supabase) return window.supabase;
+            const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+            window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            return window.supabase;
+        };
+
+        const supabaseClient = initSupabase();
+
+        // Global State
+        let extractedResumeText = "";
+        let isLocked = true;
+        let userEmail = null;
+        let userId = null;
+        let authToken = null;
+
         document.addEventListener('DOMContentLoaded', async () => {
-            // Initialize Supabase client if not already loaded from app.js
-            if (!window.supabase) {
-                const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
-                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-                window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            // Check Smart Context
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    const ctx = JSON.parse(missionContext);
+                    const statusText = `Interviewed for ${ctx.role} at ${ctx.company}.\n\nNotes:\n${ctx.notes || 'No specific notes.'}`;
+                    document.getElementById('context-input').value = statusText;
+                    localStorage.removeItem('mission_context');
+                } catch (e) { console.error("Context Error", e); }
             }
 
-            // Get fresh session using Supabase client
-            const { data: { session }, error } = await window.supabase.auth.getSession();
+            // 1. Auth Check
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
             if (!session || error) {
-                window.location.href = '/login.html';
+                console.warn("No session found, redirecting to login");
+                window.location.href = '../login.html'; // Adjust path if needed
                 return;
             }
-            const token = session.access_token;
+            authToken = session.access_token;
 
+            // 2. Fetch Profile & Credits via API
+            await verifyAccess(authToken);
+
+            // Bind Events
             const form = document.getElementById('tool-form');
-            const resultDiv = document.getElementById('result-content');
-            const loadDiv = document.getElementById('loading');
-            const emptyState = document.getElementById('empty-state');
-            const unlockOverlay = document.getElementById('unlock-overlay');
-            const btnGenerate = document.getElementById('btn-generate');
-            const btnText = btnGenerate.querySelector('.btn-text');
-            const btnUnlock = document.getElementById('btn-unlock');
-            const btnCopy = document.getElementById('btn-copy');
+            form.addEventListener('submit', handleGeneration);
+
+            document.getElementById('btn-copy').addEventListener('click', copyContent);
+
+            // Drag and Drop
+            setupDragDrop();
+        });
+
+        async function verifyAccess(token) {
+            const overlay = document.getElementById('unlock-overlay');
+            const genBtn = document.getElementById('btn-generate');
             const statusDot = document.getElementById('status-dot');
+            const btnUnlock = document.getElementById('btn-unlock');
 
-            let userEmail = '';
-            let user = null;
-
-            // 1. Check Credits
             try {
-                // Initial Lock State
-                unlockOverlay.classList.remove('hidden');
-                btnGenerate.disabled = true;
+                // Ensure overlay is blocking by default
+                overlay.classList.remove('hidden');
+                genBtn.disabled = true;
 
                 const res = await fetch('/api/user-profile', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (!res.ok) throw new Error("Failed to fetch profile");
+                if (res.status === 401) {
+                    console.error("401 Unauthorized from /api/user-profile");
+                    // Try to refresh session?
+                    throw new Error("Session invalid or expired");
+                }
 
-                user = await res.json();
+                if (!res.ok) throw new Error("Failed to load profile");
+
+                const user = await res.json();
                 userEmail = user.email;
+                userId = user.id;
 
-                // Check Specific Credit
-                const hasCredit = user.is_unlimited || (user.credits_followup && user.credits_followup > 0) || (user.credits && user.credits > 0);
+                const hasCredit = user.is_unlimited
+                    || (user.credits_followup && user.credits_followup > 0)
+                    || (user.credits && user.credits > 0);
 
                 if (hasCredit) {
-                    unlockOverlay.classList.add('hidden');
-                    btnGenerate.disabled = false;
-
-                    // Unlocked Style (Green - Standard Action)
-                    btnGenerate.innerHTML = `<span class="btn-text">WRITE EMAIL</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>`;
-                    // Button is already green by default, just remove shadow if it was added
-                    btnGenerate.classList.remove('shadow-green-900/20');
-                    btnGenerate.onclick = null; // Default submit behavior
+                    // UNLOCKED
+                    isLocked = false;
+                    overlay.classList.add('hidden');
+                    genBtn.disabled = false;
+                    genBtn.innerHTML = `<span class="btn-text">WRITE EMAIL</span><i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>`;
+                    genBtn.classList.remove('shadow-green-900/20');
 
                     statusDot.classList.remove('bg-slate-600');
                     statusDot.classList.add('bg-green-500', 'shadow-[0_0_8px_rgba(34,197,94,0.6)]');
                 } else {
-                    // Locked State
-                    btnGenerate.disabled = false; // Enable for payment click
+                    // LOCKED
+                    isLocked = true;
+                    genBtn.disabled = false; // Enable for purchase
+                    genBtn.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
+                    genBtn.classList.add('shadow-green-900/20');
 
-                    // Locked Style (Green - Purchase Action, matches branding)
-                    btnGenerate.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
-                    // Button is already green, just add stronger shadow for locked state
-                    btnGenerate.classList.add('shadow-green-900/20');
-
-                    // Override Submit to triggers checkout
-                    btnGenerate.onclick = (e) => {
+                    // Bind Purchase
+                    const buyHandler = (e) => {
                         e.preventDefault();
-                        e.stopPropagation();
                         initiateCheckout('strategy_followup', user.email);
                     };
-
-                    // Also bind overlay button
+                    genBtn.onclick = buyHandler;
                     btnUnlock.onclick = () => initiateCheckout('strategy_followup', user.email);
                 }
+
             } catch (e) {
-                console.error("Auth check failed", e);
-                // FALLBACK: Assume locked state if API fails
-                btnGenerate.disabled = false;
-                btnGenerate.innerHTML = `<i class="fas fa-lock"></i> <span class="btn-text">UNLOCK TOOL ($6.99)</span>`;
-                btnGenerate.classList.add('shadow-green-900/20');
-                btnGenerate.onclick = (e) => {
-                    e.preventDefault();
-                    alert('Unable to verify credits. Please refresh the page or try again.');
-                };
-                btnUnlock.onclick = () => {
-                    alert('Unable to verify credits. Please refresh the page or try again.');
-                };
+                console.error("Access verification error:", e);
+                // Fallback: Allow purchase attempt even if profile fetch failed?
+                // No, we need email/ID. 
+                genBtn.disabled = false;
+                genBtn.innerHTML = `<span>RETRY CONNECTION</span><i class="fas fa-sync"></i>`;
+                genBtn.onclick = () => window.location.reload();
+
+                if (e.message.includes("Session")) {
+                    alert("Your session has expired. Please log in again.");
+                    window.location.href = '../login.html';
+                }
+            }
+        }
+
+        async function initiateCheckout(planType, email) {
+            const btn = document.activeElement;
+            const originalText = btn.innerHTML;
+
+            if (btn) {
+                btn.innerHTML = 'Processing...';
+                btn.disabled = true;
             }
 
-            // 2. Handle Generation
-            form.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                const formData = new FormData(form);
-                const inputs = Object.fromEntries(formData.entries());
-
-                loadDiv.classList.remove('hidden');
-                emptyState.classList.add('hidden');
-                resultDiv.classList.add('hidden');
-                btnGenerate.disabled = true;
-                btnCopy.classList.add('hidden');
-
-                try {
-                    const res = await fetch('/api/generate-strategy-tool', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({
-                            email: userEmail,
-                            tool_type: 'followup',
-                            inputs: inputs
-                        })
-                    });
-
-                    const data = await res.json();
-                    if (data.error) throw new Error(data.error);
-
-                    resultDiv.innerHTML = marked.parse(data.content);
-                    resultDiv.classList.remove('hidden');
-                    btnCopy.classList.remove('hidden');
-
-                } catch (err) {
-                    alert("Error: " + err.message);
-                    emptyState.classList.remove('hidden');
-                } finally {
-                    loadDiv.classList.add('hidden');
-                    if (unlockOverlay.classList.contains('hidden')) btnGenerate.disabled = false;
-                }
-            });
-
-            // 3. Checkout Logic
-            async function initiateCheckout(planType, email) {
-                const btn = event.target;
-                const oldText = btn.textContent;
-                btn.textContent = 'Processing...';
-                btn.disabled = true;
-
-                try {
-                    const res = await fetch('/api/create-checkout-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                        body: JSON.stringify({
-                            plan_type: planType,
-                            email: email,
-                            userId: user.id, // Pass ID
-                            successUrl: window.location.href
-                        })
-                    });
-                    const json = await res.json();
-                    if (json.url) window.location.href = json.url;
-                    else throw new Error(json.error);
-                } catch (e) {
-                    alert(e.message);
-                    btn.textContent = oldText;
+            try {
+                const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+                    body: JSON.stringify({
+                        plan_type: planType,
+                        email: email,
+                        userId: userId, // Pass ID
+                        successUrl: window.location.href
+                    })
+                });
+                const json = await res.json();
+                if (json.url) window.location.href = json.url;
+                else throw new Error(json.error || "Checkout failed");
+            } catch (e) {
+                alert("Checkout Error: " + e.message);
+                if (btn) {
+                    btn.innerHTML = originalText;
                     btn.disabled = false;
                 }
             }
+        }
 
-            // 4. Copy Logic
-            btnCopy.addEventListener('click', () => {
-                const text = resultDiv.innerText;
-                navigator.clipboard.writeText(text).then(() => {
-                    const original = btnCopy.innerHTML;
-                    btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                    setTimeout(() => btnCopy.innerHTML = original, 2000);
+        async function handleGeneration(e) {
+            e.preventDefault();
+            if (isLocked) return;
+
+            const form = e.target;
+            const formData = new FormData(form);
+            const inputs = Object.fromEntries(formData.entries());
+
+            if (!extractedResumeText) return alert("Please upload a resume first.");
+
+            // Add Resume
+            inputs.resume_text = extractedResumeText;
+
+            const resultDiv = document.getElementById('result-content');
+            const loadDiv = document.getElementById('loading');
+            const emptyState = document.getElementById('empty-state');
+            const btnGenerate = document.getElementById('btn-generate');
+            const btnCopy = document.getElementById('btn-copy');
+
+            loadDiv.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+            resultDiv.classList.add('hidden');
+            btnGenerate.disabled = true;
+            btnCopy.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/generate-strategy-tool', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({
+                        email: userEmail,
+                        tool_type: 'follow_up',
+                        inputs: inputs
+                    })
                 });
+
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+
+                let start_idx = 0;
+                resultDiv.innerHTML = marked.parse(data.content);
+
+                // Highlight placeholders
+                resultDiv.innerHTML = resultDiv.innerHTML.replace(/\[(.*?)\]/g, '<span class="highlight-placeholder">[$1]</span>');
+
+                resultDiv.classList.remove('hidden');
+                btnCopy.classList.remove('hidden');
+
+            } catch (err) {
+                alert("Error: " + err.message);
+                emptyState.classList.remove('hidden');
+            } finally {
+                loadDiv.classList.add('hidden');
+                btnGenerate.disabled = false;
+            }
+        }
+
+        function setupDragDrop() {
+            const dropzone = document.getElementById('dropzone');
+            const fileInput = document.getElementById('resume-upload');
+            const uploadIdle = document.getElementById('upload-idle');
+            const uploadSuccess = document.getElementById('upload-success');
+            const filenameDisplay = document.getElementById('filename-display');
+
+            dropzone.addEventListener('click', () => fileInput.click());
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dropzone.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
             });
-        });
+            ['dragenter', 'dragover'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.add('drag-active'), false));
+            ['dragleave', 'drop'].forEach(eventName => dropzone.addEventListener(eventName, () => dropzone.classList.remove('drag-active'), false));
+            dropzone.addEventListener('drop', (e) => handleFiles(e.dataTransfer.files), false);
+            fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+            async function handleFiles(files) {
+                if (files.length > 0) {
+                    const file = files[0];
+                    filenameDisplay.textContent = file.name;
+                    try {
+                        if (file.type === "application/pdf") {
+                            const arrayBuffer = await file.arrayBuffer();
+                            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                            let fullText = "";
+                            for (let i = 1; i <= pdf.numPages; i++) {
+                                const page = await pdf.getPage(i);
+                                const tc = await page.getTextContent();
+                                fullText += tc.items.map(s => s.str).join(' ');
+                            }
+                            extractedResumeText = fullText;
+                        } else {
+                            extractedResumeText = await file.text();
+                        }
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', extractedResumeText);
+                        localStorage.setItem('master_resume_name', file.name);
+
+                        uploadIdle.classList.add('hidden');
+                        uploadSuccess.classList.remove('hidden');
+                        dropzone.classList.remove('border-dashed', 'border-blue-500/30');
+                        dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+                    } catch (e) {
+                        console.error(e);
+                        alert("File Parse Error: " + e.message);
+                    }
+                }
+            }
+            window.resetUpload = (e) => {
+                e.stopPropagation();
+                fileInput.value = '';
+                extractedResumeText = "";
+                uploadIdle.classList.remove('hidden');
+                uploadSuccess.classList.add('hidden');
+                dropzone.classList.add('border-dashed', 'border-blue-500/30');
+                dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80', 'drag-active');
+            }
+        }
+
+        function copyContent() {
+            const text = document.getElementById('result-content').innerText;
+            navigator.clipboard.writeText(text);
+            const btnCopy = document.getElementById('btn-copy');
+            const original = btnCopy.innerHTML;
+            btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => btnCopy.innerHTML = original, 2000);
+        }
+
     </script>
 </body>
 
