@@ -78,21 +78,26 @@
         }
 
         /* Resume Paper Preview */
-        .resume-paper {
+        /* Resume Paper Styling Polish */
+        .resume-paper,
+        .enhancement-page {
             width: 210mm;
             min-height: 297mm;
+            height: auto !important;
             background: white;
             color: #1a202c;
             padding: 20mm;
-            margin: 0 auto;
+            margin: 0 auto 30px auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            height: auto !important;
-            min-height: 297mm;
             font-size: 11pt;
             line-height: 1.5;
             position: relative;
             transform-origin: top center;
             text-align: justify;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            overflow: visible !important;
+            word-wrap: break-word;
+            display: block !important;
         }
 
         /* Mobile Scale */
@@ -107,11 +112,12 @@
 
             .resume-paper,
             .enhancement-page {
-                width: 100% !important;
+                width: 95% !important;
                 min-height: auto;
-                padding: 20px;
+                padding: 15px;
                 box-sizing: border-box;
                 margin: 0 auto 20px auto;
+                transform: none !important;
             }
         }
 
@@ -121,33 +127,7 @@
             align-items: center;
             width: 100%;
             max-width: 100%;
-        }
-
-        #resume-intro {
-            transition: all 0.3s ease;
-        }
-
-        /* Resume Paper Styling Polish */
-        .resume-paper,
-        .enhancement-page {
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            height: auto !important;
-            overflow: visible !important;
-            word-wrap: break-word;
-        }
-
-        /* Enhancement Page Styles */
-        .enhancement-page {
-            width: 210mm;
-            min-height: 297mm;
-            background: white;
-            color: #1a202c;
-            padding: 20mm;
-            margin: 0 auto 30px auto;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
-            font-size: 11pt;
-            line-height: 1.6;
-            text-align: justify;
+            padding-bottom: 50px;
         }
 
         /* Markdown Styles for Overview */
@@ -1357,7 +1337,7 @@
                 .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-slate-900">$1</strong>')
 
                 // Convert Bullet Points (*, - or • text) to list items
-                .replace(/^[*•-] (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-relaxed mb-0 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-slate-900 text-justify">$1</li>');
+                .replace(/^[*•-] (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-tight mb-0 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-black text-justify font-normal">$1</li>');
 
             // Wrap lists (Group consecutive LIs in a UL)
             formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-0 space-y-0 text-justify">$1</ul>');
@@ -1380,12 +1360,13 @@
             if (wrapper) wrapper.classList.remove('hidden');
 
             try {
-                // 1. Render Overview (If available)
-                if (data.enhancement_overview && data.enhancement_overview.trim()) {
+                // 1. Render Overview (If available and not just whitespace)
+                if (data.enhancement_overview && String(data.enhancement_overview).trim().length > 10) {
                     overviewContainer.classList.remove('hidden');
                     overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
                 } else if (overviewContainer) {
                     overviewContainer.classList.add('hidden');
+                    overviewContainer.style.display = 'none'; // Nuclear hidden
                 }
 
                 // Fallbacks
@@ -1401,20 +1382,20 @@
                     <hr class="border-slate-200 mb-6">
                     
                     <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Professional Summary</h2>
-                    <div class="text-slate-700 leading-relaxed mb-8 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
+                    <div class="text-slate-700 leading-tight mb-6 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
                     
                     <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Experience</h2>
                 `;
 
                 exps.forEach(exp => {
                     html += `
-                    <div class="mb-6 break-inside-avoid">
-                        <div class="flex justify-between items-baseline mb-1">
+                    <div class="mb-4 break-inside-avoid">
+                        <div class="flex justify-between items-baseline mb-0">
                             <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
                             <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
                         </div>
-                        <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
-                        <div class="text-slate-700 text-sm leading-relaxed text-justify">
+                        <div class="text-blue-700 font-bold text-sm mb-2">${exp.company || 'Company'}</div>
+                        <div class="text-slate-700 text-sm leading-tight text-justify">
                             ${formatMarkdown(exp.description || '')}
                         </div>
                     </div>`;
