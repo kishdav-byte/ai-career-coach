@@ -91,11 +91,7 @@ def manage_jobs():
     # 3. Create RLS-Compatible Client
     # We create a new client and explicitly set the auth token for PostgREST.
     try:
-        from supabase import create_client, Client
-        SUPABASE_URL = os.environ.get("SUPABASE_URL")
-        SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-        
-        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_client = get_supabase()
         user_client.postgrest.auth(token)
         
     except Exception as e:
@@ -156,12 +152,7 @@ def update_job(job_id):
     if not auth_header: return jsonify({"error": "No Token"}), 401
     
     try:
-        from supabase import create_client, Client
-        SUPABASE_URL = os.environ.get("SUPABASE_URL")
-        SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
-        
-        token = auth_header.split(" ")[1]
-        user_client = create_client(SUPABASE_URL, SUPABASE_KEY)
+        user_client = get_supabase()
         user_client.postgrest.auth(token)
         
         # Verify ownership implicitly via RLS
@@ -1053,8 +1044,7 @@ def general_api():
                      auth_header = request.headers.get('Authorization')
                      if auth_header:
                          token = auth_header.split(" ")[1]
-                         from supabase import create_client
-                         user_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
+                         user_client = get_supabase()
                          user_client.postgrest.auth(token)
                          res = user_client.table('user_jobs').update({"resume_score": score}).eq('id', job_id).execute()
                          print(f"DEBUG: Persistence Result: {res}")
@@ -1136,10 +1126,24 @@ def general_api():
                      auth_header = request.headers.get('Authorization')
                      if auth_header:
                          token = auth_header.split(" ")[1]
-                         from supabase import create_client
-                         user_client = create_client(os.environ.get("SUPABASE_URL"), os.environ.get("SUPABASE_KEY"))
-                         user_client.postgrest.auth(token)
-                         user_client.table('user_jobs').update({"optimized_resume": ai_json}).eq('id', job_id).execute()
+                         supabase = get_supabase()
+                         supabase.postgrest.auth(token)
+                         
+                         # Persistence
+                         try:
+                             supabase.table('user_jobs').update({"optimized_resume": ai_json}).eq('id', job_id).execute()
+                         except Exception as pe:
+                             print(f"Optimize Persistence Error: {pe}")
+
+                         # Deduct Credits
+                         try:
+                             user_res = supabase.auth.get_user(token)
+                             if user_res.user:
+                                 decrement_strategy_credit(user_res.user.id, 'rewrite', token)
+                         except Exception as ce:
+                             print(f"Credit Deduction Error: {ce}")
+                     else:
+                         print("Optimization Success but no Auth Header for Persistence/Credits")
             except Exception as e:
                 print(f"Optimize Persistence Failed: {e}")
             # --- PERSISTENCE LOGIC END ---
@@ -1797,10 +1801,7 @@ def decrement_strategy_credit(user_id, tool_type, token):
         if not target_col: return # Unknown tool
         
         # Init Client
-        from supabase import create_client
-        url = os.environ.get("SUPABASE_URL")
-        key = os.environ.get("SUPABASE_KEY")
-        client = create_client(url, key)
+        client = get_supabase()
         client.postgrest.auth(token)
         
         # Fetch Current Balance
