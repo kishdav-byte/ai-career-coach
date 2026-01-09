@@ -90,14 +90,41 @@
             margin: 0 auto 30px auto;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
             font-size: 11pt;
-            line-height: 1.5;
+            line-height: 1.15;
             position: relative;
             transform-origin: top center;
             text-align: justify;
             border: 1px solid rgba(0, 0, 0, 0.1);
             overflow: visible !important;
             word-wrap: break-word;
-            display: block !important;
+            display: block;
+        }
+
+        /* Standardize Lists for print/markdown */
+        .resume-paper ul,
+        .enhancement-page ul {
+            list-style-type: none !important;
+            padding-left: 0 !important;
+            margin-top: 0.25rem !important;
+            margin-bottom: 0.75rem !important;
+        }
+
+        .resume-paper li,
+        .enhancement-page li {
+            position: relative;
+            padding-left: 1.2rem !important;
+            margin-bottom: 0px !important;
+            line-height: 1.15 !important;
+            color: #1a202c !important;
+        }
+
+        .resume-paper li::before,
+        .enhancement-page li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: #000000 !important;
+            font-weight: bold;
         }
 
         /* Mobile Scale */

@@ -152,6 +152,7 @@ def update_job(job_id):
     if not auth_header: return jsonify({"error": "No Token"}), 401
     
     try:
+        token = auth_header.split(" ")[1]
         user_client = get_supabase()
         user_client.postgrest.auth(token)
         
