@@ -1137,9 +1137,18 @@ def general_api():
 
                          # Deduct Credits
                          try:
-                             user_res = supabase.auth.get_user(token)
-                             if user_res.user:
-                                 decrement_strategy_credit(user_res.user.id, 'rewrite', token)
+                             user_id = data.get('userId')
+                             if not user_id:
+                                 user_res = supabase.auth.get_user(token)
+                                 if user_res and user_res.user:
+                                     user_id = user_res.user.id
+                                 elif hasattr(user_res, 'id'): # Handle different object types
+                                     user_id = user_res.id
+
+                             if user_id:
+                                 decrement_strategy_credit(user_id, 'rewrite', token)
+                             else:
+                                 print("Could not identify userId for credit deduction")
                          except Exception as ce:
                              print(f"Credit Deduction Error: {ce}")
                      else:

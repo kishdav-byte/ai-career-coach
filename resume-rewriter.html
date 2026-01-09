@@ -96,14 +96,38 @@
         @media (max-width: 1024px) {
             .resume-wrapper {
                 overflow-x: scroll;
+                width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
 
-            .resume-paper {
-                width: 100%;
+            .resume-paper,
+            .enhancement-page {
+                width: 100% !important;
                 min-height: auto;
                 padding: 20px;
                 box-sizing: border-box;
+                margin: 0 auto 20px auto;
             }
+        }
+
+        .resume-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        #resume-intro {
+            transition: all 0.3s ease;
+        }
+
+        /* Resume Paper Styling Polish */
+        .resume-paper,
+        .enhancement-page {
+            border: 1px solid rgba(0, 0, 0, 0.1);
         }
 
         /* Enhancement Page Styles */
@@ -539,49 +563,46 @@
                     PDF / PRINT
                 </button>
             </div>
+        </div>
 
-            <!-- Preview Area -->
-            <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
-                id="preview-scroll-area">
+        <!-- Preview Area -->
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+            id="preview-scroll-area">
 
-                <!-- Unlock Overlay -->
-                <div id="unlock-overlay"
-                    class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
-                    <div
-                        class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
-                        <i class="fas fa-lock text-2xl text-slate-400"></i>
-                    </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
-                    <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get
-                        instant
-                        access with a single credit.</p>
-                    <button id="btn-unlock"
-                        class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
-                        Unlock Tool ($12.99)
-                    </button>
+            <!-- INTRO STATE (Standby) -->
+            <div id="resume-intro" class="text-center mt-32 relative z-10">
+                <div
+                    class="w-24 h-24 bg-slate-900/80 rounded-full flex items-center justify-center mx-auto mb-6 border border-slate-800 shadow-2xl">
+                    <span class="text-4xl">📝</span>
                 </div>
-                <div class="resume-wrapper">
-                    <!-- NEW: Enhancement Overview Page -->
-                    <div id="enhancement-preview" class="enhancement-page hidden"></div>
-
-                    <div id="resume-preview" class="resume-paper modern">
-                        <!-- Placeholder Content -->
-                        <div class="text-center mt-32 text-gray-400">
-                            <div
-                                class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
-                            <p class="text-sm">Import your resume or fill the details on the left.</p>
-                        </div>
-                    </div>
-                </div>
+                <h3 class="text-xl font-bold text-slate-200 mb-2">Executive Resume Optimizer</h3>
+                <p class="text-slate-500 max-w-md mx-auto">Click Generate to transform your resume into a
+                    high-impact, executive-ready document optimized for your target job.</p>
             </div>
+
+            <!-- Unlock Overlay -->
+            <div id="unlock-overlay"
+                class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                <div
+                    class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                    <i class="fas fa-lock text-2xl text-slate-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
+                <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get
+                    instant
+                    access with a single credit.</p>
+                <button id="btn-unlock"
+                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                    Unlock Tool ($12.99)
+                </button>
+            </div>
+
+            <div class="resume-wrapper hidden">
+                <!-- Enhancement Preview -->
+                <div id="enhancement-preview" class="enhancement-page hidden"></div>
+                <div id="resume-preview" class="resume-paper modern"></div>
+            </div>
+        </div>
 
     </main>
 
@@ -1124,8 +1145,11 @@
                     }
                 } catch (e) { console.warn("Auth Auto-Fill Failed", e); }
 
+                const { data: { user } } = await supabase.auth.getUser();
+
                 const payload = {
                     action: 'optimize',
+                    userId: user?.id,
                     user_data: {
                         personal: {
                             name: document.getElementById('rb-name').value,
@@ -1335,7 +1359,12 @@
         function renderPreview(result, originalData) {
             const container = document.getElementById('resume-preview');
             const overviewContainer = document.getElementById('enhancement-preview');
+            const intro = document.getElementById('resume-intro');
+            const wrapper = document.querySelector('.resume-wrapper');
             const data = result;
+
+            if (intro) intro.classList.add('hidden');
+            if (wrapper) wrapper.classList.remove('hidden');
 
             // 1. Render Overview (If available)
             if (data.enhancement_overview && overviewContainer) {
