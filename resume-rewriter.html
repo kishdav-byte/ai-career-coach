@@ -1339,6 +1339,10 @@
         // HELPER: Custom Markdown Parser (User Requested)
         function formatMarkdown(content) {
             if (!content) return '';
+            if (typeof content !== 'string') {
+                console.warn("formatMarkdown received non-string content:", content);
+                content = String(content);
+            }
             let formatted = content
                 // Convert Header 1 (# Name) to H1 tags
                 .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-slate-900 mb-1">$1</h1>')
@@ -1364,76 +1368,87 @@
         }
 
         function renderPreview(result, originalData) {
+            console.log("Rendering Preview with result:", result);
             const container = document.getElementById('resume-preview');
             const overviewContainer = document.getElementById('enhancement-preview');
             const intro = document.getElementById('resume-intro');
             const wrapper = document.querySelector('.resume-wrapper');
             const data = result;
 
+            // Ensure UI transition happens regardless of parsing success
             if (intro) intro.classList.add('hidden');
             if (wrapper) wrapper.classList.remove('hidden');
 
-            // 1. Render Overview (If available)
-            if (data.enhancement_overview && data.enhancement_overview.trim()) {
-                overviewContainer.classList.remove('hidden');
-                overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
-            } else if (overviewContainer) {
-                overviewContainer.classList.add('hidden');
-            }
+            try {
+                // 1. Render Overview (If available)
+                if (data.enhancement_overview && data.enhancement_overview.trim()) {
+                    overviewContainer.classList.remove('hidden');
+                    overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
+                } else if (overviewContainer) {
+                    overviewContainer.classList.add('hidden');
+                }
 
-            // Fallbacks
-            const p = data.personal || originalData.personal || {};
-            const exps = data.experience || originalData.experience || [];
-            const edus = data.education || originalData.education || [];
+                // Fallbacks
+                const p = data.personal || originalData.personal || {};
+                const exps = data.experience || originalData.experience || [];
+                const edus = data.education || originalData.education || [];
 
-            // Apply "Killer Executive" Styling to the Preview Container
-            // We reconstruct the HTML using the formatMarkdown for description fields
-            let html = `
-                <h1 class="text-4xl font-bold text-slate-900 mb-1">${p.name || 'Your Name'}</h1>
-                <p class="text-slate-600 mb-6 text-sm">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
-                <hr class="border-slate-200 mb-6">
-                
-                <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Professional Summary</h2>
-                <div class="text-slate-700 leading-relaxed mb-8 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
-                
-                <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Experience</h2>
-            `;
+                // Apply "Killer Executive" Styling to the Preview Container
+                // We reconstruct the HTML using the formatMarkdown for description fields
+                let html = `
+                    <h1 class="text-4xl font-bold text-slate-900 mb-1">${p.name || 'Your Name'}</h1>
+                    <p class="text-slate-600 mb-6 text-sm">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
+                    <hr class="border-slate-200 mb-6">
+                    
+                    <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Professional Summary</h2>
+                    <div class="text-slate-700 leading-relaxed mb-8 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
+                    
+                    <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Experience</h2>
+                `;
 
-            exps.forEach(exp => {
-                html += `
-                <div class="mb-6 break-inside-avoid">
-                    <div class="flex justify-between items-baseline mb-1">
-                        <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
-                        <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
-                    </div>
-                    <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
-                    <div class="text-slate-700 text-sm leading-relaxed text-justify">
-                        ${formatMarkdown(exp.description || '')}
-                    </div>
-                </div>`;
-            });
-
-            if (edus.length > 0) {
-                html += `<h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4 mt-8">Education</h2>`;
-                edus.forEach(edu => {
+                exps.forEach(exp => {
                     html += `
-                    <div class="mb-3">
-                        <div class="font-bold text-slate-900">${edu.school}</div>
-                        <div class="text-slate-600 text-sm">${edu.degree} <span class="float-right text-slate-500 font-mono">${edu.dates}</span></div>
+                    <div class="mb-6 break-inside-avoid">
+                        <div class="flex justify-between items-baseline mb-1">
+                            <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
+                            <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
+                        </div>
+                        <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
+                        <div class="text-slate-700 text-sm leading-relaxed text-justify">
+                            ${formatMarkdown(exp.description || '')}
+                        </div>
                     </div>`;
                 });
+
+                if (edus.length > 0) {
+                    html += `<h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4 mt-8">Education</h2>`;
+                    edus.forEach(edu => {
+                        html += `
+                        <div class="mb-3">
+                            <div class="font-bold text-slate-900">${edu.school}</div>
+                            <div class="text-slate-600 text-sm">${edu.degree} <span class="float-right text-slate-500 font-mono">${edu.dates}</span></div>
+                        </div>`;
+                    });
+                }
+
+                // NUCLEAR SCRUB: Aggressively remove 'undefined' artifacts
+                html = html.replace(/>\s*undefined\s*</gi, '><'); // Removes >undefined<
+                html = html.replace(/undefined/gi, ''); // Global backup catch-all
+
+                // Cleanup empty elements left behind
+                html = html.replace(/<strong[^>]*>\s*<\/strong>/gi, '');
+                html = html.replace(/<h3[^>]*>\s*<\/h3>/gi, '');
+                html = html.replace(/<div[^>]*>\s*<\/div>/gi, '');
+
+                container.innerHTML = html;
+            } catch (err) {
+                console.error("Render Preview Error:", err);
+                container.innerHTML = `<div class="p-8 text-red-500 font-mono text-sm bg-red-50 rounded-lg border border-red-200">
+                    <h3 class="font-bold mb-2">⚠️ RENDERING ERROR</h3>
+                    <p>${err.message}</p>
+                    <p class="mt-4 text-xs text-red-400">Please check the console for the raw AI response and report this structure.</p>
+                </div>`;
             }
-
-            // NUCLEAR SCRUB: Aggressively remove 'undefined' artifacts
-            html = html.replace(/>\s*undefined\s*</gi, '><'); // Removes >undefined<
-            html = html.replace(/undefined/gi, ''); // Global backup catch-all
-
-            // Cleanup empty elements left behind
-            html = html.replace(/<strong[^>]*>\s*<\/strong>/gi, '');
-            html = html.replace(/<h3[^>]*>\s*<\/h3>/gi, '');
-            html = html.replace(/<div[^>]*>\s*<\/div>/gi, '');
-
-            container.innerHTML = html;
         }
 
         function printResume() {
