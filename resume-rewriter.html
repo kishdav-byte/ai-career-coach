@@ -213,6 +213,23 @@
                 margin: 0;
                 width: 100%;
             }
+
+            /* Hide Sidebar and Toolbar explicitly */
+            #input-sidebar,
+            #edit-mode-btn,
+            button,
+            .toolbar-container {
+                display: none !important;
+            }
+
+            /* Ensure Preview Pane is pure */
+            #preview-pane {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+            }
         }
 
         /* Modern Template Styles */
@@ -388,7 +405,8 @@
 
                 <div class="space-y-3">
                     <!-- Personal Info -->
-                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800" open>
+                    <details id="details-personal"
+                        class="glass-panel rounded-xl group overflow-hidden border border-slate-800" open>
                         <summary
                             class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
                             <span>Personal Information</span>
@@ -415,7 +433,8 @@
                     </details>
 
                     <!-- Experience -->
-                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                    <details id="details-experience"
+                        class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
                         <summary
                             class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
                             <span>Experience</span>
@@ -434,7 +453,8 @@
                     </details>
 
                     <!-- Education -->
-                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                    <details id="details-education"
+                        class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
                         <summary
                             class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
                             <span>Education</span>
@@ -453,7 +473,8 @@
                     </details>
 
                     <!-- Skills -->
-                    <details class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
+                    <details id="details-skills"
+                        class="glass-panel rounded-xl group overflow-hidden border border-slate-800">
                         <summary
                             class="p-4 cursor-pointer flex justify-between items-center font-bold text-xs text-slate-300 uppercase tracking-wider hover:bg-slate-800/50 transition-colors select-none">
                             <span>Skills</span>
@@ -507,56 +528,60 @@
                 <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
                 Live Preview
             </h2>
-            <button onclick="printResume()"
-                class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
-                    </path>
-                </svg>
-                PDF / PRINT
-            </button>
-        </div>
-
-        <!-- Preview Area -->
-        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
-            id="preview-scroll-area">
-
-            <!-- Unlock Overlay -->
-            <div id="unlock-overlay"
-                class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
-                <div
-                    class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
-                    <i class="fas fa-lock text-2xl text-slate-400"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
-                <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get instant
-                    access with a single credit.</p>
-                <button id="btn-unlock"
-                    class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
-                    Unlock Tool ($12.99)
+            <div class="flex items-center gap-4">
+                <button onclick="printResume()"
+                    class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                        </path>
+                    </svg>
+                    PDF / PRINT
                 </button>
             </div>
-            <div class="resume-wrapper">
-                <!-- NEW: Enhancement Overview Page -->
-                <div id="enhancement-preview" class="enhancement-page hidden"></div>
 
-                <div id="resume-preview" class="resume-paper modern">
-                    <!-- Placeholder Content -->
-                    <div class="text-center mt-32 text-gray-400">
-                        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
-                            </svg>
+            <!-- Preview Area -->
+            <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+                id="preview-scroll-area">
+
+                <!-- Unlock Overlay -->
+                <div id="unlock-overlay"
+                    class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                    <div
+                        class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                        <i class="fas fa-lock text-2xl text-slate-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
+                    <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get
+                        instant
+                        access with a single credit.</p>
+                    <button id="btn-unlock"
+                        class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                        Unlock Tool ($12.99)
+                    </button>
+                </div>
+                <div class="resume-wrapper">
+                    <!-- NEW: Enhancement Overview Page -->
+                    <div id="enhancement-preview" class="enhancement-page hidden"></div>
+
+                    <div id="resume-preview" class="resume-paper modern">
+                        <!-- Placeholder Content -->
+                        <div class="text-center mt-32 text-gray-400">
+                            <div
+                                class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
+                            <p class="text-sm">Import your resume or fill the details on the left.</p>
                         </div>
-                        <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
-                        <p class="text-sm">Import your resume or fill the details on the left.</p>
                     </div>
                 </div>
             </div>
-        </div>
 
     </main>
 
@@ -599,6 +624,7 @@
         // --- DOM REFS ---
         const expList = document.getElementById('rb-experience-list');
         const eduList = document.getElementById('rb-education-list');
+        let pendingJobId = null; // Store Job ID for persistence
 
         // Dropzone DOM Refs
         const dropzone = document.getElementById('dropzone');
@@ -609,11 +635,44 @@
         const manualInput = document.getElementById('manual-input-container');
 
         // --- INIT ---
+        // --- INIT (IIFE for Instant Load) ---
+        (function checkPendingLoad() {
+            const loadContext = localStorage.getItem('resume_load_context');
+            if (loadContext) {
+                try {
+                    // Check if valid JSON string (double encoded) or object
+                    let savedData = JSON.parse(loadContext);
+                    if (typeof savedData === 'string') {
+                        try { savedData = JSON.parse(savedData); } catch (e2) { }
+                    }
+
+                    console.log("Loading Saved Resume (Immediate)...", savedData);
+
+                    // Defer UI updates until DOM is ready
+                    window.addEventListener('DOMContentLoaded', () => {
+                        // 1. Populate Inputs
+                        populateForm(savedData);
+
+                        // 2. Render Live Preview
+                        renderPreview(savedData, savedData);
+                    });
+
+                    // Clear AFTER ensuring we have it
+                    localStorage.removeItem('resume_load_context');
+                } catch (e) {
+                    console.error("Bad Load Context", e);
+                }
+            }
+        })();
+
         document.addEventListener('DOMContentLoaded', () => {
             // Check for passed data from Resume Analyzer or Strategy Log
             const pendingSource = localStorage.getItem('rewrite_source_text');
             const pendingJD = localStorage.getItem('rewrite_job_desc');
             const strategyContext = localStorage.getItem('strategy_context');
+
+            // RESTORED: Mission Context for Dashboard Shuttle
+            const missionContext = localStorage.getItem('mission_context');
 
             if (pendingSource) {
                 // If text passed, switch to manual mode automatically
@@ -636,18 +695,20 @@
                 } catch (e) { console.error("Bad Context", e); }
             } else {
                 // Check for Mission Context (Dashboard)
-                const missionContext = localStorage.getItem('mission_context');
                 if (missionContext) {
                     try {
                         const ctx = JSON.parse(missionContext);
                         if (ctx.jd) document.getElementById('target-job').value = ctx.jd;
+                        // Capture Job ID
+                        if (ctx.job_id) pendingJobId = ctx.job_id;
+
                         // Note: resume-rewriter doesn't have a dedicated role/company input, 
                         // effectively just uses JD for optimization.
                         localStorage.removeItem('mission_context');
                     } catch (e) { console.error("Bad Mission Context", e); }
                 }
 
-                // Sticky Resume Memory Auto-Load
+                // Check for Full Resume Load (from History) -> Handled by IIFE above now.
                 const masterResumeText = localStorage.getItem('master_resume_text');
                 const masterResumeName = localStorage.getItem('master_resume_name');
 
@@ -1093,7 +1154,8 @@
                     },
                     job_description: document.getElementById('target-job').value,
                     template_name: 'modern',
-                    resume_text: resumeContent // SEND THE CORRECT VARIABLE
+                    resume_text: resumeContent, // SEND THE CORRECT VARIABLE
+                    job_id: pendingJobId // PASS TO BACKEND FOR PERSISTENCE
                 };
 
                 // Gather Exps
@@ -1124,7 +1186,10 @@
 
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+                    },
                     body: JSON.stringify(payload)
                 });
 
@@ -1138,6 +1203,7 @@
                 }
 
                 let rawResult = await response.json();
+
                 if (rawResult.error) {
                     alert(rawResult.error);
                     btn.disabled = false;
@@ -1156,62 +1222,12 @@
                 }
 
                 // 4. Update UI with Optimized Content
-                // Personal
-                if (data.personal) {
-                    document.getElementById('rb-name').value = data.personal.name || '';
-                    document.getElementById('rb-email').value = data.personal.email || '';
-                    document.getElementById('rb-phone').value = data.personal.phone || '';
-                    document.getElementById('rb-location').value = data.personal.location || '';
-                    document.getElementById('rb-summary').value = data.personal.summary || '';
-                }
+                populateForm(data);
 
-                // Experience (Re-render)
-                const expContainer = document.getElementById('rb-experience-list');
-                expContainer.innerHTML = '';
-                if (data.experience && Array.isArray(data.experience)) {
-                    data.experience.forEach(exp => {
-                        const div = document.createElement('div');
-
-                        // "Killer Protocol" Title Detection Logic
-                        let roleValue = exp.role || '';
-                        let roleStyle = '';
-                        if (roleValue.trim().toLowerCase() === 'role' || roleValue.trim() === '') {
-                            roleValue = "⚠️ UPDATE TITLE";
-                            roleStyle = "border: 2px solid #ef4444; color: #ef4444; background: #fee2e2;";
-                        }
-
-                        div.className = 'glass-panel p-4 rounded-lg border border-slate-700/50 mb-3';
-                        div.innerHTML = `
-                            <div class="grid grid-cols-2 gap-3 mb-2">
-                                <input type="text" class="rb-exp-role w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Role" value="${roleValue}" style="${roleStyle}">
-                                <input type="text" class="rb-exp-company w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Company" value="${exp.company || ''}">
-                            </div>
-                            <input type="text" class="rb-exp-dates w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 mb-2" placeholder="Dates" value="${exp.dates || ''}">
-                            <textarea class="rb-exp-desc w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 h-24 resize-none leading-relaxed" placeholder="Description">${exp.description || ''}</textarea>
-                        `;
-                        expContainer.appendChild(div);
-                    });
-                }
-
-                // Skills
-                if (data.skills) {
-                    // Check if array or string
-                    if (Array.isArray(data.skills)) {
-                        document.getElementById('rb-skills').value = data.skills.join(', ');
-                    } else {
-                        document.getElementById('rb-skills').value = data.skills;
-                    }
-                }
-
-                // Enhancement Overview (Killer Protocol Output)
-                if (data.enhancement_overview) {
-                    const overviewDiv = document.getElementById('enhancement-preview');
-                    overviewDiv.classList.remove('hidden');
-                    overviewDiv.innerHTML = marked.parse(data.enhancement_overview);
-                }
-
-                // Refresh Preview
-                renderPreview(data, payload.user_data); // Pass data to renderPreview as it expects it
+                // Refresh Preview (requires payload for user_data merging if strictly needed, but verify renderPreview logic)
+                // renderPreview expects the AI response structure.
+                // Let's pass the data directly as it contains the optimized content.
+                renderPreview(data, payload.user_data);
 
             } catch (e) {
                 console.error(e);
@@ -1219,6 +1235,87 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
+            }
+        }
+
+        // HELPER: Populate Form
+        function populateForm(data) {
+            // Personal
+            if (data.personal) {
+                document.getElementById('rb-name').value = data.personal.name || '';
+                document.getElementById('rb-email').value = data.personal.email || '';
+                document.getElementById('rb-phone').value = data.personal.phone || '';
+                document.getElementById('rb-location').value = data.personal.location || '';
+                document.getElementById('rb-summary').value = data.personal.summary || '';
+            }
+
+            // Experience (Re-render)
+            const expContainer = document.getElementById('rb-experience-list');
+            expContainer.innerHTML = '';
+            if (data.experience && Array.isArray(data.experience)) {
+                data.experience.forEach(exp => {
+                    const div = document.createElement('div');
+
+                    // "Killer Protocol" Title Detection Logic
+                    let roleValue = exp.role || '';
+                    let roleStyle = '';
+                    if (roleValue && (roleValue.trim().toLowerCase() === 'role' || roleValue.trim() === '')) {
+                        roleValue = "⚠️ UPDATE TITLE";
+                        roleStyle = "border: 2px solid #ef4444; color: #ef4444; background: #fee2e2;";
+                    }
+
+                    div.className = 'glass-panel p-4 rounded-lg border border-slate-700/50 mb-3';
+                    div.innerHTML = `
+                        <button onclick="this.parentElement.remove()" class="float-right text-red-500 hover:text-white text-[10px] uppercase font-bold mb-1">Delete</button>
+                        <div class="grid grid-cols-2 gap-3 mb-2">
+                            <input type="text" class="rb-exp-role w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Role" value="${roleValue}" style="${roleStyle}">
+                            <input type="text" class="rb-exp-company w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200" placeholder="Company" value="${exp.company || ''}">
+                        </div>
+                        <input type="text" class="rb-exp-dates w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 mb-2" placeholder="Dates" value="${exp.dates || ''}">
+                        <textarea class="rb-exp-desc w-full bg-slate-950 border border-slate-700/50 rounded px-2 py-1.5 text-xs text-slate-200 h-24 resize-none leading-relaxed" placeholder="Description">${exp.description || ''}</textarea>
+                    `;
+                    expContainer.appendChild(div);
+                });
+            }
+
+            // Education (Re-render) - If present in data
+            const eduContainer = document.getElementById('rb-education-list');
+            // Clear existing only if detailed data is provided, otherwise keep defaults or append? 
+            // Logic: If data has education, clear and set.
+            if (data.education && Array.isArray(data.education)) {
+                eduContainer.innerHTML = '';
+                data.education.forEach(edu => {
+                    // Add logic similar to experience if needed, or reuse window.addEducation
+                    const div = document.createElement('div');
+                    div.className = "bg-slate-950 border border-slate-800 rounded p-4 relative group hover:border-blue-500/30 transition-colors mb-3";
+                    div.innerHTML = `
+                        <button onclick="this.parentElement.remove()" class="absolute top-2 right-2 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity text-[10px] uppercase font-bold tracking-wider hover:text-red-400">Delete</button>
+                        <div class="grid grid-cols-2 gap-3 mb-3">
+                            <input type="text" class="rb-edu-degree w-full bg-transparent border-b border-slate-700 text-sm text-white placeholder-slate-600 focus:border-blue-500 outline-none pb-1 font-bold" placeholder="Degree" value="${edu.degree || ''}">
+                            <input type="text" class="rb-edu-dates w-full bg-transparent border-b border-slate-700 text-xs text-slate-400 placeholder-slate-600 focus:border-blue-500 outline-none pb-1 text-right font-mono" placeholder="Dates" value="${edu.dates || ''}">
+                        </div>
+                        <input type="text" class="rb-edu-school w-full bg-transparent border-b border-slate-700 text-xs text-blue-400 placeholder-slate-600 focus:border-blue-500 outline-none pb-1" placeholder="School" value="${edu.school || ''}">
+                    `;
+                    eduContainer.appendChild(div);
+                });
+            }
+
+
+            // Skills
+            if (data.skills) {
+                // Check if array or string
+                if (Array.isArray(data.skills)) {
+                    document.getElementById('rb-skills').value = data.skills.join(', ');
+                } else {
+                    document.getElementById('rb-skills').value = data.skills;
+                }
+            }
+
+            // Enhancement Overview (Killer Protocol Output)
+            if (data.enhancement_overview) {
+                const overviewDiv = document.getElementById('enhancement-preview');
+                overviewDiv.classList.remove('hidden');
+                overviewDiv.innerHTML = marked.parse(data.enhancement_overview);
             }
         }
 

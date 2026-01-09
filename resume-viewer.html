@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Executive Rewrite - Strategy Lab</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Marked JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+        }
+
+        /* Drag Zone Active State */
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+
+        /* Custom Scrollbar for Dark Theme */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Step Loader Animations */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Resume Paper Preview */
+        .resume-paper {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.5;
+            position: relative;
+            transform-origin: top center;
+        }
+
+        /* Mobile Scale */
+        @media (max-width: 1024px) {
+            .resume-wrapper {
+                overflow-x: scroll;
+            }
+
+            .resume-paper {
+                width: 100%;
+                min-height: auto;
+                padding: 20px;
+                box-sizing: border-box;
+            }
+        }
+
+        /* Enhancement Page Styles */
+        .enhancement-page {
+            width: 210mm;
+            min-height: 297mm;
+            background: white;
+            color: #1a202c;
+            padding: 20mm;
+            margin: 0 auto 30px auto;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            font-size: 11pt;
+            line-height: 1.6;
+        }
+
+        /* Markdown Styles for Overview */
+        .enhancement-page h1 {
+            font-size: 22pt;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 0.5rem;
+        }
+
+        .enhancement-page h2 {
+            font-size: 16pt;
+            font-weight: 700;
+            color: #334155;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .enhancement-page h3 {
+            font-size: 13pt;
+            font-weight: 600;
+            color: #475569;
+            margin-top: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .enhancement-page p {
+            margin-bottom: 1rem;
+            text-align: justify;
+        }
+
+        .enhancement-page ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .enhancement-page li {
+            margin-bottom: 0.25rem;
+        }
+
+        .enhancement-page strong {
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1024px) {
+            .enhancement-page {
+                width: 100%;
+                box-shadow: none;
+                padding: 20px;
+                min-height: auto;
+            }
+        }
+
+        @media print {
+            @page {
+                margin: 0;
+            }
+
+            body {
+                background: white;
+                color: black;
+            }
+
+            aside,
+            .toolbar,
+            #unlock-overlay,
+            .glass-panel {
+                display: none !important;
+            }
+
+            main {
+                overflow: visible !important;
+                height: auto !important;
+            }
+
+            .resume-wrapper {
+                overflow: visible !important;
+            }
+
+            .enhancement-page {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+                page-break-after: always;
+                break-after: page;
+            }
+
+            .resume-paper {
+                box-shadow: none;
+                margin: 0;
+                width: 100%;
+            }
+
+            /* Hide Sidebar and Toolbar explicitly */
+            #input-sidebar,
+            #edit-mode-btn,
+            button,
+            .toolbar-container {
+                display: none !important;
+            }
+
+            /* Ensure Preview Pane is pure */
+            #preview-pane {
+                margin: 0 !important;
+                padding: 0 !important;
+                width: 100% !important;
+                height: auto !important;
+                background: white !important;
+            }
+        }
+
+        /* Modern Template Styles */
+        .modern h1 {
+            font-size: 24pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 5px;
+        }
+
+        .modern .contact-info {
+            font-size: 10pt;
+            color: #64748b;
+            margin-bottom: 20px;
+        }
+
+        .modern h3 {
+            font-size: 14pt;
+            font-weight: 600;
+            color: #3b82f6;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 5px;
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .modern .exp-item {
+            margin-bottom: 15px;
+        }
+
+        .modern .exp-role {
+            font-weight: 700;
+        }
+
+        .modern .exp-company {
+            color: #475569;
+            font-style: italic;
+        }
+
+        .modern .exp-date {
+            float: right;
+            color: #64748b;
+            font-size: 9pt;
+        }
+
+        /* Loader */
+        .loader {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-left-color: #60A5FA;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+
+    <!-- FULL SCREEN PREVIEW -->
+
+    <!-- RIGHT PANEL: PREVIEW (65%) -->
+    <!-- PREVIEW -->
+    <main class="w-full h-screen bg-slate-950 relative overflow-hidden flex flex-col items-center justify-center">
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
+
+        <!-- Toolbar -->
+        <div
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
+                Live Preview
+            </h2>
+            <div class="flex items-center gap-4">
+                <button onclick="printResume()"
+                    class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
+                        </path>
+                    </svg>
+                    PDF / PRINT
+                </button>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
+                id="preview-scroll-area">
+
+                <!-- Unlock Overlay -->
+                <div id="unlock-overlay"
+                    class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+                    <div
+                        class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
+                        <i class="fas fa-lock text-2xl text-slate-400"></i>
+                    </div>
+                    <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
+                    <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get
+                        instant
+                        access with a single credit.</p>
+                    <button id="btn-unlock"
+                        class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
+                        Unlock Tool ($12.99)
+                    </button>
+                </div>
+                <div class="resume-wrapper">
+                    <!-- NEW: Enhancement Overview Page -->
+                    <div id="enhancement-preview" class="enhancement-page hidden"></div>
+
+                    <div id="resume-preview" class="resume-paper modern">
+                        <!-- Placeholder Content -->
+                        <div class="text-center mt-32 text-gray-400">
+                            <div
+                                class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
+                            <p class="text-sm">Import your resume or fill the details on the left.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+    </main>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Marked JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+
+
+    <script>
+        // --- AUTH & CONFIG ---
+        const SESSION_KEY = 'supabase.auth.token';
+        const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+
+        // Initialize Supabase Client
+        if (window.supabase && window.supabase.createClient) {
+            window.supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+        }
+
+        // --- GLOBAL DATA STORE ---
+        let userData = {
+            experience: [],
+            education: []
+        };
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Force Scroll Body
+            document.body.classList.remove('md:overflow-hidden');
+            document.body.classList.add('overflow-auto');
+
+            const loadContext = localStorage.getItem('resume_load_context');
+            if (loadContext) {
+                try {
+                    // Check if valid JSON string (double encoded) or object
+                    let savedData = JSON.parse(loadContext);
+                    if (typeof savedData === 'string') {
+                        try { savedData = JSON.parse(savedData); } catch (e2) { }
+                    }
+
+                    console.log("Loading Saved Resume...", savedData);
+
+                    // Render Live Preview
+                    renderPreview(savedData, savedData);
+
+                    // Clear AFTER ensuring we have it
+                    localStorage.removeItem('resume_load_context');
+                } catch (e) {
+                    console.error("Bad Load Context", e);
+                }
+            } else {
+                console.warn("No resume to load.");
+            }
+        });
+
+        // --- RENDER LOGIC ---
+        // HELPER: Custom Markdown Parser for Resume Style
+        function formatMarkdown(content) {
+            if (!content) return '';
+            return marked.parse(content);
+        }
+
+        // --- RENDER LOGIC ---
+        function renderPreview(data, diffData = null) {
+            const previewContainer = document.getElementById('resume-preview');
+            const overviewContainer = document.getElementById('enhancement-preview');
+
+            // 1. Render Overview (If available)
+            if (data.enhancement_overview && overviewContainer) {
+                overviewContainer.classList.remove('hidden');
+                overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
+            } else if (overviewContainer) {
+                overviewContainer.classList.add('hidden');
+            }
+
+            // Fallbacks
+            const p = data.personal || {};
+            const exps = data.experience || [];
+            const edus = data.education || [];
+
+            // Generate HTML structure
+            let html = `
+                <div class="header mb-6 border-b-2 border-slate-800 pb-6 relative">
+                    ${diffData ? '<div class="absolute top-0 right-0 bg-blue-500 text-white text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">Optimized</div>' : ''}
+                    <h1 class="text-4xl font-bold text-slate-900 mb-2 tracking-tight">${p.name || 'Your Name'}</h1>
+                    <div class="contact-info flex flex-wrap gap-4 text-sm text-slate-600 font-medium mt-3">
+                        ${p.email ? `<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>${p.email}</span>` : ''}
+                        ${p.phone ? `<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>${p.phone}</span>` : ''}
+                        ${p.location ? `<span class="flex items-center gap-1"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>${p.location}</span>` : ''}
+                    </div>
+                    ${p.summary ? `<div class="mt-4 text-slate-700 leading-relaxed text-sm text-justify">${formatMarkdown(p.summary)}</div>` : ''}
+                </div>
+
+                <div class="section mb-8">
+                    <h3 class="text-sm font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">
+                        Experience
+                    </h3>
+                    <div class="space-y-6">
+            `;
+
+            exps.forEach(exp => {
+                let content = '';
+                if (exp.description) {
+                    content = formatMarkdown(exp.description);
+                } else if (Array.isArray(exp.achievements)) {
+                    content = `<ul class="text-sm space-y-1 ml-1">${exp.achievements.map(b => `<li class="mb-1 text-slate-700 relative pl-4 before:content-['•'] before:absolute before:left-0 before:text-blue-500">${marked.parseInline(b)}</li>`).join('')}</ul>`;
+                }
+
+                html += `
+                    <div class="exp-item break-inside-avoid">
+                         <div class="flex justify-between items-baseline mb-1">
+                            <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
+                            <div class="text-sm text-slate-500 font-medium font-mono whitespace-nowrap">${exp.dates || exp.duration || ''}</div>
+                        </div>
+                        <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
+                        <div class="text-slate-700 text-sm leading-relaxed">
+                            ${content}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                    </div>
+                </div>
+            `;
+
+            if (edus.length > 0) {
+                html += `
+                <div class="section mb-8">
+                    <h3 class="text-sm font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">
+                        Education
+                    </h3>
+                    <div class="space-y-4">
+                `;
+
+                edus.forEach(edu => {
+                    html += `
+                        <div class="edu-item">
+                            <div class="flex justify-between items-baseline">
+                                <div class="font-bold text-slate-900 text-sm">${edu.degree || ''}</div>
+                                <div class="text-xs text-slate-500 font-mono">${edu.dates || edu.year || ''}</div>
+                            </div>
+                            <div class="text-sm text-slate-600 italic">${edu.school || ''}</div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (data.skills) {
+                html += `
+                <div class="section">
+                    <h3 class="text-sm font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">
+                        Skills
+                    </h3>
+                    <div class="text-sm text-slate-700 leading-relaxed">
+                        ${Array.isArray(data.skills) ? data.skills.join(', ') : data.skills}
+                    </div>
+                </div>
+                `;
+            }
+
+            previewContainer.innerHTML = html;
+        }
+
+        // --- PRINT LOGIC ---
+        function printResume() {
+            window.print();
+        }
+    </script>
+</body>
+
+</html>

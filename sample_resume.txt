@@ -1,0 +1,23 @@
+JOHN DOE
+123 Executive Way, New York, NY 10001
+(555) 123-4567 | john.doe@example.com
+
+PROFESSIONAL SUMMARY
+Visionary CEO with 15+ years of experience leading Fortune 500 companies to record-breaking profitability. Expert in strategic transformation, operational excellence, and global expansion.
+
+EXPERIENCE
+Chief Executive Officer | Acme Corp | New York, NY | 2018 - Present
+- Led the company through a successful IPO, raising $500M in capital.
+- Increased annual revenue from $50M to $1.2B within 5 years.
+- Expanded operations into 20+ new international markets.
+
+VP of Operations | MegaCorp | Chicago, IL | 2012 - 2018
+- Streamlined supply chain operations, reducing costs by 30%.
+- Managed a team of 500+ employees across 5 divisions.
+
+EDUCATION
+MBA, Harvard Business School
+BS, Business Administration, Yale University
+
+SKILLS
+Strategic Planning, Financial Management, Leadership, Public Speaking, Mergers & Acquisitions

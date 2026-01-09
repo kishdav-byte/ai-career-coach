@@ -127,6 +127,39 @@
             width: 100%;
             height: 800px;
         }
+
+        /* CHAT STYLES */
+        .chat-input {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #10B981;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #10B981;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .msg-system {
+            color: #94A3B8;
+            border-left: 2px solid #334155;
+            padding-left: 8px;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .msg-admin {
+            color: #20C997;
+            text-align: right;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: 'JetBrains Mono', monospace;
+        }
     </style>
 </head>
 
@@ -185,14 +218,29 @@
                 </div>
             </div>
 
-            <!-- WIDGET B: ERROR LOG -->
-            <div class="glass-panel p-5 rounded-xl h-[400px] flex flex-col">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                    <i class="fas fa-bug mr-2"></i> System Errors
+            <!-- WIDGET B: AI COMMAND CENTER (CHAT) -->
+            <div class="glass-panel p-4 rounded-xl h-[400px] flex flex-col">
+                <h3
+                    class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+                    <span><i class="fas fa-terminal mr-2"></i> COMMAND CENTER</span>
+                    <span class="text-[10px] text-slate-500">v1.0</span>
                 </h3>
-                <div id="error-log-container" class="flex-1 overflow-y-auto space-y-2 pr-2 custom-scroll">
-                    <!-- Dynamic Errors -->
-                    <div class="text-xs text-slate-500 italic text-center mt-10">No errors logged.</div>
+
+                <!-- Chat Output -->
+                <div id="admin-chat-output"
+                    class="flex-1 overflow-y-auto space-y-2 p-2 mb-2 bg-slate-900/50 rounded border border-slate-700/50 custom-scroll">
+                    <div class="msg-system">
+                        > System Online.<br>
+                        > Welcome, Admin. How can I assist you?
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="relative">
+                    <input type="text" id="admin-chat-input"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 pl-3 text-xs text-teal-400 font-mono focus:outline-none focus:border-teal-500 transition-colors"
+                        placeholder="Type a command (e.g. 'Check health', 'Find user')..." autocomplete="off">
+                    <div class="absolute right-2 top-2 text-[10px] text-slate-600">⏎</div>
                 </div>
             </div>
         </div>
@@ -356,12 +404,16 @@
         // 1. FETCH HEALTH
         async function fetchHealth() {
             try {
-                const res = await fetch('/api/admin/health');
+                const res = await fetch('/api/admin/health', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+                });
                 const data = await res.json();
 
+                if (!res.ok) throw new Error(data.error || 'Auth Failed');
+
                 // Update Widgets
-                document.getElementById('score-24h').textContent = data.avg_24h.toFixed(1);
-                document.getElementById('score-7d').textContent = data.avg_7d.toFixed(1);
+                document.getElementById('score-24h').textContent = (data.avg_24h || 0).toFixed(1);
+                document.getElementById('score-7d').textContent = (data.avg_7d || 0).toFixed(1);
 
                 const widget = document.getElementById('health-widget');
                 const badge = document.getElementById('anomaly-badge');
@@ -376,14 +428,21 @@
 
                 // Render Errors
                 const errorContainer = document.getElementById('error-log-container');
-                if (data.error_log && data.error_log.length > 0) {
-                    errorContainer.innerHTML = data.error_log.map(err => `
-                        <div class="p-2 bg-red-500/10 border-l-2 border-red-500 text-xs text-red-200 font-mono break-all leading-tight">
-                            ${err}
-                        </div>
-                    `).join('');
-                } else {
-                    errorContainer.innerHTML = '<div class="text-xs text-slate-500 italic text-center mt-10">System optimal. No errors.</div>';
+                /* 
+                   NOTE: We replaced the error log with the Chat UI in the DOM, 
+                   so this might fail if element is missing. 
+                   Checking existence first. 
+                */
+                if (errorContainer) {
+                    if (data.error_log && data.error_log.length > 0) {
+                        errorContainer.innerHTML = data.error_log.map(err => `
+                            <div class="p-2 bg-red-500/10 border-l-2 border-red-500 text-xs text-red-200 font-mono break-all leading-tight">
+                                ${err}
+                            </div>
+                        `).join('');
+                    } else {
+                        errorContainer.innerHTML = '<div class="text-xs text-slate-500 italic text-center mt-10">System optimal. No errors.</div>';
+                    }
                 }
 
             } catch (e) {
@@ -394,25 +453,33 @@
         // 2. FETCH USERS
         async function fetchUsers() {
             try {
-                const res = await fetch('/api/admin/users');
+                const res = await fetch('/api/admin/users', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+                });
                 const users = await res.json();
 
+                if (!res.ok) throw new Error(users.error || 'Auth Failed');
+
                 const tbody = document.getElementById('user-table-body');
-                tbody.innerHTML = users.map(u => `
-                    <tr class="hover:bg-slate-800/50 transition-colors">
-                        <td class="px-4 py-3 text-white font-medium">${u.email}</td>
-                        <td class="px-4 py-3">
-                            <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-purple-900/50 text-purple-400' : 'bg-slate-800 text-slate-400'}">${u.role || 'user'}</span>
-                        </td>
-                        <td class="px-4 py-3">
-                            <span class="text-xs text-slate-400">${u.plan || 'Free'}</span>
-                        </td>
-                        <td class="px-4 py-3 text-center text-teal-400 font-mono font-bold">${u.credits || 0}</td>
-                        <td class="px-4 py-3 text-right">
-                            <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="text-xs text-blue-400 hover:text-blue-300 hover:underline">Edit</button>
-                        </td>
-                    </tr>
-                `).join('');
+                if (Array.isArray(users)) {
+                    tbody.innerHTML = users.map(u => `
+                        <tr class="hover:bg-slate-800/50 transition-colors">
+                            <td class="px-4 py-3 text-white font-medium">${u.email}</td>
+                            <td class="px-4 py-3">
+                                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${u.role === 'admin' ? 'bg-purple-900/50 text-purple-400' : 'bg-slate-800 text-slate-400'}">${u.role || 'user'}</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs text-slate-400">${u.plan || 'Free'}</span>
+                            </td>
+                            <td class="px-4 py-3 text-center text-teal-400 font-mono font-bold">${u.credits || 0}</td>
+                            <td class="px-4 py-3 text-right">
+                                <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="text-xs text-blue-400 hover:text-blue-300 hover:underline">Edit</button>
+                            </td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Failed to load users.</td></tr>';
+                }
 
             } catch (e) {
                 console.error("User Fetch Failed", e);
@@ -454,7 +521,10 @@
             try {
                 const res = await fetch('/api/admin/credits', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                    },
                     body: JSON.stringify({ user_id: id, updates: updates })
                 });
 
@@ -501,6 +571,78 @@
         function resizeFrame(sizeClass) {
             const frame = document.getElementById('sim-frame');
             frame.className = `device-frame shadow-2xl ${sizeClass}`;
+        }
+
+        // STARTUP
+        // 6. ADMIN CHAT LOGIC
+        const chatInput = document.getElementById('admin-chat-input');
+        const chatOutput = document.getElementById('admin-chat-output');
+
+        if (chatInput) {
+            chatInput.addEventListener('keydown', async (e) => {
+                if (e.key === 'Enter') {
+                    const msg = chatInput.value.trim();
+                    if (!msg) return;
+
+                    // 1. Render User Message
+                    appendAdminMessage(msg);
+                    chatInput.value = '';
+
+                    // 2. Send to Backend
+                    try {
+                        const loadingId = appendSystemMessage("Processing...", true);
+
+                        const res = await fetch('/api/admin/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                            },
+                            body: JSON.stringify({ message: msg })
+                        });
+
+                        const data = await res.json();
+
+                        // Remove Loading
+                        document.getElementById(loadingId)?.remove();
+
+                        if (data.error) {
+                            appendSystemMessage("Error: " + data.error);
+                        } else {
+                            // If output is structured (e.g. tables?), handle it. For now text.
+                            appendSystemMessage(data.response);
+                        }
+
+                    } catch (err) {
+                        appendSystemMessage("Critical Error: Connect Failed");
+                    }
+                }
+            });
+        }
+
+        function appendAdminMessage(text) {
+            const div = document.createElement('div');
+            div.className = 'msg-admin';
+            div.textContent = '> ' + text;
+            chatOutput.appendChild(div);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+        }
+
+        function appendSystemMessage(text, isLoading = false) {
+            const div = document.createElement('div');
+            div.className = 'msg-system';
+            div.id = 'msg-' + Date.now();
+
+            if (isLoading) {
+                div.className += ' italic opacity-70';
+            }
+
+            // Allow simple HTML breaks
+            div.innerHTML = '> ' + text.replace(/\n/g, '<br>');
+
+            chatOutput.appendChild(div);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+            return div.id;
         }
 
         // STARTUP

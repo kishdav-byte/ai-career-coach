@@ -492,7 +492,8 @@
                         </a>
 
                         <!-- Metric 3: Strategy Log (Span 1) -->
-                        <div
+                        <!-- Metric 3: Strategy Log (Span 1) -->
+                        <div onclick="window.location.href='jobs-history.html'"
                             class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
                             <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                             </div>
@@ -1379,6 +1380,7 @@
                 jd: jd,
                 notes: notes,
                 status: status,
+                job_id: currentJobId, // CRITICAL FIX: Pass ID for persistence
                 timestamp: Date.now()
             };
             localStorage.setItem('mission_context', JSON.stringify(context));

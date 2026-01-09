@@ -471,6 +471,12 @@
                         setTimeout(() => jdInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
                     }
 
+                    // Save Job ID if present
+                    if (missionContext.job_id) {
+                        pendingJobId = missionContext.job_id;
+                        console.log("Job ID captured for persistence:", pendingJobId);
+                    }
+
                     // Clear context to prevent stale data re-injection
                     localStorage.removeItem('mission_context');
                 }
@@ -554,7 +560,8 @@
                             localStorage.setItem('mission_context', JSON.stringify({
                                 jd: jdText,
                                 role: "Target Role", // Default since we might not have specific role data here
-                                company: "Target Company"
+                                company: "Target Company",
+                                job_id: pendingJobId // Pass it forward to Rewriter
                             }));
 
                             console.log("Payload Saved. Launching Rewrite...");
@@ -608,6 +615,7 @@
 
         // Global State
         let currentFileText = "";
+        let pendingJobId = null; // Store Job ID for persistence
 
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -756,14 +764,20 @@
 
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
+                    },
                     body: JSON.stringify({
                         action: 'analyze_resume',
                         email: email,
                         user_id: userId,
                         filename: filenameDisplay.textContent || "resume.pdf",
+                        user_id: userId,
+                        filename: filenameDisplay.textContent || "resume.pdf",
                         resume: currentFileText,
-                        job_description: jobDescInput.value // Pass JD if available
+                        job_description: jobDescInput.value, // Pass JD if available
+                        job_id: pendingJobId // Pass ID for persistence
                     })
                 });
 
