@@ -90,6 +90,7 @@
             line-height: 1.5;
             position: relative;
             transform-origin: top center;
+            text-align: justify;
         }
 
         /* Mobile Scale */
@@ -128,6 +129,9 @@
         .resume-paper,
         .enhancement-page {
             border: 1px solid rgba(0, 0, 0, 0.1);
+            height: auto !important;
+            overflow: visible !important;
+            word-wrap: break-word;
         }
 
         /* Enhancement Page Styles */
@@ -141,6 +145,7 @@
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
             font-size: 11pt;
             line-height: 1.6;
+            text-align: justify;
         }
 
         /* Markdown Styles for Overview */
@@ -1345,11 +1350,11 @@
                 // Convert Bold (**text**) to <strong> tags
                 .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-slate-900">$1</strong>')
 
-                // Convert Bullet Points (* text) to list items
-                .replace(/^\* (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-relaxed mb-1 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-blue-500">$1</li>');
+                // Convert Bullet Points (*, - or • text) to list items
+                .replace(/^[*•-] (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-relaxed mb-1 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-blue-500 text-justify">$1</li>');
 
             // Wrap lists (Group consecutive LIs in a UL)
-            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-2 space-y-1">$1</ul>');
+            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-2 space-y-1 text-justify">$1</ul>');
 
             // Convert remaining newlines to breaks
             formatted = formatted.replace(/\n/gim, '<br>');
@@ -1367,7 +1372,7 @@
             if (wrapper) wrapper.classList.remove('hidden');
 
             // 1. Render Overview (If available)
-            if (data.enhancement_overview && overviewContainer) {
+            if (data.enhancement_overview && data.enhancement_overview.trim()) {
                 overviewContainer.classList.remove('hidden');
                 overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
             } else if (overviewContainer) {
@@ -1400,7 +1405,7 @@
                         <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
                     </div>
                     <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
-                    <div class="text-slate-700 text-sm leading-relaxed">
+                    <div class="text-slate-700 text-sm leading-relaxed text-justify">
                         ${formatMarkdown(exp.description || '')}
                     </div>
                 </div>`;
