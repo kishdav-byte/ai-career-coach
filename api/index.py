@@ -1115,7 +1115,7 @@ def general_api():
             immutable_education_str = "No Education Detected in Raw Text"
             extracted_edu_lines = []
             try:
-            try:
+
                 lines = resume_text.split('\n')
                 for line in lines:
                     # Relaxed length check (was 100) to allow for "Blob Format" lines
