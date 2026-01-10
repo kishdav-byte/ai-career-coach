@@ -168,9 +168,16 @@
             }
         }
 
+        /* Print Optimization */
+        .break-inside-avoid {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
         @media print {
             @page {
                 margin: 0;
+                size: auto;
             }
 
             body {
@@ -178,51 +185,42 @@
                 color: black;
             }
 
-            aside,
-            .toolbar,
+            /* Hide UI Elements */
+            #viewer-header,
             #unlock-overlay,
-            .glass-panel {
+            .no-print {
                 display: none !important;
             }
 
             main {
+                display: block !important;
                 overflow: visible !important;
                 height: auto !important;
+                padding: 0 !important;
+                background: white !important;
             }
 
             .resume-wrapper {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
                 overflow: visible !important;
             }
 
+            .resume-paper,
             .enhancement-page {
-                box-shadow: none;
-                margin: 0;
-                width: 100%;
-                page-break-after: always;
-                break-after: page;
-            }
-
-            .resume-paper {
-                box-shadow: none;
-                margin: 0;
-                width: 100%;
-            }
-
-            /* Hide Sidebar and Toolbar explicitly */
-            #input-sidebar,
-            #edit-mode-btn,
-            button,
-            .toolbar-container {
-                display: none !important;
-            }
-
-            /* Ensure Preview Pane is pure */
-            #preview-pane {
-                margin: 0 !important;
-                padding: 0 !important;
                 width: 100% !important;
+                margin: 0 !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 20mm !important;
+                /* Restore print padding */
+                min-height: auto !important;
                 height: auto !important;
-                background: white !important;
+            }
+
+            .enhancement-page {
+                page-break-after: always;
             }
         }
 
@@ -233,6 +231,9 @@
             color: #0f172a;
             margin-bottom: 5px;
         }
+
+        /* ... (existing styles) ... */
+
 
         .modern .contact-info {
             font-size: 10pt;
@@ -309,66 +310,71 @@
         </div>
 
         <!-- Toolbar -->
-        <div
-            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
-            <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
-                Live Preview
-            </h2>
+        <!-- PROFESSIONAL HEADER -->
+        <header id="viewer-header"
+            class="fixed top-0 left-0 right-0 h-20 bg-slate-900 border-b border-slate-800 z-50 flex items-center justify-between px-8 shadow-xl">
             <div class="flex items-center gap-4">
+                <div
+                    class="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                    <i class="fas fa-file-contract text-white text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-white font-bold text-lg tracking-tight">Strategic Executive Resume</h1>
+                    <p class="text-slate-400 text-xs font-mono">CONFIDENTIAL // PRINT READY</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3">
+                <div class="px-4 py-2 bg-slate-800 rounded-lg border border-slate-700 flex items-center gap-3">
+                    <div class="flex items-center gap-2 border-r border-slate-700 pr-3">
+                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-xs text-slate-300 font-bold uppercase tracking-wider">Live</span>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono">A4 / Single-Space</span>
+                </div>
+
                 <button onclick="printResume()"
-                    class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z">
-                        </path>
-                    </svg>
-                    PDF / PRINT
+                    class="group bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-900/40 hover:shadow-blue-500/25 active:scale-95">
+                    <span>PRINT / PDF</span>
+                    <i class="fas fa-print group-hover:scale-110 transition-transform"></i>
                 </button>
             </div>
+        </header>
 
-            <!-- Preview Area -->
-            <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 flex justify-center relative z-10"
-                id="preview-scroll-area">
+        <!-- MAIN SCROLL AREA -->
+        <div class="flex-1 w-full h-full pt-32 pb-20 overflow-auto custom-scroll flex flex-col items-center relative z-10"
+            id="preview-scroll-area">
 
-                <!-- Unlock Overlay -->
-                <div id="unlock-overlay"
-                    class="hidden absolute inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex flex-col items-center justify-center text-center p-8">
+            <!-- DECORATIVE BACKDROP -->
+            <div class="fixed inset-0 z-0 pointer-events-none opacity-20"
+                style="background-image: radial-gradient(#3b82f6 1px, transparent 1px); background-size: 40px 40px;">
+            </div>
+
+            <!-- CONTENT WRAPPER -->
+            <div class="resume-wrapper relative z-10 transform transition-all duration-500 opacity-0 translate-y-4"
+                id="resume-container-animate">
+                <!-- 1. Enhancement Overview Page -->
+                <div id="enhancement-preview" class="enhancement-page mb-8 !hidden"></div>
+
+                <!-- 2. Resume Paper -->
+                <div id="resume-preview" class="resume-paper modern relative group">
+                    <!-- Hover Glow Effect -->
                     <div
-                        class="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mb-4 border border-slate-700">
-                        <i class="fas fa-lock text-2xl text-slate-400"></i>
+                        class="absolute -inset-4 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-700 -z-10">
                     </div>
-                    <h2 class="text-2xl font-bold text-white mb-2">Unlock Executive Rewrite</h2>
-                    <p class="text-slate-400 mb-6 max-w-sm">Optimized resume rewriting requires premium access. Get
-                        instant
-                        access with a single credit.</p>
-                    <button id="btn-unlock"
-                        class="bg-green-600 hover:bg-green-500 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-lg shadow-green-900/20">
-                        Unlock Tool ($12.99)
-                    </button>
-                </div>
-                <div class="resume-wrapper">
-                    <!-- NEW: Enhancement Overview Page -->
-                    <div id="enhancement-preview" class="enhancement-page hidden"></div>
 
-                    <div id="resume-preview" class="resume-paper modern">
-                        <!-- Placeholder Content -->
-                        <div class="text-center mt-32 text-gray-400">
-                            <div
-                                class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                                <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold mb-2 text-slate-700">Ready to Build</h3>
-                            <p class="text-sm">Import your resume or fill the details on the left.</p>
+                    <!-- Placeholder Content -->
+                    <div class="text-center mt-32 text-gray-400">
+                        <div
+                            class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <i class="fas fa-spinner fa-spin text-slate-300 text-2xl"></i>
                         </div>
+                        <h3 class="text-xl font-bold mb-2 text-slate-700">Loading Resume Data...</h3>
                     </div>
                 </div>
             </div>
+        </div>
+    </main>
 
     </main>
 
@@ -449,14 +455,24 @@
         function renderPreview(data, diffData = null) {
             const previewContainer = document.getElementById('resume-preview');
             const overviewContainer = document.getElementById('enhancement-preview');
+            const animationContainer = document.getElementById('resume-container-animate');
 
-            // 1. Render Overview (If available)
-            if (data.enhancement_overview && overviewContainer) {
-                overviewContainer.classList.remove('hidden');
+            // 1. Render Overview (ONLY if meaningful content exists)
+            // We check for length > 40 to avoid empty headers or minor noise
+            if (data.enhancement_overview && String(data.enhancement_overview).trim().length > 40 && overviewContainer) {
+                overviewContainer.classList.remove('!hidden');
                 overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
             } else if (overviewContainer) {
-                overviewContainer.classList.add('hidden');
+                overviewContainer.classList.add('!hidden'); // Force hide
+                overviewContainer.style.display = 'none';   // Double tap
             }
+
+            // Trigger Entrance Animation
+            setTimeout(() => {
+                if (animationContainer) {
+                    animationContainer.classList.remove('opacity-0', 'translate-y-4');
+                }
+            }, 100);
 
             // Fallbacks
             const p = data.personal || {};
@@ -492,13 +508,13 @@
                 }
 
                 html += `
-                    <div class="exp-item break-inside-avoid">
+                    <div class="exp-item break-inside-avoid mb-4 page-break-inside-avoid">
                          <div class="flex justify-between items-baseline mb-1">
                             <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
                             <div class="text-sm text-slate-500 font-medium font-mono whitespace-nowrap">${exp.dates || exp.duration || ''}</div>
                         </div>
                         <div class="text-blue-700 font-bold text-sm mb-3">${exp.company || 'Company'}</div>
-                        <div class="text-slate-700 text-sm leading-relaxed">
+                        <div class="text-slate-700 text-sm leading-relaxed text-justify">
                             ${content}
                         </div>
                     </div>
@@ -512,7 +528,7 @@
 
             if (edus.length > 0) {
                 html += `
-                <div class="section mb-8">
+                <div class="section mb-8 break-inside-avoid">
                     <h3 class="text-sm font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">
                         Education
                     </h3>
@@ -521,7 +537,7 @@
 
                 edus.forEach(edu => {
                     html += `
-                        <div class="edu-item">
+                        <div class="edu-item break-inside-avoid mb-3">
                             <div class="flex justify-between items-baseline">
                                 <div class="font-bold text-slate-900 text-sm">${edu.degree || ''}</div>
                                 <div class="text-xs text-slate-500 font-mono">${edu.dates || edu.year || ''}</div>
@@ -539,11 +555,11 @@
 
             if (data.skills) {
                 html += `
-                <div class="section">
+                <div class="section break-inside-avoid">
                     <h3 class="text-sm font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">
                         Skills
                     </h3>
-                    <div class="text-sm text-slate-700 leading-relaxed">
+                    <div class="text-sm text-slate-700 leading-relaxed text-justify">
                         ${Array.isArray(data.skills) ? data.skills.join(', ') : data.skills}
                     </div>
                 </div>
