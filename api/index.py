@@ -1092,13 +1092,16 @@ def general_api():
 
                            # 3. Override if missing or placeholder
                            current_name = user_data.get('personal', {}).get('name', 'N/A')
-                           # Check for generic placeholders or empty
-                           if not current_name or current_name in ["N/A", "Your Name", "Full Name", ""] or len(current_name) < 3:
+                           # 3. Override if missing or placeholder
+                           current_name = user_data.get('personal', {}).get('name', 'N/A')
+                           # Check for generic placeholders or empty (Case Insensitive)
+                           cn_lower = current_name.lower() if current_name else ""
+                           if not current_name or cn_lower in ["n/a", "your name", "full name", ""] or "your name" in cn_lower or len(current_name) < 3:
                                if 'personal' not in user_data: user_data['personal'] = {}
                                user_data['personal']['name'] = real_name or "Executive Candidate"
                                # Force update prompt context
                                prompt_name = real_name or "Executive Candidate"
-                               print(f"IDENTITY ENFORCEMENT: Overriding Name with {real_name}")
+                               print(f"IDENTITY ENFORCEMENT: Overriding Name '{current_name}' with '{real_name}'")
                            
                            current_email = user_data.get('personal', {}).get('email', 'N/A')
                            if not current_email or "email@example.com" in current_email or len(current_email) < 5:
@@ -1112,9 +1115,11 @@ def general_api():
             immutable_education_str = "No Education Detected in Raw Text"
             extracted_edu_lines = []
             try:
+            try:
                 lines = resume_text.split('\n')
                 for line in lines:
-                    if len(line) > 100: continue 
+                    # Relaxed length check (was 100) to allow for "Blob Format" lines
+                    if len(line) > 300: continue 
                     l = line.lower()
                     if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
                          extracted_edu_lines.append(line.strip())
@@ -1234,7 +1239,7 @@ def general_api():
                         # Capture roughly lines that look like education
                         lines = resume_text.split('\n')
                         for line in lines:
-                            if len(line) > 100: continue # Skip paragraphs
+                            if len(line) > 300: continue # Skip huge paragraphs
                             l = line.lower()
                             if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
                                 regex_edu.append({
