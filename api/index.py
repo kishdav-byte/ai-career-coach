@@ -1082,17 +1082,26 @@ def general_api():
                        # 2. Get Profile
                        profile_res = sb.table('users').select('*').eq('id', user_id).single().execute()
                        if profile_res and profile_res.data:
-                           real_name = profile_res.data.get('full_name') or profile_res.data.get('name') or "N/A"
+                           real_name = profile_res.data.get('full_name') or profile_res.data.get('name')
                            
+                           # Fallback: Extract from email if name is missing
+                           if not real_name and real_email:
+                               name_part = real_email.split('@')[0]
+                               # formalized: david.kish -> David Kish
+                               real_name = ' '.join([n.capitalize() for n in re.split(r'[._-]', name_part)])
+
                            # 3. Override if missing or placeholder
                            current_name = user_data.get('personal', {}).get('name', 'N/A')
-                           if not current_name or current_name == "N/A" or "Your Name" in current_name:
+                           # Check for generic placeholders or empty
+                           if not current_name or current_name in ["N/A", "Your Name", "Full Name", ""] or len(current_name) < 3:
                                if 'personal' not in user_data: user_data['personal'] = {}
-                               user_data['personal']['name'] = real_name
+                               user_data['personal']['name'] = real_name or "Executive Candidate"
+                               # Force update prompt context
+                               prompt_name = real_name or "Executive Candidate"
                                print(f"IDENTITY ENFORCEMENT: Overriding Name with {real_name}")
-                               
+                           
                            current_email = user_data.get('personal', {}).get('email', 'N/A')
-                           if not current_email or current_email == "N/A" or "email@example.com" in current_email:
+                           if not current_email or "email@example.com" in current_email or len(current_email) < 5:
                                if 'personal' not in user_data: user_data['personal'] = {}
                                user_data['personal']['email'] = real_email
             except Exception as e:
@@ -1123,12 +1132,12 @@ def general_api():
             {strategy}
 
             PROTOCOL INSTRUCTIONS:
-            1. Rewrite the 'Summary' and 'Experience' sections to align with the JD while maintaining absolute truthfulness to the ORIGINAL RESUME content.
-            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe" or "Your Name".
+            1. Rewrite the 'Summary' and 'Experience' sections to align with the JD.
+            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe".
             3. {keyword_instruction}
-            4. PROTOCOL C (HARD SKILL CALIBRATION): Identify generic skill terms (e.g. "Analytical Tools", "CRM") in the resume. If the Job Description specifies a specific tool (e.g. "Power BI", "Salesforce") fitting context, REPLACE the generic term.
-            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from removing the 'Education' or 'Certifications' sections. If you cannot improve them, COPY THEM VERBATIM from the original text.
-            6. FORMATTING STRICTNESS: Experience bullets must be returned as valid JSON strings. DO NOT use Markdown list characters (like *, -, •) at the start of the string. The frontend handles rendering.
+            4. PROTOCOL C (HARD SKILL CALIBRATION): Identify generic skill terms (e.g. "Analytical Tools") and REPLACE them with specific JD tools (e.g. "Power BI") if context permits.
+            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from removing the 'Education' or 'Certifications' sections. If you cannot improve them, COPY THEM VERBATIM.
+            6. FORMATTING: Return Experience bullets as clean, professional bullet points.
 
             Output JSON structure exactly:
             {{
