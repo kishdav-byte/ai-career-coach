@@ -1110,25 +1110,43 @@ def general_api():
             except Exception as e:
                 print(f"Identity Enforcement Warning: {e}")
 
-            # --- PRE-CALCULATE IMMUTABLE SECTIONS ---
-            # Extract Education from Raw Text to prevent Hallucination
-            immutable_education_str = "No Education Detected in Raw Text"
-            extracted_edu_lines = []
+            # --- ABSOLUTE FORCE-INJECTION: PRE-EXTRACTION ---
+            # Extract Education & Skills BEFORE AI call to force-inject later
+            backup_education = []
+            backup_skills = []
+            
             try:
-
+                # Extract Education from raw text
                 lines = resume_text.split('\n')
                 for line in lines:
-                    # Relaxed length check (was 100) to allow for "Blob Format" lines
-                    if len(line) > 300: continue 
+                    if len(line) > 300: continue
                     l = line.lower()
                     if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
-                         extracted_edu_lines.append(line.strip())
+                        # Try to parse into structured format
+                        backup_education.append({
+                            "school": line.strip(),
+                            "degree": "As listed in original resume",
+                            "dates": ""
+                        })
                 
-                if extracted_edu_lines:
-                    immutable_education_str = "\n".join(extracted_edu_lines)
-                    print(f"IMMUTABLE DATA: Extracted {len(extracted_edu_lines)} education lines.")
+                # Extract Skills from raw text (simple keyword scan)
+                in_skills_section = False
+                for line in lines:
+                    if 'skills' in line.lower() and len(line) < 20:
+                        in_skills_section = True
+                        continue
+                    if in_skills_section:
+                        if len(line.strip()) == 0: continue
+                        if len(line) > 200 or ':' in line:
+                            in_skills_section = False
+                            break
+                        import re
+                        parts = re.split(r'[,|•·]', line)
+                        backup_skills.extend([p.strip() for p in parts if p.strip()])
+                
+                print(f"BACKUP DATA: Extracted {len(backup_education)} education items, {len(backup_skills)} skills")
             except Exception as e:
-                print(f"Extraction Error: {e}")
+                print(f"Backup Extraction Error: {e}")
 
             # --- PROTOCOL B: MISSING KEYWORDS INJECTION ---
             missing_keywords = data.get('missing_keywords', [])
@@ -1145,9 +1163,6 @@ def general_api():
             Phone: {user_data.get('personal', {}).get('phone', 'N/A')}
             Location: {user_data.get('personal', {}).get('location', 'N/A')}
 
-            IMMUTABLE EDUCATION SECTION (MUST BE INCLUDED VERBATIM):
-            {immutable_education_str}
-
             ORIGINAL RESUME CONTENT:
             {resume_text[:4000]}
 
@@ -1157,31 +1172,26 @@ def general_api():
             STRATEGY:
             {strategy}
 
-            PROTOCOL INSTRUCTIONS:
-            1. Rewrite the 'Summary' and 'Experience' sections to align with the JD.
-            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe".
+            INSTRUCTIONS:
+            1. Rewrite ONLY the Summary and Experience sections to align with the Job Description.
+            2. USE THE PROVIDED IDENTITY. NEVER use placeholders.
             3. {keyword_instruction}
-            4. PROTOCOL C (HARD SKILL CALIBRATION): Identify generic skill terms (e.g. "Analytical Tools") and REPLACE them with specific JD tools (e.g. "Power BI") if context permits.
-            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from hallucinating education. You MUST use the exact content from the 'IMMUTABLE EDUCATION SECTION' provided above. Format it correctly (School, Degree, Dates) but DO NOT change the degree to match the Job Description.
-            6. FORMATTING: Return Experience bullets as clean, professional bullet points.
+            4. For Experience: Use clean, professional bullet points (no markdown symbols at start).
+            5. DO NOT include Education or Skills in your response - the system handles those separately.
 
-            Output JSON structure exactly:
+            Output JSON structure (Education and Skills will be added automatically):
             {{
                 "personal": {{
                     "name": "{user_data.get('personal', {}).get('name', 'N/A')}",
                     "email": "{user_data.get('personal', {}).get('email', 'N/A')}",
                     "phone": "{user_data.get('personal', {}).get('phone', 'N/A')}",
                     "location": "{user_data.get('personal', {}).get('location', 'N/A')}",
-                    "summary": "NEW OPTIMIZED SUMMARY"
+                    "summary": "OPTIMIZED SUMMARY"
                 }},
                 "experience": [
-                    {{ "role": "...", "company": "...", "dates": "...", "description": "NEW OPTIMIZED BULLETS" }}
+                    {{ "role": "...", "company": "...", "dates": "...", "description": "BULLET POINTS" }}
                 ],
-                "education": [
-                    {{ "degree": "...", "school": "...", "dates": "..." }}
-                ],
-                "skills": ["keyword1", "keyword2", "..."],
-                "enhancement_overview": "A brief explanation of the strategic changes made (Markdown allowed)."
+                "enhancement_overview": "Brief explanation of changes"
             }}
             """
 
@@ -1197,62 +1207,28 @@ def general_api():
             
             ai_content = completion.choices[0].message.content
             
-            # --- LAYERS 2 & 3: BACKEND EXTRACTION & GUARDRAIL INJECTION ---
+            # --- ABSOLUTE FORCE-INJECTION (UNCONDITIONAL) ---
             try:
                 ai_json = json.loads(ai_content)
                 
-                # --- EDUCATION GUARDRAIL ---
-                output_edu = ai_json.get('education', [])
+                # STEP 1: Force-inject Education (ALWAYS)
                 input_edu = user_data.get('education', [])
+                if backup_education and len(backup_education) > 0:
+                    ai_json['education'] = backup_education
+                    print(f"FORCE-INJECTED: {len(backup_education)} education items from raw text")
+                elif input_edu and len(input_edu) > 0:
+                    ai_json['education'] = input_edu
+                    print(f"FORCE-INJECTED: {len(input_edu)} education items from user input")
+                else:
+                    ai_json['education'] = [{
+                        "school": "Education information not found in resume",
+                        "degree": "",
+                        "dates": ""
+                    }]
+                    print("WARNING: No education data available")
                 
-                # Check 0: ANTI-HALLUCINATION VALIDATION
-                # Detect if AI returned generic placeholders despite having data
-                is_education_valid = True
-                if output_edu and len(output_edu) > 0:
-                    for edu in output_edu:
-                        school = str(edu.get('school', '')).lower()
-                        degree = str(edu.get('degree', '')).lower()
-                        dates = str(edu.get('dates', '')).lower()
-                        
-                        # Hallucination Signals
-                        if "relevant field" in degree or "accredited university" in school or "yyyy" in dates or "university name" in school:
-                             print(f"GUARDRAIL: Detected Hallucination -> {school} | {degree}")
-                             is_education_valid = False
-                             break
-                
-                # Check 1: AI Output is empty OR Invalid?
-                if not output_edu or len(output_edu) == 0 or not is_education_valid:
-                    if not is_education_valid:
-                        print("GUARDRAIL ALERT: AI Education invalidated due to placeholders.")
-                    else:
-                        print("GUARDRAIL ALERT: AI dropped Education.")
-                    
-                    # Check 2: Try Input Data
-                    if input_edu and len(input_edu) > 0:
-                        print("GUARDRAIL: Restoring from User Input.")
-                        ai_json['education'] = input_edu
-                    else:
-                        # Check 3: Regex Fallback (The Safety Net)
-                        print("GUARDRAIL: Parsing Raw Text for Education...")
-                        regex_edu = []
-                        # Look for common degree terms + optional proximity words
-                        # Capture roughly lines that look like education
-                        lines = resume_text.split('\n')
-                        for line in lines:
-                            if len(line) > 300: continue # Skip huge paragraphs
-                            l = line.lower()
-                            if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
-                                regex_edu.append({
-                                    "school": line.strip(),
-                                    "degree": "Detected in Resume Text", 
-                                    "dates": ""
-                                })
-                        
-                        if regex_edu:
-                            print(f"GUARDRAIL: Restored {len(regex_edu)} education items from raw text.")
-                            ai_json['education'] = regex_edu
-                            
-                # --- SKILLS GUARDRAIL ---
+                # STEP 2: Force-inject Skills (ALWAYS)
+                input_skills = user_data.get('skills', [])
                 output_skills = ai_json.get('skills', [])
                 
                 if not output_skills or len(output_skills) == 0:
