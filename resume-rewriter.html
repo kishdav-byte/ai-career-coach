@@ -611,10 +611,58 @@
                 </button>
             </div>
 
-            <div class="resume-wrapper hidden">
-                <!-- Enhancement Preview -->
+            <div class="resume-wrapper hidden w-full max-w-4xl mx-auto">
+                <!-- SUCCESS STATE -->
+                <div id="generation-success"
+                    class="hidden text-center py-20 bg-slate-900/50 border border-slate-800 rounded-3xl backdrop-blur-xl shadow-2xl relative overflow-hidden group">
+                    <!-- Decorative background glows -->
+                    <div
+                        class="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition-all duration-700">
+                    </div>
+                    <div
+                        class="absolute -bottom-24 -right-24 w-48 h-48 bg-teal/10 rounded-full blur-3xl group-hover:bg-teal/20 transition-all duration-700">
+                    </div>
+
+                    <div class="relative z-10 scale-95 opacity-0 transition-all duration-500 transform translate-y-4"
+                        id="success-animate-target">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-tr from-teal to-blue-600 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-[0_0_30px_rgba(32,201,151,0.3)] rotate-3 hover:rotate-0 transition-transform duration-500">
+                            <i class="fas fa-check text-4xl text-white"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-white mb-4 tracking-tight">Executive Rewrite Complete</h2>
+                        <p class="text-slate-400 max-w-md mx-auto mb-10 text-lg leading-relaxed">Your resume has been
+                            strategically optimized for the target role. Open the print-ready viewer to review and
+                            download.</p>
+
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 px-6 text-center">
+                            <button onclick="launchStandaloneViewer()"
+                                class="bg-teal hover:bg-teal/80 text-navy font-black px-10 py-5 rounded-2xl transition-all shadow-[0_0_25px_rgba(32,201,151,0.4)] hover:shadow-[0_0_40px_rgba(32,201,151,0.6)] flex items-center gap-3 hover:-translate-y-1 active:scale-95 group">
+                                <i class="fas fa-external-link-alt group-hover:rotate-12 transition-transform"></i>
+                                OPEN EXECUTIVE VIEWER
+                            </button>
+                        </div>
+
+                        <div class="mt-12 pt-8 border-t border-slate-800/50 flex items-center justify-center gap-8">
+                            <div class="flex flex-col items-center">
+                                <span
+                                    class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Status</span>
+                                <span class="text-teal font-mono text-sm leading-tight">Print Ready</span>
+                            </div>
+                            <div class="w-px h-8 bg-slate-800/50"></div>
+                            <div class="flex flex-col items-center">
+                                <span
+                                    class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Target</span>
+                                <span id="success-target-role"
+                                    class="text-white font-mono text-sm leading-tight truncate max-w-[150px]">Executive
+                                    Role</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Enhancement Preview (Keep for background processing logic if needed, but we now launch viewer) -->
                 <div id="enhancement-preview" class="enhancement-page hidden"></div>
-                <div id="resume-preview" class="resume-paper modern"></div>
+                <div id="resume-preview" class="resume-paper modern hidden"></div>
             </div>
         </div>
 
@@ -1383,81 +1431,68 @@
             const data = result;
 
             // Ensure UI transition happens regardless of parsing success
+            // Ensure UI transition happens regardless of parsing success
             if (intro) intro.classList.add('hidden');
             if (wrapper) wrapper.classList.remove('hidden');
 
             try {
-                // 1. Render Overview (If available and not just whitespace)
-                if (data.enhancement_overview && String(data.enhancement_overview).trim().length > 10) {
-                    overviewContainer.classList.remove('hidden');
-                    overviewContainer.innerHTML = marked.parse(data.enhancement_overview);
-                } else if (overviewContainer) {
-                    overviewContainer.classList.add('hidden');
-                    overviewContainer.style.display = 'none'; // Nuclear hidden
+                // IMPORTANT: Save Context for Standalone Viewer
+                // We combine the generated result with the original data to ensure a full resume object
+                const fullResumeContext = {
+                    ...originalData,
+                    ...data,
+                    timestamp: Date.now()
+                };
+
+                localStorage.setItem('resume_load_context', JSON.stringify(fullResumeContext));
+                console.log("Resume Context Saved for Viewer:", fullResumeContext);
+
+                // SHOW SUCCESS UI (Hide Inline Preview)
+                const successUI = document.getElementById('generation-success');
+                const targetRoleEl = document.getElementById('success-target-role');
+
+                if (successUI) {
+                    successUI.classList.remove('hidden');
+
+                    // Update dynamic text
+                    if (targetRoleEl) targetRoleEl.innerText = (data.personal && data.personal.role) ? data.personal.role : "Executive Role";
+
+                    // Trigger Animation
+                    setTimeout(() => {
+                        const target = document.getElementById('success-animate-target');
+                        if (target) {
+                            target.classList.remove('opacity-0', 'translate-y-4', 'scale-95');
+                        }
+                    }, 100);
                 }
 
-                // Fallbacks
-                const p = data.personal || originalData.personal || {};
-                const exps = data.experience || originalData.experience || [];
-                const edus = data.education || originalData.education || [];
+                // NUCLEAR OPTION: Ensure old containers are hidden
+                if (overviewContainer) overviewContainer.classList.add('hidden');
+                if (container) container.classList.add('hidden');
 
-                // Apply "Killer Executive" Styling to the Preview Container
-                // We reconstruct the HTML using the formatMarkdown for description fields
-                let html = `
-                    <h1 class="text-4xl font-bold text-slate-900 mb-1">${p.name || 'Your Name'}</h1>
-                    <p class="text-slate-600 mb-6 text-sm">${p.email || ''} | ${p.phone || ''} | ${p.location || ''}</p>
-                    <hr class="border-slate-200 mb-6">
-                    
-                    <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Professional Summary</h2>
-                    <div class="text-slate-700 leading-tight mb-6 text-sm text-justify">${formatMarkdown(p.summary || '')}</div>
-                    
-                    <h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4">Experience</h2>
-                `;
 
-                exps.forEach(exp => {
-                    html += `
-                    <div class="mb-4 break-inside-avoid">
-                        <div class="flex justify-between items-baseline mb-0">
-                            <div class="font-bold text-slate-900 text-lg">${exp.role || 'Role'}</div>
-                            <div class="text-sm text-slate-500 font-medium font-mono">${exp.dates || ''}</div>
-                        </div>
-                        <div class="text-blue-700 font-bold text-sm mb-2">${exp.company || 'Company'}</div>
-                        <div class="text-slate-700 text-sm leading-tight text-justify">
-                            ${formatMarkdown(exp.description || '')}
-                        </div>
-                    </div>`;
-                });
+                /* 
+                 * SUCCESS: Data saved. 
+                 */
 
-                if (edus.length > 0) {
-                    html += `<h2 class="text-lg font-bold text-blue-800 uppercase tracking-widest border-b-2 border-slate-100 pb-2 mb-4 mt-8">Education</h2>`;
-                    edus.forEach(edu => {
-                        html += `
-                        <div class="mb-3">
-                            <div class="font-bold text-slate-900">${edu.school}</div>
-                            <div class="text-slate-600 text-sm">${edu.degree} <span class="float-right text-slate-500 font-mono">${edu.dates}</span></div>
-                        </div>`;
-                    });
-                }
-
-                // NUCLEAR SCRUB: Aggressively remove 'undefined' artifacts
-                html = html.replace(/>\s*undefined\s*</gi, '><'); // Removes >undefined<
-                html = html.replace(/undefined/gi, ''); // Global backup catch-all
-
-                // Cleanup empty elements left behind
-                html = html.replace(/<strong[^>]*>\s*<\/strong>/gi, '');
-                html = html.replace(/<h3[^>]*>\s*<\/h3>/gi, '');
-                html = html.replace(/<div[^>]*>\s*<\/div>/gi, '');
-
-                container.innerHTML = html;
             } catch (err) {
                 console.error("Render Preview Error:", err);
-                container.innerHTML = `<div class="p-8 text-red-500 font-mono text-sm bg-red-50 rounded-lg border border-red-200">
-                    <h3 class="font-bold mb-2">⚠️ RENDERING ERROR</h3>
+                const container = document.getElementById('resume-preview');
+                if (container) {
+                    container.innerHTML = `<div class="p-8 text-red-500 font-mono text-sm bg-red-50 rounded-lg border border-red-200">
+                    <h3 class="font-bold mb-2">⚠️ SAVING ERROR</h3>
                     <p>${err.message}</p>
-                    <p class="mt-4 text-xs text-red-400">Please check the console for the raw AI response and report this structure.</p>
+                    <p class="mt-4 text-xs text-red-400">Please check the console.</p>
                 </div>`;
+                    container.classList.remove('hidden'); // Show error if saving fails
+                }
             }
         }
+
+        // NEW: Launch Function
+        window.launchStandaloneViewer = () => {
+            window.open('resume-viewer.html', '_blank');
+        };
 
         function printResume() {
             window.print();

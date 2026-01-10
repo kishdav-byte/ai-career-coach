@@ -427,10 +427,22 @@
         });
 
         // --- RENDER LOGIC ---
-        // HELPER: Custom Markdown Parser for Resume Style
+        // HELPER: Custom Markdown Parser matching Resume-Rewriter
         function formatMarkdown(content) {
             if (!content) return '';
-            return marked.parse(content);
+            if (typeof content !== 'string') {
+                content = String(content);
+            }
+            let formatted = content
+                .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-slate-900 mb-1">$1</h1>')
+                .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-blue-700 mt-6 mb-3 border-b border-blue-200 pb-1 uppercase tracking-wide">$1</h2>')
+                .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-800 mt-4">$1</h3>')
+                .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-900">$1</strong>')
+                .replace(/^[*•-] (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-tight mb-0 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-black text-justify font-normal">$1</li>');
+
+            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-0 space-y-0 text-justify">$1</ul>');
+            formatted = formatted.replace(/\n/gim, '<br>');
+            return formatted;
         }
 
         // --- RENDER LOGIC ---
