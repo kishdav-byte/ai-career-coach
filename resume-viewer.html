@@ -176,19 +176,31 @@
 
         @media print {
             @page {
-                margin: 0;
+                margin: 15mm;
                 size: auto;
             }
 
             body {
-                background: white;
-                color: black;
+                background: white !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            /* Force Hide Backgrounds */
+            main,
+            .resume-wrapper,
+            body {
+                background-image: none !important;
+                background-color: white !important;
             }
 
             /* Hide UI Elements */
             #viewer-header,
             #unlock-overlay,
-            .no-print {
+            .no-print,
+            div[class*="absolute inset-0"] {
+                /* Hides decorative grids */
                 display: none !important;
             }
 
@@ -213,8 +225,8 @@
                 margin: 0 !important;
                 box-shadow: none !important;
                 border: none !important;
-                padding: 20mm !important;
-                /* Restore print padding */
+                padding: 0 !important;
+                /* Let @page handle margins */
                 min-height: auto !important;
                 height: auto !important;
             }
@@ -444,7 +456,7 @@
                 .replace(/^## (.*$)/gim, '<h2 class="text-xl font-bold text-blue-700 mt-6 mb-3 border-b border-blue-200 pb-1 uppercase tracking-wide">$1</h2>')
                 .replace(/^### (.*$)/gim, '<h3 class="text-lg font-bold text-slate-800 mt-4">$1</h3>')
                 .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-900">$1</strong>')
-                .replace(/^[*•-] (.*$)/gim, '<li class="ml-4 pl-1 text-slate-700 leading-tight mb-0 relative before:content-[\'•\'] before:absolute before:-left-4 before:text-black text-justify font-normal">$1</li>');
+                .replace(/^[*•-] (.*$)/gim, '<li class="ml-0 pl-4 text-slate-700 leading-tight mb-1 relative before:content-[\'•\'] before:absolute before:left-0 before:text-black text-justify font-normal">$1</li>');
 
             formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-0 space-y-0 text-justify">$1</ul>');
             formatted = formatted.replace(/\n/gim, '<br>');
