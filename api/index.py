@@ -1179,9 +1179,27 @@ def general_api():
                 output_edu = ai_json.get('education', [])
                 input_edu = user_data.get('education', [])
                 
-                # Check 1: AI Output is empty?
-                if not output_edu or len(output_edu) == 0:
-                    print("GUARDRAIL ALERT: AI dropped Education.")
+                # Check 0: ANTI-HALLUCINATION VALIDATION
+                # Detect if AI returned generic placeholders despite having data
+                is_education_valid = True
+                if output_edu and len(output_edu) > 0:
+                    for edu in output_edu:
+                        school = str(edu.get('school', '')).lower()
+                        degree = str(edu.get('degree', '')).lower()
+                        dates = str(edu.get('dates', '')).lower()
+                        
+                        # Hallucination Signals
+                        if "relevant field" in degree or "accredited university" in school or "yyyy" in dates or "university name" in school:
+                             print(f"GUARDRAIL: Detected Hallucination -> {school} | {degree}")
+                             is_education_valid = False
+                             break
+                
+                # Check 1: AI Output is empty OR Invalid?
+                if not output_edu or len(output_edu) == 0 or not is_education_valid:
+                    if not is_education_valid:
+                        print("GUARDRAIL ALERT: AI Education invalidated due to placeholders.")
+                    else:
+                        print("GUARDRAIL ALERT: AI dropped Education.")
                     
                     # Check 2: Try Input Data
                     if input_edu and len(input_edu) > 0:
