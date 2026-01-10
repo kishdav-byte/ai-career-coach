@@ -1107,6 +1107,24 @@ def general_api():
             except Exception as e:
                 print(f"Identity Enforcement Warning: {e}")
 
+            # --- PRE-CALCULATE IMMUTABLE SECTIONS ---
+            # Extract Education from Raw Text to prevent Hallucination
+            immutable_education_str = "No Education Detected in Raw Text"
+            extracted_edu_lines = []
+            try:
+                lines = resume_text.split('\n')
+                for line in lines:
+                    if len(line) > 100: continue 
+                    l = line.lower()
+                    if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
+                         extracted_edu_lines.append(line.strip())
+                
+                if extracted_edu_lines:
+                    immutable_education_str = "\n".join(extracted_edu_lines)
+                    print(f"IMMUTABLE DATA: Extracted {len(extracted_edu_lines)} education lines.")
+            except Exception as e:
+                print(f"Extraction Error: {e}")
+
             # --- PROTOCOL B: MISSING KEYWORDS INJECTION ---
             missing_keywords = data.get('missing_keywords', [])
             keyword_instruction = ""
@@ -1122,6 +1140,9 @@ def general_api():
             Phone: {user_data.get('personal', {}).get('phone', 'N/A')}
             Location: {user_data.get('personal', {}).get('location', 'N/A')}
 
+            IMMUTABLE EDUCATION SECTION (MUST BE INCLUDED VERBATIM):
+            {immutable_education_str}
+
             ORIGINAL RESUME CONTENT:
             {resume_text[:4000]}
 
@@ -1136,7 +1157,7 @@ def general_api():
             2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe".
             3. {keyword_instruction}
             4. PROTOCOL C (HARD SKILL CALIBRATION): Identify generic skill terms (e.g. "Analytical Tools") and REPLACE them with specific JD tools (e.g. "Power BI") if context permits.
-            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from removing the 'Education' or 'Certifications' sections. If you cannot improve them, COPY THEM VERBATIM.
+            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from hallucinating education. You MUST use the exact content from the 'IMMUTABLE EDUCATION SECTION' provided above. Format it correctly (School, Degree, Dates) but DO NOT change the degree to match the Job Description.
             6. FORMATTING: Return Experience bullets as clean, professional bullet points.
 
             Output JSON structure exactly:
