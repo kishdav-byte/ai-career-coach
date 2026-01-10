@@ -972,7 +972,23 @@
                         for (let i = 1; i <= pdf.numPages; i++) {
                             const page = await pdf.getPage(i);
                             const textContent = await page.getTextContent();
-                            const pageText = textContent.items.map(s => s.str).join(' ');
+
+                            // Enhanced: Preserve line breaks using Y-coordinates
+                            let lastY = null;
+                            let pageText = "";
+
+                            textContent.items.forEach(item => {
+                                const currentY = item.transform[5]; // Y-coordinate
+
+                                // New line detected (Y changed significantly)
+                                if (lastY !== null && Math.abs(currentY - lastY) > 2) {
+                                    pageText += "\n";
+                                }
+
+                                pageText += item.str + " ";
+                                lastY = currentY;
+                            });
+
                             fullText += pageText + "\n";
                         }
 
