@@ -1060,16 +1060,54 @@ def general_api():
             return jsonify({"data": ai_content, "debug_job_id": job_id if job_id else "None"}), 200
 
         elif action == 'optimize':
+            import re # Ensure regex is available
             user_data = data.get('user_data', {})
             # Fix Key Mismatch: Frontend sends 'resume_text' and 'job_description'
             resume_text = data.get('resume_text', '')
             jd_text = data.get('job_description', '')
             strategy = data.get('strategy', 'Professional and Results-Driven')
 
+            # --- LAYER 1: IDENTITY ENFORCEMENT ---
+            try:
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    sb = get_supabase()
+                    # 1. Get User
+                    user_res = sb.auth.get_user(token)
+                    if user_res and user_res.user:
+                       real_email = user_res.user.email
+                       user_id = user_res.user.id
+                       
+                       # 2. Get Profile
+                       profile_res = sb.table('users').select('*').eq('id', user_id).single().execute()
+                       if profile_res and profile_res.data:
+                           real_name = profile_res.data.get('full_name') or profile_res.data.get('name') or "N/A"
+                           
+                           # 3. Override if missing or placeholder
+                           current_name = user_data.get('personal', {}).get('name', 'N/A')
+                           if not current_name or current_name == "N/A" or "Your Name" in current_name:
+                               if 'personal' not in user_data: user_data['personal'] = {}
+                               user_data['personal']['name'] = real_name
+                               print(f"IDENTITY ENFORCEMENT: Overriding Name with {real_name}")
+                               
+                           current_email = user_data.get('personal', {}).get('email', 'N/A')
+                           if not current_email or current_email == "N/A" or "email@example.com" in current_email:
+                               if 'personal' not in user_data: user_data['personal'] = {}
+                               user_data['personal']['email'] = real_email
+            except Exception as e:
+                print(f"Identity Enforcement Warning: {e}")
+
+            # --- PROTOCOL B: MISSING KEYWORDS INJECTION ---
+            missing_keywords = data.get('missing_keywords', [])
+            keyword_instruction = ""
+            if missing_keywords:
+                keyword_instruction = f"MANDATORY KEYWORD INJECTION: You MUST naturally integrate the following missing keywords into the Experience bullets where supported by context: {', '.join(missing_keywords)}."
+
             prompt = f"""
             Optimize this resume for the target job using the specified strategy.
             
-            USER IDENTITY (DO NOT HALLUCINATE):
+            USER IDENTITY (MANDATORY - DO NOT HALLUCINATE):
             Name: {user_data.get('personal', {}).get('name', 'N/A')}
             Email: {user_data.get('personal', {}).get('email', 'N/A')}
             Phone: {user_data.get('personal', {}).get('phone', 'N/A')}
@@ -1084,10 +1122,14 @@ def general_api():
             STRATEGY:
             {strategy}
 
-            INSTRUCTIONS:
+            PROTOCOL INSTRUCTIONS:
             1. Rewrite the 'Summary' and 'Experience' sections to align with the JD while maintaining absolute truthfulness to the ORIGINAL RESUME content.
-            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe".
-            
+            2. USE THE PROVIDED IDENTITY (Name, Email, etc.). NEVER invent dummy data like "John Doe" or "Your Name".
+            3. {keyword_instruction}
+            4. PROTOCOL C (HARD SKILL CALIBRATION): Identify generic skill terms (e.g. "Analytical Tools", "CRM") in the resume. If the Job Description specifies a specific tool (e.g. "Power BI", "Salesforce") fitting context, REPLACE the generic term.
+            5. PROTOCOL A (DO NOT HARM): You are PROHIBITED from removing the 'Education' or 'Certifications' sections. If you cannot improve them, COPY THEM VERBATIM from the original text.
+            6. FORMATTING STRICTNESS: Experience bullets must be returned as valid JSON strings. DO NOT use Markdown list characters (like *, -, •) at the start of the string. The frontend handles rendering.
+
             Output JSON structure exactly:
             {{
                 "personal": {{
@@ -1099,6 +1141,9 @@ def general_api():
                 }},
                 "experience": [
                     {{ "role": "...", "company": "...", "dates": "...", "description": "NEW OPTIMIZED BULLETS" }}
+                ],
+                "education": [
+                    {{ "degree": "...", "school": "...", "dates": "..." }}
                 ],
                 "skills": ["keyword1", "keyword2", "..."],
                 "enhancement_overview": "A brief explanation of the strategic changes made (Markdown allowed)."
@@ -1116,6 +1161,81 @@ def general_api():
             track_cost_chat(completion, "gpt-4o", "Optimize Resume")
             
             ai_content = completion.choices[0].message.content
+            
+            # --- LAYERS 2 & 3: BACKEND EXTRACTION & GUARDRAIL INJECTION ---
+            try:
+                ai_json = json.loads(ai_content)
+                
+                # --- EDUCATION GUARDRAIL ---
+                output_edu = ai_json.get('education', [])
+                input_edu = user_data.get('education', [])
+                
+                # Check 1: AI Output is empty?
+                if not output_edu or len(output_edu) == 0:
+                    print("GUARDRAIL ALERT: AI dropped Education.")
+                    
+                    # Check 2: Try Input Data
+                    if input_edu and len(input_edu) > 0:
+                        print("GUARDRAIL: Restoring from User Input.")
+                        ai_json['education'] = input_edu
+                    else:
+                        # Check 3: Regex Fallback (The Safety Net)
+                        print("GUARDRAIL: Parsing Raw Text for Education...")
+                        regex_edu = []
+                        # Look for common degree terms + optional proximity words
+                        # Capture roughly lines that look like education
+                        lines = resume_text.split('\n')
+                        for line in lines:
+                            if len(line) > 100: continue # Skip paragraphs
+                            l = line.lower()
+                            if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
+                                regex_edu.append({
+                                    "school": line.strip(),
+                                    "degree": "Detected in Resume Text", 
+                                    "dates": ""
+                                })
+                        
+                        if regex_edu:
+                            print(f"GUARDRAIL: Restored {len(regex_edu)} education items from raw text.")
+                            ai_json['education'] = regex_edu
+                            
+                # --- SKILLS GUARDRAIL ---
+                output_skills = ai_json.get('skills', [])
+                
+                if not output_skills or len(output_skills) == 0:
+                    print("GUARDRAIL ALERT: AI dropped Skills.")
+                    input_skills = user_data.get('skills', [])
+                    if input_skills:
+                         ai_json['skills'] = input_skills
+                    else:
+                         # Regex Fallback for Skills (Simple 'Skills:' section finder)
+                         # This is harder but we try to find a block starting with 'Skills'
+                         found_skills_block = []
+                         in_skills = False
+                         for line in resume_text.split('\n'):
+                             if 'skills' in line.lower() and len(line) < 20: # Header
+                                 in_skills = True
+                                 continue
+                             if in_skills:
+                                 if len(line.strip()) == 0: continue
+                                 if len(line) > 200 or ':' in line: # Likely next section
+                                     in_skills = False
+                                     break
+                                 # Split by commas or bullets
+                                 parts = re.split(r'[,|•·]', line)
+                                 found_skills_block.extend([p.strip() for p in parts if p.strip()])
+
+                         if found_skills_block:
+                             print(f"GUARDRAIL: Restored {len(found_skills_block)} skills from text.")
+                             ai_json['skills'] = found_skills_block
+                             
+                ai_content = json.dumps(ai_json)
+                
+            except Exception as e:
+                print(f"Guardrail Processing Error: {e}")
+                import traceback
+                traceback.print_exc()
+            # -------------------------------------------------------------
 
             # --- PERSISTENCE LOGIC START ---
             try:
