@@ -954,7 +954,7 @@ def general_api():
             prompt = f"""
             Extract structured data from this resume text.
             Resume Text:
-            {resume_text[:4000]} (truncated)
+            {resume_text[:8000]} (truncated)
 
             Output JSON structure:
             {{
@@ -987,10 +987,10 @@ def general_api():
             prompt = f"""
             Analyze this resume against the following job description.
             RESUME:
-            {resume_text[:4000]}
+            {resume_text[:8000]}
             
             JOB DESCRIPTION:
-            {jd_text[:2000]}
+            {jd_text[:4000]}
 
             Output JSON structure exactly:
             {{
@@ -1116,12 +1116,23 @@ def general_api():
             backup_skills = []
             
             try:
+                # DEBUG: Log resume text details
+                print(f"\n=== EXTRACTION DEBUG ===")
+                print(f"Resume text length: {len(resume_text)} chars")
+                print(f"Resume text preview (first 500 chars):\n{resume_text[:500]}")
+                print(f"Resume text preview (last 500 chars):\n{resume_text[-500:]}")
+                
                 # Extract Education from raw text
                 lines = resume_text.split('\n')
-                for line in lines:
-                    if len(line) > 300: continue
+                print(f"Total lines: {len(lines)}")
+                
+                for i, line in enumerate(lines):
+                    if len(line) > 300: 
+                        print(f"Line {i} SKIPPED (length {len(line)}): {line[:50]}...")
+                        continue
                     l = line.lower()
                     if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
+                        print(f"Line {i} MATCHED: {line}")
                         # Try to parse into structured format
                         backup_education.append({
                             "school": line.strip(),
@@ -1145,8 +1156,11 @@ def general_api():
                         backup_skills.extend([p.strip() for p in parts if p.strip()])
                 
                 print(f"BACKUP DATA: Extracted {len(backup_education)} education items, {len(backup_skills)} skills")
+                print(f"=== END EXTRACTION DEBUG ===\n")
             except Exception as e:
                 print(f"Backup Extraction Error: {e}")
+                import traceback
+                traceback.print_exc()
 
             # --- PROTOCOL B: MISSING KEYWORDS INJECTION ---
             missing_keywords = data.get('missing_keywords', [])
@@ -1164,10 +1178,10 @@ def general_api():
             Location: {user_data.get('personal', {}).get('location', 'N/A')}
 
             ORIGINAL RESUME CONTENT:
-            {resume_text[:4000]}
+            {resume_text[:8000]}
 
             TARGET JOB:
-            {jd_text[:2000]}
+            {jd_text[:4000]}
 
             STRATEGY:
             {strategy}
@@ -1325,10 +1339,10 @@ def general_api():
             Location: {p.get('location', 'N/A')}
 
             RESUME CONTENT:
-            {resume_text[:4000]}
+            {resume_text[:8000]}
             
             JOB DESCRIPTION:
-            {jd_text[:2000]}
+            {jd_text[:4000]}
 
             INSTRUCTIONS:
             1. Use a modern, professional tone.
@@ -1356,7 +1370,7 @@ def general_api():
             Analyze and optimize this LinkedIn 'About' section for a high-performance professional.
             
             ABOUT SECTION:
-            {about_me[:4000]}
+            {about_me[:8000]}
 
             INSTRUCTIONS:
             1. Provide 3-5 specific recommendations for improvement.
@@ -1492,8 +1506,8 @@ def general_api():
 
             USER CONTEXT:
             - Target Role: {role_title}
-            - Job Description (Excerpt): {job_description[:1000]}
-            - User Resume (Excerpt): {resume_text[:2000]}
+            - Job Description (Excerpt): {job_description[:2000]}
+            - User Resume (Excerpt): {resume_text[:4000]}
             
             {history_context}
 
