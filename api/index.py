@@ -1231,8 +1231,10 @@ def general_api():
             1. Rewrite ONLY the Summary and Experience sections to align with the Job Description.
             2. USE THE PROVIDED IDENTITY. NEVER use placeholders.
             3. {keyword_instruction}
-            4. For Experience: Use clear, professional bullet points starting with a dash or asterisk (e.g. "- Achievement...").
-            5. DO NOT include Education or Skills in your response - the system handles those separately.
+            4. FACT-CHECK DIRECTIVE: Do NOT invent experience. You are STRICTLY FORBIDDEN from adding technical tools (e.g., 'Power BI') or domain expertise (e.g., 'Market Intelligence') that are not present in the ORIGINAL RESUME.
+            5. STRATEGIC GAPS: If a core requirement from the JD (like 'Forecasting') is missing from the candidate's history, document this in the 'enhancement_overview' as a 'Critical Gap' for the user to address, rather than inventing it.
+            6. For Experience: Use clear, professional bullet points starting with a dash or asterisk (e.g. "- Achievement...").
+            7. DO NOT include Education or Skills in your response - the system handles those separately.
 
             Output JSON structure (Education and Skills will be added automatically):
             {{
@@ -1246,14 +1248,14 @@ def general_api():
                 "experience": [
                     {{ "role": "...", "company": "...", "dates": "...", "description": "BULLET POINTS" }}
                 ],
-                "enhancement_overview": "Brief explanation of changes"
+                "enhancement_overview": "Brief explanation of changes and CRITICAL GAPS found."
             }}
             """
 
             completion = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    { "role": "system", "content": "You are an expert executive resume writer. Use provided user data ONLY. No hallucinations." },
+                    { "role": "system", "content": "You are an expert executive resume writer. STRICT HALLUCINATION POLICY: Never invent tools, software, or specific domain expertise. Bridging must be grounded in the provided ORIGINAL RESUME. If a technical requirement is missing, flag it as a gap." },
                     { "role": "user", "content": prompt }
                 ],
                 response_format={ "type": "json_object" }
