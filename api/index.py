@@ -1232,11 +1232,23 @@ def general_api():
             2. USE THE PROVIDED IDENTITY. NEVER use placeholders.
             3. {keyword_instruction}
             4. FACT-CHECK DIRECTIVE: Do NOT invent experience. You are STRICTLY FORBIDDEN from adding technical tools (e.g., 'Power BI') or domain expertise (e.g., 'Market Intelligence') that are not present in the ORIGINAL RESUME.
-            5. STRATEGIC GAPS: If a core requirement from the JD (like 'Forecasting') is missing from the candidate's history, document this in the 'enhancement_overview' as a 'Critical Gap' for the user to address, rather than inventing it.
+            5. STRATEGIC GAPS: If a core requirement from the JD (like 'Forecasting') is missing from the candidate's history, document this as a 'Critical Gap'.
             6. For Experience: Use clear, professional bullet points starting with a dash or asterisk (e.g. "- Achievement...").
             7. DO NOT include Education or Skills in your response - the system handles those separately.
 
-            Output JSON structure (Education and Skills will be added automatically):
+            ENHANCEMENT OVERVIEW FORMAT (MANDATORY):
+            You MUST format the 'enhancement_overview' field using Markdown for visual hierarchy:
+            ### Summary:
+            [Brief paragraph explaining the strategy used for optimization]
+
+            ### Critical Gap:
+            [List any missing technical skills or tools required by the JD that were NOT found in the resume]
+
+            ### Metrics:
+            - **ATS Score:** [Estimated 0-100 score based on JD alignment]
+            - **Skills Match:** [X]/[Y] (Count of JD keywords found in resume vs total key requirements)
+
+            Output JSON structure:
             {{
                 "personal": {{
                     "name": "{user_data.get('personal', {}).get('name', 'N/A')}",
@@ -1248,7 +1260,7 @@ def general_api():
                 "experience": [
                     {{ "role": "...", "company": "...", "dates": "...", "description": "BULLET POINTS" }}
                 ],
-                "enhancement_overview": "Brief explanation of changes and CRITICAL GAPS found."
+                "enhancement_overview": "MARKDOWN CONTOUR AS DEFINED ABOVE"
             }}
             """
 
