@@ -1127,32 +1127,73 @@ def general_api():
                 print(f"Total lines: {len(lines)}")
                 
                 for i, line in enumerate(lines):
-                    if len(line) > 300: 
-                        print(f"Line {i} SKIPPED (length {len(line)}): {line[:50]}...")
-                        continue
+                    if len(line) > 300: continue
                     l = line.lower()
-                    if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'degree']):
-                        print(f"Line {i} MATCHED: {line}")
-                        # Try to parse into structured format
+                    
+                    # 1. Broad education detection
+                    if any(x in l for x in ['bachelor', 'master', 'mba', 'phd', 'associate', 'university', 'college', 'institute', 'polytechnic', 'degree']):
+                        
+                        # 2. Strict Job Title Exclusions (Prevent "Associate Director" etc)
+                        if 'associate' in l and any(x in l for x in ['director', 'manager', 'lead', 'vp', 'vice president', 'executive', 'officer']):
+                            continue
+                        
+                        # 3. Refined Structure Identification (Improved Splitting)
+                        info_val = line.strip()
+                        school_val = "Education Institution"
+                        degree_val = "Education Detail"
+                        
+                        if ' - ' in info_val:
+                            parts = info_val.split(' - ', 1)
+                            if any(x in parts[0].lower() for x in ['university', 'college', 'institute']):
+                                school_val, degree_val = parts[0].strip(), parts[1].strip()
+                            else:
+                                degree_val, school_val = parts[0].strip(), parts[1].strip()
+                        elif ',' in info_val and not any(x in info_val.lower() for x in ['bba', 'mba', 'phd']):
+                            # Only split by comma if it doesn't look like a degree suffix (e.g. "BBA, Management")
+                            parts = info_val.split(',', 1)
+                            if any(x in parts[0].lower() for x in ['university', 'college', 'institute']):
+                                school_val, degree_val = parts[0].strip(), parts[1].strip()
+                            else:
+                                degree_val, school_val = parts[0].strip(), parts[1].strip()
+                        else:
+                            # Single piece of info
+                            if any(x in l for x in ['university', 'college', 'institute', 'polytechnic']):
+                                school_val = info_val
+                                degree_val = "Degree/Certification"
+                            else:
+                                degree_val = info_val
+                                school_val = "Institution"
+                            
                         backup_education.append({
-                            "school": line.strip(),
-                            "degree": "As listed in original resume",
+                            "school": school_val,
+                            "degree": degree_val,
                             "dates": ""
                         })
                 
                 # Extract Skills from raw text (simple keyword scan)
                 in_skills_section = False
                 for line in lines:
-                    if 'skills' in line.lower() and len(line) < 20:
+                    low_line = line.lower()
+                    # 1. Detection: Looking for "Skills" or similar headers
+                    if any(x == low_line.strip().replace(':', '') for x in ['skills', 'core competencies', 'technical skills', 'areas of expertise']):
                         in_skills_section = True
                         continue
+                    
                     if in_skills_section:
-                        if len(line.strip()) == 0: continue
-                        if len(line) > 200 or ':' in line:
+                        if not line.strip(): continue
+                        # 2. Stop condition: Next major section
+                        if len(line) > 500:
                             in_skills_section = False
                             break
+                        
+                        # 3. Heuristic stop: If we see "experience" or "education"
+                        if any(x in low_line and len(line) < 25 for x in ['experience', 'education', 'employment', 'history', 'projects']):
+                            in_skills_section = False
+                            break
+
                         import re
-                        parts = re.split(r'[,|•·]', line)
+                        # Split by commas, bullets, pipes, or tabs
+                        parts = re.split(r'[,|•·\t]', line)
                         backup_skills.extend([p.strip() for p in parts if p.strip()])
                 
                 print(f"BACKUP DATA: Extracted {len(backup_education)} education items, {len(backup_skills)} skills")
@@ -1252,20 +1293,23 @@ def general_api():
                          ai_json['skills'] = input_skills
                     else:
                          # Regex Fallback for Skills (Simple 'Skills:' section finder)
-                         # This is harder but we try to find a block starting with 'Skills'
                          found_skills_block = []
                          in_skills = False
                          for line in resume_text.split('\n'):
-                             if 'skills' in line.lower() and len(line) < 20: # Header
+                             low_line = line.lower()
+                             if any(x == low_line.strip().replace(':', '') for x in ['skills', 'core competencies', 'technical skills', 'areas of expertise']):
                                  in_skills = True
                                  continue
                              if in_skills:
-                                 if len(line.strip()) == 0: continue
-                                 if len(line) > 200 or ':' in line: # Likely next section
+                                 if not line.strip(): continue
+                                 if len(line) > 500:
                                      in_skills = False
                                      break
-                                 # Split by commas or bullets
-                                 parts = re.split(r'[,|•·]', line)
+                                 if any(x in low_line and len(line) < 25 for x in ['experience', 'education', 'employment', 'history', 'projects']):
+                                     in_skills = False
+                                     break
+                                 import re
+                                 parts = re.split(r'[,|•·\t]', line)
                                  found_skills_block.extend([p.strip() for p in parts if p.strip()])
 
                          if found_skills_block:
