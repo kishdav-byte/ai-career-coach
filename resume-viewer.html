@@ -469,14 +469,13 @@
                 .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-bold text-slate-900">$1</strong>')
                 .replace(/^[*•-] (.*$)/gim, '<li class="ml-0 pl-4 text-slate-700 leading-tight mb-0 relative before:content-[\'•\'] before:absolute before:left-0 before:text-black text-left font-normal">$1</li>');
 
-            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, '<ul class="list-none my-0 space-y-0 text-left">$1</ul>');
-
-            // Clean up: Prevent <br> tags from being inserted between list items or inside the <ul>
-            formatted = formatted.replace(/<\/li>\s*<br>\s*<li/gim, '</li><li');
-            formatted = formatted.replace(/<ul([\s\S]*?)<\/ul>/gim, function (match) {
-                return match.replace(/<br>/gim, '');
+            // Wrap lists (Group consecutive LIs in a UL)
+            formatted = formatted.replace(/((?:<li[\s\S]*?<\/li>\s*)+)/gim, function (match) {
+                // Remove all whitespace (including newlines) between </li> and <li> inside the set
+                return '<ul class="list-none my-0 space-y-0 text-left">' + match.trim().replace(/<\/li>\s+<li/gim, '</li><li') + '</ul>';
             });
 
+            // Convert remaining newlines to breaks
             formatted = formatted.replace(/\n/gim, '<br>');
             return formatted;
         }
