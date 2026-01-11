@@ -1231,7 +1231,7 @@ def general_api():
             1. Rewrite ONLY the Summary and Experience sections to align with the Job Description.
             2. USE THE PROVIDED IDENTITY. NEVER use placeholders.
             3. {keyword_instruction}
-            4. For Experience: Use clean, professional bullet points (no markdown symbols at start).
+            4. For Experience: Use clear, professional bullet points starting with a dash or asterisk (e.g. "- Achievement...").
             5. DO NOT include Education or Skills in your response - the system handles those separately.
 
             Output JSON structure (Education and Skills will be added automatically):
