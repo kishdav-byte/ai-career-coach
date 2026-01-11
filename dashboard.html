@@ -116,6 +116,35 @@
             color: #20C997;
             transform: translateY(-1px);
         }
+
+        /* Flashing Save Button Animation */
+        @keyframes flash-save {
+            0% {
+                background-color: #3b82f6;
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+
+            33% {
+                background-color: #10b981;
+                box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+            }
+
+            66% {
+                background-color: #ef4444;
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.6);
+            }
+
+            100% {
+                background-color: #3b82f6;
+                box-shadow: 0 0 20px rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        .save-alert {
+            animation: flash-save 3s infinite !important;
+            border: 2px solid white !important;
+            transform: scale(1.05);
+        }
     </style>
 </head>
 
@@ -803,7 +832,38 @@
 
         // --- DOSSIER LOGIC ---
         let currentJobId = null;
+        let dossierInitialState = {}; // Tracking for changes
         const dossier = document.getElementById('mission-dossier');
+
+        function checkForDossierChanges() {
+            if (!currentJobId) return;
+            const btn = document.getElementById('dossier-save-btn');
+            if (!btn) return;
+
+            const currentState = {
+                status: document.getElementById('dossier-status').value,
+                notes: document.getElementById('dossier-notes').value,
+                jd: document.getElementById('dossier-jd').value,
+                salary: document.getElementById('dossier-salary').value
+            };
+
+            const hasChanged = JSON.stringify(currentState) !== JSON.stringify(dossierInitialState);
+
+            if (hasChanged) {
+                btn.classList.add('save-alert');
+            } else {
+                btn.classList.remove('save-alert');
+            }
+        }
+
+        // Attach listeners to dossier fields
+        ['dossier-status', 'dossier-notes', 'dossier-jd', 'dossier-salary'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', checkForDossierChanges);
+                el.addEventListener('change', checkForDossierChanges);
+            }
+        });
 
         window.openDossier = async (id) => {
             currentJobId = id;
@@ -833,6 +893,17 @@
             else if (currentStatus.includes('interview')) currentStatus = 'interviewing';
 
             document.getElementById('dossier-status').value = statusMap[currentStatus] || 'Engage';
+
+            // Capture Initial State for Change Tracking
+            dossierInitialState = {
+                status: document.getElementById('dossier-status').value,
+                notes: document.getElementById('dossier-notes').value,
+                jd: document.getElementById('dossier-jd').value,
+                salary: document.getElementById('dossier-salary').value
+            };
+
+            const saveBtn = document.getElementById('dossier-save-btn');
+            if (saveBtn) saveBtn.classList.remove('save-alert');
 
             // UPDATE TOOLKIT BUTTONS based on Status
             const toolkitGrid = document.getElementById('mission-toolkit-grid');
@@ -1021,7 +1092,16 @@
                 if (!silent && btn) {
                     // Visual feedback only if explicit save
                     btn.innerHTML = '<i class="fas fa-check"></i> SAVED';
+                    btn.classList.remove('save-alert');
                     setTimeout(() => btn.innerHTML = originalText, 1500);
+
+                    // Update initial state to prevent loop
+                    dossierInitialState = {
+                        status: document.getElementById('dossier-status').value,
+                        notes: document.getElementById('dossier-notes').value,
+                        jd: document.getElementById('dossier-jd').value,
+                        salary: document.getElementById('dossier-salary').value
+                    };
                 }
 
                 // Refresh Board to Reflect Moves
