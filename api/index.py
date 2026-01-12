@@ -2276,6 +2276,69 @@ def handle_checkout_fulfillment(session):
     return {'status': 'no_updates', 'logs': logs}
 
 
+# 17. SYSTEM CONFIG MANAGEMENT (ADMIN)
+@app.route('/api/admin/config', methods=['GET', 'POST'])
+def admin_config():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+    
+    try:
+        supabase = get_admin_supabase()
+        if request.method == 'GET':
+            key = request.args.get('key')
+            res = supabase.table('system_configs').select('config_value').eq('config_key', key).single().execute()
+            return jsonify({"value": res.data.get('config_value') if res.data else ""}), 200
+        
+        # POST
+        data = request.json
+        key = data.get('key')
+        val = data.get('value')
+        supabase.table('system_configs').upsert({'config_key': key, 'config_value': val, 'updated_at': 'now()'}).execute()
+        return jsonify({"status": "success"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 18. MISSION SPECIALIST BOT (PUBLIC)
+@app.route('/api/support/chat', methods=['POST'])
+def support_chat():
+    try:
+        data = request.json
+        user_msg = data.get('message')
+        if not user_msg: return jsonify({"error": "No message"}), 400
+
+        # 1. Fetch Admin Custom Instructions
+        supabase = get_admin_supabase()
+        config_res = supabase.table('system_configs').select('config_value').eq('config_key', 'support_bot_prompt').single().execute()
+        system_prompt = config_res.data.get('config_value') if config_res.data else "You are a helpful assistant."
+
+        # 2. Call AI
+        from openai import OpenAI
+        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_msg}
+            ],
+            temperature=0.3, # Keep it professional and factual
+            max_tokens=300
+        )
+        answer = response.choices[0].message.content
+
+        # 3. Log Question for Admin Intel (Anonymous logging)
+        try:
+            supabase.table('chat_support_logs').insert({
+                "question": user_msg,
+                "answer": answer
+            }).execute()
+        except: pass # Don't block user if logs fail
+
+        return jsonify({"answer": answer}), 200
+
+    except Exception as e:
+        print(f"Support Chat Error: {e}")
+        return jsonify({"error": "Specialist offline. Please try later."}), 500
+
 # Expose app
 app = app
 
@@ -2716,7 +2779,11 @@ def admin_mission_intel():
         trans_res = supabase.table('transactions').select("*").order("created_at", desc=True).limit(50).execute()
         transactions = trans_res.data if trans_res.data else []
 
-        # 4. Usage Volume (Last 24h vs. 7d)
+        # 4. Support Chat Logs
+        support_res = supabase.table('chat_support_logs').select("*").order("created_at", desc=True).limit(50).execute()
+        support_logs = support_res.data if support_res.data else []
+
+        # 5. Usage Volume (Last 24h vs. 7d)
         from datetime import datetime, timedelta
         now = datetime.utcnow()
         day_ago = now - timedelta(days=1)
@@ -2733,6 +2800,7 @@ def admin_mission_intel():
                 "resume": avg_res
             },
             "transactions": transactions,
+            "support_logs": support_logs,
             "daily_volume": daily_volume
         }), 200
 

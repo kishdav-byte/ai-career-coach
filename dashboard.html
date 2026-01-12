@@ -116,6 +116,42 @@
             color: #20C997;
             transform: translateY(-1px);
         }
+
+        /* MISSION SPECIALIST CHATBOT STYLES */
+        #support-bubble {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(32, 201, 151, 0.2);
+        }
+
+        .chat-open #support-bubble {
+            transform: scale(0);
+            opacity: 0;
+        }
+
+        #support-window {
+            transform-origin: bottom right;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #support-window.hidden {
+            transform: scale(0);
+            opacity: 0;
+            pointer-events: none;
+            display: flex !important;
+            /* Keep flex but scaled to 0 */
+        }
+
+        .support-msg-bot {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px 12px 12px 2px;
+        }
+
+        .support-msg-user {
+            background: rgba(32, 201, 151, 0.1);
+            border: 1px solid rgba(32, 201, 151, 0.3);
+            border-radius: 12px 12px 2px 12px;
+            color: #20C997;
+        }
     </style>
 </head>
 
@@ -1572,6 +1608,145 @@
         }
 
         // Close on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeUpgradeDrawer();
+            }
+        });
+    </script>
+    <!-- MISSION SPECIALIST CHATBOT -->
+    <div id="support-container" class="fixed bottom-6 right-6 z-[100]">
+        <!-- Bubble -->
+        <button id="support-bubble" onclick="toggleSupportChat()"
+            class="w-14 h-14 rounded-full bg-teal flex items-center justify-center text-black shadow-2xl hover:scale-110 transition-all duration-300 relative group">
+            <i class="fas fa-comment-dots text-xl group-hover:hidden"></i>
+            <i class="fas fa-robot text-xl hidden group-hover:block"></i>
+            <div
+                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 border-2 border-slate-950 rounded-full animate-pulse">
+            </div>
+        </button>
+
+        <!-- Window -->
+        <div id="support-window"
+            class="hidden absolute bottom-0 right-0 w-[350px] max-w-[calc(100vw-40px)] h-[500px] bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-3xl flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div
+                class="p-4 bg-gradient-to-r from-teal/20 to-transparent border-b border-white/5 flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-teal/20 flex items-center justify-center text-teal border border-teal/30">
+                        <i class="fas fa-shield-cat"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-bold text-teal uppercase tracking-widest">Mission Specialist</p>
+                        <p class="text-[8px] text-slate-400">System Support Online</p>
+                    </div>
+                </div>
+                <button onclick="toggleSupportChat()" class="text-slate-500 hover:text-white transition-colors">
+                    <i class="fas fa-times text-sm"></i>
+                </button>
+            </div>
+
+            <!-- Messages -->
+            <div id="support-chat-output" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll scroll-smooth">
+                <div class="support-msg-bot p-3 text-xs leading-relaxed text-slate-300">
+                    Welcome to AceInterview. I am your **Mission Specialist**. How can I assist you with our executive
+                    career tools today?
+                </div>
+            </div>
+
+            <!-- Input -->
+            <div class="p-4 bg-black/20 border-t border-white/5">
+                <div class="relative flex items-center">
+                    <input type="text" id="support-chat-input"
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2.5 px-4 pr-10 text-xs text-white focus:outline-none focus:border-teal/50 transition-all"
+                        placeholder="Ask a question..." onkeydown="if(event.key === 'Enter') sendSupportMessage()">
+                    <button onclick="sendSupportMessage()"
+                        class="absolute right-3 text-teal hover:scale-110 transition-transform">
+                        <i class="fas fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+                <p class="text-[8px] text-slate-600 text-center mt-2">Specialist cannot access personal data for
+                    security.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSupportChat() {
+            const win = document.getElementById('support-window');
+            const bubble = document.getElementById('support-bubble');
+            const isHidden = win.classList.contains('hidden');
+
+            if (isHidden) {
+                win.classList.remove('hidden');
+                bubble.classList.add('scale-0', 'opacity-0');
+                // Auto-focus input
+                setTimeout(() => document.getElementById('support-chat-input').focus(), 400);
+            } else {
+                win.classList.add('hidden');
+                bubble.classList.remove('scale-0', 'opacity-0');
+            }
+        }
+
+        async function sendSupportMessage() {
+            const input = document.getElementById('support-chat-input');
+            const output = document.getElementById('support-chat-output');
+            const msg = input.value.trim();
+            if (!msg) return;
+
+            // 1. Render User Msg
+            const userDiv = document.createElement('div');
+            userDiv.className = 'support-msg-user p-3 text-xs leading-relaxed ml-8';
+            userDiv.textContent = msg;
+            output.appendChild(userDiv);
+            input.value = '';
+            output.scrollTop = output.scrollHeight;
+
+            // 2. Loading State
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'support-msg-bot p-3 text-[10px] italic text-slate-500 mr-8 animate-pulse';
+            loadingDiv.textContent = 'Specialist is typing...';
+            output.appendChild(loadingDiv);
+            output.scrollTop = output.scrollHeight;
+
+            try {
+                const res = await fetch('/api/support/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: msg })
+                });
+                const data = await res.json();
+
+                loadingDiv.remove();
+
+                const botDiv = document.createElement('div');
+                botDiv.className = 'support-msg-bot p-3 text-xs leading-relaxed text-slate-300 mr-8';
+                // Simple markdown-style bold support
+                botDiv.innerHTML = (data.answer || "Connection lost. Please try again.").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                output.appendChild(botDiv);
+                output.scrollTop = output.scrollHeight;
+
+            } catch (err) {
+                loadingDiv.textContent = 'Specialist offline. Please try again.';
+                loadingDiv.classList.remove('animate-pulse');
+                loadingDiv.classList.add('text-red-400');
+            }
+        }
+
+        // --- Keep Existing Upgrade Drawer Logic ---
+        function openUpgradeDrawer() {
+            document.getElementById('upgrade-drawer').classList.remove('translate-x-full');
+            document.getElementById('upgrade-drawer-overlay').classList.remove('hidden');
+        }
+
+        function closeUpgradeDrawer() {
+            const drawer = document.getElementById('upgrade-drawer');
+            const overlay = document.getElementById('upgrade-drawer-overlay');
+            drawer.classList.add('translate-x-full');
+            setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+        }
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
                 closeUpgradeDrawer();

@@ -291,6 +291,26 @@
                     <div class="absolute right-2 top-2 text-[10px] text-slate-600">⏎</div>
                 </div>
             </div>
+
+            <!-- WIDGET C: SUPPORT BOT TUNING -->
+            <div class="glass-panel p-5 rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/5">
+                <h3
+                    class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                    <span><i class="fas fa-brain mr-2"></i> Support Bot Tuning</span>
+                    <span id="config-status" class="text-[10px] text-slate-500 italic">ready</span>
+                </h3>
+                <div class="space-y-4">
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Customize the bot's core logic and guardrails
+                        here. Updates are live instantly.</p>
+                    <textarea id="support-bot-prompt-input" rows="8"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
+                        placeholder="Loading system prompt..."></textarea>
+                    <button onclick="saveBotPrompt()"
+                        class="w-full py-2 bg-teal hover:bg-teal-400 text-black text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> UPDATE BOT BRAIN
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- COL 2 & 3: MAIN CONTENT (Center/Right) -->
@@ -621,6 +641,43 @@
             frame.className = `device-frame shadow-2xl ${sizeClass}`;
         }
 
+        // 6. SUPPORT BOT CONFIG
+        async function fetchBotPrompt() {
+            try {
+                const res = await fetch('/api/admin/config?key=support_bot_prompt', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+                });
+                const data = await res.json();
+                document.getElementById('support-bot-prompt-input').value = data.value || "";
+            } catch (err) {
+                console.error("Failed to fetch bot prompt", err);
+            }
+        }
+
+        async function saveBotPrompt() {
+            const val = document.getElementById('support-bot-prompt-input').value;
+            const status = document.getElementById('config-status');
+            status.textContent = "saving...";
+
+            try {
+                const res = await fetch('/api/admin/config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                    },
+                    body: JSON.stringify({ key: 'support_bot_prompt', value: val })
+                });
+                if (res.ok) {
+                    status.textContent = "saved!";
+                    setTimeout(() => status.textContent = "ready", 2000);
+                }
+            } catch (err) {
+                status.textContent = "error";
+                alert("Failed to save prompt configuration.");
+            }
+        }
+
         // STARTUP
         // 6. ADMIN CHAT LOGIC
         const chatInput = document.getElementById('admin-chat-input');
@@ -712,17 +769,23 @@
         function switchIntelTab(tab) {
             const opsTab = document.getElementById('tab-ops');
             const finTab = document.getElementById('tab-fin');
+            const comTab = document.getElementById('tab-com');
             const activeClass = 'bg-teal text-black shadow-lg shadow-teal/20';
             const inactiveClass = 'text-slate-400 hover:text-white bg-slate-800';
 
+            opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+            finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+            comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+
             if (tab === 'ops') {
                 opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
-                finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
                 renderOps();
-            } else {
+            } else if (tab === 'fin') {
                 finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
-                opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
                 renderFin();
+            } else {
+                comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+                renderCom();
             }
         }
 
@@ -857,8 +920,49 @@
             `;
         }
 
+        function renderCom() {
+            if (!currentIntelData) return;
+            const body = document.getElementById('intel-body');
+            const logs = currentIntelData.support_logs;
+
+            if (logs.length === 0) {
+                body.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4">
+                        <i class="fas fa-comments text-4xl opacity-20"></i>
+                        <p class="text-sm italic">No communications logged yet.</p>
+                        <p class="text-[10px] uppercase text-slate-600">Waiting for user interaction...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Support Bot Inquiries (Last 50)</h4>
+                    ${logs.map(log => `
+                        <div class="p-4 bg-slate-900 border border-white/5 rounded-xl hover:border-white/10 transition-all space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-[10px] font-bold text-teal flex items-center gap-1">
+                                    <i class="fas fa-question-circle"></i> USER_QUESTION
+                                </span>
+                                <span class="text-[8px] text-slate-600">${new Date(log.created_at).toLocaleTimeString()}</span>
+                            </div>
+                            <p class="text-xs text-white leading-relaxed">${log.question}</p>
+                            <div class="pt-2 border-t border-white/5">
+                                <span class="text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                    <i class="fas fa-robot"></i> BOT_RESPONSE
+                                </span>
+                                <p class="text-[11px] text-slate-400 italic bg-black/20 p-2 rounded mt-1">${log.answer}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         // STARTUP
         refreshAll();
+        fetchBotPrompt();
 
     </script>
 
@@ -880,6 +984,8 @@
                 class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-teal text-black shadow-lg shadow-teal/20">OPERATIONS</button>
             <button onclick="switchIntelTab('fin')" id="tab-fin"
                 class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">FINANCIALS</button>
+            <button onclick="switchIntelTab('com')" id="tab-com"
+                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">COMMUNICATIONS</button>
         </div>
 
         <div id="intel-body" class="flex-1 overflow-y-auto p-6 space-y-8 custom-scroll">
