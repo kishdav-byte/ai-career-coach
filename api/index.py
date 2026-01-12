@@ -37,7 +37,6 @@ def track_cost_audio(text, model, action="TTS"):
 def health_check():
     return jsonify({"status": "ok", "message": "Server is bootable"}), 200
 
-# 1. SETUP SUPABASE
 # 1. SETUP SUPABASE (Lazy Loader)
 def get_supabase():
     from supabase import create_client, Client
@@ -56,12 +55,57 @@ def get_admin_supabase():
         key = os.environ.get("SUPABASE_KEY")
     return create_client(url, key)
 
-# No top-level init
-# try:
-#     SUPABASE_URL = os.environ.get("SUPABASE_URL")
-#     ...
-# except Exception as e:
-#     print(f"Supabase Init Error: {e}")
+# 1C. SETUP OPENAI CLIENT
+def get_openai_client():
+    from openai import OpenAI
+    key = os.environ.get("OPENAI_API_KEY")
+    return OpenAI(api_key=key)
+
+# 1D. RUBRIC SCORING ENGINE
+def calculate_rubric_score(rubric_data, question_index, answer_text):
+    """
+    Calculate score based on Boolean Logic Gates from Phase 3 requirements.
+    Returns: (score, gap_reason)
+    """
+    checklist = rubric_data.get("checklist", {})
+    
+    # RED FLAG OVERRIDE (CRITICAL)
+    if checklist.get("red_flags") == True:
+        return 1, "Toxic Behavior Detected"
+    
+    # Q1 (Background) Logic
+    if question_index == "Q1" or question_index == "Q2":  # Q2 evaluates Q1 answer
+        score = 0
+        if checklist.get("relevant_history") == True:
+            score += 3  # Base score
+        if checklist.get("communicated_clearly") == True:
+            score += 1  # Bonus
+        if checklist.get("relevant_history") == False:
+            score = 2  # Penalty for irrelevant history
+        
+        # Clamp to 1-5 range
+        return max(1, min(5, score)), None
+    
+    # Q2-Q6 (Behavioral) Logic
+    else:
+        score = 0
+        if checklist.get("star_situation") == True:
+            score += 1
+        if checklist.get("star_action") == True:
+            score += 1
+        if checklist.get("star_result") == True:
+            score += 1
+        if checklist.get("has_metrics") == True:
+            score += 1  # Numbers/ROI bonus
+        if checklist.get("delivery_organized") == True:
+            score += 1  # UNICORN bonus
+        
+        # PENALTY: If no Action (vague/magic wand), max score = 2
+        if checklist.get("star_action") == False:
+            score = min(score, 2)
+        
+        # Clamp to 1-5 range
+        return max(1, min(5, score)), None
 
 # 3. THE JOBS ROUTE (Secure Mode)
 @app.route('/api/jobs', methods=['GET', 'POST'])
