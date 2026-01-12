@@ -119,19 +119,24 @@
                 </div>
             </div>
 
-            <!-- Expert Services Section -->
+            <!-- À La Carte Section -->
             <div class="space-y-4">
                 <label class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-user-tie"></i> À La Carte Tools
+                    <i class="fas fa-shopping-cart"></i> À La Carte Tools
                 </label>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                     <!-- Executive Rewrite -->
                     <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
                         <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
                             Executive Rewrite</h3>
-                        <p class="text-[10px] text-slate-500 mb-4">$12.99 / use</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Complete resume overhaul with ATS optimization and
+                            professional formatting</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$12.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'rewrite')"
                             class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
@@ -142,7 +147,12 @@
                     <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
                         <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
                             Interview Simulator</h3>
-                        <p class="text-[10px] text-slate-500 mb-4">$9.99 / session</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Real-time voice mock interview with instant AI
+                            feedback and scoring</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$9.99</span>
+                            <span class="text-[10px] text-slate-600">/ session</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_interview_sim')"
                             class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
@@ -153,75 +163,94 @@
                     <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
                         <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
                             30-60-90 Day Plan</h3>
-                        <p class="text-[10px] text-slate-500 mb-4">$8.99 / use</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Strategic onboarding roadmap to impress hiring
+                            managers in final rounds</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$8.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_plan')"
                             class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
 
-                </div>
-            </div>
-
-            <!-- Toolkit Section -->
-            <div class="space-y-4">
-                <label class="text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
-                    <i class="fas fa-toolbox"></i> Strategy Toolkit
-                </label>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-
                     <!-- Cover Letter -->
-                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
-                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">Cover
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">Cover
                             Letter</h3>
-                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Compelling cover letter tailored to your target role
+                            and company</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$6.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_cover_letter')"
-                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
 
                     <!-- LinkedIn Optimize -->
-                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
-                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">
-                            LinkedIn Opt</h3>
-                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
+                            LinkedIn Optimizer</h3>
+                        <p class="text-[10px] text-slate-500 mb-3">Optimize your LinkedIn profile to attract recruiters
+                            and opportunities</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$6.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_linkedin')"
-                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
 
-                    <!-- Negotiation -->
-                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
-                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">The
+                    <!-- The Closer -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">The
                             Closer</h3>
-                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Salary negotiation strategy to maximize your
+                            compensation package</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$6.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_negotiation')"
-                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
 
                     <!-- Inquisitor -->
-                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
-                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
                             Inquisitor</h3>
-                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Intelligent questions to ask interviewers that
+                            demonstrate strategic thinking</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$6.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_inquisitor')"
-                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
 
-                    <!-- Follow-Up -->
-                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
-                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">Value
+                    <!-- Value Follow-Up -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">Value
                             Follow-Up</h3>
-                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <p class="text-[10px] text-slate-500 mb-3">Strategic post-interview follow-up that reinforces
+                            your value proposition</p>
+                        <div class="flex items-baseline gap-1 mb-4">
+                            <span class="text-2xl font-bold text-white">$6.99</span>
+                            <span class="text-[10px] text-slate-600">/ use</span>
+                        </div>
                         <button onclick="handleCheckout(event, 'strategy_followup')"
-                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
                             Buy
                         </button>
                     </div>
