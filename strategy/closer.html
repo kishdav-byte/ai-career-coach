@@ -161,6 +161,24 @@
 
         <!-- Scrollable Form -->
         <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
+
+            <!-- Mission Selector -->
+            <div id="mission-selector-container" class="mb-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <label
+                    class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <i class="fas fa-crosshairs"></i> Select Active Mission
+                </label>
+                <div class="relative">
+                    <select id="mission-selector" onchange="window.selectMission(this.value)"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
             <form id="tool-form" class="space-y-6">
 
                 <!-- Input: Current Offer -->
@@ -302,24 +320,27 @@
         let userId = null;
         let authToken = null;
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            // 1. Auth Check
-            const { data: { session }, error } = await supabaseClient.auth.getSession();
-            if (!session || error) {
-                console.warn("No session found, redirecting to login");
-                window.location.href = '../login.html';
-                return;
+        window.applyMissionContext = (ctx) => {
+            if (!ctx) return;
+            console.log("Applying Mission Context:", ctx.role);
+
+            const leverageInput = document.querySelector('[name="leverage"]');
+            if (leverageInput && ctx.jd) {
+                leverageInput.value = `Target Role: ${ctx.role}\nCompany: ${ctx.company}\n\nKey Requirements:\n${ctx.jd.substring(0, 500)}...`;
+                // Visual feedback
+                leverageInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                setTimeout(() => leverageInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
             }
-            authToken = session.access_token;
+        };
 
-            // 2. Fetch Profile & Credits via API
-            await verifyAccess(authToken);
-
-            // Bind Events
-            const form = document.getElementById('tool-form');
-            form.addEventListener('submit', handleGeneration);
-
-            document.getElementById('btn-copy').addEventListener('click', copyContent);
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check Smart Context
+            const missionContext = localStorage.getItem('mission_context');
+            if (missionContext) {
+                try {
+                    applyMissionContext(JSON.parse(missionContext));
+                } catch (e) { console.error("Context Error", e); }
+            }
         });
 
         async function verifyAccess(token) {
@@ -497,6 +518,85 @@
                 setTimeout(() => btnCopy.innerHTML = original, 2000);
             });
         }
+
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            if (typeof applyMissionContext === 'function') {
+                applyMissionContext(context);
+            }
+        };
+
+        // Start loading missions
+        loadMissions();
+
+        // RE-BIND DOM CONTENT LOADED (Since I replaced it above)
+        document.addEventListener('DOMContentLoaded', async () => {
+            // 1. Auth Check
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (!session || error) {
+                console.warn("No session found, redirecting to login");
+                window.location.href = '../login.html';
+                return;
+            }
+            authToken = session.access_token;
+
+            // 2. Fetch Profile & Credits via API
+            await verifyAccess(authToken);
+
+            // Bind Events
+            const form = document.getElementById('tool-form');
+            if (form) form.addEventListener('submit', handleGeneration);
+            const copyBtn = document.getElementById('btn-copy');
+            if (copyBtn) copyBtn.addEventListener('click', copyContent);
+        });
     </script>
 </body>
 

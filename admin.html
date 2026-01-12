@@ -328,17 +328,34 @@
         <!-- COL 2 & 3 & 4: MAIN CONTENT -->
         <div class="lg:col-span-3 space-y-6">
 
+            <!-- MOBILE HEADER (Visible < md) -->
+            <div class="md:hidden flex items-center justify-between mb-6">
+                <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP_ADMIN</div>
+                <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Mobile Overlay -->
+            <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+                onclick="toggleSidebar()"></div>
+
             <!-- ROW 2: USER MANAGER -->
             <div class="glass-panel p-6 rounded-xl">
-                <div class="flex justify-between items-center mb-4">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
                     <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="fas fa-users-cog text-blue-400"></i> USER MANAGEMENT (GOD MODE)
                     </h3>
                     <input type="text" placeholder="Search Users..."
-                        class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-48 focus:outline-none focus:border-blue-500">
+                        class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-full md:w-48 focus:outline-none focus:border-blue-500">
                 </div>
 
-                <div class="overflow-x-auto rounded-lg border border-slate-700">
+                <div id="user-cards-mobile" class="md:hidden space-y-4 mb-4">
+                    <!-- Mobile User Cards -->
+                    <div class="text-center text-slate-600 py-8 italic text-sm">Loading Users...</div>
+                </div>
+
+                <div class="hidden md:block overflow-x-auto rounded-lg border border-slate-700">
                     <table class="w-full text-left text-sm text-slate-400">
                         <thead class="bg-slate-900/80 text-xs uppercase font-medium text-slate-300">
                             <tr>
@@ -523,6 +540,25 @@
             }
         }
 
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.lg\\:col-span-1');
+            const overlay = document.getElementById('mobile-overlay');
+            if (sidebar) {
+                sidebar.classList.toggle('hidden');
+                sidebar.classList.toggle('fixed');
+                sidebar.classList.toggle('inset-y-0');
+                sidebar.classList.toggle('left-0');
+                sidebar.classList.toggle('w-[280px]');
+                sidebar.classList.toggle('z-40');
+                sidebar.classList.toggle('bg-slate-950');
+                sidebar.classList.toggle('border-r');
+                sidebar.classList.toggle('border-slate-800');
+                sidebar.classList.toggle('p-6');
+                sidebar.classList.toggle('overflow-y-auto');
+            }
+            if (overlay) overlay.classList.toggle('hidden');
+        }
+
         // 2. FETCH USERS
         async function fetchUsers() {
             try {
@@ -534,7 +570,10 @@
                 if (!res.ok) throw new Error(users.error || 'Auth Failed');
 
                 const tbody = document.getElementById('user-table-body');
+                const cardContainer = document.getElementById('user-cards-mobile');
+
                 if (Array.isArray(users)) {
+                    // Update Table
                     tbody.innerHTML = users.map(u => `
                         <tr class="hover:bg-slate-800/50 transition-colors">
                             <td class="px-4 py-3 text-white font-medium">${u.email}</td>
@@ -550,8 +589,29 @@
                             </td>
                         </tr>
                     `).join('');
+
+                    // Update Cards
+                    cardContainer.innerHTML = users.map(u => `
+                        <div class="glass-panel p-4 rounded-xl border border-white/5">
+                            <div class="flex justify-between items-start mb-3">
+                                <div class="truncate pr-4">
+                                    <div class="text-sm font-bold text-white truncate">${u.email}</div>
+                                    <div class="flex gap-2 mt-1">
+                                        <span class="px-1.5 py-0.5 rounded text-[8px] font-bold uppercase ${u.role === 'admin' ? 'bg-purple-900/50 text-purple-400' : 'bg-slate-800 text-slate-400'}">${u.role || 'user'}</span>
+                                        <span class="text-[10px] text-slate-500">${u.plan || 'Free'}</span>
+                                    </div>
+                                </div>
+                                <div class="text-teal-400 font-bold font-mono">${u.credits || 0} cr</div>
+                            </div>
+                            <div class="flex justify-end pt-2 border-t border-white/5">
+                                <button onclick='openEditModal(${JSON.stringify(u).replace(/'/g, "&apos;")})' class="text-xs text-blue-400 font-bold uppercase tracking-wider">Manage User</button>
+                            </div>
+                        </div>
+                    `).join('');
+
                 } else {
                     tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Failed to load users.</td></tr>';
+                    cardContainer.innerHTML = '<div class="text-center text-red-500 py-8 italic text-sm">Failed to load users.</div>';
                 }
             } catch (e) {
                 console.error("User Fetch Failed", e);

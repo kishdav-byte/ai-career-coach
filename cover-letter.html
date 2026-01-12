@@ -138,12 +138,24 @@
     </style>
 </head>
 
-<body
-    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+<div class="flex h-screen bg-slate-950 relative flex-col md:flex-row overflow-hidden">
+
+    <!-- MOBILE HEADER (Visible < md) -->
+    <div
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
+        <div class="font-black text-xl tracking-tighter text-blue-500">ACE_CORP</div>
+        <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+        onclick="toggleSidebar()"></div>
 
     <!-- LEFT PANEL: INPUTS (35%) -->
-    <aside
-        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-[280px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1">
 
         <!-- Header -->
         <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
@@ -159,6 +171,23 @@
 
         <!-- Scrollable Controls -->
         <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
+
+            <!-- Mission Selector -->
+            <div id="mission-selector-container" class="p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <label
+                    class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <i class="fas fa-crosshairs"></i> Select Active Mission
+                </label>
+                <div class="relative">
+                    <select id="mission-selector" onchange="window.selectMission(this.value)"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
 
             <!-- Input 1: Resume Upload -->
             <div>
@@ -223,6 +252,8 @@
     <!-- RIGHT PANEL: PREVIEW (65%) -->
     <main
         class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+        <!-- Top Spacer for Mobile Header -->
+        <div class="h-16 md:hidden flex-shrink-0"></div>
 
         <!-- DECORATIVE GRIDS -->
         <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
@@ -290,6 +321,13 @@
     </main>
 
     <script>
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('mobile-overlay');
+            if (sb) sb.classList.toggle('-translate-x-full');
+            if (ov) ov.classList.toggle('hidden');
+        }
+
         // --- AUTH & CONFIG ---
         const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
@@ -301,19 +339,31 @@
         let userEmail = null;
         let userId = null;
 
+        window.applyMissionContext = (ctx) => {
+            if (!ctx) return;
+            console.log("Applying Mission Context:", ctx.role);
+
+            if (ctx.company) {
+                const companyInput = document.getElementById('company-name');
+                if (companyInput) companyInput.value = ctx.company;
+            }
+            if (ctx.jd) {
+                const jdInput = document.getElementById('job-description');
+                if (jdInput) {
+                    jdInput.value = ctx.jd;
+                    // Visual feedback
+                    jdInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                    setTimeout(() => jdInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
+                }
+            }
+        };
+
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', async () => {
             // 1. LOAD MISSION CONTEXT (Target Company/JD)
             const missionContext = localStorage.getItem('mission_context') ? JSON.parse(localStorage.getItem('mission_context')) : null;
             if (missionContext) {
-                if (missionContext.company) {
-                    const companyInput = document.getElementById('company-name');
-                    if (companyInput) companyInput.value = missionContext.company;
-                }
-                if (missionContext.jd) {
-                    const jdInput = document.getElementById('job-description');
-                    if (jdInput) jdInput.value = missionContext.jd;
-                }
+                applyMissionContext(missionContext);
             }
 
             // 2. LOAD MASTER RESUME (The "Sticky Memory")
@@ -601,7 +651,69 @@
             alert("Copied!");
         }
 
+        async function checkAccess() {
+            // ... (keep existing checkAccess if any, otherwise implement)
+        }
+
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            if (typeof applyMissionContext === 'function') {
+                applyMissionContext(context);
+            }
+        };
+
+        // Start loading missions
+        loadMissions();
     </script>
-</body>
+    </body>
 
 </html>
+```

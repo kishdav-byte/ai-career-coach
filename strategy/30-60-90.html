@@ -131,6 +131,24 @@
 
         <!-- Scrollable Form -->
         <div class="flex-1 overflow-y-auto custom-scroll p-6 space-y-8">
+
+            <!-- Mission Selector -->
+            <div id="mission-selector-container" class="mb-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <label
+                    class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <i class="fas fa-crosshairs"></i> Select Active Mission
+                </label>
+                <div class="relative">
+                    <select id="mission-selector" onchange="window.selectMission(this.value)"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
             <form id="tool-form" class="space-y-6">
 
                 <!-- Input: Role -->
@@ -258,17 +276,31 @@
         let userId = null;
         let authToken = null;
 
+        window.applyMissionContext = (ctx) => {
+            if (!ctx) return;
+            console.log("Applying Mission Context:", ctx.role);
+
+            const roleInput = document.querySelector('[name="role_title"]');
+            const companyInput = document.querySelector('[name="company_name"]');
+            const focusInput = document.querySelector('[name="focus_area"]');
+
+            if (roleInput && ctx.role) roleInput.value = ctx.role;
+            if (companyInput && ctx.company) companyInput.value = ctx.company;
+            if (focusInput && ctx.jd) {
+                focusInput.value = `Start Date: ASAP\n\nJob Description:\n${ctx.jd}`;
+                // Visual feedback
+                focusInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                setTimeout(() => focusInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
 
             // Check Smart Context (Legacy Feature found in analyzing existing file)
             const missionContext = localStorage.getItem('mission_context');
             if (missionContext) {
                 try {
-                    const ctx = JSON.parse(missionContext);
-                    if (ctx.role) document.querySelector('[name="role_title"]').value = ctx.role;
-                    if (ctx.company) document.querySelector('[name="company_name"]').value = ctx.company;
-                    if (ctx.jd) document.querySelector('[name="focus_area"]').value = `Start Date: ASAP\n\nJob Description:\n${ctx.jd}`;
-                    localStorage.removeItem('mission_context');
+                    applyMissionContext(JSON.parse(missionContext));
                 } catch (e) { console.error("Context Error", e); }
             }
 
@@ -459,11 +491,66 @@
             const btnCopy = document.getElementById('btn-copy');
             const text = resultDiv.innerText;
             navigator.clipboard.writeText(text).then(() => {
-                const original = btnCopy.innerHTML;
-                btnCopy.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => btnCopy.innerHTML = original, 2000);
             });
         }
+
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            if (typeof applyMissionContext === 'function') {
+                applyMissionContext(context);
+            }
+        };
+
+        // Start loading missions
+        loadMissions();
     </script>
 </body>
 

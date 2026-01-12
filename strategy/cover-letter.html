@@ -150,6 +150,23 @@
         <!-- Scrollable Controls -->
         <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
 
+            <!-- Mission Selector -->
+            <div id="mission-selector-container" class="mb-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <label
+                    class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <i class="fas fa-crosshairs"></i> Select Active Mission
+                </label>
+                <div class="relative">
+                    <select id="mission-selector" onchange="window.selectMission(this.value)"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
             <!-- Input 1: Resume Upload -->
             <div>
                 <label
@@ -300,7 +317,28 @@
         // --- AUTH & STATE ---
         let extractedResumeText = "";
         const token = localStorage.getItem('supabase.auth.token');
-        if (!token) window.location.href = '/login.html';
+        // if (!token) window.location.href = '/login.html'; // Relax for now or use session
+
+        window.applyMissionContext = (ctx) => {
+            if (!ctx) return;
+            console.log("Applying Mission Context:", ctx.role);
+
+            const jdInput = document.getElementById('job-description');
+            if (jdInput && ctx.jd) {
+                jdInput.value = ctx.jd;
+                // Visual feedback
+                jdInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                setTimeout(() => jdInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
+            }
+
+            // Also try to grab master resume if we just switched mission
+            const masterResume = localStorage.getItem('master_resume_text');
+            if (masterResume && !extractedResumeText) {
+                extractedResumeText = masterResume;
+                showFileSuccess();
+                filenameDisplay.textContent = "Master Resume Loaded";
+            }
+        };
 
         // --- DOM REFS ---
         const dropzone = document.getElementById('dropzone');
@@ -471,6 +509,69 @@
             alert("Copied to clipboard!");
         }
 
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            if (typeof applyMissionContext === 'function') {
+                applyMissionContext(context);
+            }
+        };
+
+        // Start loading missions
+        loadMissions();
+
+        // Initial check for existing context
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentCtx = JSON.parse(localStorage.getItem('mission_context') || 'null');
+            if (currentCtx) applyMissionContext(currentCtx);
+        });
     </script>
 </body>
 

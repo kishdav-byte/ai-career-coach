@@ -61,12 +61,155 @@
     </style>
 </head>
 
-<body
-    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+<div class="flex md:h-screen min-h-screen bg-slate-950 relative flex-col md:flex-row">
+
+    <!-- MOBILE HEADER (Visible < md) -->
+    <div
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
+        <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
+        <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-[260px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
+        <!-- Logo -->
+        <div class="h-20 flex items-center px-6 mt-4 md:mt-0">
+            <h1
+                class="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                ACE_CORP
+            </h1>
+        </div>
+
+        <!-- Nav Items -->
+        <nav class="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scroll">
+            <a href="/dashboard.html"
+                class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all relative group mb-1 text-slate-400 hover:text-white hover:bg-white/5">
+                <i class="fas fa-th-large text-slate-500 group-hover:text-white"></i>
+                <span>Performance Hub</span>
+            </a>
+
+            <!-- The Clinic -->
+            <div class="mb-2">
+                <button onclick="toggleGroup('clinic')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-file-alt text-slate-500 group-hover:text-white"></i>
+                        <span>The Clinic</span>
+                    </div>
+                    <i id="icon-clinic" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
+                </button>
+                <div id="group-clinic" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
+                    <a href="/resume-analyzer.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Resume
+                        Scanner</a>
+                    <a href="/resume-rewriter.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Executive
+                        Rewrite</a>
+                    <a href="/app.html#linkedin"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">LinkedIn
+                        Optimizer</a>
+                </div>
+            </div>
+
+            <!-- The Simulator -->
+            <div class="mb-2">
+                <button onclick="toggleGroup('simulator')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-microphone text-slate-500 group-hover:text-white"></i>
+                        <span>The Simulator</span>
+                    </div>
+                    <i id="icon-simulator" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
+                </button>
+                <div id="group-simulator" class="ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
+                    <a href="/app.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Mock
+                        Interview</a>
+                    <a href="/role-reversal.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Role
+                        Reversal</a>
+                    <a href="/star-drill.html"
+                        class="block px-3 py-2 text-sm rounded-md text-teal bg-teal/5 font-bold">STAR Method Drill</a>
+                </div>
+            </div>
+
+            <!-- Strategy -->
+            <div class="mb-2">
+                <button onclick="toggleGroup('strategy')"
+                    class="w-full flex items-center justify-between px-3 py-2.5 text-sm font-bold text-white rounded-lg hover:bg-white/5 transition-colors group">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-crosshairs text-slate-500 group-hover:text-white"></i>
+                        <span>Strategy</span>
+                    </div>
+                    <i id="icon-strategy" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
+                </button>
+                <div id="group-strategy" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
+                    <a href="/jobs-history.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Job
+                        Tracker</a>
+                    <a href="/strategy/30-60-90.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">30-60-90
+                        Plan</a>
+                    <a href="/strategy/closer.html"
+                        class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Salary
+                        Negotiation</a>
+                </div>
+            </div>
+
+            <!-- Upgrade Hub -->
+            <div class="pt-4 mt-4 border-t border-white/5">
+                <div class="px-3 py-2 text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">
+                    Upgrade Hub
+                </div>
+                <div class="space-y-1">
+                    <a href="/pricing.html"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group bg-teal-500/10 text-teal font-bold border border-teal/20">
+                        <span>Go Unlimited</span>
+                    </a>
+                    <a href="/pricing.html"
+                        class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group text-slate-400 hover:text-white hover:bg-white/5 font-medium">
+                        <span>Add Credits</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- User Profile -->
+        <div class="p-4 border-t border-white/5 mt-auto">
+            <div
+                class="flex items-center justify-between p-3 rounded-xl bg-white/5 hover:bg-white/10 transition-colors cursor-pointer group">
+                <div class="flex items-center gap-3">
+                    <div id="user-initials-sb"
+                        class="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center text-teal text-xs font-bold border border-teal/30">
+                        --
+                    </div>
+                    <div class="flex flex-col">
+                        <span id="user-display-sb"
+                            class="text-sm font-medium text-white group-hover:text-teal transition-colors">Candidate</span>
+                        <span id="user-plan-sb" class="text-xs text-gray-500">Free Plan</span>
+                    </div>
+                </div>
+                <button onclick="if(typeof signOut === 'function') signOut()"
+                    class="text-gray-500 hover:text-white transition-colors">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Mobile Overlay -->
+    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+        onclick="toggleSidebar()"></div>
 
     <!-- LEFT PANEL: INPUT (40%) -->
     <aside
         class="w-full md:w-[40%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+
+        <!-- Top Spacer for Mobile Header -->
+        <div class="h-16 md:hidden flex-shrink-0"></div>
 
         <!-- Header -->
         <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
@@ -87,6 +230,23 @@
 
 
 
+
+        <!-- Mission Selector -->
+        <div id="mission-selector-container" class="p-6 md:p-8 bg-blue-500/5 border-b border-blue-500/20">
+            <label
+                class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                <i class="fas fa-crosshairs"></i> Select Active Mission
+            </label>
+            <div class="relative">
+                <select id="mission-selector" onchange="window.selectMission(this.value)"
+                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                    <option value="">Loading Missions...</option>
+                </select>
+                <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                    <i class="fas fa-chevron-down text-xs"></i>
+                </div>
+            </div>
+        </div>
 
         <!-- Scrollable Controls -->
         <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 flex flex-col relative">
@@ -279,29 +439,67 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadContext();
             startSession();
+            initSidebarUser();
         });
+
+        function initSidebarUser() {
+            try {
+                const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                if (sessionStr) {
+                    const session = JSON.parse(sessionStr);
+                    const user = session.user || session;
+                    const email = user.email || '';
+                    const name = user.name || email.split('@')[0] || 'Candidate';
+                    const initials = name.substring(0, 2).toUpperCase();
+
+                    if (document.getElementById('user-initials-sb')) document.getElementById('user-initials-sb').innerText = initials;
+                    if (document.getElementById('user-display-sb')) document.getElementById('user-display-sb').innerText = name;
+
+                    const isPro = session.subscription_status === 'active' || session.role === 'admin';
+                    if (document.getElementById('user-plan-sb')) document.getElementById('user-plan-sb').innerText = isPro ? 'PRO Plan' : 'Free Plan';
+                }
+            } catch (e) {
+                console.error("Sidebar Sync Error", e);
+            }
+        }
+
+        function signOut() {
+            localStorage.removeItem(APP_SESSION_KEY);
+            window.location.href = '/login.html';
+        }
+
+        window.applyMissionContext = (raw) => {
+            if (!raw) return;
+            const resumeStr = localStorage.getItem('master_resume_text');
+
+            missionContext = {
+                role_title: raw.role || raw.role_title || "Target Role",
+                company_name: raw.company || raw.company_name || "Target Company",
+                job_description: raw.jd || raw.job_description || "",
+                resume_text: raw.resume_text || resumeStr || ""
+            };
+
+            // Update UI
+            const panel = document.getElementById('context-panel');
+            if (panel) {
+                panel.classList.remove('hidden');
+                document.getElementById('ctx-role').innerText = missionContext.role_title || "Target Role";
+                document.getElementById('ctx-company').innerText = missionContext.company_name || "Target Company";
+
+                // Visual feedback
+                panel.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/20');
+                setTimeout(() => panel.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/20'), 2000);
+            }
+        };
 
         function loadContext() {
             try {
                 // Load Active Mission Context from Dashboard
                 const ctxStr = localStorage.getItem('mission_context');
-
-                // Also try to get Master Resume if not in context
                 const resumeStr = localStorage.getItem('master_resume_text');
 
                 if (ctxStr) {
-                    const raw = JSON.parse(ctxStr);
-                    missionContext = {
-                        role_title: raw.role || raw.role_title || "Target Role",
-                        company_name: raw.company || raw.company_name || "Target Company",
-                        job_description: raw.jd || raw.job_description || "",
-                        resume_text: raw.resume_text || resumeStr || ""
-                    };
-
-                    // Update UI
-                    document.getElementById('context-panel').classList.remove('hidden');
-                    document.getElementById('ctx-role').innerText = missionContext.role_title || "Target Role";
-                    document.getElementById('ctx-company').innerText = missionContext.company_name || "Target Company";
+                    applyMissionContext(JSON.parse(ctxStr));
                 } else {
                     // Fallback if no context (Manual Mode implied)
                     missionContext = {
@@ -455,6 +653,27 @@
 
             document.getElementById('state-idle').classList.add('hidden');
             document.getElementById('state-result').classList.remove('hidden');
+
+            // Auto-scroll to results on mobile
+            if (window.innerWidth < 768) {
+                setTimeout(() => {
+                    document.getElementById('state-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 100);
+            }
+        }
+
+        // Sidebar Toggles
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('mobile-overlay');
+            if (sb) sb.classList.toggle('-translate-x-full');
+            if (ov) ov.classList.toggle('hidden');
+        }
+        function toggleGroup(id) {
+            const g = document.getElementById(`group-${id}`);
+            const i = document.getElementById(`icon-${id}`);
+            if (g) g.classList.toggle('hidden');
+            if (i) i.classList.toggle('rotate-90');
         }
 
         async function saveToHistory(starData, rawText) {
@@ -646,6 +865,64 @@
             });
         }
 
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            if (typeof applyMissionContext === 'function') {
+                applyMissionContext(context);
+            }
+        };
+
+        // Start loading missions
+        loadMissions();
+
 
     </script>
 
@@ -668,6 +945,6 @@
             </div>
         </div>
     </div>
-</body>
+    </body>
 
 </html>
