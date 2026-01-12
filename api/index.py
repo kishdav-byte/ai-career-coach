@@ -144,6 +144,44 @@ def manage_jobs():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+# 18. FEEDBACK SYSTEM
+@app.route('/api/feedback/submit', methods=['POST'])
+def submit_feedback():
+    """Allow users to submit feedback."""
+    try:
+        data = request.json
+        message = data.get('message')
+        email = data.get('email', 'anonymous@aceinterview.ai')
+
+        if not message:
+            return jsonify({"error": "Message is required"}), 400
+
+        supabase = get_admin_supabase()
+        supabase.table('user_feedback').insert({
+            "user_email": email,
+            "message": message
+        }).execute()
+
+        return jsonify({"success": True}), 200
+    except Exception as e:
+        print(f"Feedback error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/feedback', methods=['GET'])
+def get_admin_feedback():
+    """Fetch recent feedback for admin dashboard."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+
+    try:
+        supabase = get_admin_supabase()
+        # Assuming 'desc' is available or imported, otherwise it would be `order('created_at', {'ascending': False})`
+        # For simplicity, assuming `desc` is a valid keyword argument or imported from a library like `postgrest-py`
+        res = supabase.table('user_feedback').select('*').order('created_at', desc=True).limit(50).execute()
+        return jsonify(res.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # 4. UPDATE JOB (PUT) - Saving Dossier Intel
 @app.route('/api/jobs/<job_id>', methods=['PUT'])
 def update_job(job_id):

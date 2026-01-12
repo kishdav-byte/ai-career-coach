@@ -212,7 +212,35 @@
                                 Purchase Options
                             </button>
 
-                            <!-- TOOL BELT DRAWER -->
+                            <!-- FEEDBACK MODAL -->
+                            <div id="feedback-modal"
+                                class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-[100] flex items-center justify-center p-4">
+                                <div
+                                    class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl overflow-hidden shadow-2xl animate-scale-in">
+                                    <div class="p-6 border-b border-white/5 flex justify-between items-center">
+                                        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                            <i class="fas fa-comment-dots text-teal"></i> MISSION_FEEDBACK
+                                        </h3>
+                                        <button onclick="toggleFeedbackModal(false)"
+                                            class="text-slate-500 hover:text-white"><i
+                                                class="fas fa-times"></i></button>
+                                    </div>
+                                    <div class="p-6 space-y-4">
+                                        <p class="text-xs text-slate-400 leading-relaxed">Your intel helps us optimize
+                                            current operations. What's on your mind, Specialist?</p>
+                                        <textarea id="feedback-message" rows="4"
+                                            class="w-full bg-black/40 border border-slate-700 rounded-xl p-4 text-sm text-white focus:outline-none focus:border-teal-500 transition-all custom-scroll"
+                                            placeholder="Type your feedback here..."></textarea>
+                                        <button onclick="submitFeedback()" id="feedback-submit-btn"
+                                            class="w-full py-3 bg-teal hover:bg-teal-400 text-black font-bold rounded-xl transition-all flex items-center justify-center gap-2">
+                                            <i class="fas fa-paper-plane"></i> TRANSMIT FEEDBACK
+                                        </button>
+                                        <p id="feedback-status" class="text-[10px] text-center"></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SUPPORT CHAT INTERFACE -->
                             <div id="tool-belt-drawer"
                                 class="fixed inset-y-0 right-0 w-[400px] bg-[#0B1121] border-l border-slate-700 shadow-2xl transform translate-x-full transition-transform duration-300 z-[60] flex flex-col">
                                 <div
@@ -680,7 +708,7 @@
         <div class="flex-1 flex overflow-hidden">
 
             <!-- COL 1: Inputs (Scrollable) -->
-            <div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scroll">
+            <div class="flex-1 flex overflow-y-auto p-8 space-y-8 custom-scroll">
 
                 <div class="space-y-3">
                     <label class="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -812,6 +840,7 @@
         // --- AUTH & DATA VARS ---
         // Token is now retrieved dynamically to prevent 401 Stale Errors
         let currentUser = null;
+        let userProfile = null; // Added for feedback logic
 
 
         // --- UI REFS ---
@@ -1144,6 +1173,20 @@
             window.openDossier(id);
         }
 
+        window.smartLaunch = (id, url, job) => {
+            const context = { job_id: id, role: job.job_title, company: job.company_name, description: job.job_description, jd: job.job_description };
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            sessionStorage.setItem('missionLaunch', 'true');
+
+            // Construct URL with Query Param: /app.html?id=123#interview
+            if (url.includes('#')) {
+                const [path, hash] = url.split('#');
+                window.location.href = `${path}?id=${id}#${hash}`;
+            } else {
+                window.location.href = `${url}?id=${id}`;
+            }
+        };
+
         window.handleJobDelete = async () => {
             if (!currentJobId) return;
             if (!confirm("Are you sure you want to remove this job from your active list?")) return;
@@ -1338,6 +1381,7 @@
                     .single();
 
                 if (profile) {
+                    userProfile = profile; // Assign to global variable
                     // Update UI
                     const initials = profile.name ? profile.name.substring(0, 2).toUpperCase() : 'DK';
                     document.getElementById('user-initials').innerText = initials;
@@ -1613,6 +1657,50 @@
                 closeUpgradeDrawer();
             }
         });
+        // FEEDBACK LOGIC
+        function toggleFeedbackModal(show) {
+            document.getElementById('feedback-modal').classList.toggle('hidden', !show);
+            if (show) document.getElementById('feedback-message').focus();
+        }
+
+        async function submitFeedback() {
+            const msg = document.getElementById('feedback-message').value.trim();
+            const btn = document.getElementById('feedback-submit-btn');
+            const status = document.getElementById('feedback-status');
+
+            if (!msg) return;
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> TRANSMITTING...';
+            status.className = "text-[10px] text-center text-slate-400";
+            status.textContent = "Connecting to Command Center...";
+
+            try {
+                const res = await fetch('/api/feedback/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: msg,
+                        email: userProfile?.email || 'authenticated-user'
+                    })
+                });
+
+                if (res.ok) {
+                    status.className = "text-[10px] text-center text-teal-400";
+                    status.textContent = "Transmission successful. Intel received.";
+                    document.getElementById('feedback-message').value = "";
+                    setTimeout(() => toggleFeedbackModal(false), 2000);
+                } else {
+                    throw new Error("Relay failed");
+                }
+            } catch (err) {
+                status.className = "text-[10px] text-center text-red-400";
+                status.textContent = "Relay failed. Please try again.";
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> TRANSMIT FEEDBACK';
+            }
+        }
     </script>
     <!-- MISSION SPECIALIST CHATBOT -->
     <div id="support-container" class="fixed bottom-6 right-6 z-[100]">
@@ -1654,8 +1742,15 @@
                 </div>
             </div>
 
+            <!-- Feedback Button -->
+            <button onclick="toggleFeedbackModal(true)"
+                class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-all group">
+                <i class="fas fa-comment-dots text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium">Mission Feedback</span>
+            </button>
+
             <!-- Input -->
-            <div class="p-4 bg-black/20 border-t border-white/5">
+            <div class="mt-auto pt-6 border-t border-white/5">
                 <div class="relative flex items-center">
                     <input type="text" id="support-chat-input"
                         class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2.5 px-4 pr-10 text-xs text-white focus:outline-none focus:border-teal/50 transition-all"
