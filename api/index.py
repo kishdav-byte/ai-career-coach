@@ -2358,43 +2358,59 @@ def admin_config():
 # 18. MISSION SPECIALIST BOT (PUBLIC)
 @app.route('/api/support/chat', methods=['POST'])
 def support_chat():
+    """Support Chatbot logic (GPT-4o-mini-powered)."""
     try:
         data = request.json
-        user_msg = data.get('message')
-        if not user_msg: return jsonify({"error": "No message"}), 400
+        message = data.get('message')
+        history = data.get('history', [])
+        email = data.get('email', 'anonymous')
 
-        # 1. Fetch Admin Custom Instructions
+        if not message:
+            return jsonify({"error": "No message provided"}), 400
+
         supabase = get_admin_supabase()
-        config_res = supabase.table('system_configs').select('config_value').eq('config_key', 'support_bot_prompt').single().execute()
-        system_prompt = config_res.data.get('config_value') if config_res.data else "You are a helpful assistant."
+        
+        # 1. Fetch the system prompt
+        res = supabase.table('system_configs').select('config_value').eq('config_key', 'support_bot_prompt').single().execute()
+        system_prompt = res.data['config_value'] if res.data else "You are the Mission Specialist for AceInterview.ai."
 
-        # 2. Call AI
-        from openai import OpenAI
-        client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+        # 2. Call OpenAI
+        messages = [{"role": "system", "content": system_prompt}]
+        for m in history[-5:]: # Keep last 5 messages for context
+            messages.append(m)
+        messages.append({"role": "user", "content": message})
+
+        # AI Response
+        client = get_openai_client()
         response = client.chat.completions.create(
             model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_msg}
-            ],
-            temperature=0.3, # Keep it professional and factual
-            max_tokens=300
+            messages=messages,
+            temperature=0.7
         )
         answer = response.choices[0].message.content
 
-        # 3. Log Question for Admin Intel (Anonymous logging)
-        try:
-            supabase.table('chat_support_logs').insert({
-                "question": user_msg,
-                "answer": answer
+        # 3. AUTO-FEEDBACK DETECTION
+        # If the user is reporting a bug or giving a suggestion, log it to the feedback table
+        feedback_keywords = ['feedback', 'suggestion', 'bug', 'error', 'broken', 'feature', 'help with', 'it would be cool', 'should add', 'fix']
+        is_feedback = any(word in message.lower() for word in feedback_keywords)
+        
+        if is_feedback:
+            supabase.table('user_feedback').insert({
+                "user_email": f"{email} (via Bot)",
+                "message": message
             }).execute()
-        except: pass # Don't block user if logs fail
 
-        return jsonify({"answer": answer}), 200
+        # 4. Log the interaction
+        supabase.table('chat_support_logs').insert({
+            "question": message,
+            "answer": answer
+        }).execute()
+
+        return jsonify({"answer": answer})
 
     except Exception as e:
-        print(f"Support Chat Error: {e}")
-        return jsonify({"error": "Specialist offline. Please try later."}), 500
+        print(f"Chat Error: {e}")
+        return jsonify({"error": "Encryption failure in support relay."}), 500
 
 # Expose app
 app = app

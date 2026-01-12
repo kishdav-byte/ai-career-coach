@@ -323,94 +323,96 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </div> <!-- End Col 1 (Sidebar) -->
 
-    </div> <!-- End Col 1 -->
+        <!-- COL 2 & 3 & 4: MAIN CONTENT -->
+        <div class="lg:col-span-3 space-y-6">
 
-    <!-- COL 2 & 3 & 4: MAIN CONTENT -->
-    <div class="lg:col-span-3 space-y-6">
-
-        <!-- ROW 2: USER MANAGER -->
-        <div class="glass-panel p-6 rounded-xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="fas fa-users-cog text-blue-400"></i> USER MANAGEMENT (GOD MODE)
-                </h3>
-                <input type="text" placeholder="Search Users..."
-                    class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-48 focus:outline-none focus:border-blue-500">
-            </div>
-
-            <div class="overflow-x-auto rounded-lg border border-slate-700">
-                <table class="w-full text-left text-sm text-slate-400">
-                    <thead class="bg-slate-900/80 text-xs uppercase font-medium text-slate-300">
-                        <tr>
-                            <th class="px-4 py-3">User Email</th>
-                            <th class="px-4 py-3">Role</th>
-                            <th class="px-4 py-3">Plan</th>
-                            <th class="px-4 py-3 text-center">Univ. Credits</th>
-                            <th class="px-4 py-3 text-right">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="user-table-body" class="divide-y divide-slate-800 bg-slate-900/30">
-                        <!-- Dynamic User Rows -->
-                        <tr>
-                            <td colspan="5" class="px-4 py-8 text-center text-slate-600">Loading Users...</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- ROW 3: UAT LAB & FEEDBACK -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <!-- UAT LAB -->
+            <!-- ROW 2: USER MANAGER -->
             <div class="glass-panel p-6 rounded-xl">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-4">
-                    <i class="fas fa-vial text-purple-400"></i> UAT LAB
-                </h3>
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="fas fa-users-cog text-blue-400"></i> USER MANAGEMENT (GOD MODE)
+                    </h3>
+                    <input type="text" placeholder="Search Users..."
+                        class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-48 focus:outline-none focus:border-blue-500">
+                </div>
 
-                <div class="space-y-4">
-                    <div class="space-y-3">
-                        <button onclick="runTest('executive')"
-                            class="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-teal-500/50 rounded-lg text-left transition-all group">
-                            <span class="block text-sm font-bold text-white group-hover:text-teal-400 mb-1">Run "The
-                                Executive"</span>
-                            <span class="block text-xs text-slate-500">Scoring logic check (5/5 expected).</span>
-                        </button>
-                        <button onclick="runTest('quitter')"
-                            class="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-red-500/50 rounded-lg text-left transition-all group">
-                            <span class="block text-sm font-bold text-white group-hover:text-red-400 mb-1">Run "The
-                                Quitter"</span>
-                            <span class="block text-xs text-slate-500">Short answer rejection logic.</span>
-                        </button>
+                <div class="overflow-x-auto rounded-lg border border-slate-700">
+                    <table class="w-full text-left text-sm text-slate-400">
+                        <thead class="bg-slate-900/80 text-xs uppercase font-medium text-slate-300">
+                            <tr>
+                                <th class="px-4 py-3">User Email</th>
+                                <th class="px-4 py-3">Role</th>
+                                <th class="px-4 py-3">Plan</th>
+                                <th class="px-4 py-3 text-center">Univ. Credits</th>
+                                <th class="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="user-table-body" class="divide-y divide-slate-800 bg-slate-900/30">
+                            <!-- Dynamic User Rows -->
+                            <tr>
+                                <td colspan="5" class="px-4 py-8 text-center text-slate-600">Loading Users...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ROW 3: UAT LAB & FEEDBACK -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- UAT LAB -->
+                <div class="glass-panel p-6 rounded-xl">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-4">
+                        <i class="fas fa-vial text-purple-400"></i> UAT LAB
+                    </h3>
+
+                    <div class="space-y-4">
+                        <div class="space-y-3">
+                            <button onclick="runTest('executive')"
+                                class="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-teal-500/50 rounded-lg text-left transition-all group">
+                                <span class="block text-sm font-bold text-white group-hover:text-teal-400 mb-1">Run
+                                    "The
+                                    Executive"</span>
+                                <span class="block text-xs text-slate-500">Scoring logic check (5/5
+                                    expected).</span>
+                            </button>
+                            <button onclick="runTest('quitter')"
+                                class="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-red-500/50 rounded-lg text-left transition-all group">
+                                <span class="block text-sm font-bold text-white group-hover:text-red-400 mb-1">Run
+                                    "The
+                                    Quitter"</span>
+                                <span class="block text-xs text-slate-500">Short answer rejection logic.</span>
+                            </button>
+                        </div>
+                        <div
+                            class="bg-black rounded-lg border border-slate-800 p-4 h-32 overflow-y-auto custom-scroll shadow-inner">
+                            <pre id="test-console"
+                                class="console-text whitespace-pre-wrap">Waiting to initialize test sequence...</pre>
+                        </div>
                     </div>
-                    <div
-                        class="bg-black rounded-lg border border-slate-800 p-4 h-32 overflow-y-auto custom-scroll shadow-inner">
-                        <pre id="test-console"
-                            class="console-text whitespace-pre-wrap">Waiting to initialize test sequence...</pre>
+                </div>
+
+                <!-- MISSION FEEDBACK SHUTTLE -->
+                <div
+                    class="glass-panel p-6 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5 flex flex-col h-full">
+                    <h3
+                        class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                        <span><i class="fas fa-inbox mr-2"></i> Mission Feedback</span>
+                        <span onclick="fetchFeedback()"
+                            class="cursor-pointer text-slate-500 hover:text-white transition-colors"><i
+                                class="fas fa-sync-alt"></i></span>
+                    </h3>
+
+                    <div id="feedback-container" class="flex-1 overflow-y-auto space-y-3 custom-scroll pr-1">
+                        <!-- Dynamic Feedback Feed -->
+                        <div class="text-xs text-slate-500 italic text-center py-10">Initializing feedback stream...
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- MISSION FEEDBACK SHUTTLE -->
-            <div
-                class="glass-panel p-6 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5 flex flex-col h-full">
-                <h3
-                    class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex justify-between items-center">
-                    <span><i class="fas fa-inbox mr-2"></i> Mission Feedback</span>
-                    <span onclick="fetchFeedback()"
-                        class="cursor-pointer text-slate-500 hover:text-white transition-colors"><i
-                            class="fas fa-sync-alt"></i></span>
-                </h3>
-
-                <div id="feedback-container" class="flex-1 overflow-y-auto space-y-3 custom-scroll pr-1">
-                    <!-- Dynamic Feedback Feed -->
-                    <div class="text-xs text-slate-500 italic text-center py-10">Initializing feedback stream...</div>
-                </div>
-            </div>
-        </div>
-
-    </div> <!-- End Col 2&3&4 -->
+        </div> <!-- End Col 2&3&4 -->
     </div> <!-- End Grid -->
 
     <!-- ROW 4: DEVICE SIMULATOR (Full Width) -->
