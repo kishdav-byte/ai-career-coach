@@ -2279,16 +2279,35 @@ def handle_checkout_fulfillment(session):
 # 17. SYSTEM CONFIG MANAGEMENT (ADMIN)
 @app.route('/api/admin/config', methods=['GET', 'POST'])
 def admin_config():
-    auth_header = request.headers.get('Authorization')
-    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
-    
+    """Manage system settings (mostly bot prompts)."""
     try:
+        # Initialize Supabase client early for both authenticated and unauthenticated paths
         supabase = get_admin_supabase()
+
         if request.method == 'GET':
             key = request.args.get('key')
+            if not key:
+                return jsonify({"error": "Missing key"}), 400
+            
+            # If it's the welcome message, allow public access
+            if key == 'support_bot_welcome':
+                res = supabase.table('system_configs').select('config_value').eq('config_key', key).single().execute()
+                return jsonify({"value": res.data['config_value'] if res.data else None}), 200
+
+            # Otherwise, require admin authentication
+            auth_header = request.headers.get('Authorization')
+            if not auth_header:
+                return jsonify({"error": "Admin Access Required"}), 401
+            
+            # Proceed with authenticated GET request
             res = supabase.table('system_configs').select('config_value').eq('config_key', key).single().execute()
             return jsonify({"value": res.data.get('config_value') if res.data else ""}), 200
         
+        # POST requests always require admin authentication
+        auth_header = request.headers.get('Authorization')
+        if not auth_header:
+            return jsonify({"error": "Admin Access Required"}), 401
+
         # POST
         data = request.json
         key = data.get('key')
