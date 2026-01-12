@@ -4,305 +4,241 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pricing - AceInterview</title>
+    <title>Choose Your Plan - Total Package Interview</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary: #0A2540;
-            --primary-dark: #051b30;
-            --secondary: #20C997;
-            --dark: #111827;
-            --gray-600: #4B5563;
-            --gray-400: #9ca3af;
-            --gray-200: #E5E7EB;
-            --gray-100: #F8F9FA;
-            --white: #ffffff;
-            --gradient-primary: linear-gradient(135deg, #0A2540 0%, #051b30 100%);
-            --gradient-hero: linear-gradient(135deg, #0A2540 0%, #1e3a8a 100%);
-        }
-
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--dark);
-            background: var(--gray-100);
-            line-height: 1.6;
+            font-family: 'Inter', sans-serif;
         }
 
-        .nav {
-            background: var(--dark);
-            padding: 1rem 2rem;
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        .nav-logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: var(--gradient-primary);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-decoration: none;
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
         }
 
-        .nav-links a {
-            color: var(--white);
-            text-decoration: none;
-            margin-left: 20px;
-        }
-
-        .pricing-section {
-            padding: 4rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .pricing-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .pricing-card {
-            background: var(--white);
-            padding: 2.5rem;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-            transition: transform 0.3s ease;
-            position: relative;
-            border: 1px solid var(--gray-200);
-        }
-
-        .pricing-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .pricing-card.featured {
-            border: 2px solid var(--primary);
-            transform: scale(1.05);
-        }
-
-        .pricing-card.featured:hover {
-            transform: scale(1.05) translateY(-5px);
-        }
-
-        .badge {
-            position: absolute;
-            top: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--secondary);
-            color: var(--white);
-            padding: 0.3rem 1rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .price {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--dark);
-            margin: 1rem 0;
-        }
-
-        .period {
-            font-size: 1rem;
-            color: var(--gray-600);
-            font-weight: 400;
-        }
-
-        ul {
-            list-style: none;
-            text-align: left;
-            margin: 2rem 0;
-        }
-
-        li {
-            margin-bottom: 0.8rem;
-            padding-left: 1.5rem;
-            position: relative;
-            color: var(--gray-600);
-        }
-
-        li::before {
-            content: '✓';
-            color: var(--secondary);
-            position: absolute;
-            left: 0;
-            font-weight: bold;
-        }
-
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 1rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: opacity 0.2s;
-        }
-
-        .btn-primary {
-            background: var(--gradient-primary);
-            color: var(--white);
-        }
-
-        .btn-outline {
-            border: 2px solid var(--gray-200);
-            color: var(--dark);
-        }
-
-        .btn:hover {
-            opacity: 0.9;
+        .glass-card {
+            background: rgba(15, 23, 42, 0.5);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
     </style>
 </head>
 
-<body>
-    <nav class="nav">
-        <div class="nav-container">
-            <a href="/" class="nav-logo">AceInterview</a>
-            <div class="nav-links">
-                <a href="/login">Login</a>
-                <a href="/signup">Sign Up</a>
+<body class="bg-gradient-to-br from-slate-900 via-slate-950 to-black min-h-screen">
+
+    <!-- Header -->
+    <nav class="border-b border-white/5 bg-slate-950/50 backdrop-blur-xl sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+            <a href="/" class="flex flex-col">
+                <span class="text-[10px] font-bold text-teal uppercase tracking-[0.2em] leading-tight">Total
+                    Package</span>
+                <span class="text-xl font-black text-white tracking-tighter leading-tight">INTERVIEW</span>
+            </a>
+            <div class="flex items-center gap-4">
+                <a href="/login.html" class="text-sm text-slate-400 hover:text-white transition-colors">Login</a>
+                <a href="/signup.html"
+                    class="px-4 py-2 bg-teal hover:bg-teal/80 text-slate-950 font-bold rounded-lg transition-all text-sm">
+                    Sign Up
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="pricing-section">
-        <div class="header">
-            <h1>Choose Your Plan</h1>
-            <p>Invest in your career success properly.</p>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-6 py-12 md:py-20">
+
+        <!-- Header Section -->
+        <div class="text-center mb-12 md:mb-16">
+            <h2 class="text-xs font-bold text-teal uppercase tracking-widest mb-3">PREMIUM ACCESS</h2>
+            <h1 class="text-4xl md:text-5xl font-black text-white mb-4">Choose Your Plan</h1>
+            <p class="text-slate-400 text-lg">Invest in your career success properly.</p>
         </div>
 
-        <style>
-            /* Override for 2x2 Grid on Desktop */
-            .pricing-grid {
-                grid-template-columns: repeat(2, 1fr);
-                max-width: 900px;
-            }
+        <!-- Pricing Cards -->
+        <div class="space-y-12">
 
-            @media (max-width: 768px) {
-                .pricing-grid {
-                    grid-template-columns: 1fr;
-                }
-            }
-        </style>
+            <!-- Unlock Pro Section -->
+            <div class="space-y-4">
+                <label class="text-xs font-bold text-yellow-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-star"></i> Unlock Pro
+                </label>
 
-        <div class="pricing-grid">
-            <!-- 1. Single Strategy Tools -->
-            <div class="pricing-card">
-                <h3>Single Strategy Tool</h3>
-                <div class="price">$6.99</div>
-                <p class="period">Individual Tool Access</p>
-                <ul>
-                    <li>1 Targeted Deliverable</li>
-                    <li>Choice of: Cover Letter, LinkedIn Opt, Negotiation, Inquisitor, or Follow-Up</li>
-                    <li>Direct PDF Export</li>
-                </ul>
-                <a href="/strategy-lab.html" class="btn btn-outline">Go to Strategy Lab</a>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Monthly Unlimited -->
+                    <div
+                        class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:border-teal/30 transition-all">
+                        <div class="absolute top-4 right-4">
+                            <span
+                                class="bg-teal text-slate-950 text-[10px] px-2 py-1 rounded font-black tracking-wider">BEST
+                                VALUE</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-teal mb-2 flex items-center gap-2">
+                            Monthly Unlimited
+                            <span
+                                class="bg-teal text-black text-[8px] px-1.5 py-0.5 rounded font-black tracking-tighter">PRO</span>
+                        </h3>
+                        <p class="text-xs text-slate-400 mb-4">Unlimited Text Tools + 50 Voice Sessions/mo</p>
+                        <div class="flex items-baseline gap-2 mb-6">
+                            <span class="text-4xl font-black text-white">$49.99</span>
+                            <span class="text-slate-500 text-sm">/mo</span>
+                        </div>
+                        <button onclick="handleCheckout(event, 'pro')"
+                            class="w-full bg-teal hover:bg-teal/80 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg">
+                            Go Unlimited
+                        </button>
+                    </div>
+
+                    <!-- Strategy Bundle -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-blue-500/30 transition-all">
+                        <h3 class="text-lg font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
+                            Strategy Bundle</h3>
+                        <p class="text-xs text-slate-400 mb-4">5 Universal Credits (Save ~$15)</p>
+                        <div class="flex items-baseline gap-2 mb-6">
+                            <span class="text-4xl font-black text-white">$29.99</span>
+                        </div>
+                        <button onclick="handleCheckout(event, 'strategy_bundle')"
+                            class="w-full bg-slate-700 hover:bg-slate-600 text-white font-bold py-3 rounded-lg transition-all">
+                            Purchase
+                        </button>
+                    </div>
+
+                </div>
             </div>
 
-            <!-- 2. Interview Simulator -->
-            <div class="pricing-card">
-                <h3>Interview Simulator</h3>
-                <div class="price">$9.99</div>
-                <p class="period">Per Session</p>
-                <ul>
-                    <li>Real-time Voice Mock Interview</li>
-                    <li>Instant Feedback & Scoring</li>
-                    <li>Transcript & Audio Review</li>
-                </ul>
-                <a href="#" onclick="handleCheckout(event, 'strategy_interview_sim')" class="btn btn-outline">Start
-                    Session</a>
+            <!-- Expert Services Section -->
+            <div class="space-y-4">
+                <label class="text-xs font-bold text-blue-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-user-tie"></i> À La Carte Tools
+                </label>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                    <!-- Executive Rewrite -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
+                            Executive Rewrite</h3>
+                        <p class="text-[10px] text-slate-500 mb-4">$12.99 / use</p>
+                        <button onclick="handleCheckout(event, 'rewrite')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- Interview Simulator -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
+                            Interview Simulator</h3>
+                        <p class="text-[10px] text-slate-500 mb-4">$9.99 / session</p>
+                        <button onclick="handleCheckout(event, 'strategy_interview_sim')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- 30-60-90 Day Plan -->
+                    <div class="glass-card rounded-2xl p-6 group hover:border-slate-600 transition-all">
+                        <h3 class="text-sm font-bold text-slate-300 group-hover:text-white mb-2 transition-colors">
+                            30-60-90 Day Plan</h3>
+                        <p class="text-[10px] text-slate-500 mb-4">$8.99 / use</p>
+                        <button onclick="handleCheckout(event, 'strategy_plan')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-2 rounded-lg transition-all text-sm">
+                            Buy
+                        </button>
+                    </div>
+
+                </div>
             </div>
 
-            <!-- 3. Executive Rewrite -->
-            <div class="pricing-card">
-                <h3>Executive Rewrite</h3>
-                <div class="price">$12.99</div>
-                <p class="period">Full Resume Overhaul</p>
-                <ul>
-                    <li>Complete Content Rewrite</li>
-                    <li>Professional Formatting (PDF)</li>
-                    <li>Targeted to Job Description</li>
-                </ul>
-                <a href="#" onclick="handleCheckout(event, 'rewrite')" class="btn btn-outline">Rewrite Resume</a>
+            <!-- Toolkit Section -->
+            <div class="space-y-4">
+                <label class="text-xs font-bold text-green-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fas fa-toolbox"></i> Strategy Toolkit
+                </label>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+
+                    <!-- Cover Letter -->
+                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
+                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">Cover
+                            Letter</h3>
+                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <button onclick="handleCheckout(event, 'strategy_cover_letter')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- LinkedIn Optimize -->
+                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
+                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">
+                            LinkedIn Opt</h3>
+                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <button onclick="handleCheckout(event, 'strategy_linkedin')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- Negotiation -->
+                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
+                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">The
+                            Closer</h3>
+                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <button onclick="handleCheckout(event, 'strategy_negotiation')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- Inquisitor -->
+                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
+                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">
+                            Inquisitor</h3>
+                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <button onclick="handleCheckout(event, 'strategy_inquisitor')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            Buy
+                        </button>
+                    </div>
+
+                    <!-- Follow-Up -->
+                    <div class="glass-card rounded-xl p-4 group hover:border-slate-600 transition-all">
+                        <h3 class="text-xs font-bold text-slate-300 group-hover:text-white mb-1 transition-colors">Value
+                            Follow-Up</h3>
+                        <p class="text-[9px] text-slate-500 mb-3">$6.99</p>
+                        <button onclick="handleCheckout(event, 'strategy_followup')"
+                            class="w-full bg-slate-800/50 hover:bg-slate-800 border border-slate-700 text-white font-medium py-1.5 rounded text-xs transition-all">
+                            Buy
+                        </button>
+                    </div>
+
+                </div>
             </div>
 
-            <!-- 4. 30-60-90 Day Plan -->
-            <div class="pricing-card">
-                <h3>30-60-90 Day Plan</h3>
-                <div class="price">$8.99</div>
-                <p class="period">Strategic Onboarding</p>
-                <ul>
-                    <li>Audit, Build, & Scale Phases</li>
-                    <li>Actionable Deliverables</li>
-                    <li>Impress Hiring Managers</li>
-                </ul>
-                <a href="#" onclick="handleCheckout(event, 'strategy_plan')" class="btn btn-outline">Build Plan</a>
-            </div>
-
-            <!-- 5. Strategy Bundle -->
-            <div id="credits-bundle" class="pricing-card" style="border: 2px solid #2563eb;">
-                <div class="badge" style="background:#2563eb">MOST POPULAR</div>
-                <h3>Strategy Bundle</h3>
-                <div class="price">$29.99</div>
-                <ul>
-                    <li><strong>5 Universal Credits</strong></li>
-                    <li>Valid on ANY $6.99 Tool</li>
-                    <li>Save ~$15 vs Single Purchase</li>
-                    <li>Flexible Usage</li>
-                </ul>
-                <a href="#" onclick="handleCheckout(event, 'strategy_bundle')" class="btn btn-primary">Get Bundle</a>
-            </div>
-
-            <!-- 6. Pro Monthly -->
-            <div id="unlimited-plan" class="pricing-card featured">
-                <div class="badge">BEST VALUE</div>
-                <h3>Monthly Unlimited</h3>
-                <div class="price">$49.99<span class="period">/mo</span></div>
-                <ul>
-                    <li><strong>Unlimited Text Tools</strong></li>
-                    <li>50 Voice Sessions / Month</li>
-                    <li>Access to ALL Strategy Tools</li>
-                    <li>Priority Support</li>
-                    <li>Cancel Anytime</li>
-                </ul>
-                <a href="#" onclick="handleCheckout(event, 'pro')" class="btn btn-primary"
-                    style="background:var(--dark)">Go Unlimited</a>
-            </div>
         </div>
-    </div>
+
+        <!-- Footer Note -->
+        <div class="mt-16 text-center">
+            <p class="text-xs text-slate-500">All purchases are secure and processed through Stripe.</p>
+            <p class="text-xs text-slate-600 mt-2">Questions? <a href="mailto:support@totalpackageinterview.com"
+                    class="text-teal hover:underline">Contact Support</a></p>
+        </div>
+
+    </main>
 
     <script>
         async function handleCheckout(event, planType) {
@@ -311,7 +247,7 @@
             // Check authentication
             const sessionStr = localStorage.getItem('aceinterview_session');
             if (!sessionStr) {
-                window.location.href = '/login?redirect=/pricing';
+                window.location.href = '/login.html?redirect=/pricing.html';
                 return;
             }
 
@@ -320,9 +256,9 @@
             const btn = event.target;
             const originalText = btn.innerText;
 
-            btn.innerText = 'Redirecting...';
+            btn.innerText = 'Processing...';
             btn.style.opacity = '0.7';
-            btn.style.pointerEvents = 'none';
+            btn.disabled = true;
 
             try {
                 const response = await fetch('/api', {
@@ -332,7 +268,7 @@
                         action: 'create-checkout-session',
                         email: email,
                         plan: planType,
-                        userId: session.user_id || session.id || session.user?.id // Pass ID
+                        userId: session.user_id || session.id || session.user?.id
                     })
                 });
 
@@ -340,10 +276,10 @@
 
                 if (!response.ok) {
                     console.error('Checkout API Error:', result);
-                    alert(`Error starting checkout (${response.status}): ` + (result.error || 'Check console for details.'));
+                    alert(`Error starting checkout: ` + (result.error || 'Please try again.'));
                     btn.innerText = originalText;
                     btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'auto';
+                    btn.disabled = false;
                     return;
                 }
 
@@ -351,20 +287,21 @@
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert('Error starting checkout: No redirect URL received. ' + (result.error || ''));
+                    alert('Error starting checkout: No redirect URL received.');
                     btn.innerText = originalText;
                     btn.style.opacity = '1';
-                    btn.style.pointerEvents = 'auto';
+                    btn.disabled = false;
                 }
             } catch (e) {
                 console.error('Checkout Exception:', e);
-                alert('Connection error. Please check your internet or try a hard refresh (Cmd+Shift+R).');
+                alert('Connection error. Please try again.');
                 btn.innerText = originalText;
                 btn.style.opacity = '1';
-                btn.style.pointerEvents = 'auto';
+                btn.disabled = false;
             }
         }
     </script>
+
 </body>
 
 </html>
