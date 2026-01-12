@@ -11,6 +11,17 @@
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        teal: '#20C997',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -72,7 +83,7 @@
 
             <!-- Unlock Pro Section -->
             <div class="space-y-4">
-                <label class="text-xs font-bold text-yellow-500 uppercase tracking-widest flex items-center gap-2">
+                <label class="text-xs font-bold text-teal uppercase tracking-widest flex items-center gap-2">
                     <i class="fas fa-star"></i> Unlock Pro
                 </label>
 
@@ -83,13 +94,13 @@
                         class="glass-card rounded-2xl p-6 relative overflow-hidden group hover:border-teal/50 transition-all bg-slate-950/80">
                         <div class="absolute top-4 right-4">
                             <span
-                                class="bg-lime-400 text-slate-950 text-[10px] px-2 py-1 rounded font-black tracking-wider">BEST
+                                class="bg-teal text-slate-950 text-[10px] px-2 py-1 rounded font-black tracking-wider">BEST
                                 VALUE</span>
                         </div>
-                        <h3 class="text-lg font-bold text-lime-400 mb-2 flex items-center gap-2">
+                        <h3 class="text-lg font-bold text-teal mb-2 flex items-center gap-2">
                             Monthly Unlimited
                             <span
-                                class="bg-lime-400 text-black text-[8px] px-1.5 py-0.5 rounded font-black tracking-tighter">PRO</span>
+                                class="bg-teal text-black text-[8px] px-1.5 py-0.5 rounded font-black tracking-tighter">PRO</span>
                         </h3>
                         <p class="text-xs text-slate-300 mb-4">Unlimited Text Tools + 50 Voice Sessions/mo</p>
                         <div class="flex items-baseline gap-2 mb-6">
@@ -97,21 +108,21 @@
                             <span class="text-slate-400 text-sm">/mo</span>
                         </div>
                         <button onclick="handleCheckout(event, 'pro')"
-                            class="w-full bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg">
+                            class="w-full bg-teal hover:bg-teal/80 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg">
                             Go Unlimited
                         </button>
                     </div>
 
                     <!-- Strategy Bundle -->
                     <div class="glass-card rounded-2xl p-6 group hover:border-teal/50 transition-all bg-slate-950/80">
-                        <h3 class="text-lg font-bold text-teal group-hover:text-lime-400 mb-2 transition-colors">
+                        <h3 class="text-lg font-bold text-teal group-hover:text-teal/80 mb-2 transition-colors">
                             Strategy Bundle</h3>
                         <p class="text-xs text-slate-300 mb-4">5 Universal Credits (Save ~$15)</p>
                         <div class="flex items-baseline gap-2 mb-6">
                             <span class="text-4xl font-black text-white">$29.99</span>
                         </div>
                         <button onclick="handleCheckout(event, 'strategy_bundle')"
-                            class="w-full bg-teal hover:bg-lime-400 hover:text-slate-950 text-white font-bold py-3 rounded-lg transition-all shadow-lg">
+                            class="w-full bg-teal hover:bg-teal/80 text-slate-950 font-bold py-3 rounded-lg transition-all shadow-lg">
                             Purchase
                         </button>
                     </div>
