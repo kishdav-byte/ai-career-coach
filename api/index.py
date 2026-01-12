@@ -1114,25 +1114,58 @@ def general_api():
             # --- PERSISTENCE LOGIC START ---
             try:
                 job_id = data.get('job_id')
-                if job_id:
-                     ai_json = json.loads(ai_content)
-                     raw_score = ai_json.get('overall_score', 0)
-                     try:
-                        score = int(str(raw_score).replace('%', '').strip())
-                     except:
-                        score = 0
+                ai_json = json.loads(ai_content)
+                raw_score = ai_json.get('overall_score', 0)
+                try:
+                    score = int(str(raw_score).replace('%', '').strip())
+                except:
+                    score = 0
+                
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    user_client = get_supabase()
+                    user_client.postgrest.auth(token)
+                    
+                    # Get user ID
+                    user_res = user_client.auth.get_user(token)
+                    if user_res and user_res.user:
+                        user_id = user_res.user.id
                         
-                     print(f"DEBUG: Persisting Score {score} for Job {job_id}")
-
-                     auth_header = request.headers.get('Authorization')
-                     if auth_header:
-                         token = auth_header.split(" ")[1]
-                         user_client = get_supabase()
-                         user_client.postgrest.auth(token)
-                         res = user_client.table('user_jobs').update({"resume_score": score}).eq('id', job_id).execute()
-                         print(f"DEBUG: Persistence Result: {res}")
-                     else:
-                         print("DEBUG: No Auth Header for Persistence")
+                        # Save to resumes table for history tracking
+                        try:
+                            job_title = None
+                            company_name = None
+                            
+                            # Try to get job details if job_id provided
+                            if job_id:
+                                job_res = user_client.table('user_jobs').select('job_title, company_name').eq('id', job_id).single().execute()
+                                if job_res and job_res.data:
+                                    job_title = job_res.data.get('job_title')
+                                    company_name = job_res.data.get('company_name')
+                            
+                            resume_record = {
+                                'user_id': user_id,
+                                'overall_score': score,
+                                'job_title': job_title,
+                                'company_name': company_name,
+                                'version_type': 'analysis',
+                                'resume_text': resume_text[:10000] if resume_text else None,  # Truncate if too long
+                                'content': ai_json
+                            }
+                            
+                            user_client.table('resumes').insert(resume_record).execute()
+                            print(f"✅ Resume history saved: Score {score}, Job: {job_title or 'General'}")
+                        except Exception as e:
+                            print(f"⚠️ Failed to save resume history: {e}")
+                        
+                        # Update user_jobs if job_id provided
+                        if job_id:
+                            print(f"DEBUG: Persisting Score {score} for Job {job_id}")
+                            res = user_client.table('user_jobs').update({"resume_score": score}).eq('id', job_id).execute()
+                            print(f"DEBUG: Persistence Result: {res}")
+                else:
+                    print("DEBUG: No Auth Header for Persistence")
             except Exception as e:
                 print(f"Persistence Failed: {e}")
                 import traceback
