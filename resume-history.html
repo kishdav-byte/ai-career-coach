@@ -158,11 +158,11 @@
                     <h2 class="text-lg font-bold text-white">Resume History</h2>
                     <div class="flex items-center gap-2">
                         <button onclick="sortBy('date')" id="sort-date"
-                            class="px-3 py-1.5 text-xs font-medium bg-teal/10 text-teal border border-teal/30 rounded-lg">
+                            class="px-3 py-1.5 text-xs font-bold bg-teal text-slate-900 rounded-lg shadow-lg">
                             <i class="fas fa-calendar mr-1"></i> Chronological
                         </button>
                         <button onclick="sortBy('score')" id="sort-score"
-                            class="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
+                            class="px-3 py-1.5 text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-all">
                             <i class="fas fa-sort-amount-down mr-1"></i> By Score
                         </button>
                     </div>
@@ -235,15 +235,16 @@
     // Sort Data
     function sortBy(type) {
         currentSort = type;
-        document.getElementById('sort-date').classList.toggle('bg-teal/10', type === 'date');
-        document.getElementById('sort-date').classList.toggle('text-teal', type === 'date');
-        document.getElementById('sort-date').classList.toggle('border-teal/30', type === 'date');
-        document.getElementById('sort-date').classList.toggle('text-slate-400', type !== 'date');
+        const dateBtn = document.getElementById('sort-date');
+        const scoreBtn = document.getElementById('sort-score');
 
-        document.getElementById('sort-score').classList.toggle('bg-teal/10', type === 'score');
-        document.getElementById('sort-score').classList.toggle('text-teal', type === 'score');
-        document.getElementById('sort-score').classList.toggle('border-teal/30', type === 'score');
-        document.getElementById('sort-score').classList.toggle('text-slate-400', type !== 'score');
+        if (type === 'date') {
+            dateBtn.className = 'px-3 py-1.5 text-xs font-bold bg-teal text-slate-900 rounded-lg shadow-lg';
+            scoreBtn.className = 'px-3 py-1.5 text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-all';
+        } else {
+            dateBtn.className = 'px-3 py-1.5 text-xs font-bold text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-all';
+            scoreBtn.className = 'px-3 py-1.5 text-xs font-bold bg-teal text-slate-900 rounded-lg shadow-lg';
+        }
 
         renderTable();
     }
@@ -300,11 +301,8 @@
                     </td>
                     <td class="px-6 py-4 text-right">
                         <div class="flex items-center justify-end gap-2">
-                            <button onclick="viewResume('${resume.id}')" class="px-3 py-1.5 text-xs font-medium text-teal hover:bg-teal/10 border border-teal/30 rounded-lg transition-all">
+                            <button onclick="viewResume('${resume.id}')" class="px-4 py-2 text-xs font-bold bg-teal text-slate-900 hover:bg-teal/80 rounded-lg transition-all shadow-lg">
                                 <i class="fas fa-eye mr-1"></i> View
-                            </button>
-                            <button onclick="reanalyze('${resume.id}')" class="px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
-                                <i class="fas fa-sync-alt mr-1"></i> Re-analyze
                             </button>
                         </div>
                     </td>
