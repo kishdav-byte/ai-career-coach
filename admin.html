@@ -205,202 +205,220 @@
     </style>
 </head>
 
-<body class="min-h-screen p-6 space-y-6">
+<!-- MOBILE HEADER (Visible < lg) -->
+<div
+    class="lg:hidden flex items-center justify-between mb-6 bg-slate-950/50 p-4 rounded-xl border border-slate-800 backdrop-blur-md sticky top-0 z-30">
+    <div class="flex items-center gap-3">
+        <i class="fas fa-shield-cat text-teal text-xl"></i>
+        <span class="font-black text-lg tracking-tighter text-white">MISSION_CONTROL</span>
+    </div>
+    <button onclick="toggleSidebar()" class="p-2 text-slate-400 hover:text-white transition-colors">
+        <i class="fas fa-bars text-xl"></i>
+    </button>
+</div>
 
-    <!-- HEADER -->
-    <header class="flex justify-between items-center mb-8">
-        <div class="flex items-center gap-4">
-            <div class="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center border border-teal/50">
-                <i class="fas fa-shield-cat text-teal text-xl"></i>
+<!-- Mobile Overlay -->
+<div id="mobile-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden" onclick="toggleSidebar()"></div>
+
+<!-- HEADER (Desktop) -->
+<header class="hidden lg:flex justify-between items-center mb-8">
+    <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-lg bg-teal/20 flex items-center justify-center border border-teal/50">
+            <i class="fas fa-shield-cat text-teal text-xl"></i>
+        </div>
+        <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">MISSION CONTROL</h1>
+            <div class="flex items-center gap-2 text-xs text-slate-400">
+                <div class="pulse-dot"></div>
+                <span>SYSTEM ONLINE</span>
             </div>
-            <div>
-                <h1 class="text-2xl font-bold tracking-tight text-white">MISSION CONTROL</h1>
-                <div class="flex items-center gap-2 text-xs text-slate-400">
-                    <div class="pulse-dot"></div>
-                    <span>SYSTEM ONLINE</span>
+        </div>
+    </div>
+    <div class="flex items-center gap-3">
+        <button onclick="toggleIntelDrawer(true)"
+            class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
+            <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
+        </button>
+        <button onclick="refreshAll()"
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
+            <i class="fas fa-sync-alt"></i> REFRESH DATA
+        </button>
+    </div>
+</header>
+
+<!-- GRID LAYOUT -->
+<div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+
+    <!-- COL 1: HEALTH PULSE (Left Sidebar) -->
+    <div id="admin-sidebar" class="hidden lg:block lg:col-span-1 space-y-6 order-2 lg:order-1">
+
+        <!-- WIDGET A: SCORING TRENDS -->
+        <div id="health-widget" class="glass-panel p-5 rounded-xl">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
+                <i class="fas fa-heartbeat mr-2"></i> Health Pulse
+            </h3>
+
+            <!-- MISSION SELECTOR (Standardized Across Tools) -->
+            <div class="mb-6 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
+                <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Active
+                    Mission Context</label>
+                <div class="relative group">
+                    <select id="mission-selector" onchange="selectMission(this.value)"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-teal-400 font-mono focus:outline-none focus:border-teal-500 transition-all cursor-pointer">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div class="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
+                        <i class="fas fa-caret-down"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">24H Scoring Avg</p>
+                    <div class="flex items-end gap-2">
+                        <span id="score-24h" class="text-3xl font-bold text-white">--</span>
+                        <span class="text-xs text-slate-400 mb-1">/ 5.0</span>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
+                    <p class="text-xs text-slate-500 mb-1">7-Day Avg (Baseline)</p>
+                    <span id="score-7d" class="text-xl font-bold text-slate-300">--</span>
+                </div>
+
+                <div id="anomaly-badge"
+                    class="hidden px-3 py-2 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-xs font-bold text-center">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> ANOMALY DETECTED
                 </div>
             </div>
         </div>
-        <div class="flex items-center gap-3">
-            <button onclick="toggleIntelDrawer(true)"
-                class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
-                <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
-            </button>
-            <button onclick="refreshAll()"
-                class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
-                <i class="fas fa-sync-alt"></i> REFRESH DATA
-            </button>
+
+        <!-- WIDGET B: AI COMMAND CENTER (CHAT) -->
+        <div class="glass-panel p-4 rounded-xl h-[400px] flex flex-col">
+            <h3
+                class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2 flex justify-between items-center">
+                <span><i class="fas fa-terminal mr-2"></i> COMMAND CENTER</span>
+                <span class="text-[10px] text-slate-500">v1.0</span>
+            </h3>
+
+            <!-- Chat Output -->
+            <div id="admin-chat-output"
+                class="flex-1 overflow-y-auto space-y-2 p-2 mb-2 bg-slate-900/50 rounded border border-slate-700/50 custom-scroll">
+                <div class="msg-system">
+                    > System Online.<br>
+                    > Welcome, Admin. How can I assist you?
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="relative">
+                <input type="text" id="admin-chat-input"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 pl-3 text-xs text-teal-400 font-mono focus:outline-none focus:border-teal-500 transition-colors"
+                    placeholder="Type a command (e.g. 'Check health', 'Find user')..." autocomplete="off">
+                <div class="absolute right-2 top-2 text-[10px] text-slate-600">⏎</div>
+            </div>
         </div>
-    </header>
 
-    <!-- GRID LAYOUT -->
-    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- WIDGET C: SUPPORT BOT TUNING -->
+        <div class="glass-panel p-5 rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/5">
+            <h3
+                class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                <span><i class="fas fa-brain mr-2"></i> Support Bot Tuning</span>
+                <span id="config-status" class="text-[10px] text-slate-500 italic">ready</span>
+            </h3>
+            <div class="space-y-4">
+                <p class="text-[10px] text-slate-400 leading-relaxed">Customize the bot's core logic and guardrails
+                    here. Updates are live instantly.</p>
 
-        <!-- COL 1: HEALTH PULSE (Left Sidebar) -->
-        <div class="lg:col-span-1 space-y-6">
-
-            <!-- WIDGET A: SCORING TRENDS -->
-            <div id="health-widget" class="glass-panel p-5 rounded-xl">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">
-                    <i class="fas fa-heartbeat mr-2"></i> Health Pulse
-                </h3>
-
-                <div class="space-y-4">
-                    <div class="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                        <p class="text-xs text-slate-500 mb-1">24H Scoring Avg</p>
-                        <div class="flex items-end gap-2">
-                            <span id="score-24h" class="text-3xl font-bold text-white">--</span>
-                            <span class="text-xs text-slate-400 mb-1">/ 5.0</span>
-                        </div>
-                    </div>
-
-                    <div class="p-4 bg-slate-900/50 rounded-lg border border-slate-700/50">
-                        <p class="text-xs text-slate-500 mb-1">7-Day Avg (Baseline)</p>
-                        <span id="score-7d" class="text-xl font-bold text-slate-300">--</span>
-                    </div>
-
-                    <div id="anomaly-badge"
-                        class="hidden px-3 py-2 bg-red-500/10 border border-red-500/50 rounded text-red-400 text-xs font-bold text-center">
-                        <i class="fas fa-exclamation-triangle mr-1"></i> ANOMALY DETECTED
-                    </div>
-                </div>
-            </div>
-
-            <!-- WIDGET B: AI COMMAND CENTER (CHAT) -->
-            <div class="glass-panel p-4 rounded-xl h-[400px] flex flex-col">
-                <h3
-                    class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-2 flex justify-between items-center">
-                    <span><i class="fas fa-terminal mr-2"></i> COMMAND CENTER</span>
-                    <span class="text-[10px] text-slate-500">v1.0</span>
-                </h3>
-
-                <!-- Chat Output -->
-                <div id="admin-chat-output"
-                    class="flex-1 overflow-y-auto space-y-2 p-2 mb-2 bg-slate-900/50 rounded border border-slate-700/50 custom-scroll">
-                    <div class="msg-system">
-                        > System Online.<br>
-                        > Welcome, Admin. How can I assist you?
-                    </div>
+                <div class="space-y-1">
+                    <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Knowledge & Guardrails</label>
+                    <textarea id="support-bot-prompt-input" rows="6"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
+                        placeholder="Loading system prompt..."></textarea>
                 </div>
 
-                <!-- Chat Input -->
-                <div class="relative">
-                    <input type="text" id="admin-chat-input"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 pl-3 text-xs text-teal-400 font-mono focus:outline-none focus:border-teal-500 transition-colors"
-                        placeholder="Type a command (e.g. 'Check health', 'Find user')..." autocomplete="off">
-                    <div class="absolute right-2 top-2 text-[10px] text-slate-600">⏎</div>
+                <div class="space-y-1">
+                    <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Opening Greeting</label>
+                    <textarea id="support-bot-welcome-input" rows="3"
+                        class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
+                        placeholder="Loading welcome message..."></textarea>
                 </div>
-            </div>
 
-            <!-- WIDGET C: SUPPORT BOT TUNING -->
-            <div class="glass-panel p-5 rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/5">
-                <h3
-                    class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4 flex justify-between items-center">
-                    <span><i class="fas fa-brain mr-2"></i> Support Bot Tuning</span>
-                    <span id="config-status" class="text-[10px] text-slate-500 italic">ready</span>
-                </h3>
-                <div class="space-y-4">
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Customize the bot's core logic and guardrails
-                        here. Updates are live instantly.</p>
-
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Knowledge & Guardrails</label>
-                        <textarea id="support-bot-prompt-input" rows="6"
-                            class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
-                            placeholder="Loading system prompt..."></textarea>
-                    </div>
-
-                    <div class="space-y-1">
-                        <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Opening Greeting</label>
-                        <textarea id="support-bot-welcome-input" rows="3"
-                            class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
-                            placeholder="Loading welcome message..."></textarea>
-                    </div>
-
-                    <button onclick="saveBotConfig()"
-                        class="w-full py-2 bg-teal hover:bg-teal-400 text-black text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-save"></i> UPDATE BOT BRAIN
-                    </button>
-                </div>
-            </div>
-        </div> <!-- End Col 1 (Sidebar) -->
-
-        <!-- COL 2 & 3 & 4: MAIN CONTENT -->
-        <div class="lg:col-span-3 space-y-6">
-
-            <!-- MOBILE HEADER (Visible < md) -->
-            <div class="md:hidden flex items-center justify-between mb-6">
-                <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP_ADMIN</div>
-                <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
-                    <i class="fas fa-bars text-xl"></i>
+                <button onclick="saveBotConfig()"
+                    class="w-full py-2 bg-teal hover:bg-teal-400 text-black text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> UPDATE BOT BRAIN
                 </button>
             </div>
+        </div>
+    </div> <!-- End Col 1 (Sidebar) -->
 
-            <!-- Mobile Overlay -->
-            <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
-                onclick="toggleSidebar()"></div>
+    <!-- COL 2 & 3 & 4: MAIN CONTENT -->
+    <div class="lg:col-span-3 space-y-6 order-1 lg:order-2">
 
-            <!-- ROW 2: USER MANAGER -->
-            <div class="glass-panel p-6 rounded-xl">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        <i class="fas fa-users-cog text-blue-400"></i> USER MANAGEMENT (GOD MODE)
-                    </h3>
-                    <input type="text" placeholder="Search Users..."
-                        class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-full md:w-48 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <div id="user-cards-mobile" class="md:hidden space-y-4 mb-4">
-                    <!-- Mobile User Cards -->
-                    <div class="text-center text-slate-600 py-8 italic text-sm">Loading Users...</div>
-                </div>
-
-                <div class="hidden md:block overflow-x-auto rounded-lg border border-slate-700">
-                    <table class="w-full text-left text-sm text-slate-400">
-                        <thead class="bg-slate-900/80 text-xs uppercase font-medium text-slate-300">
-                            <tr>
-                                <th class="px-4 py-3">User Email</th>
-                                <th class="px-4 py-3">Role</th>
-                                <th class="px-4 py-3">Plan</th>
-                                <th class="px-4 py-3 text-center">Univ. Credits</th>
-                                <th class="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-table-body" class="divide-y divide-slate-800 bg-slate-900/30">
-                            <!-- Dynamic User Rows -->
-                            <tr>
-                                <td colspan="5" class="px-4 py-8 text-center text-slate-600">Loading Users...</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+        <!-- ROW 2: USER MANAGER -->
+        <div class="glass-panel p-6 rounded-xl">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-users-cog text-blue-400"></i> USER MANAGEMENT (GOD MODE)
+                </h3>
+                <input type="text" placeholder="Search Users..."
+                    class="bg-slate-900 border border-slate-700 rounded px-3 py-1 text-xs text-slate-300 w-full md:w-48 focus:outline-none focus:border-blue-500">
             </div>
 
-            <!-- ROW 3: UAT LAB (Full Width) -->
+            <div id="user-cards-mobile" class="md:hidden space-y-4 mb-4">
+                <!-- Mobile User Cards -->
+                <div class="text-center text-slate-600 py-8 italic text-sm">Loading Users...</div>
+            </div>
+
+            <div class="hidden md:block overflow-x-auto rounded-lg border border-slate-700">
+                <table class="w-full text-left text-sm text-slate-400">
+                    <thead class="bg-slate-900/80 text-xs uppercase font-medium text-slate-300">
+                        <tr>
+                            <th class="px-4 py-3">User Email</th>
+                            <th class="px-4 py-3">Role</th>
+                            <th class="px-4 py-3">Plan</th>
+                            <th class="px-4 py-3 text-center">Univ. Credits</th>
+                            <th class="px-4 py-3 text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-table-body" class="divide-y divide-slate-800 bg-slate-900/30">
+                        <!-- Dynamic User Rows -->
+                        <tr>
+                            <td colspan="5" class="px-4 py-8 text-center text-slate-600">Loading Users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ROW 3 & 4: GRID SUB-LAYOUT -->
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- UAT LAB -->
             <div class="glass-panel p-6 rounded-xl">
                 <h3 class="text-sm font-bold text-white flex items-center gap-2 mb-4">
                     <i class="fas fa-vial text-purple-400"></i> UAT LAB
                 </h3>
 
                 <div class="space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                         <button onclick="runTest('executive')"
                             class="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-teal-500/50 rounded-lg text-left transition-all group">
-                            <span class="block text-sm font-bold text-white group-hover:text-teal-400 mb-1">Run "The
-                                Executive"</span>
-                            <span class="block text-[10px] text-slate-500">Scoring logic check (5/5).</span>
+                            <span
+                                class="block text-xs font-bold text-white group-hover:text-teal-400 mb-1">Executive</span>
+                            <span class="block text-[9px] text-slate-500">Scoring check.</span>
                         </button>
                         <button onclick="runTest('quitter')"
                             class="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-red-500/50 rounded-lg text-left transition-all group">
-                            <span class="block text-sm font-bold text-white group-hover:text-red-400 mb-1">Run "The
-                                Quitter"</span>
-                            <span class="block text-[10px] text-slate-500">Short answer rejection.</span>
+                            <span
+                                class="block text-xs font-bold text-white group-hover:text-red-400 mb-1">Quitter</span>
+                            <span class="block text-[9px] text-slate-500">Short rejection.</span>
                         </button>
                         <button onclick="runTest('cliffhanger')"
                             class="px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-yellow-500/50 rounded-lg text-left transition-all group">
-                            <span class="block text-sm font-bold text-white group-hover:text-yellow-400 mb-1">Run "The
-                                Cliffhanger"</span>
-                            <span class="block text-[10px] text-slate-500">Missing result check (2/5).</span>
+                            <span
+                                class="block text-xs font-bold text-white group-hover:text-yellow-400 mb-1">Cliffhanger</span>
+                            <span class="block text-[9px] text-slate-500">Missing result.</span>
                         </button>
                     </div>
                     <div
@@ -411,7 +429,7 @@
                 </div>
             </div>
 
-            <!-- ROW 4: MISSION FEEDBACK (Below UAT, Right of Bot Tuning) -->
+            <!-- MISSION FEEDBACK -->
             <div
                 class="glass-panel p-6 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5 flex flex-col h-[300px]">
                 <h3
@@ -427,154 +445,206 @@
                     <div class="text-xs text-slate-500 italic text-center py-10">Initializing feedback stream...</div>
                 </div>
             </div>
-        </div> <!-- End Col 2&3&4 -->
-    </div> <!-- End Grid -->
-
-    <!-- ROW 4: DEVICE SIMULATOR (Full Width) -->
-    <div class="glass-panel p-6 rounded-xl mt-6">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                <i class="fas fa-mobile-alt text-teal-400"></i> DEVICE SIMULATOR
-            </h3>
-            <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
-                <button onclick="resizeFrame('w-desktop')"
-                    class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Desktop</button>
-                <button onclick="resizeFrame('w-tablet')"
-                    class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Tablet</button>
-                <button onclick="resizeFrame('w-mobile')"
-                    class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition">Mobile</button>
-            </div>
         </div>
+    </div> <!-- End Col 2&3&4 -->
+</div> <!-- End Grid -->
 
-        <div class="w-full bg-slate-950 p-8 rounded-lg border border-slate-800 flex justify-center overflow-auto">
-            <iframe id="sim-frame" src="/dashboard.html" class="device-frame w-desktop shadow-2xl"></iframe>
+<!-- ROW 4: DEVICE SIMULATOR (Full Width) -->
+<div class="glass-panel p-6 rounded-xl mt-6">
+    <div class="flex justify-between items-center mb-4">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fas fa-mobile-alt text-teal-400"></i> DEVICE SIMULATOR
+        </h3>
+        <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
+            <button onclick="resizeFrame('w-desktop')"
+                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Desktop</button>
+            <button onclick="resizeFrame('w-tablet')"
+                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Tablet</button>
+            <button onclick="resizeFrame('w-mobile')"
+                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition">Mobile</button>
         </div>
     </div>
 
+    <div class="w-full bg-slate-950 p-8 rounded-lg border border-slate-800 flex justify-center overflow-auto">
+        <iframe id="sim-frame" src="/dashboard.html" class="device-frame w-desktop shadow-2xl"></iframe>
+    </div>
+</div>
 
-    <!-- EDIT CREDITS MODAL -->
-    <div id="edit-modal"
-        class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
-        <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 w-[400px] shadow-2xl">
-            <h3 class="text-lg font-bold text-white mb-4">Edit User Credits</h3>
-            <p id="modal-user-email" class="text-xs text-slate-400 mb-6 font-mono"></p>
 
-            <input type="hidden" id="modal-user-id">
+<!-- EDIT CREDITS MODAL -->
+<div id="edit-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+    <div class="bg-slate-900 border border-slate-700 rounded-xl p-6 w-[400px] shadow-2xl">
+        <h3 class="text-lg font-bold text-white mb-4">Edit User Credits</h3>
+        <p id="modal-user-email" class="text-xs text-slate-400 mb-6 font-mono"></p>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Universal</label>
-                    <input type="number" id="edit-credits"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Resume</label>
-                    <input type="number" id="edit-resume"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mock Int.</label>
-                    <input type="number" id="edit-interview"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Negotiation</label>
-                    <input type="number" id="edit-negotiation"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">LinkedIn</label>
-                    <input type="number" id="edit-linkedin"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Follow Up</label>
-                    <input type="number" id="edit-followup"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-                </div>
+        <input type="hidden" id="modal-user-id">
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Universal</label>
+                <input type="number" id="edit-credits"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
             </div>
-
-            <div class="flex justify-end gap-3 mt-8">
-                <button onclick="closeModal()" class="px-4 py-2 text-slate-400 hover:text-white text-sm">Cancel</button>
-                <button onclick="saveUserChanges()"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold">Save
-                    Changes</button>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Resume</label>
+                <input type="number" id="edit-resume"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mock Int.</label>
+                <input type="number" id="edit-interview"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Negotiation</label>
+                <input type="number" id="edit-negotiation"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">LinkedIn</label>
+                <input type="number" id="edit-linkedin"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Follow Up</label>
+                <input type="number" id="edit-followup"
+                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
             </div>
         </div>
+
+        <div class="flex justify-end gap-3 mt-8">
+            <button onclick="closeModal()" class="px-4 py-2 text-slate-400 hover:text-white text-sm">Cancel</button>
+            <button onclick="saveUserChanges()"
+                class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded text-sm font-bold">Save
+                Changes</button>
+        </div>
     </div>
+</div>
 
 
-    <script>
-        // --- LOGIC ---
+<script>
+    // --- LOGIC ---
 
-        async function refreshAll() {
-            await Promise.all([fetchHealth(), fetchUsers()]);
-        }
+    async function refreshAll() {
+        await Promise.all([fetchHealth(), fetchUsers()]);
+    }
 
-        // 1. FETCH HEALTH
-        async function fetchHealth() {
-            try {
-                const res = await fetch('/api/admin/health', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const data = await res.json();
+    // 1. FETCH HEALTH
+    async function fetchHealth() {
+        try {
+            const res = await fetch('/api/admin/health', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
 
-                if (!res.ok) throw new Error(data.error || 'Auth Failed');
+            if (!res.ok) throw new Error(data.error || 'Auth Failed');
 
-                // Update Widgets
-                document.getElementById('score-24h').textContent = (data.avg_24h || 0).toFixed(1);
-                document.getElementById('score-7d').textContent = (data.avg_7d || 0).toFixed(1);
+            // Update Widgets
+            document.getElementById('score-24h').textContent = (data.avg_24h || 0).toFixed(1);
+            document.getElementById('score-7d').textContent = (data.avg_7d || 0).toFixed(1);
 
-                const widget = document.getElementById('health-widget');
-                const badge = document.getElementById('anomaly-badge');
+            const widget = document.getElementById('health-widget');
+            const badge = document.getElementById('anomaly-badge');
 
-                if (data.anomaly) {
-                    widget.classList.add('bg-red-900/20', 'border-red-900/50');
-                    badge.classList.remove('hidden');
-                } else {
-                    widget.classList.remove('bg-red-900/20', 'border-red-900/50');
-                    badge.classList.add('hidden');
-                }
-            } catch (e) {
-                console.error("Health Fetch Failed", e);
+            if (data.anomaly) {
+                widget.classList.add('bg-red-900/20', 'border-red-900/50');
+                badge.classList.remove('hidden');
+            } else {
+                widget.classList.remove('bg-red-900/20', 'border-red-900/50');
+                badge.classList.add('hidden');
             }
+        } catch (e) {
+            console.error("Health Fetch Failed", e);
         }
+    }
 
-        function toggleSidebar() {
-            const sidebar = document.querySelector('.lg\\:col-span-1');
-            const overlay = document.getElementById('mobile-overlay');
-            if (sidebar) {
-                sidebar.classList.toggle('hidden');
-                sidebar.classList.toggle('fixed');
-                sidebar.classList.toggle('inset-y-0');
-                sidebar.classList.toggle('left-0');
-                sidebar.classList.toggle('w-[280px]');
-                sidebar.classList.toggle('z-40');
-                sidebar.classList.toggle('bg-slate-950');
-                sidebar.classList.toggle('border-r');
-                sidebar.classList.toggle('border-slate-800');
-                sidebar.classList.toggle('p-6');
-                sidebar.classList.toggle('overflow-y-auto');
+    // --- MISSION SELECTOR LOGIC ---
+    let allJobs = [];
+    window.loadMissions = async () => {
+        try {
+            const token = localStorage.getItem('supabase.auth.token');
+            if (!token) return;
+
+            const res = await fetch('/api/jobs', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return;
+            allJobs = await res.json();
+
+            const selector = document.getElementById('mission-selector');
+            if (!selector) return;
+
+            const activeJobs = allJobs.filter(j => j.status !== 'closed');
+            selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+            activeJobs.forEach(job => {
+                const opt = document.createElement('option');
+                opt.value = job.id;
+                opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                selector.appendChild(opt);
+            });
+
+            // Pre-select if current exists
+            const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+            if (currentCtx.job_id) {
+                selector.value = currentCtx.job_id;
             }
-            if (overlay) overlay.classList.toggle('hidden');
+        } catch (e) {
+            console.error("Failed to load missions", e);
         }
+    };
 
-        // 2. FETCH USERS
-        async function fetchUsers() {
-            try {
-                const res = await fetch('/api/admin/users', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const users = await res.json();
+    window.selectMission = (id) => {
+        if (!id) return;
+        const job = allJobs.find(j => j.id == id);
+        if (!job) return;
 
-                if (!res.ok) throw new Error(users.error || 'Auth Failed');
+        const context = {
+            job_id: job.id,
+            role: job.job_title,
+            company: job.company_name,
+            jd: job.job_description,
+            description: job.job_description
+        };
+        localStorage.setItem('mission_context', JSON.stringify(context));
+    };
 
-                const tbody = document.getElementById('user-table-body');
-                const cardContainer = document.getElementById('user-cards-mobile');
+    function toggleSidebar() {
+        const sidebar = document.getElementById('admin-sidebar');
+        const overlay = document.getElementById('mobile-overlay');
+        if (!sidebar || !overlay) return;
 
-                if (Array.isArray(users)) {
-                    // Update Table
-                    tbody.innerHTML = users.map(u => `
+        const isOpen = !sidebar.classList.contains('hidden');
+
+        if (isOpen) {
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('fixed', 'inset-y-0', 'left-0', 'w-[280px]', 'z-50', 'bg-slate-950', 'border-r', 'border-slate-800', 'p-6', 'overflow-y-auto');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+        } else {
+            sidebar.classList.remove('hidden');
+            sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'w-[280px]', 'z-50', 'bg-slate-950', 'border-r', 'border-slate-800', 'p-6', 'overflow-y-auto');
+            overlay.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    // 2. FETCH USERS
+    async function fetchUsers() {
+        try {
+            const res = await fetch('/api/admin/users', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const users = await res.json();
+
+            if (!res.ok) throw new Error(users.error || 'Auth Failed');
+
+            const tbody = document.getElementById('user-table-body');
+            const cardContainer = document.getElementById('user-cards-mobile');
+
+            if (Array.isArray(users)) {
+                // Update Table
+                tbody.innerHTML = users.map(u => `
                         <tr class="hover:bg-slate-800/50 transition-colors">
                             <td class="px-4 py-3 text-white font-medium">${u.email}</td>
                             <td class="px-4 py-3">
@@ -590,8 +660,8 @@
                         </tr>
                     `).join('');
 
-                    // Update Cards
-                    cardContainer.innerHTML = users.map(u => `
+                // Update Cards
+                cardContainer.innerHTML = users.map(u => `
                         <div class="glass-panel p-4 rounded-xl border border-white/5">
                             <div class="flex justify-between items-start mb-3">
                                 <div class="truncate pr-4">
@@ -609,250 +679,250 @@
                         </div>
                     `).join('');
 
-                } else {
-                    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Failed to load users.</td></tr>';
-                    cardContainer.innerHTML = '<div class="text-center text-red-500 py-8 italic text-sm">Failed to load users.</div>';
-                }
-            } catch (e) {
-                console.error("User Fetch Failed", e);
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-8 text-center text-red-500">Failed to load users.</td></tr>';
+                cardContainer.innerHTML = '<div class="text-center text-red-500 py-8 italic text-sm">Failed to load users.</div>';
             }
+        } catch (e) {
+            console.error("User Fetch Failed", e);
         }
+    }
 
-        // 3. EDIT MODAL
-        function openEditModal(user) {
-            document.getElementById('modal-user-id').value = user.id;
-            document.getElementById('modal-user-email').textContent = user.email;
+    // 3. EDIT MODAL
+    function openEditModal(user) {
+        document.getElementById('modal-user-id').value = user.id;
+        document.getElementById('modal-user-email').textContent = user.email;
 
-            document.getElementById('edit-credits').value = user.credits || 0;
-            document.getElementById('edit-resume').value = user.resume_credits || 0;
-            document.getElementById('edit-interview').value = user.credits_interview_sim || 0;
-            document.getElementById('edit-negotiation').value = user.credits_negotiation || 0;
-            document.getElementById('edit-linkedin').value = user.credits_linkedin || 0;
-            document.getElementById('edit-followup').value = user.credits_followup || 0;
+        document.getElementById('edit-credits').value = user.credits || 0;
+        document.getElementById('edit-resume').value = user.resume_credits || 0;
+        document.getElementById('edit-interview').value = user.credits_interview_sim || 0;
+        document.getElementById('edit-negotiation').value = user.credits_negotiation || 0;
+        document.getElementById('edit-linkedin').value = user.credits_linkedin || 0;
+        document.getElementById('edit-followup').value = user.credits_followup || 0;
 
-            document.getElementById('edit-modal').classList.remove('hidden');
-        }
+        document.getElementById('edit-modal').classList.remove('hidden');
+    }
 
-        function closeModal() {
-            document.getElementById('edit-modal').classList.add('hidden');
-        }
+    function closeModal() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    }
 
-        async function saveUserChanges() {
-            const id = document.getElementById('modal-user-id').value;
-            const updates = {
-                credits: parseInt(document.getElementById('edit-credits').value) || 0,
-                resume_credits: parseInt(document.getElementById('edit-resume').value) || 0,
-                credits_interview_sim: parseInt(document.getElementById('edit-interview').value) || 0,
-                credits_negotiation: parseInt(document.getElementById('edit-negotiation').value) || 0,
-                credits_linkedin: parseInt(document.getElementById('edit-linkedin').value) || 0,
-                credits_followup: parseInt(document.getElementById('edit-followup').value) || 0
-            };
+    async function saveUserChanges() {
+        const id = document.getElementById('modal-user-id').value;
+        const updates = {
+            credits: parseInt(document.getElementById('edit-credits').value) || 0,
+            resume_credits: parseInt(document.getElementById('edit-resume').value) || 0,
+            credits_interview_sim: parseInt(document.getElementById('edit-interview').value) || 0,
+            credits_negotiation: parseInt(document.getElementById('edit-negotiation').value) || 0,
+            credits_linkedin: parseInt(document.getElementById('edit-linkedin').value) || 0,
+            credits_followup: parseInt(document.getElementById('edit-followup').value) || 0
+        };
 
-            try {
-                const res = await fetch('/api/admin/credits', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
-                    },
-                    body: JSON.stringify({ user_id: id, updates: updates })
-                });
-
-                if (res.ok) {
-                    closeModal();
-                    fetchUsers();
-                } else {
-                    alert('Update failed');
-                }
-            } catch (e) {
-                console.error(e);
-                alert('Error saving changes');
-            }
-        }
-
-        // 4. RUN TESTS (UAT LAB)
-        async function runTest(persona) {
-            const consoleEl = document.getElementById('test-console');
-            consoleEl.textContent = `> Initializing ${persona.toUpperCase()} test sequence...\n`;
-            try {
-                const res = await fetch('/api/admin/run-test', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ persona: persona })
-                });
-                const data = await res.json();
-                consoleEl.textContent += `> Test Runner Connected.\n> Executing Simulation...\n\n`;
-                setTimeout(() => {
-                    consoleEl.textContent += data.logs || "No logs returned.";
-                    consoleEl.scrollTop = consoleEl.scrollHeight;
-                }, 500);
-            } catch (e) {
-                consoleEl.textContent += `\n[FATAL ERROR]: Connection to Test Runner failed.`;
-            }
-        }
-
-        // 5. DEVICE SIMULATOR
-        function resizeFrame(sizeClass) {
-            const frame = document.getElementById('sim-frame');
-            frame.className = `device-frame shadow-2xl ${sizeClass}`;
-        }
-
-        // 6. SUPPORT BOT CONFIG (TUNING)
-        async function fetchBotConfig() {
-            try {
-                const resP = await fetch('/api/admin/config?key=support_bot_prompt', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const dataP = await resP.json();
-                document.getElementById('support-bot-prompt-input').value = dataP.value || "";
-
-                const resW = await fetch('/api/admin/config?key=support_bot_welcome', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const dataW = await resW.json();
-                document.getElementById('support-bot-welcome-input').value = dataW.value || "";
-            } catch (err) {
-                console.error("Failed to fetch bot config", err);
-            }
-        }
-
-        async function saveBotConfig() {
-            const promptVal = document.getElementById('support-bot-prompt-input').value;
-            const welcomeVal = document.getElementById('support-bot-welcome-input').value;
-            const status = document.getElementById('config-status');
-            status.textContent = "saving...";
-
-            try {
-                await Promise.all([
-                    fetch('/api/admin/config', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
-                        body: JSON.stringify({ key: 'support_bot_prompt', value: promptVal })
-                    }),
-                    fetch('/api/admin/config', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
-                        body: JSON.stringify({ key: 'support_bot_welcome', value: welcomeVal })
-                    })
-                ]);
-                status.textContent = "saved!";
-                setTimeout(() => status.textContent = "ready", 2000);
-            } catch (err) {
-                status.textContent = "error";
-                alert("Failed to save bot configuration.");
-            }
-        }
-
-        // 7. ADMIN CHAT LOGIC (COMMAND CENTER)
-        const chatInput = document.getElementById('admin-chat-input');
-        const chatOutput = document.getElementById('admin-chat-output');
-
-        if (chatInput) {
-            chatInput.addEventListener('keydown', async (e) => {
-                if (e.key === 'Enter') {
-                    const msg = chatInput.value.trim();
-                    if (!msg) return;
-                    appendAdminMessage(msg);
-                    chatInput.value = '';
-                    try {
-                        const loadingId = appendSystemMessage("Processing...", true);
-                        const res = await fetch('/api/admin/chat', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
-                            },
-                            body: JSON.stringify({ message: msg })
-                        });
-                        const data = await res.json();
-                        document.getElementById(loadingId)?.remove();
-                        if (data.error) appendSystemMessage("Error: " + data.error);
-                        else appendSystemMessage(data.response);
-                    } catch (err) {
-                        appendSystemMessage("Critical Error: Connection Failed");
-                    }
-                }
+        try {
+            const res = await fetch('/api/admin/credits', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                },
+                body: JSON.stringify({ user_id: id, updates: updates })
             });
-        }
 
-        function appendAdminMessage(text) {
-            const div = document.createElement('div');
-            div.className = 'msg-admin';
-            div.textContent = '> ' + text;
-            chatOutput.appendChild(div);
-            chatOutput.scrollTop = chatOutput.scrollHeight;
-        }
-
-        function appendSystemMessage(text, isLoading = false) {
-            const div = document.createElement('div');
-            div.className = 'msg-system';
-            div.id = 'msg-' + Date.now();
-            if (isLoading) div.className += ' italic opacity-70';
-            div.innerHTML = '> ' + text.replace(/\n/g, '<br>');
-            chatOutput.appendChild(div);
-            chatOutput.scrollTop = chatOutput.scrollHeight;
-            return div.id;
-        }
-
-        // 8. INTEL HUB LOGIC
-        let currentIntelData = null;
-
-        function toggleIntelDrawer(open) {
-            const drawer = document.getElementById('intel-drawer');
-            const overlay = document.getElementById('drawer-overlay');
-            if (open) {
-                drawer.classList.add('open');
-                overlay.classList.remove('hidden');
-                fetchIntel();
+            if (res.ok) {
+                closeModal();
+                fetchUsers();
             } else {
-                drawer.classList.remove('open');
-                overlay.classList.add('hidden');
+                alert('Update failed');
             }
+        } catch (e) {
+            console.error(e);
+            alert('Error saving changes');
         }
+    }
 
-        function switchIntelTab(tab) {
-            const opsTab = document.getElementById('tab-ops');
-            const finTab = document.getElementById('tab-fin');
-            const comTab = document.getElementById('tab-com');
-            const activeClass = 'bg-teal text-black shadow-lg shadow-teal/20';
-            const inactiveClass = 'text-slate-400 hover:text-white bg-slate-800';
+    // 4. RUN TESTS (UAT LAB)
+    async function runTest(persona) {
+        const consoleEl = document.getElementById('test-console');
+        consoleEl.textContent = `> Initializing ${persona.toUpperCase()} test sequence...\n`;
+        try {
+            const res = await fetch('/api/admin/run-test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ persona: persona })
+            });
+            const data = await res.json();
+            consoleEl.textContent += `> Test Runner Connected.\n> Executing Simulation...\n\n`;
+            setTimeout(() => {
+                consoleEl.textContent += data.logs || "No logs returned.";
+                consoleEl.scrollTop = consoleEl.scrollHeight;
+            }, 500);
+        } catch (e) {
+            consoleEl.textContent += `\n[FATAL ERROR]: Connection to Test Runner failed.`;
+        }
+    }
 
-            opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
-            finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
-            comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+    // 5. DEVICE SIMULATOR
+    function resizeFrame(sizeClass) {
+        const frame = document.getElementById('sim-frame');
+        frame.className = `device-frame shadow-2xl ${sizeClass}`;
+    }
 
-            if (tab === 'ops') {
-                opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
-                renderOps();
-            } else if (tab === 'fin') {
-                finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
-                renderFin();
-            } else {
-                comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
-                renderCom();
+    // 6. SUPPORT BOT CONFIG (TUNING)
+    async function fetchBotConfig() {
+        try {
+            const resP = await fetch('/api/admin/config?key=support_bot_prompt', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const dataP = await resP.json();
+            document.getElementById('support-bot-prompt-input').value = dataP.value || "";
+
+            const resW = await fetch('/api/admin/config?key=support_bot_welcome', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const dataW = await resW.json();
+            document.getElementById('support-bot-welcome-input').value = dataW.value || "";
+        } catch (err) {
+            console.error("Failed to fetch bot config", err);
+        }
+    }
+
+    async function saveBotConfig() {
+        const promptVal = document.getElementById('support-bot-prompt-input').value;
+        const welcomeVal = document.getElementById('support-bot-welcome-input').value;
+        const status = document.getElementById('config-status');
+        status.textContent = "saving...";
+
+        try {
+            await Promise.all([
+                fetch('/api/admin/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
+                    body: JSON.stringify({ key: 'support_bot_prompt', value: promptVal })
+                }),
+                fetch('/api/admin/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
+                    body: JSON.stringify({ key: 'support_bot_welcome', value: welcomeVal })
+                })
+            ]);
+            status.textContent = "saved!";
+            setTimeout(() => status.textContent = "ready", 2000);
+        } catch (err) {
+            status.textContent = "error";
+            alert("Failed to save bot configuration.");
+        }
+    }
+
+    // 7. ADMIN CHAT LOGIC (COMMAND CENTER)
+    const chatInput = document.getElementById('admin-chat-input');
+    const chatOutput = document.getElementById('admin-chat-output');
+
+    if (chatInput) {
+        chatInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const msg = chatInput.value.trim();
+                if (!msg) return;
+                appendAdminMessage(msg);
+                chatInput.value = '';
+                try {
+                    const loadingId = appendSystemMessage("Processing...", true);
+                    const res = await fetch('/api/admin/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                        },
+                        body: JSON.stringify({ message: msg })
+                    });
+                    const data = await res.json();
+                    document.getElementById(loadingId)?.remove();
+                    if (data.error) appendSystemMessage("Error: " + data.error);
+                    else appendSystemMessage(data.response);
+                } catch (err) {
+                    appendSystemMessage("Critical Error: Connection Failed");
+                }
             }
-        }
+        });
+    }
 
-        async function fetchIntel() {
-            try {
-                const res = await fetch('/api/admin/intel', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const data = await res.json();
-                if (data.error) throw new Error(data.error);
-                currentIntelData = data;
-                renderOps();
-            } catch (err) {
-                document.getElementById('intel-body').innerHTML = `<div class="text-red-400 text-xs p-4 bg-red-400/10 border border-red-400/20 rounded">Failed to sync intel: ${err.message}</div>`;
-            }
-        }
+    function appendAdminMessage(text) {
+        const div = document.createElement('div');
+        div.className = 'msg-admin';
+        div.textContent = '> ' + text;
+        chatOutput.appendChild(div);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+    }
 
-        function renderOps() {
-            if (!currentIntelData) return;
-            const body = document.getElementById('intel-body');
-            const tiers = currentIntelData.tiers;
-            const avg = currentIntelData.averages;
-            body.innerHTML = `
+    function appendSystemMessage(text, isLoading = false) {
+        const div = document.createElement('div');
+        div.className = 'msg-system';
+        div.id = 'msg-' + Date.now();
+        if (isLoading) div.className += ' italic opacity-70';
+        div.innerHTML = '> ' + text.replace(/\n/g, '<br>');
+        chatOutput.appendChild(div);
+        chatOutput.scrollTop = chatOutput.scrollHeight;
+        return div.id;
+    }
+
+    // 8. INTEL HUB LOGIC
+    let currentIntelData = null;
+
+    function toggleIntelDrawer(open) {
+        const drawer = document.getElementById('intel-drawer');
+        const overlay = document.getElementById('drawer-overlay');
+        if (open) {
+            drawer.classList.add('open');
+            overlay.classList.remove('hidden');
+            fetchIntel();
+        } else {
+            drawer.classList.remove('open');
+            overlay.classList.add('hidden');
+        }
+    }
+
+    function switchIntelTab(tab) {
+        const opsTab = document.getElementById('tab-ops');
+        const finTab = document.getElementById('tab-fin');
+        const comTab = document.getElementById('tab-com');
+        const activeClass = 'bg-teal text-black shadow-lg shadow-teal/20';
+        const inactiveClass = 'text-slate-400 hover:text-white bg-slate-800';
+
+        opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+        finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+        comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+
+        if (tab === 'ops') {
+            opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+            renderOps();
+        } else if (tab === 'fin') {
+            finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+            renderFin();
+        } else {
+            comTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+            renderCom();
+        }
+    }
+
+    async function fetchIntel() {
+        try {
+            const res = await fetch('/api/admin/intel', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
+            if (data.error) throw new Error(data.error);
+            currentIntelData = data;
+            renderOps();
+        } catch (err) {
+            document.getElementById('intel-body').innerHTML = `<div class="text-red-400 text-xs p-4 bg-red-400/10 border border-red-400/20 rounded">Failed to sync intel: ${err.message}</div>`;
+        }
+    }
+
+    function renderOps() {
+        if (!currentIntelData) return;
+        const body = document.getElementById('intel-body');
+        const tiers = currentIntelData.tiers;
+        const avg = currentIntelData.averages;
+        body.innerHTML = `
                 <div class="space-y-6">
                     <section>
                         <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Live Job Market Concentration</h4>
@@ -897,50 +967,50 @@
                     </section>
                 </div>
             `;
-        }
+    }
 
-        function renderFin() {
-            if (!currentIntelData || !currentIntelData.transactions) return;
-            const body = document.getElementById('intel-body');
-            const trans = currentIntelData.transactions;
-            if (trans.length === 0) {
-                body.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4"><i class="fas fa-receipt text-4xl opacity-20"></i><p class="text-sm italic">No recent transactions detected.</p></div>`;
-                return;
-            }
-            body.innerHTML = `
+    function renderFin() {
+        if (!currentIntelData || !currentIntelData.transactions) return;
+        const body = document.getElementById('intel-body');
+        const trans = currentIntelData.transactions;
+        if (trans.length === 0) {
+            body.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4"><i class="fas fa-receipt text-4xl opacity-20"></i><p class="text-sm italic">No recent transactions detected.</p></div>`;
+            return;
+        }
+        body.innerHTML = `
                 <div class="space-y-4">
                     <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Transaction History (Last 50)</h4>
                     ${trans.map(t => `<div class="p-4 bg-slate-900 border border-white/5 rounded-xl hover:border-white/10 flex justify-between items-start"><div><p class="text-xs font-bold text-white">${t.email}</p><p class="text-[10px] text-slate-500">${t.plan_type}</p></div><div class="text-right"><p class="text-sm font-bold text-teal">$${parseFloat(t.amount).toFixed(2)}</p><p class="text-[8px] text-slate-600">${new Date(t.created_at).toLocaleDateString()}</p></div></div>`).join('')}
                 </div>
             `;
-        }
+    }
 
-        function renderCom() {
-            if (!currentIntelData || !currentIntelData.support_logs) return;
-            const body = document.getElementById('intel-body');
-            const logs = currentIntelData.support_logs;
-            if (logs.length === 0) {
-                body.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4"><i class="fas fa-comments text-4xl opacity-20"></i><p class="text-sm italic">No communications logged yet.</p></div>`;
+    function renderCom() {
+        if (!currentIntelData || !currentIntelData.support_logs) return;
+        const body = document.getElementById('intel-body');
+        const logs = currentIntelData.support_logs;
+        if (logs.length === 0) {
+            body.innerHTML = `<div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4"><i class="fas fa-comments text-4xl opacity-20"></i><p class="text-sm italic">No communications logged yet.</p></div>`;
+            return;
+        }
+        body.innerHTML = `<div class="space-y-4">${logs.map(log => `<div class="p-4 bg-slate-900 border border-white/5 rounded-xl space-y-2"><div class="flex justify-between items-center"><span class="text-[10px] font-bold text-teal flex items-center gap-1"><i class="fas fa-question-circle"></i> USER</span><span class="text-[8px] text-slate-600">${new Date(log.created_at).toLocaleTimeString()}</span></div><p class="text-xs text-white">${log.question}</p><div class="pt-2 border-t border-white/5"><span class="text-[10px] font-bold text-slate-500">BOT</span><p class="text-[11px] text-slate-400 italic mt-1">${log.answer}</p></div></div>`).join('')}</div>`;
+    }
+
+    // 9. FEEDBACK SHUTTLE
+    async function fetchFeedback() {
+        try {
+            const res = await fetch('/api/admin/feedback', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
+            const container = document.getElementById('feedback-container');
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="text-[10px] text-slate-600 italic text-center py-10">No feedback entries yet.</div>';
                 return;
             }
-            body.innerHTML = `<div class="space-y-4">${logs.map(log => `<div class="p-4 bg-slate-900 border border-white/5 rounded-xl space-y-2"><div class="flex justify-between items-center"><span class="text-[10px] font-bold text-teal flex items-center gap-1"><i class="fas fa-question-circle"></i> USER</span><span class="text-[8px] text-slate-600">${new Date(log.created_at).toLocaleTimeString()}</span></div><p class="text-xs text-white">${log.question}</p><div class="pt-2 border-t border-white/5"><span class="text-[10px] font-bold text-slate-500">BOT</span><p class="text-[11px] text-slate-400 italic mt-1">${log.answer}</p></div></div>`).join('')}</div>`;
-        }
 
-        // 9. FEEDBACK SHUTTLE
-        async function fetchFeedback() {
-            try {
-                const res = await fetch('/api/admin/feedback', {
-                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
-                });
-                const data = await res.json();
-                const container = document.getElementById('feedback-container');
-
-                if (data.length === 0) {
-                    container.innerHTML = '<div class="text-[10px] text-slate-600 italic text-center py-10">No feedback entries yet.</div>';
-                    return;
-                }
-
-                container.innerHTML = data.map(f => `
+            container.innerHTML = data.map(f => `
                     <div class="p-3 bg-slate-900 border border-white/5 rounded-lg group hover:border-blue-500/30 transition-all">
                         <div class="flex justify-between items-start mb-1">
                             <span class="text-[9px] font-mono text-blue-400 truncate max-w-[120px]">${f.user_email}</span>
@@ -950,44 +1020,45 @@
                     </div>
                 `).join('');
 
-            } catch (err) {
-                console.error("Failed to fetch feedback", err);
-            }
+        } catch (err) {
+            console.error("Failed to fetch feedback", err);
         }
+    }
 
-        // STARTUP
-        refreshAll();
-        fetchBotConfig();
-        fetchFeedback();
-        setInterval(fetchFeedback, 30000); // Auto-refresh feedback every 30s
-    </script>
+    // STARTUP
+    refreshAll();
+    fetchBotConfig();
+    fetchFeedback();
+    loadMissions();
+    setInterval(fetchFeedback, 30000); // Auto-refresh feedback every 30s
+</script>
 
-    <!-- INTEL DRAWER -->
-    <div id="intel-drawer"
-        class="intel-drawer fixed inset-y-0 right-0 w-[450px] bg-slate-950/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl z-[60] flex flex-col">
-        <div class="p-6 border-b border-white/5 flex justify-between items-center">
-            <div>
-                <h2 class="text-xl font-bold font-mono text-teal">MISSION_INTEL_HUB</h2>
-                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Real-Time Operational Analytics</p>
-            </div>
-            <button onclick="toggleIntelDrawer(false)" class="text-slate-500 hover:text-white transition-colors"><i
-                    class="fas fa-times text-xl"></i></button>
+<!-- INTEL DRAWER -->
+<div id="intel-drawer"
+    class="intel-drawer fixed inset-y-0 right-0 w-[450px] bg-slate-950/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl z-[60] flex flex-col">
+    <div class="p-6 border-b border-white/5 flex justify-between items-center">
+        <div>
+            <h2 class="text-xl font-bold font-mono text-teal">MISSION_INTEL_HUB</h2>
+            <p class="text-[10px] text-slate-500 uppercase tracking-widest">Real-Time Operational Analytics</p>
         </div>
-        <div class="p-4 bg-slate-900/50 border-b border-white/5 flex gap-2">
-            <button onclick="switchIntelTab('ops')" id="tab-ops"
-                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-teal text-black shadow-lg shadow-teal/20">OPERATIONS</button>
-            <button onclick="switchIntelTab('fin')" id="tab-fin"
-                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">FINANCIALS</button>
-            <button onclick="switchIntelTab('com')" id="tab-com"
-                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">COMMUNICATIONS</button>
-        </div>
-        <div id="intel-body" class="flex-1 overflow-y-auto p-6 space-y-8 custom-scroll">
-            <div class="flex items-center justify-center h-full text-slate-500 italic text-sm">Initializing Intel
-                Stream...</div>
-        </div>
+        <button onclick="toggleIntelDrawer(false)" class="text-slate-500 hover:text-white transition-colors"><i
+                class="fas fa-times text-xl"></i></button>
     </div>
-    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[55]"
-        onclick="toggleIntelDrawer(false)"></div>
+    <div class="p-4 bg-slate-900/50 border-b border-white/5 flex gap-2">
+        <button onclick="switchIntelTab('ops')" id="tab-ops"
+            class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-teal text-black shadow-lg shadow-teal/20">OPERATIONS</button>
+        <button onclick="switchIntelTab('fin')" id="tab-fin"
+            class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">FINANCIALS</button>
+        <button onclick="switchIntelTab('com')" id="tab-com"
+            class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">COMMUNICATIONS</button>
+    </div>
+    <div id="intel-body" class="flex-1 overflow-y-auto p-6 space-y-8 custom-scroll">
+        <div class="flex items-center justify-center h-full text-slate-500 italic text-sm">Initializing Intel
+            Stream...</div>
+    </div>
+</div>
+<div id="drawer-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[55]"
+    onclick="toggleIntelDrawer(false)"></div>
 </body>
 
 </html>

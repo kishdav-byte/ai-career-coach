@@ -162,22 +162,46 @@
 
         <!-- MOBILE HEADER (Visible < md) -->
         <div
-            class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
-            <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
+            class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-950/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 z-50">
+            <div class="font-black text-xl tracking-tighter text-teal flex items-center gap-2">
+                <i class="fas fa-shield-cat"></i>
+                <span>ACE_CORP</span>
+            </div>
             <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
                 <i class="fas fa-bars text-xl"></i>
             </button>
         </div>
 
+        <!-- Mobile Overlay -->
+        <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-30 hidden"
+            onclick="toggleSidebar()"></div>
+
         <!-- SIDEBAR -->
         <aside id="sidebar"
-            class="fixed inset-y-0 left-0 w-[260px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
+            class="fixed inset-y-0 left-0 w-[280px] bg-slate-950 border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
             <!-- Logo -->
-            <div class="h-20 flex items-center px-6 mt-4 md:mt-0 border-b border-white/5">
+            <div class="h-20 flex items-center px-6 mt-16 md:mt-0 border-b border-white/5">
                 <h1
-                    class="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
+                    class="font-black text-xl tracking-tighter bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent flex items-center gap-2">
+                    <i class="fas fa-rocket text-teal text-lg"></i>
                     ACE_CORP
                 </h1>
+            </div>
+
+            <!-- MISSION SELECTOR (Standardized Across Tools) -->
+            <div class="p-4 border-b border-white/5">
+                <label class="block text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 px-2">Active
+                    Mission</label>
+                <div class="relative group">
+                    <select id="mission-selector" onchange="selectMission(this.value)"
+                        class="w-full bg-slate-900/50 border border-white/10 rounded-xl px-3 py-2 text-xs text-white appearance-none focus:outline-none focus:border-teal/50 transition-all cursor-pointer hover:bg-white/5">
+                        <option value="">Loading Missions...</option>
+                    </select>
+                    <div
+                        class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover:text-teal transition-colors">
+                        <i class="fas fa-chevron-down fa-xs"></i>
+                    </div>
+                </div>
             </div>
 
             <!-- User Profile (Moved to Top for Mobile Visibility) -->
@@ -1021,6 +1045,9 @@
 
             // 4. Fetch Jobs (Kanban)
             loadJobs();
+
+            // 5. Fetch Missions (Global Context)
+            loadMissions();
         });
 
         // --- DOSSIER LOGIC ---
@@ -1657,6 +1684,70 @@
                 }
             });
         }
+
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                if (!session) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                jd: job.job_description,
+                description: job.job_description
+            };
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            window.applyMissionContext(context);
+        };
+
+        window.applyMissionContext = (ctx) => {
+            if (!ctx) return;
+            // The dashboard is unique - selecting a mission should open the dossier if it matches
+            if (ctx.job_id) {
+                const jobTile = document.querySelector(`[data-job-id="${ctx.job_id}"]`);
+                if (jobTile) {
+                    // Open the dossier for this job
+                    openDossier(ctx.job_id);
+                }
+            }
+        };
 
         // --- SMART CONTEXT PASSING ---
         // NEW: Shuttle Logic
