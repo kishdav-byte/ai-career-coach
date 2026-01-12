@@ -1649,9 +1649,8 @@
 
             <!-- Messages -->
             <div id="support-chat-output" class="flex-1 overflow-y-auto p-4 space-y-4 custom-scroll scroll-smooth">
-                <div class="support-msg-bot p-3 text-xs leading-relaxed text-slate-300">
-                    Welcome to AceInterview. I am your **Mission Specialist**. How can I assist you with our executive
-                    career tools today?
+                <div id="support-welcome-bubble" class="support-msg-bot p-3 text-xs leading-relaxed text-slate-300">
+                    Initializing mission support...
                 </div>
             </div>
 
@@ -1673,7 +1672,9 @@
     </div>
 
     <script>
-        function toggleSupportChat() {
+        let isSupportInit = false;
+
+        async function toggleSupportChat() {
             const win = document.getElementById('support-window');
             const bubble = document.getElementById('support-bubble');
             const isHidden = win.classList.contains('hidden');
@@ -1681,6 +1682,21 @@
             if (isHidden) {
                 win.classList.remove('hidden');
                 bubble.classList.add('scale-0', 'opacity-0');
+
+                // Fetch welcome message on first open
+                if (!isSupportInit) {
+                    try {
+                        const res = await fetch('/api/admin/config?key=support_bot_welcome');
+                        const data = await res.json();
+                        const welcome = data.value || "Welcome to AceInterview. How can I help you today?";
+                        const bubbleEl = document.getElementById('support-welcome-bubble');
+                        bubbleEl.innerHTML = welcome.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                        isSupportInit = true;
+                    } catch (err) {
+                        document.getElementById('support-welcome-bubble').textContent = "Specialist online. Ready for mission instructions.";
+                    }
+                }
+
                 // Auto-focus input
                 setTimeout(() => document.getElementById('support-chat-input').focus(), 400);
             } else {
