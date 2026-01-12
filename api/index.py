@@ -2538,13 +2538,6 @@ def admin_users():
         print(f"Admin Users Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# 14. ADMIN CHAT (POST)
-        return jsonify(users), 200
-        
-    except Exception as e:
-        print(f"Admin Users Error: {e}")
-        return jsonify({"error": str(e)}), 500
-
 # 13B. ADMIN UPDATE CREDITS (POST) - Manual UI Modal
 @app.route('/api/admin/credits', methods=['POST'])
 def admin_update_credits_ui():
