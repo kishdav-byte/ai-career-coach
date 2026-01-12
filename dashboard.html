@@ -1714,21 +1714,21 @@
                 </div>
             </div>
 
-        </div>
-        <div class="mt-auto pt-6 border-t border-white/5">
-            <div class="relative flex items-center">
-                <input type="text" id="support-chat-input"
-                    class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2.5 px-4 pr-10 text-xs text-white focus:outline-none focus:border-teal/50 transition-all"
-                    placeholder="Ask a question..." onkeydown="if(event.key === 'Enter') sendSupportMessage()">
-                <button onclick="sendSupportMessage()"
-                    class="absolute right-3 text-teal hover:scale-110 transition-transform">
-                    <i class="fas fa-paper-plane text-xs"></i>
-                </button>
+            <!-- Input (Now correctly inside support-window) -->
+            <div class="p-4 bg-black/20 border-t border-white/5">
+                <div class="relative flex items-center">
+                    <input type="text" id="support-chat-input"
+                        class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-2.5 px-4 pr-10 text-xs text-white focus:outline-none focus:border-teal/50 transition-all"
+                        placeholder="Ask a question..." onkeydown="if(event.key === 'Enter') sendSupportMessage()">
+                    <button onclick="sendSupportMessage()"
+                        class="absolute right-3 text-teal hover:scale-110 transition-transform">
+                        <i class="fas fa-paper-plane text-xs"></i>
+                    </button>
+                </div>
+                <p class="text-[8px] text-slate-600 text-center mt-2">Specialist cannot access personal data for
+                    security.</p>
             </div>
-            <p class="text-[8px] text-slate-600 text-center mt-2">Specialist cannot access personal data for
-                security.</p>
         </div>
-    </div>
     </div>
 
     <script>
