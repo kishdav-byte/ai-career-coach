@@ -1,0 +1,25 @@
+def track_cost_chat(response, model, action="Unknown"):
+def track_cost_audio(text, model, action="TTS"):
+def health_check():
+def get_supabase():
+def get_admin_supabase():
+def manage_jobs():
+def update_job(job_id):
+def generate_intel():
+def analyze_jd():
+def sanitize_input(text):
+def get_feedback():
+def general_api():
+def get_user_profile():
+def create_checkout_session():
+def generate_strategy_tool():
+def decrement_strategy_credit(user_id, tool_type, token):
+def test_fulfillment():
+def stripe_webhook():
+def handle_checkout_fulfillment(session):
+def admin_health():
+def admin_users():
+def admin_update_credits_ui():
+def admin_chat():
+def admin_run_test():
+        def log(msg): logs.append(msg)

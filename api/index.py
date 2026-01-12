@@ -2238,6 +2238,35 @@ def handle_checkout_fulfillment(session):
     if updates:
         try:
             res = supabase_client.table('users').update(updates).eq('id', user_id).execute()
+            
+            # --- NEW: Log to Transactions Table ---
+            try:
+                amount = 0.00
+                # Mapping prices to amounts for auditing
+                prices = {
+                    'strategy_cover': 6.99, 'strategy_linkedin': 6.99, 'strategy_plan': 8.99,
+                    'strategy_followup': 6.99, 'strategy_closer': 6.99, 'strategy_rewrite': 12.99,
+                    'strategy_interview_sim': 9.99, 'strategy_bundle': 29.99, 'monthly_unlimited': 49.99
+                }
+                amount = prices.get(plan_type, 0.00)
+                
+                # Fetch email if missing
+                u_email = metadata.get('email')
+                if not u_email:
+                    u_data = supabase_client.table('users').select('email').eq('id', user_id).single().execute()
+                    u_email = u_data.data.get('email') if u_data.data else 'unknown@user.com'
+
+                supabase_client.table('transactions').insert({
+                    "user_id": user_id,
+                    "email": u_email,
+                    "plan_type": plan_type,
+                    "amount": amount,
+                    "stripe_session_id": session.get('id')
+                }).execute()
+                logs.append("Transaction Logged Successfully.")
+            except Exception as log_err:
+                logs.append(f"Transaction Log Failed: {str(log_err)}")
+
             logs.append(f"Update Success. Rows: {len(res.data) if res.data else 0}")
             return {'status': 'success', 'logs': logs, 'updates': updates, 'key_type': key_type}
         except Exception as e:
@@ -2641,9 +2670,75 @@ def admin_run_test():
              log("> WARNING: No Admin User found. Test ran but not saved.")
 
         log("\n--- TEST COMPLETE: SUCCESS ---")
-        
         return jsonify({ "logs": "\n".join(logs), "score": final_avg }), 200
 
     except Exception as e:
         print(f"UAT Error: {e}")
         return jsonify({"error": str(e), "logs": f"CRITICAL FAILURE: {str(e)}"}), 500
+
+# 16. ADMIN MISSION INTEL (GET)
+# Helper for classification
+def classify_job_title(title):
+    t = (title or "").lower()
+    if any(x in t for x in ['ceo', 'v-p', 'vp', 'director', 'founder', 'chief', 'executive', 'president']): return 'Executive'
+    if any(x in t for x in ['manager', 'lead', 'supervisor', 'head of', 'principal']): return 'Management'
+    if any(x in t for x in ['cook', 'driver', 'clerk', 'staff', 'server', 'helper', 'technician']): return 'Service/Support'
+    return 'Professional'
+
+@app.route('/api/admin/intel', methods=['GET'])
+def admin_mission_intel():
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+
+    try:
+        supabase = get_admin_supabase()
+        
+        # 1. Job Tier Analytics
+        job_res = supabase.table('user_jobs').select("job_title").limit(500).execute()
+        jobs = job_res.data if job_res.data else []
+        tier_counts = {"Executive": 0, "Management": 0, "Professional": 0, "Service/Support": 0}
+        for j in jobs:
+            tier = classify_job_title(j.get('job_title', ''))
+            tier_counts[tier] += 1
+
+        # 2. Performance Scores (System-Wide)
+        # Interviews
+        int_res = supabase.table('interviews').select("overall_score").limit(100).execute()
+        int_scores = [r['overall_score'] for r in int_res.data if r.get('overall_score')]
+        avg_int = round(sum(int_scores)/len(int_scores), 1) if int_scores else 0
+
+        # Resume Scans
+        res_res = supabase.table('resume_scans').select("score").limit(100).execute()
+        res_scores = [r['score'] for r in res_res.data if r.get('score')]
+        avg_res = round(sum(res_scores)/len(res_scores), 1) if res_scores else 0
+
+        # 3. Recent Transactions
+        trans_res = supabase.table('transactions').select("*").order("created_at", desc=True).limit(50).execute()
+        transactions = trans_res.data if trans_res.data else []
+
+        # 4. Usage Volume (Last 24h vs. 7d)
+        from datetime import datetime, timedelta
+        now = datetime.utcnow()
+        day_ago = now - timedelta(days=1)
+        
+        # Count free vs paid via activity logs (if exists) or just generic activity
+        # We'll use a simple proxy: Total job adds and interview starts
+        activity_res = supabase.table('user_jobs').select("created_at").gte("created_at", day_ago.isoformat()).execute()
+        daily_volume = len(activity_res.data) if activity_res.data else 0
+
+        return jsonify({
+            "tiers": tier_counts,
+            "averages": {
+                "interview": avg_int,
+                "resume": avg_res
+            },
+            "transactions": transactions,
+            "daily_volume": daily_volume
+        }), 200
+
+    except Exception as e:
+        print(f"Admin Intel Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# Expose app
+app = app

@@ -160,6 +160,48 @@
             font-weight: bold;
             font-family: 'JetBrains Mono', monospace;
         }
+
+        /* INTEL DRAWER STYLES */
+        .intel-drawer {
+            transform: translateX(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .intel-drawer.open {
+            transform: translateX(0);
+        }
+
+        .tier-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .tier-Executive {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+        }
+
+        .tier-Management {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+
+        .tier-Service {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+
+        .tier-Professional {
+            background: rgba(16, 185, 129, 0.2);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
     </style>
 </head>
 
@@ -179,10 +221,16 @@
                 </div>
             </div>
         </div>
-        <button onclick="refreshAll()"
-            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
-            <i class="fas fa-sync-alt"></i> REFRESH DATA
-        </button>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleIntelDrawer(true)"
+                class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
+                <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
+            </button>
+            <button onclick="refreshAll()"
+                class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
+                <i class="fas fa-sync-alt"></i> REFRESH DATA
+            </button>
+        </div>
     </header>
 
     <!-- GRID LAYOUT -->
@@ -645,10 +693,205 @@
             return div.id;
         }
 
+        // --- INTEL HUB LOGIC ---
+        let currentIntelData = null;
+
+        function toggleIntelDrawer(open) {
+            const drawer = document.getElementById('intel-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            if (open) {
+                drawer.classList.add('open');
+                overlay.classList.remove('hidden');
+                fetchIntel();
+            } else {
+                drawer.classList.remove('open');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function switchIntelTab(tab) {
+            const opsTab = document.getElementById('tab-ops');
+            const finTab = document.getElementById('tab-fin');
+            const activeClass = 'bg-teal text-black shadow-lg shadow-teal/20';
+            const inactiveClass = 'text-slate-400 hover:text-white bg-slate-800';
+
+            if (tab === 'ops') {
+                opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+                finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+                renderOps();
+            } else {
+                finTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${activeClass}`;
+                opsTab.className = `flex-1 py-2 text-xs font-bold rounded-lg transition-all ${inactiveClass}`;
+                renderFin();
+            }
+        }
+
+        async function fetchIntel() {
+            try {
+                const res = await fetch('/api/admin/intel', {
+                    headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+                });
+                const data = await res.json();
+                if (data.error) throw new Error(data.error);
+                currentIntelData = data;
+                renderOps(); // Start with Ops
+            } catch (err) {
+                document.getElementById('intel-body').innerHTML = `<div class="text-red-400 text-xs p-4 bg-red-400/10 border border-red-400/20 rounded">Failed to sync intel: ${err.message}</div>`;
+            }
+        }
+
+        function renderOps() {
+            if (!currentIntelData) return;
+            const body = document.getElementById('intel-body');
+            const tiers = currentIntelData.tiers;
+            const avg = currentIntelData.averages;
+
+            body.innerHTML = `
+                <div class="space-y-6">
+                    <!-- JOB TIERS -->
+                    <section>
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Live Job Market Concentration</h4>
+                        <div class="grid grid-cols-2 gap-3">
+                            ${Object.entries(tiers).map(([tier, count]) => `
+                                <div class="bg-slate-900/80 p-3 rounded-xl border border-white/5">
+                                    <div class="flex justify-between items-center mb-1">
+                                        <span class="text-[10px] text-slate-400 font-mono">${tier}</span>
+                                        <span class="text-xs font-bold text-white">${count}</span>
+                                    </div>
+                                    <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <div class="h-full bg-teal" style="width: ${Math.min((count / 100) * 100, 100)}%"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+
+                    <!-- PERFORMANCE METRICS -->
+                    <section>
+                        <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">System Performance Baseline</h4>
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between p-4 bg-slate-900 border border-white/5 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20">
+                                        <i class="fas fa-microphone"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Interview Score Avg</p>
+                                        <p class="text-[10px] text-slate-500">Based on recent sessions</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-bold text-white">${avg.interview}</span>
+                                    <span class="text-[10px] text-slate-500">/5.0</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between p-4 bg-slate-900 border border-white/5 rounded-xl">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 border border-orange-500/20">
+                                        <i class="fas fa-file-invoice"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-bold text-white">Resume Health Avg</p>
+                                        <p class="text-[10px] text-slate-500">Global scan quality</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-xl font-bold text-white">${avg.resume}</span>
+                                    <span class="text-[10px] text-slate-500">/100</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- USAGE VOLUME -->
+                    <section>
+                        <div class="bg-gradient-to-r from-teal/20 to-transparent p-4 rounded-xl border border-teal/20">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="text-xs font-bold text-white">Daily Active Volume</h4>
+                                    <p class="text-[10px] text-slate-400">Total job adds in last 24h</p>
+                                </div>
+                                <span class="text-2xl font-bold text-teal">${currentIntelData.daily_volume}</span>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            `;
+        }
+
+        function renderFin() {
+            if (!currentIntelData) return;
+            const body = document.getElementById('intel-body');
+            const trans = currentIntelData.transactions;
+
+            if (trans.length === 0) {
+                body.innerHTML = `
+                    <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-4">
+                        <i class="fas fa-receipt text-4xl opacity-20"></i>
+                        <p class="text-sm italic">No recent transactions detected.</p>
+                        <p class="text-[10px] uppercase text-slate-600">Syncing with ledger...</p>
+                    </div>
+                `;
+                return;
+            }
+
+            body.innerHTML = `
+                <div class="space-y-4">
+                    <h4 class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3">Transaction History (Last 50)</h4>
+                    ${trans.map(t => `
+                        <div class="p-4 bg-slate-900 border border-white/5 rounded-xl hover:border-white/10 transition-all flex flex-col gap-2">
+                            <div class="flex justify-between items-start">
+                                <div class="max-w-[70%]">
+                                    <p class="text-xs font-bold text-white truncate">${t.email}</p>
+                                    <p class="text-[10px] text-slate-500 font-mono">${t.plan_type}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-sm font-bold text-teal">$${parseFloat(t.amount).toFixed(2)}</p>
+                                    <p class="text-[8px] text-slate-600">${new Date(t.created_at).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
         // STARTUP
         refreshAll();
 
     </script>
+
+    <!-- INTEL DRAWER -->
+    <div id="intel-drawer"
+        class="intel-drawer fixed inset-y-0 right-0 w-[450px] bg-slate-950/95 backdrop-blur-xl border-l border-slate-800 shadow-2xl z-[60] flex flex-col">
+        <div class="p-6 border-b border-white/5 flex justify-between items-center">
+            <div>
+                <h2 class="text-xl font-bold font-mono text-teal">MISSION_INTEL_HUB</h2>
+                <p class="text-[10px] text-slate-500 uppercase tracking-widest">Real-Time Operational Analytics</p>
+            </div>
+            <button onclick="toggleIntelDrawer(false)" class="text-slate-500 hover:text-white transition-colors">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-4 bg-slate-900/50 border-b border-white/5 flex gap-2">
+            <button onclick="switchIntelTab('ops')" id="tab-ops"
+                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all bg-teal text-black shadow-lg shadow-teal/20">OPERATIONS</button>
+            <button onclick="switchIntelTab('fin')" id="tab-fin"
+                class="flex-1 py-2 text-xs font-bold rounded-lg transition-all text-slate-400 hover:text-white bg-slate-800">FINANCIALS</button>
+        </div>
+
+        <div id="intel-body" class="flex-1 overflow-y-auto p-6 space-y-8 custom-scroll">
+            <!-- Content Injected via JS -->
+            <div class="flex items-center justify-center h-full text-slate-500 italic text-sm">Initializing Intel
+                Stream...</div>
+        </div>
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="drawer-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[55]"
+        onclick="toggleIntelDrawer(false)"></div>
 </body>
 
 </html>
