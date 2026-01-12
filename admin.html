@@ -235,6 +235,10 @@
         </div>
     </div>
     <div class="flex items-center gap-3">
+        <a href="/dashboard.html"
+            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg text-sm font-bold transition-all border border-slate-700 flex items-center gap-2">
+            <i class="fas fa-user"></i> USER VIEW
+        </a>
         <button onclick="toggleIntelDrawer(true)"
             class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
             <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
@@ -449,26 +453,6 @@
     </div> <!-- End Col 2&3&4 -->
 </div> <!-- End Grid -->
 
-<!-- ROW 4: DEVICE SIMULATOR (Full Width) -->
-<div class="glass-panel p-6 rounded-xl mt-6">
-    <div class="flex justify-between items-center mb-4">
-        <h3 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fas fa-mobile-alt text-teal-400"></i> DEVICE SIMULATOR
-        </h3>
-        <div class="flex bg-slate-900 rounded-lg p-1 border border-slate-700">
-            <button onclick="resizeFrame('w-desktop')"
-                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Desktop</button>
-            <button onclick="resizeFrame('w-tablet')"
-                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition mr-1">Tablet</button>
-            <button onclick="resizeFrame('w-mobile')"
-                class="px-3 py-1 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700 rounded transition">Mobile</button>
-        </div>
-    </div>
-
-    <div class="w-full bg-slate-950 p-8 rounded-lg border border-slate-800 flex justify-center overflow-auto">
-        <iframe id="sim-frame" src="/dashboard.html" class="device-frame w-desktop shadow-2xl"></iframe>
-    </div>
-</div>
 
 
 <!-- EDIT CREDITS MODAL -->

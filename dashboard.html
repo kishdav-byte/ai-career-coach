@@ -178,7 +178,7 @@
 
         <!-- SIDEBAR -->
         <aside id="sidebar"
-            class="fixed inset-y-0 left-0 w-[280px] bg-slate-950 border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
+            class="fixed inset-y-0 left-0 w-[280px] bg-slate-950 border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static md:z-0">
             <!-- Logo -->
             <div class="h-20 flex items-center px-6 mt-16 md:mt-0 border-b border-white/5">
                 <h1
@@ -677,12 +677,13 @@
                     </div>
                 </div>
 
-                <!-- 1. Key Metrics Row (6 Columns for Wider Tiles) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-6 mb-6 md:mb-8">
+                <!-- 1. Key Metrics Row (Responsive Columns) -->
+                <div
+                    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 md:gap-6 mb-6 md:mb-8">
 
                     <!-- Metric 1: Resume Health -->
                     <a href="/resume-analyzer.html"
-                        class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
+                        class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <!-- ... content ... -->
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
@@ -706,7 +707,7 @@
 
                     <!-- Metric 2: Avg Interview Score (Span 1) -->
                     <a href="interview-history.html"
-                        class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
+                        class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
                         <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest text-center mt-1">
@@ -725,7 +726,7 @@
                     <!-- Metric 3: Strategy Log (Span 1) -->
                     <!-- Metric 3: Strategy Log (Span 1) -->
                     <div onclick="window.location.href='jobs-history.html'"
-                        class="glass-card rounded-2xl p-6 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer">
+                        class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
                         <h3 class="text-gray-400 text-xs font-bold uppercase tracking-widest text-center mt-1">
