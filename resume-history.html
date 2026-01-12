@@ -213,7 +213,7 @@
 <script>
     const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const SESSION_KEY = 'aceinterview_session';
 
     let resumeData = [];
@@ -432,7 +432,7 @@
             document.getElementById('user-initials').textContent = initials;
 
             // Fetch resume history from Supabase
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('resumes')
                 .select('*')
                 .eq('user_id', userId)
