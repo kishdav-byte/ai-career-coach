@@ -212,9 +212,17 @@
         <span class="text-[9px] font-bold text-teal uppercase tracking-[0.2em] leading-none mb-0.5">Total Package</span>
         <span class="text-lg font-black text-white tracking-tighter leading-none uppercase">Admin Center</span>
     </div>
-    <button onclick="toggleSidebar()" class="p-2 text-slate-400 hover:text-white transition-colors">
-        <i class="fas fa-bars text-xl"></i>
-    </button>
+    <div class="flex items-center gap-2">
+        <a href="/dashboard.html" class="p-2 text-teal-400 hover:text-teal transition-colors" title="User Dashboard">
+            <i class="fas fa-user text-lg"></i>
+        </a>
+        <button onclick="signOut()" class="p-2 text-slate-400 hover:text-red-400 transition-colors" title="Sign Out">
+            <i class="fas fa-sign-out-alt text-lg"></i>
+        </button>
+        <button onclick="toggleSidebar()" class="p-2 text-slate-400 hover:text-white transition-colors">
+            <i class="fas fa-bars text-xl"></i>
+        </button>
+    </div>
 </div>
 
 <!-- Mobile Overlay -->
@@ -251,6 +259,10 @@
         <button onclick="refreshAll()"
             class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
             <i class="fas fa-sync-alt"></i> REFRESH DATA
+        </button>
+        <button onclick="signOut()"
+            class="px-4 py-2 bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-lg text-sm font-medium transition-all border border-slate-700 hover:border-red-500/50 flex items-center gap-2">
+            <i class="fas fa-sign-out-alt"></i> LOGOUT
         </button>
     </div>
 </header>
@@ -1012,6 +1024,17 @@
         } catch (err) {
             console.error("Failed to fetch feedback", err);
         }
+    }
+
+    // 10. SIGN OUT
+    function signOut() {
+        // Clear all auth-related data
+        localStorage.removeItem('supabase.auth.token');
+        localStorage.removeItem('aceinterview_session');
+        localStorage.removeItem('mission_context');
+
+        // Redirect to login
+        window.location.href = '/login.html';
     }
 
     // STARTUP
