@@ -208,24 +208,24 @@
                 return;
             }
 
-            // Fetch User Data
+            // Fetch Fresh User Data
             let userData = null;
             try {
-                // Try fetching from localStorage session first
-                const sessionStr = localStorage.getItem('aceinterview_session');
-                if (sessionStr) {
-                    userData = JSON.parse(sessionStr);
+                // Always fetch fresh from API to ensure credits are up to date
+                const res = await fetch('/api/user-profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    userData = await res.json();
                 } else {
-                    // Fallback to API if session not found
-                    const res = await fetch('/api/auth/user', {
-                        headers: { 'Authorization': `Bearer ${token}` }
-                    });
-                    const result = await res.json();
-                    userData = result.user || result;
+                    // Fallback to localStorage if API fails
+                    const sessionStr = localStorage.getItem('aceinterview_session');
+                    if (sessionStr) userData = JSON.parse(sessionStr);
                 }
             } catch (e) {
-                console.error("Error fetching profile:", e);
-                // Don't return, try to proceed if we have a token
+                console.error("Error fetching fresh profile:", e);
+                const sessionStr = localStorage.getItem('aceinterview_session');
+                if (sessionStr) userData = JSON.parse(sessionStr);
             }
 
             if (!userData) {
