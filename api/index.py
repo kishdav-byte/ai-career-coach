@@ -196,6 +196,10 @@ def submit_feedback():
         data = request.json
         message = data.get('message')
         email = data.get('email', 'anonymous@aceinterview.ai')
+        category = data.get('category', 'general') # complaint, enhancement, refund, etc.
+        status = data.get('status', 'open')
+        error_code = data.get('error_code', None)
+        metadata = data.get('metadata', {})
 
         if not message:
             return jsonify({"error": "Message is required"}), 400
@@ -203,7 +207,11 @@ def submit_feedback():
         supabase = get_admin_supabase()
         supabase.table('user_feedback').insert({
             "user_email": email,
-            "message": message
+            "message": message,
+            "category": category,
+            "status": status,
+            "error_code": error_code,
+            "metadata": metadata
         }).execute()
 
         return jsonify({"success": True}), 200
@@ -219,9 +227,25 @@ def get_admin_feedback():
 
     try:
         supabase = get_admin_supabase()
-        # Assuming 'desc' is available or imported, otherwise it would be `order('created_at', {'ascending': False})`
-        # For simplicity, assuming `desc` is a valid keyword argument or imported from a library like `postgrest-py`
         res = supabase.table('user_feedback').select('*').order('created_at', desc=True).limit(50).execute()
+        return jsonify(res.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/feedback/<feedback_id>', methods=['PUT'])
+def update_admin_feedback(feedback_id):
+    """Allow admin to resolve/close feedback."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+
+    try:
+        data = request.json
+        updates = {}
+        if 'status' in data: updates['status'] = data['status']
+        if 'admin_comments' in data: updates['admin_comments'] = data['admin_comments']
+
+        supabase = get_admin_supabase()
+        res = supabase.table('user_feedback').update(updates).eq('id', feedback_id).execute()
         return jsonify(res.data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1678,21 +1702,20 @@ def general_api():
                - **Real-Time Data**: DO NOT claim to know *real-time* stock prices or private internal memos. If asked for this, provide a general framework but strictly state you don't have live access.
                - **No Hallucinations**: Do not invent specific financial numbers or news events.
             4. **AMBIGUITY RESOLUTION**: If a company name is common (e.g. "Loop", "Apex"), look at the Context (Role/JD) to infer the correct entity.
-               - IF uncertain, provide a "Disambiguation List" (e.g. "Did you mean Loop Returns (SaaS), Loop Industries (Plastics), or Loop Insurance?").
-               - PRIORITIZE the entity that matches the User's industry/role.
-            5. **OPENING**: Start by acknowledging the user's specific context or asking which of their active jobs they are focusing on today.
-            5. Maintain a high-leverage, executive tone.
+            
+            ESCALATION & COMPLAINT PROTOCOL (CRITICAL):
+            If a user expresses frustration, reports a bug, requests a refund, or suggests an enhancement:
+            1.  **Acknowledge and Empathize**: Stay professional and helpful.
+            2.  **Categorize**: Identify if it's a 'complaint', 'enhancement', 'refund', or 'bug'.
+            3.  **Action**: Explicitly tell the user you are filing a mission escalation.
+            4.  **Data Encoding**: You MUST append a hidden structured block at the very end of your response in THIS EXACT FORMAT: 
+                `[ESCALATION_DATA: {"category": "...", "summary": "...", "error_code": "..."}]`
             
             REVENUE LINKING PROTOCOL (CRITICAL):
-            When relevant, you MUST naturally mention one of the following tools in your response to trigger a conversion chip:
-            - Mention "Executive Rewrite" if the user needs resume optimization.
-            - Mention "Interview Simulator" if the user needs to practice for behaviorals or technicals.
-            - Mention "The Closer" if the user is discussing salary or contract negotiation.
+            When relevant, you MUST naturally mention tools like "Executive Rewrite", "Interview Simulator", or "The Closer".
 
             INSTRUCTIONS:
-            1. Provide actionable, high-leverage advice.
-            2. Use Markdown for formatting.
-            3. Keep responses punchy and professional.
+            1. Provide actionable, high-leverage advice. 2. Use Markdown. 3. Keep responses punchy.
             """
 
             completion = client.chat.completions.create(
@@ -1702,8 +1725,42 @@ def general_api():
                     { "role": "user", "content": user_message }
                 ]
             )
+            ai_response = completion.choices[0].message.content
             track_cost_chat(completion, "gpt-4o", "Lab Chat")
-            return jsonify({ "response": completion.choices[0].message.content }), 200
+
+            # --- ESCALATION AUTO-DETECTION ---
+            if "[ESCALATION_DATA:" in ai_response:
+                try:
+                    import re
+                    match = re.search(r'\[ESCALATION_DATA:\s*({.*?})\]', ai_response, re.DOTALL)
+                    if match:
+                        esc_json = json.loads(match.group(1))
+                        # Fetch user email for feedback
+                        u_email = "anonymous@aceinterview.ai"
+                        auth_header = request.headers.get('Authorization')
+                        if auth_header:
+                            token = auth_header.split(" ")[1]
+                            sb = get_supabase()
+                            u_res = sb.auth.get_user(token)
+                            if u_res and u_res.user: u_email = u_res.user.email
+
+                        # Submit to Admin Feedback
+                        admin_sb = get_admin_supabase()
+                        admin_sb.table('user_feedback').insert({
+                            "user_email": u_email,
+                            "message": f"AI AUTO-ESCALATED: {esc_json.get('summary', 'No summary')}\n\nUser Original: {user_message}",
+                            "category": esc_json.get('category', 'complaint'),
+                            "error_code": esc_json.get('error_code', 'ERR_AI_EVOKED'),
+                            "status": "open",
+                            "metadata": {"source": "lab_assistant_chat", "ai_raw_summary": esc_json}
+                        }).execute()
+                        
+                    # Strip the hidden tag from user view
+                    ai_response = re.sub(r'\[ESCALATION_DATA:.*?\]', '', ai_response, flags=re.DOTALL).strip()
+                except Exception as e:
+                    print(f"Escalation Parse Error: {e}")
+
+            return jsonify({ "response": ai_response }), 200
 
         elif action == 'star_coach_init':
             resume_text = data.get('resume_text', '')
