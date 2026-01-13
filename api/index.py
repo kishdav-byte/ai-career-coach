@@ -547,6 +547,20 @@ def get_feedback():
             "- IF Score 1-2: Move on neutrally or ask for clarification.\n"
         )
         
+        # v9.1: Credit Deduction (Interview Start)
+        if is_start:
+            try:
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    supabase = get_supabase()
+                    user_res = supabase.auth.get_user(token)
+                    if user_res and user_res.user:
+                        # Use 'interview' as tool type for deduction
+                        decrement_strategy_credit(user_res.user.id, 'interview', token)
+            except Exception as ce:
+                print(f"Interview Credit Deduction Error: {ce}")
+
         messages = [{"role": "system", "content": system_prompt}]
         
         # Add limited history to save context window
@@ -1534,9 +1548,24 @@ def general_api():
                 ]
             )
             track_cost_chat(completion, "gpt-4o", "Cover Letter")
-            return jsonify({ "data": completion.choices[0].message.content }), 200
+            
+            ai_content = completion.choices[0].message.content
 
-        elif action == 'linkedin_optimize':
+            # --- DEDUCTION LOGIC ---
+            try:
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    supabase = get_supabase()
+                    user_res = supabase.auth.get_user(token)
+                    if user_res and user_res.user:
+                        decrement_strategy_credit(user_res.user.id, 'cover', token)
+            except Exception as e:
+                print(f"Cover Letter Credit Deduction Error: {e}")
+
+            return jsonify({ "data": ai_content }), 200
+
+        elif action in ['linkedin_optimize', 'strategy_linkedin']:
             about_me = data.get('aboutMe', '')
             
             prompt = f"""
@@ -1564,7 +1593,22 @@ def general_api():
                 response_format={ "type": "json_object" }
             )
             track_cost_chat(completion, "gpt-4o", "LinkedIn Optimize")
-            return jsonify(json.loads(completion.choices[0].message.content)), 200
+            
+            ai_json = json.loads(completion.choices[0].message.content)
+
+            # --- DEDUCTION LOGIC ---
+            try:
+                auth_header = request.headers.get('Authorization')
+                if auth_header:
+                    token = auth_header.split(" ")[1]
+                    supabase = get_supabase()
+                    user_res = supabase.auth.get_user(token)
+                    if user_res and user_res.user:
+                        decrement_strategy_credit(user_res.user.id, 'linkedin', token)
+            except Exception as e:
+                print(f"LinkedIn Credit Deduction Error: {e}")
+
+            return jsonify(ai_json), 200
 
         elif action == 'lab_assistant_chat':
             user_message = data.get('message', '')
@@ -2075,7 +2119,7 @@ def generate_strategy_tool():
             3. **The Script (Phone Version)**: Bullet points for a live conversation.
             """
 
-        elif tool_type == 'followup':
+        elif tool_type in ['followup', 'follow_up']:
             recipient = inputs.get('recipient_name', 'Hiring Manager')
             scenario = inputs.get('scenario', 'post_interview')
             context = inputs.get('context', '')
@@ -2096,6 +2140,24 @@ def generate_strategy_tool():
             [Content]
             
             **Why this works:** Brief explanation.
+            """
+            
+        elif tool_type == 'plan':
+            role = inputs.get('role_title', 'The Role')
+            company = inputs.get('company_name', 'The Company')
+            focus = inputs.get('focus_area', '')
+            
+            prompt = f"""
+            Generate a comprehensive 30-60-90 Day Plan for a {role} at {company}.
+            
+            FOCUS AREA / JD CONTEXT:
+            {focus[:3000]}
+            
+            INSTRUCTIONS:
+            1. Provide a strategic breakdown of priorities for the first 30, 60, and 90 days.
+            2. Focus on "Vision, Culture, & ROI Dominance" as befits an executive role.
+            3. Use specific actions, metrics for success, and clear milestones.
+            4. Output in Markdown format with clear headers for each section (Day 1-30, Day 31-60, Day 61-90).
             """
             
         else:
@@ -2137,10 +2199,12 @@ def decrement_strategy_credit(user_id, tool_type, token):
             'closer': 'credits_negotiation',
             'inquisitor': 'credits_inquisitor',
             'followup': 'credits_followup',
+            'follow_up': 'credits_followup',
             'plan': 'credits_30_60_90',
-            'rewrite': 'rewrite_credits', # Assuming this one is correct based on schema file
+            'rewrite': 'rewrite_credits',
             'linkedin': 'credits_linkedin',
-            'cover': 'credits_cover_letter'
+            'cover': 'credits_cover_letter',
+            'interview': 'interview_credits'
         }
         
         target_col = col_map.get(tool_type)
