@@ -2570,39 +2570,68 @@ def support_chat():
         
         # 1. Fetch the system prompt
         res = supabase.table('system_configs').select('config_value').eq('config_key', 'support_bot_prompt').single().execute()
-        system_prompt = res.data['config_value'] if res.data else "You are the Mission Specialist for AceInterview.ai."
+        base_system_prompt = res.data['config_value'] if res.data else "You are the Mission Specialist for AceInterview.ai. Help users with platform issues."
+        
+        system_prompt = f"""
+{base_system_prompt}
+
+ESCALATION PROTOCOL (CRITICAL):
+If a user expresses frustration, reports a bug, requests a refund, or suggests an enhancement:
+1.  **Acknowledge**: Empathize and stay professional.
+2.  **Act**: Tell the user you are filing a mission escalation for the command team.
+3.  **Data Encoding**: You MUST append a hidden structured block at the end of your response:
+    `[ESCALATION_DATA: {{"category": "complaint/refund/enhancement/bug", "summary": "...", "error_code": "..."}}]`
+"""
 
         # 2. Call OpenAI
         messages = [{"role": "system", "content": system_prompt}]
-        for m in history[-5:]: # Keep last 5 messages for context
+        for m in history[-8:]: # Keep last 8 messages for context
             messages.append(m)
-        messages.append({"role": "user", "content": message})
+        if not any(m['content'] == message for m in messages):
+            messages.append({"role": "user", "content": message})
 
         # AI Response
-        client = get_openai_client()
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
+        openai_client = get_openai_client()
+        response = openai_client.chat.completions.create(
+            model="gpt-4o", # Upgraded for better instruction following
             messages=messages,
-            temperature=0.7
+            temperature=0.5
         )
         answer = response.choices[0].message.content
+        track_cost_chat(response, "gpt-4o", "Support Chat")
 
-        # 3. AUTO-FEEDBACK DETECTION
-        # If the user is reporting a bug or giving a suggestion, log it to the feedback table
-        feedback_keywords = ['feedback', 'suggestion', 'bug', 'error', 'broken', 'feature', 'help with', 'it would be cool', 'should add', 'fix']
-        is_feedback = any(word in message.lower() for word in feedback_keywords)
-        
-        if is_feedback:
-            supabase.table('user_feedback').insert({
-                "user_email": f"{email} (via Bot)",
-                "message": message
-            }).execute()
+        # 3. AUTO-FEEDBACK & ESCALATION DETECTION
+        if "[ESCALATION_DATA:" in answer:
+            try:
+                import re
+                match = re.search(r'\[ESCALATION_DATA:\s*(\{.*?})\]', answer, re.DOTALL)
+                if match:
+                    esc_json = json.loads(match.group(1))
+                    
+                    # Fetch user email if possible (not passed in current dashboard.html but let's try)
+                    u_email = email if email != 'anonymous' else "support_bot@aceinterview.ai"
+                    
+                    supabase.table('user_feedback').insert({
+                        "user_email": u_email,
+                        "message": f"MISSION SPECIALIST ESCALATION: {esc_json.get('summary', 'No summary')}\n\nUser Dialogue: {message}",
+                        "category": esc_json.get('category', 'complaint'),
+                        "error_code": esc_json.get('error_code', 'ERR_SUPPORT_BOT'),
+                        "status": "open",
+                        "metadata": {"source": "support_chat", "ai_summary": esc_json}
+                    }).execute()
+                    
+                # Clean tag from user view
+                answer = re.sub(r'\[ESCALATION_DATA:.*?\]', '', answer, flags=re.DOTALL).strip()
+            except Exception as e:
+                print(f"Support Escalation Error: {e}")
 
         # 4. Log the interaction
-        supabase.table('chat_support_logs').insert({
-            "question": message,
-            "answer": answer
-        }).execute()
+        try:
+            supabase.table('chat_support_logs').insert({
+                "question": message,
+                "answer": answer
+            }).execute()
+        except: pass
 
         return jsonify({"answer": answer})
 

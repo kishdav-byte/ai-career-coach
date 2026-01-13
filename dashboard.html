@@ -2037,6 +2037,8 @@
             }
         }
 
+        let supportChatHistory = [];
+
         async function sendSupportMessage() {
             const input = document.getElementById('support-chat-input');
             const output = document.getElementById('support-chat-output');
@@ -2059,10 +2061,16 @@
             output.scrollTop = output.scrollHeight;
 
             try {
+                // Add to history
+                supportChatHistory.push({ role: 'user', content: msg });
+
                 const res = await fetch('/api/support/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message: msg })
+                    body: JSON.stringify({
+                        message: msg,
+                        history: supportChatHistory
+                    })
                 });
                 const data = await res.json();
 
@@ -2070,8 +2078,15 @@
 
                 const botDiv = document.createElement('div');
                 botDiv.className = 'support-msg-bot p-3 text-xs leading-relaxed text-slate-300 mr-8';
+
+                const answer = data.answer || "Connection lost. Please try again.";
+
+                // Add to history
+                supportChatHistory.push({ role: 'assistant', content: answer });
+                if (supportChatHistory.length > 10) supportChatHistory = supportChatHistory.slice(-10);
+
                 // Simple markdown-style bold support
-                botDiv.innerHTML = (data.answer || "Connection lost. Please try again.").replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
+                botDiv.innerHTML = answer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                 output.appendChild(botDiv);
                 output.scrollTop = output.scrollHeight;
 
