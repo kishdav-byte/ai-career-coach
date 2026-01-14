@@ -344,6 +344,7 @@
                     <i class="fas fa-sign-out-alt"></i> LOGOUT
                 </button>
             </div>
+        </div>
 </header>
 
 <!-- GRID LAYOUT -->
@@ -1112,7 +1113,7 @@
                         
                         <div class="space-y-1">
                             ${f.error_code ? `<span class="text-[8px] font-mono text-red-400 bg-red-400/10 px-1 rounded">CODE: ${f.error_code}</span>` : ''}
-                            <p class="text-[11px] text-slate-300 leading-relaxed">${f.message}</p>
+                            <p class="text-[11px] text-slate-300 leading-relaxed whitespace-pre-wrap">${f.message}</p>
                         </div>
 
                         <div class="pt-2 border-t border-white/5 space-y-2">
@@ -1180,6 +1181,7 @@
         document.body.style.overflow = '';
     }
 
+    let warRoomShowAll = false;
     async function loadWarRoomData() {
         try {
             const res = await fetch('/api/admin/feedback', {
@@ -1188,20 +1190,21 @@
             const data = await res.json();
             const container = document.getElementById('war-room-grid');
 
-            // Filter to open items only for war room
-            const openItems = data.filter(f => f.status === 'open');
+            // Filter logic
+            const displayItems = warRoomShowAll ? data : data.filter(f => f.status === 'open');
 
-            if (openItems.length === 0) {
-                container.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500 italic uppercase font-bold tracking-widest">No active escalations. Mission secure.</div>`;
+            if (displayItems.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500 italic uppercase font-bold tracking-widest">No matching escalations. Mission secure.</div>`;
                 return;
             }
 
-            container.innerHTML = openItems.map(f => {
+            container.innerHTML = displayItems.map(f => {
+                const isClosed = f.status === 'closed';
                 const isCritical = f.category === 'refund' || f.category === 'complaint';
                 const catClass = `cat-${f.category || 'general'}`;
 
                 return `
-                    <div class="ticket-card p-6 rounded-2xl flex flex-col h-full ${isCritical ? 'border-red-500/40 bg-red-500/5' : ''}">
+                    <div class="ticket-card p-6 rounded-2xl flex flex-col h-full ${isCritical ? 'border-red-500/40 bg-red-500/5' : ''} ${isClosed ? 'opacity-40 grayscale' : ''}">
                         <div class="flex justify-between items-start mb-4">
                             <div class="space-y-1">
                                 <h4 class="text-white font-bold text-sm truncate max-w-[200px]">${f.user_email}</h4>
@@ -1212,7 +1215,7 @@
                         
                         <div class="flex-1 space-y-3">
                             ${f.error_code ? `<div class="bg-red-500/10 text-red-500 text-[10px] font-mono p-2 rounded border border-red-500/20 uppercase">DATA_ERROR: ${f.error_code}</div>` : ''}
-                            <p class="text-xs text-slate-300 leading-relaxed max-h-[120px] overflow-y-auto custom-scroll">${f.message}</p>
+                            <p class="text-xs text-slate-300 leading-relaxed max-h-[120px] overflow-y-auto custom-scroll whitespace-pre-wrap">${f.message}</p>
                         </div>
 
                         <div class="mt-6 pt-4 border-t border-white/5 space-y-3">
@@ -1224,9 +1227,9 @@
                                     class="flex-1 bg-teal hover:bg-teal-400 text-black font-black text-[10px] py-4 rounded-lg uppercase tracking-widest transition-all">
                                     DEPLOY_RESOLUTION
                                 </button>
-                                <button onclick="toggleFeedbackStatus('${f.id}', 'open')" 
-                                    class="px-5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all">
-                                    <i class="fas fa-ellipsis-v"></i>
+                                <button onclick="toggleFeedbackStatus('${f.id}', '${f.status}')" 
+                                    class="px-5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all" title="Toggle Open/Closed">
+                                    <i class="fas ${isClosed ? 'fa-undo' : 'fa-check'}"></i>
                                 </button>
                             </div>
                         </div>
@@ -1315,7 +1318,11 @@
                         <div class="w-2 h-2 bg-red-500 rounded-full animate-ping"></div> PRIORITY_ONE_ALERT
                     </span>
                     <span>• Triage Protocol Active</span>
-                    <span>• Status Output: <span class="text-teal">Monitoring</span></span>
+                    <button
+                        onclick="warRoomShowAll = !warRoomShowAll; loadWarRoomData(); document.getElementById('war-room-toggle-text').textContent = warRoomShowAll ? 'VIEW ACTIVE ONLY' : 'VIEW MISSION HISTORY';"
+                        class="text-teal hover:underline flex items-center gap-1 ml-4 py-1 px-2 bg-teal/10 rounded border border-teal/20">
+                        <i class="fas fa-history"></i> <span id="war-room-toggle-text">VIEW MISSION HISTORY</span>
+                    </button>
                 </div>
             </div>
         </div>

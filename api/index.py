@@ -1705,11 +1705,14 @@ def general_api():
             
             ESCALATION & COMPLAINT PROTOCOL (CRITICAL):
             If a user expresses frustration, reports a bug, requests a refund, or suggests an enhancement:
-            1.  **Acknowledge and Empathize**: Stay professional and helpful.
-            2.  **Categorize**: Identify if it's a 'complaint', 'enhancement', 'refund', or 'bug'.
-            3.  **Action**: Explicitly tell the user you are filing a mission escalation.
-            4.  **Data Encoding**: You MUST append a hidden structured block at the very end of your response in THIS EXACT FORMAT: 
-                `[ESCALATION_DATA: {"category": "...", "summary": "...", "error_code": "..."}]`
+            1.  **Acknowledge**: Empathize and stay professional.
+            2.  **Identify Details**: You MUST capture (or infer from context) the following:
+                - **ISSUE**: Clear technical/service problem.
+                - **DATE/TIME**: When it occurred.
+                - **TOOL**: Which specific tool was being used (Simulator, Cover Letter, Strategy, etc).
+            3.  **Action**: Tell the user you are filing a mission escalation for the command team.
+            4.  **Data Encoding**: You MUST append a hidden structured block at the end: 
+                `[ESCALATION_DATA: {"category": "...", "issue": "...", "date_time": "...", "tool": "...", "error_code": "..."}]`
             
             REVENUE LINKING PROTOCOL (CRITICAL):
             When relevant, you MUST naturally mention tools like "Executive Rewrite", "Interview Simulator", or "The Closer".
@@ -1746,13 +1749,22 @@ def general_api():
 
                         # Submit to Admin Feedback
                         admin_sb = get_admin_supabase()
+                        
+                        # Build Structured Report
+                        report = f"--- MISSION ESCALATION REPORT ---\n"
+                        report += f"ISSUE: {esc_json.get('issue', 'Not specified')}\n"
+                        report += f"DATE/TIME: {esc_json.get('date_time', 'Unknown')}\n"
+                        report += f"TOOL: {esc_json.get('tool', 'General Platform')}\n"
+                        report += f"---------------------------------\n"
+                        report += f"USER MESSAGE: {user_message}"
+
                         admin_sb.table('user_feedback').insert({
                             "user_email": u_email,
-                            "message": f"AI AUTO-ESCALATED: {esc_json.get('summary', 'No summary')}\n\nUser Original: {user_message}",
+                            "message": report,
                             "category": esc_json.get('category', 'complaint'),
                             "error_code": esc_json.get('error_code', 'ERR_AI_EVOKED'),
                             "status": "open",
-                            "metadata": {"source": "lab_assistant_chat", "ai_raw_summary": esc_json}
+                            "metadata": {"source": "lab_assistant_chat", "details": esc_json}
                         }).execute()
                         
                     # Strip the hidden tag from user view
@@ -2579,8 +2591,8 @@ ESCALATION PROTOCOL (CRITICAL):
 If a user expresses frustration, reports a bug, requests a refund, or suggests an enhancement:
 1.  **Acknowledge**: Empathize and stay professional.
 2.  **Act**: Tell the user you are filing a mission escalation for the command team.
-3.  **Data Encoding**: You MUST append a hidden structured block at the end of your response:
-    `[ESCALATION_DATA: {{"category": "complaint/refund/enhancement/bug", "summary": "...", "error_code": "..."}}]`
+3.  **Data Encoding**: You MUST capture ISSUE, DATE/TIME, and TOOL. Append a hidden structured block:
+    `[ESCALATION_DATA: {{"category": "complaint/refund/enhancement/bug", "issue": "...", "date_time": "...", "tool": "...", "error_code": "..."}}]`
 """
 
         # 2. Call OpenAI
@@ -2611,13 +2623,21 @@ If a user expresses frustration, reports a bug, requests a refund, or suggests a
                     # Fetch user email if possible (not passed in current dashboard.html but let's try)
                     u_email = email if email != 'anonymous' else "support_bot@aceinterview.ai"
                     
+                    # Build Structured Report
+                    report = f"--- SUPPORT SPECIALIST REPORT ---\n"
+                    report += f"ISSUE: {esc_json.get('issue', 'Not specified')}\n"
+                    report += f"DATE/TIME: {esc_json.get('date_time', 'Unknown')}\n"
+                    report += f"TOOL: {esc_json.get('tool', 'Support Channel')}\n"
+                    report += f"---------------------------------\n"
+                    report += f"USER DIALOGUE: {message}"
+
                     supabase.table('user_feedback').insert({
                         "user_email": u_email,
-                        "message": f"MISSION SPECIALIST ESCALATION: {esc_json.get('summary', 'No summary')}\n\nUser Dialogue: {message}",
+                        "message": report,
                         "category": esc_json.get('category', 'complaint'),
                         "error_code": esc_json.get('error_code', 'ERR_SUPPORT_BOT'),
                         "status": "open",
-                        "metadata": {"source": "support_chat", "ai_summary": esc_json}
+                        "metadata": {"source": "support_chat", "details": esc_json}
                     }).execute()
                     
                 # Clean tag from user view
