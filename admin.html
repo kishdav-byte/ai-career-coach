@@ -235,6 +235,41 @@
         .status-closed {
             color: #22c55e;
         }
+
+        /* WAR ROOM MODAL */
+        .war-room-modal {
+            backdrop-filter: blur(20px);
+            background: rgba(2, 6, 23, 0.95);
+        }
+
+        .ticket-card {
+            background: rgba(30, 41, 59, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .ticket-card:hover {
+            border-color: rgba(239, 68, 68, 0.4);
+            background: rgba(30, 41, 59, 0.6);
+        }
+
+        .critical-pulse {
+            animation: red-pulse 2s infinite;
+        }
+
+        @keyframes red-pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+            }
+        }
     </style>
 </head>
 
@@ -246,6 +281,10 @@
         <span class="text-lg font-black text-white tracking-tighter leading-none uppercase">Admin Center</span>
     </div>
     <div class="flex items-center gap-2">
+        <button onclick="openWarRoom()" id="mobile-alert-badge"
+            class="hidden w-10 h-10 rounded-full bg-red-600 flex items-center justify-center text-white critical-pulse">
+            <i class="fas fa-exclamation-triangle"></i>
+        </button>
         <a href="/dashboard.html" class="p-2 text-teal-400 hover:text-teal transition-colors" title="User Dashboard">
             <i class="fas fa-user text-lg"></i>
         </a>
@@ -279,25 +318,32 @@
                 <span class="font-mono">SECURE ACCESS • SYSTEM ONLINE</span>
             </div>
         </div>
-    </div>
-    <div class="flex items-center gap-3">
-        <a href="/dashboard.html"
-            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg text-sm font-bold transition-all border border-slate-700 flex items-center gap-2">
-            <i class="fas fa-user"></i> USER VIEW
-        </a>
-        <button onclick="toggleIntelDrawer(true)"
-            class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
-            <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
-        </button>
-        <button onclick="refreshAll()"
-            class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
-            <i class="fas fa-sync-alt"></i> REFRESH DATA
-        </button>
-        <button onclick="signOut()"
-            class="px-4 py-2 bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-lg text-sm font-medium transition-all border border-slate-700 hover:border-red-500/50 flex items-center gap-2">
-            <i class="fas fa-sign-out-alt"></i> LOGOUT
-        </button>
-    </div>
+        <div class="flex items-center gap-4">
+            <!-- GLOBAL ESCALATION BADGE -->
+            <button id="global-alert-badge" onclick="openWarRoom()"
+                class="hidden px-5 py-2.5 rounded-xl bg-red-600/20 border-2 border-red-500 text-red-500 font-extrabold text-[10px] tracking-tighter flex items-center gap-2 critical-pulse hover:bg-red-600 hover:text-white transition-all uppercase">
+                <i class="fas fa-radiation text-sm"></i>
+                <span id="alert-count">0</span> ACTIVE ESCALATIONS
+            </button>
+
+            <div class="flex items-center gap-3">
+                <a href="/dashboard.html"
+                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg text-sm font-bold transition-all border border-slate-700 flex items-center gap-2">
+                    <i class="fas fa-user"></i> USER VIEW
+                </a>
+                <button onclick="toggleIntelDrawer(true)"
+                    class="px-4 py-2 bg-teal/10 hover:bg-teal/20 text-teal rounded-lg text-sm font-bold transition-all border border-teal/30 flex items-center gap-2 group">
+                    <i class="fas fa-chart-line group-hover:scale-110 transition-transform"></i> MISSION INTEL
+                </button>
+                <button onclick="refreshAll()"
+                    class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-sm font-medium transition-colors border border-slate-700 flex items-center gap-2">
+                    <i class="fas fa-sync-alt"></i> REFRESH DATA
+                </button>
+                <button onclick="signOut()"
+                    class="px-4 py-2 bg-slate-800 hover:bg-red-900/50 text-slate-400 hover:text-red-400 rounded-lg text-sm font-medium transition-all border border-slate-700 hover:border-red-500/50 flex items-center gap-2">
+                    <i class="fas fa-sign-out-alt"></i> LOGOUT
+                </button>
+            </div>
 </header>
 
 <!-- GRID LAYOUT -->
@@ -1082,6 +1128,9 @@
                 `;
             }).join('');
 
+            // Also update the Global Alert Badge
+            updateAlertStatus(data);
+
         } catch (err) {
             console.error("Failed to fetch feedback", err);
         }
@@ -1092,8 +1141,9 @@
         await updateFeedback(id, { status: newStatus });
     }
 
-    async function resolveFeedback(id) {
-        const comment = document.getElementById(`comment-${id}`).value;
+    async function resolveFeedback(id, fromWarRoom = false) {
+        const commentId = fromWarRoom ? `war-comment-${id}` : `comment-${id}`;
+        const comment = document.getElementById(commentId).value;
         await updateFeedback(id, { admin_comments: comment, status: 'closed' });
     }
 
@@ -1107,9 +1157,100 @@
                 },
                 body: JSON.stringify(payload)
             });
-            if (res.ok) fetchFeedback();
+            if (res.ok) {
+                fetchFeedback();
+                if (!document.getElementById('war-room-modal').classList.contains('hidden')) {
+                    loadWarRoomData();
+                }
+            }
         } catch (e) {
             console.error("Update Feedback Failed", e);
+        }
+    }
+
+    // --- WAR ROOM LOGIC ---
+    function openWarRoom() {
+        document.getElementById('war-room-modal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        loadWarRoomData();
+    }
+
+    function closeWarRoom() {
+        document.getElementById('war-room-modal').classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    async function loadWarRoomData() {
+        try {
+            const res = await fetch('/api/admin/feedback', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
+            const container = document.getElementById('war-room-grid');
+
+            // Filter to open items only for war room
+            const openItems = data.filter(f => f.status === 'open');
+
+            if (openItems.length === 0) {
+                container.innerHTML = `<div class="col-span-full py-20 text-center text-slate-500 italic uppercase font-bold tracking-widest">No active escalations. Mission secure.</div>`;
+                return;
+            }
+
+            container.innerHTML = openItems.map(f => {
+                const isCritical = f.category === 'refund' || f.category === 'complaint';
+                const catClass = `cat-${f.category || 'general'}`;
+
+                return `
+                    <div class="ticket-card p-6 rounded-2xl flex flex-col h-full ${isCritical ? 'border-red-500/40 bg-red-500/5' : ''}">
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="space-y-1">
+                                <h4 class="text-white font-bold text-sm truncate max-w-[200px]">${f.user_email}</h4>
+                                <p class="text-[10px] text-slate-500 font-mono">${new Date(f.created_at).toLocaleString()}</p>
+                            </div>
+                            <span class="tier-badge ${catClass}">${f.category || 'general'}</span>
+                        </div>
+                        
+                        <div class="flex-1 space-y-3">
+                            ${f.error_code ? `<div class="bg-red-500/10 text-red-500 text-[10px] font-mono p-2 rounded border border-red-500/20 uppercase">DATA_ERROR: ${f.error_code}</div>` : ''}
+                            <p class="text-xs text-slate-300 leading-relaxed max-h-[120px] overflow-y-auto custom-scroll">${f.message}</p>
+                        </div>
+
+                        <div class="mt-6 pt-4 border-t border-white/5 space-y-3">
+                            <textarea id="war-comment-${f.id}" 
+                                class="w-full h-24 bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-slate-400 focus:border-teal/50 outline-none transition-all" 
+                                placeholder="Add resolution strategy...">${f.admin_comments || ''}</textarea>
+                            <div class="flex gap-2">
+                                <button onclick="resolveFeedback('${f.id}', true)" 
+                                    class="flex-1 bg-teal hover:bg-teal-400 text-black font-black text-[10px] py-4 rounded-lg uppercase tracking-widest transition-all">
+                                    DEPLOY_RESOLUTION
+                                </button>
+                                <button onclick="toggleFeedbackStatus('${f.id}', 'open')" 
+                                    class="px-5 bg-slate-800 hover:bg-slate-700 text-white rounded-lg transition-all">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        } catch (e) {
+            console.error("War Room Error", e);
+        }
+    }
+
+    async function updateAlertStatus(data) {
+        const criticalItems = data.filter(f => f.status === 'open' && (f.category === 'refund' || f.category === 'complaint'));
+        const badge = document.getElementById('global-alert-badge');
+        const mobileBadge = document.getElementById('mobile-alert-badge');
+        const countEl = document.getElementById('alert-count');
+
+        if (criticalItems.length > 0) {
+            badge.classList.remove('hidden');
+            if (mobileBadge) mobileBadge.classList.remove('hidden');
+            countEl.textContent = criticalItems.length;
+        } else {
+            badge.classList.add('hidden');
+            if (mobileBadge) mobileBadge.classList.add('hidden');
         }
     }
 
@@ -1156,6 +1297,52 @@
             Stream...</div>
     </div>
 </div>
+<!-- AI WAR ROOM MODAL (FULL SCREEN) -->
+<div id="war-room-modal" class="hidden fixed inset-0 z-[70] war-room-modal p-4 md:p-8 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <div
+        class="flex justify-between items-center mb-8 bg-slate-900/50 p-6 rounded-2xl border border-white/5 backdrop-blur-md">
+        <div class="flex items-center gap-6">
+            <div
+                class="w-14 h-14 rounded-2xl bg-red-600/20 flex items-center justify-center border border-red-500/40 critical-pulse">
+                <i class="fas fa-radiation text-red-500 text-2xl"></i>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-white tracking-widest uppercase">ESCALATION_COMMAND</h2>
+                <div
+                    class="flex items-center gap-3 text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-widest">
+                    <span class="text-red-500 flex items-center gap-2">
+                        <div class="w-2 h-2 bg-red-500 rounded-full animate-ping"></div> PRIORITY_ONE_ALERT
+                    </span>
+                    <span>• Triage Protocol Active</span>
+                    <span>• Status Output: <span class="text-teal">Monitoring</span></span>
+                </div>
+            </div>
+        </div>
+        <button onclick="closeWarRoom()"
+            class="w-12 h-12 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+
+    <!-- Content Area -->
+    <div class="flex-1 overflow-y-auto custom-scroll pr-2">
+        <div id="war-room-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <!-- Tickets are injected here -->
+        </div>
+    </div>
+
+    <!-- Footer Console -->
+    <div
+        class="mt-8 p-6 bg-slate-900/50 rounded-2xl border border-white/5 flex justify-between items-center font-mono text-[10px]">
+        <div class="flex gap-4 text-slate-500">
+            <span>[ SYSTEM_ID: WAR_ROOM_V1 ]</span>
+            <span>[ LOAD_STAMP: ${new Date().toISOString()} ]</span>
+        </div>
+        <div class="text-teal animate-pulse font-bold tracking-tighter">WAITING_FOR_COMMAND...</div>
+    </div>
+</div>
+
 <div id="drawer-overlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-[55]"
     onclick="toggleIntelDrawer(false)"></div>
 </body>
