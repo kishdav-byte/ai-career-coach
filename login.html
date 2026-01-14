@@ -56,7 +56,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('signup') === 'success') {
-            showAlert('Account created successfully! Please log in.', 'success');
+            showAlert('Account created! Please check your email to confirm your signup, then log in below.', 'success');
         }
 
         function showAlert(message, type) {

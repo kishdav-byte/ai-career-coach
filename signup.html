@@ -391,10 +391,10 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    showAlert('Mission Accomplished! Account created. Redirecting to login...', 'success');
+                    showAlert('Mission Accomplished! Account created. Please check your email to confirm your signup, then log in.', 'success');
                     setTimeout(() => {
                         window.location.href = '/login.html?signup=success';
-                    }, 2000);
+                    }, 4000);
                 } else {
                     showAlert(result.error || 'Unable to create account. Please try again.', 'error');
                     submitBtn.disabled = false;
