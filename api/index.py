@@ -35,7 +35,16 @@ def track_cost_audio(text, model, action="TTS"):
 # 0. SANITY CHECK ROUTE (No Deps)
 @app.route('/api/health')
 def health_check():
-    return jsonify({"status": "ok", "message": "Server is bootable"}), 200
+    return jsonify({
+        "status": "ok", 
+        "message": "Server is bootable",
+        "keys": {
+            "supabase_url": "present" if os.environ.get("SUPABASE_URL") else "missing",
+            "supabase_key": "present" if os.environ.get("SUPABASE_KEY") else "missing",
+            "service_role": "present" if os.environ.get("SUPABASE_SERVICE_ROLE_KEY") else "missing",
+            "openai_key": "present" if os.environ.get("OPENAI_API_KEY") else "missing"
+        }
+    }), 200
 
 # 0B. AUTHENTICATION ROUTES
 @app.route('/api/auth/signup', methods=['POST'])
@@ -50,43 +59,64 @@ def auth_signup():
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
             
+        print(f"[AUTH] Target: {email}")
+        
         # 1. Initialize Supabase (Anon/Standard)
         supabase = get_supabase()
         
         # 2. Sign up in Supabase Auth
-        # Note: Depending on Supabase settings, this might require email confirmation
-        auth_res = supabase.auth.sign_up({
-            "email": email,
-            "password": password,
-            "options": {
-                "data": {
-                    "full_name": name
+        try:
+            auth_res = supabase.auth.sign_up({
+                "email": email,
+                "password": password,
+                "options": {
+                    "data": {
+                        "full_name": name
+                    }
                 }
-            }
-        })
+            })
+        except Exception as auth_err:
+            print(f"[AUTH] sign_up failure: {auth_err}")
+            return jsonify({"error": f"Supabase Auth Failure: {str(auth_err)}"}), 400
         
+        # Check if user object exists (might be None if email confirmation required and settings strict, but usually returned)
         if not auth_res.user:
-            return jsonify({"error": "Signup failed. Account might already exist."}), 400
+            # If we didn't get a user but didn't get an exception, it might be a silent failure (e.g. duplicate email if Supabase settings hide it)
+            return jsonify({"error": "Signup failed. No user record created. This email may already be in use."}), 400
             
         user_id = auth_res.user.id
+        print(f"[AUTH] Auth Created: {user_id}")
         
         # 3. Create public.users profile (Admin/Service Role)
-        # We use Admin client to bypass RLS for initial profile creation
-        admin_supabase = get_admin_supabase()
-        admin_supabase.table('users').insert({
-            "id": user_id,
-            "email": email,
-            "full_name": name,
-            "credits": 0,
-            "role": "user"
-        }).execute()
-        
-        print(f"✅ Created new user: {email} ({user_id})")
-        return jsonify({"success": True, "message": "Account created successfully"}), 201
+        try:
+            admin_supabase = get_admin_supabase()
+            
+            # Verify we actually have a service role key if we are calling this
+            if not os.environ.get("SUPABASE_SERVICE_ROLE_KEY"):
+                print("[AUTH] CRITICAL: SUPABASE_SERVICE_ROLE_KEY is missing. Profile creation will likely fail.")
+
+            # Upsert to handle edge cases where auth succeeded but public record didn't in previous attempt
+            admin_supabase.table('users').upsert({
+                "id": user_id,
+                "email": email,
+                "full_name": name,
+                "credits": 0,
+                "role": "user"
+            }).execute()
+            
+            print(f"✅ Created/Updated public record: {email}")
+            return jsonify({"success": True, "message": "Account created successfully"}), 201
+            
+        except Exception as profile_err:
+            print(f"[AUTH] Profile creation failed for {user_id}: {profile_err}")
+            # If user creation in AUTH worked, but PROFILE failed, we have a partial state.
+            # We return 500 so the user knows something is up, but the account WAS technically created.
+            return jsonify({"error": f"Account partially created. Profile initialization failed: {str(profile_err)}. Please contact support."}), 500
         
     except Exception as e:
-        print(f"Signup Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        import traceback
+        print(f"Signup Critical Error: {traceback.format_exc()}")
+        return jsonify({"error": f"Server crash during signup: {str(e)}"}), 500
 
 # 1. SETUP SUPABASE (Lazy Loader)
 def get_supabase():
