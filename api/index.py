@@ -37,6 +37,57 @@ def track_cost_audio(text, model, action="TTS"):
 def health_check():
     return jsonify({"status": "ok", "message": "Server is bootable"}), 200
 
+# 0B. AUTHENTICATION ROUTES
+@app.route('/api/auth/signup', methods=['POST'])
+def auth_signup():
+    """Handle new user registration via Supabase with profile creation."""
+    try:
+        data = request.json
+        email = data.get('email')
+        password = data.get('password')
+        name = data.get('name', 'Executive Candidate')
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+            
+        # 1. Initialize Supabase (Anon/Standard)
+        supabase = get_supabase()
+        
+        # 2. Sign up in Supabase Auth
+        # Note: Depending on Supabase settings, this might require email confirmation
+        auth_res = supabase.auth.sign_up({
+            "email": email,
+            "password": password,
+            "options": {
+                "data": {
+                    "full_name": name
+                }
+            }
+        })
+        
+        if not auth_res.user:
+            return jsonify({"error": "Signup failed. Account might already exist."}), 400
+            
+        user_id = auth_res.user.id
+        
+        # 3. Create public.users profile (Admin/Service Role)
+        # We use Admin client to bypass RLS for initial profile creation
+        admin_supabase = get_admin_supabase()
+        admin_supabase.table('users').insert({
+            "id": user_id,
+            "email": email,
+            "full_name": name,
+            "credits": 0,
+            "role": "user"
+        }).execute()
+        
+        print(f"✅ Created new user: {email} ({user_id})")
+        return jsonify({"success": True, "message": "Account created successfully"}), 201
+        
+    except Exception as e:
+        print(f"Signup Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # 1. SETUP SUPABASE (Lazy Loader)
 def get_supabase():
     from supabase import create_client, Client
