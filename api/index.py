@@ -71,7 +71,7 @@ def auth_signup():
                 "password": password,
                 "options": {
                     "data": {
-                        "full_name": name
+                        "name": name
                     }
                 }
             })
@@ -99,7 +99,7 @@ def auth_signup():
             admin_supabase.table('users').upsert({
                 "id": user_id,
                 "email": email,
-                "full_name": name,
+                "name": name,
                 "credits": 0,
                 "role": "user"
             }).execute()
