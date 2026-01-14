@@ -327,6 +327,10 @@
             </button>
 
             <div class="flex items-center gap-3">
+                <button onclick="openWarRoom()"
+                    class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg text-sm font-black transition-all border border-red-400/50 flex items-center gap-2 animate-pulse shadow-lg shadow-red-500/20">
+                    <i class="fas fa-radiation"></i> WAR ROOM
+                </button>
                 <a href="/dashboard.html"
                     class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-teal-400 rounded-lg text-sm font-bold transition-all border border-slate-700 flex items-center gap-2">
                     <i class="fas fa-user"></i> USER VIEW
@@ -536,9 +540,15 @@
                 <h3
                     class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex justify-between items-center">
                     <span><i class="fas fa-inbox mr-2"></i> Mission Feedback</span>
-                    <span onclick="fetchFeedback()"
-                        class="cursor-pointer text-slate-500 hover:text-white transition-colors"><i
-                            class="fas fa-sync-alt"></i></span>
+                    <div class="flex items-center gap-3">
+                        <button onclick="openWarRoom()"
+                            class="text-[9px] text-red-500 hover:text-red-400 font-black animate-pulse flex items-center gap-1 bg-red-500/10 px-2 py-0.5 rounded border border-red-500/20">
+                            <i class="fas fa-radiation"></i> WAR_ROOM_PROTOCOL
+                        </button>
+                        <span onclick="fetchFeedback()"
+                            class="cursor-pointer text-slate-500 hover:text-white transition-colors"><i
+                                class="fas fa-sync-alt"></i></span>
+                    </div>
                 </h3>
 
                 <div id="feedback-container" class="flex-1 overflow-y-auto space-y-3 custom-scroll pr-1">
