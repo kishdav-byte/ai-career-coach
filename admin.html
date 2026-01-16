@@ -429,22 +429,35 @@
         <div class="glass-panel p-5 rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/5">
             <h3
                 class="text-xs font-bold text-teal-400 uppercase tracking-widest mb-4 flex justify-between items-center">
-                <span><i class="fas fa-brain mr-2"></i> Support Bot Tuning</span>
+                <span><i class="fas fa-brain mr-2"></i> AI BOT TUNING</span>
                 <span id="config-status" class="text-[10px] text-slate-500 italic">ready</span>
             </h3>
+
             <div class="space-y-4">
-                <p class="text-[10px] text-slate-400 leading-relaxed">Customize the bot's core logic and guardrails
-                    here. Updates are live instantly.</p>
+                <div class="p-3 bg-slate-900/50 rounded-lg border border-teal-500/20">
+                    <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Active
+                        Bot Brain</label>
+                    <select id="bot-selector" onchange="fetchBotConfig()"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-teal-400 font-mono focus:outline-none focus:border-teal-500">
+                        <option value="support">Mission Specialist (Support)</option>
+                        <option value="lab">Lab Assistant (Concierge)</option>
+                    </select>
+                </div>
+
+                <p class="text-[10px] text-slate-400 leading-relaxed">Customize the bot's core logic and journey
+                    guardrails here. Updates are live instantly.</p>
 
                 <div class="space-y-1">
-                    <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Knowledge & Guardrails</label>
-                    <textarea id="support-bot-prompt-input" rows="6"
+                    <label id="prompt-label" class="text-[9px] text-slate-500 uppercase font-bold pl-1">Knowledge &
+                        Guardrails</label>
+                    <textarea id="support-bot-prompt-input" rows="8"
                         class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
                         placeholder="Loading system prompt..."></textarea>
                 </div>
 
                 <div class="space-y-1">
-                    <label class="text-[9px] text-slate-500 uppercase font-bold pl-1">Opening Greeting</label>
+                    <label id="welcome-label" class="text-[9px] text-slate-500 uppercase font-bold pl-1">Opening
+                        Greeting Base</label>
                     <textarea id="support-bot-welcome-input" rows="3"
                         class="w-full bg-slate-900/50 border border-slate-700 rounded-lg p-3 text-[11px] text-slate-300 font-mono focus:outline-none focus:border-teal-500 custom-scroll"
                         placeholder="Loading welcome message..."></textarea>
@@ -570,36 +583,52 @@
 
         <input type="hidden" id="modal-user-id">
 
+        <!-- CREDITS GRID -->
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Universal</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Universal</label>
                 <input type="number" id="edit-credits"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Resume</label>
-                <input type="number" id="edit-resume"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
-            </div>
-            <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Mock Int.</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Interviews</label>
                 <input type="number" id="edit-interview"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Negotiation</label>
-                <input type="number" id="edit-negotiation"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Rewrite</label>
+                <input type="number" id="edit-resume"
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">LinkedIn</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">LinkedIn</label>
                 <input type="number" id="edit-linkedin"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
             </div>
             <div>
-                <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Follow Up</label>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Cover Letter</label>
+                <input type="number" id="edit-cover"
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">30-60-90</label>
+                <input type="number" id="edit-plan"
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">The Closer</label>
+                <input type="number" id="edit-negotiation"
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">The Inquisitor</label>
+                <input type="number" id="edit-inquisitor"
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Follow-up</label>
                 <input type="number" id="edit-followup"
-                    class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-white text-xs">
+                    class="w-full bg-slate-900 border border-slate-700 rounded p-2 text-sm text-white">
             </div>
         </div>
 
@@ -785,11 +814,14 @@
         document.getElementById('modal-user-email').textContent = user.email;
 
         document.getElementById('edit-credits').value = user.credits || 0;
-        document.getElementById('edit-resume').value = user.resume_credits || 0;
-        document.getElementById('edit-interview').value = user.credits_interview_sim || 0;
+        document.getElementById('edit-resume').value = user.credits_resume || 0;
+        document.getElementById('edit-interview').value = user.credits_interview || 0;
         document.getElementById('edit-negotiation').value = user.credits_negotiation || 0;
         document.getElementById('edit-linkedin').value = user.credits_linkedin || 0;
         document.getElementById('edit-followup').value = user.credits_followup || 0;
+        document.getElementById('edit-cover').value = user.credits_cover || 0;
+        document.getElementById('edit-plan').value = user.credits_30_60_90 || 0;
+        document.getElementById('edit-inquisitor').value = user.credits_inquisitor || 0;
 
         document.getElementById('edit-modal').classList.remove('hidden');
     }
@@ -802,11 +834,14 @@
         const id = document.getElementById('modal-user-id').value;
         const updates = {
             credits: parseInt(document.getElementById('edit-credits').value) || 0,
-            resume_credits: parseInt(document.getElementById('edit-resume').value) || 0,
-            credits_interview_sim: parseInt(document.getElementById('edit-interview').value) || 0,
+            credits_resume: parseInt(document.getElementById('edit-resume').value) || 0,
+            credits_interview: parseInt(document.getElementById('edit-interview').value) || 0,
             credits_negotiation: parseInt(document.getElementById('edit-negotiation').value) || 0,
             credits_linkedin: parseInt(document.getElementById('edit-linkedin').value) || 0,
-            credits_followup: parseInt(document.getElementById('edit-followup').value) || 0
+            credits_followup: parseInt(document.getElementById('edit-followup').value) || 0,
+            credits_cover: parseInt(document.getElementById('edit-cover').value) || 0,
+            credits_30_60_90: parseInt(document.getElementById('edit-plan').value) || 0,
+            credits_inquisitor: parseInt(document.getElementById('edit-inquisitor').value) || 0
         };
 
         try {
@@ -858,29 +893,56 @@
         frame.className = `device-frame shadow-2xl ${sizeClass}`;
     }
 
-    // 6. SUPPORT BOT CONFIG (TUNING)
+    // 6. AI BOT CONFIG (TUNING)
     async function fetchBotConfig() {
+        const botType = document.getElementById('bot-selector').value;
+        const promptInput = document.getElementById('support-bot-prompt-input');
+        const welcomeInput = document.getElementById('support-bot-welcome-input');
+        const promptLabel = document.getElementById('prompt-label');
+        const welcomeLabel = document.getElementById('welcome-label');
+
+        // Update Labels
+        if (botType === 'lab') {
+            promptLabel.textContent = "Lab Concierge Intelligence";
+            welcomeLabel.textContent = "Greeting Generation Logic";
+            promptInput.placeholder = "Loading Lab IQ...";
+            welcomeInput.placeholder = "Loading Greeting Logic...";
+        } else {
+            promptLabel.textContent = "Support Knowledge & Rules";
+            welcomeLabel.textContent = "Support Welcome Message";
+            promptInput.placeholder = "Loading Support IQ...";
+            welcomeInput.placeholder = "Loading Support Welcome...";
+        }
+
         try {
-            const resP = await fetch('/api/admin/config?key=support_bot_prompt', {
+            const promptKey = botType === 'lab' ? 'lab_assistant_prompt' : 'support_bot_prompt';
+            const welcomeKey = botType === 'lab' ? 'lab_assistant_welcome' : 'support_bot_welcome';
+
+            const resP = await fetch(`/api/admin/config?key=${promptKey}`, {
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
             });
             const dataP = await resP.json();
-            document.getElementById('support-bot-prompt-input').value = dataP.value || "";
+            promptInput.value = dataP.value || "";
 
-            const resW = await fetch('/api/admin/config?key=support_bot_welcome', {
+            const resW = await fetch(`/api/admin/config?key=${welcomeKey}`, {
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
             });
             const dataW = await resW.json();
-            document.getElementById('support-bot-welcome-input').value = dataW.value || "";
+            welcomeInput.value = dataW.value || "";
         } catch (err) {
             console.error("Failed to fetch bot config", err);
         }
     }
 
     async function saveBotConfig() {
+        const botType = document.getElementById('bot-selector').value;
         const promptVal = document.getElementById('support-bot-prompt-input').value;
         const welcomeVal = document.getElementById('support-bot-welcome-input').value;
         const status = document.getElementById('config-status');
+
+        const promptKey = botType === 'lab' ? 'lab_assistant_prompt' : 'support_bot_prompt';
+        const welcomeKey = botType === 'lab' ? 'lab_assistant_welcome' : 'support_bot_welcome';
+
         status.textContent = "saving...";
 
         try {
@@ -888,19 +950,19 @@
                 fetch('/api/admin/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
-                    body: JSON.stringify({ key: 'support_bot_prompt', value: promptVal })
+                    body: JSON.stringify({ key: promptKey, value: promptVal })
                 }),
                 fetch('/api/admin/config', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') },
-                    body: JSON.stringify({ key: 'support_bot_welcome', value: welcomeVal })
+                    body: JSON.stringify({ key: welcomeKey, value: welcomeVal })
                 })
             ]);
             status.textContent = "saved!";
             setTimeout(() => status.textContent = "ready", 2000);
         } catch (err) {
             status.textContent = "error";
-            alert("Failed to save bot configuration.");
+            alert("Failed to save configuration.");
         }
     }
 

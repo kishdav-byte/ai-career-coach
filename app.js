@@ -36,12 +36,12 @@ function getVoiceSettings() {
 const TOOL_CONFIG = {
     // Prep
     'tool-card-scanner': { type: 'free' },
-    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'rewrite_credits', label: 'Credit' },
-    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'credits_cover_letter', label: 'Credit' },
+    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'credits_resume', label: 'Credit' },
+    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'credits_cover', label: 'Credit' },
     'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
 
     // Interview
-    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'interview_credits', label: 'Session' },
+    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'credits_interview', label: 'Session' },
     'tool-card-star': { type: 'free' }, // STAR Drill is free capability
     'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'credits_inquisitor', label: 'Credit' },
 
@@ -63,7 +63,7 @@ function verifyInterviewAccess(session) {
     // Safety check if elements exist (might not be on app page)
     if (!lockedState || !activeState) return;
 
-    const credits = (session.interview_credits || 0) + (session.credits || 0); // Include Universal Credits
+    const credits = (session.credits_interview || 0) + (session.credits || 0); // Include Universal Credits
     const isUnlimited = session.is_unlimited || false;
 
     // Logic: 
@@ -177,7 +177,7 @@ function getSession() {
     }
 }
 
-async function checkAccess(requiredType = 'interview_credits', autoPrompt = true) {
+async function checkAccess(requiredType = 'credits_interview', autoPrompt = true) {
     const { data: { user } } = await supabase.auth.getUser();
 
     // 1. Handle "Not Logged In"
@@ -212,12 +212,14 @@ async function checkAccess(requiredType = 'interview_credits', autoPrompt = true
     session.subscription_status = userData.subscription_status;
     session.is_unlimited = userData.is_unlimited;
     session.credits = universalBalance;
-    session.interview_credits = userData.interview_credits || 0;
-    session.resume_credits = userData.resume_credits || 0;
-    session.interview_credits = userData.interview_credits || 0;
-    session.resume_credits = userData.resume_credits || 0;
-    session.rewrite_credits = userData.rewrite_credits || 0;
+    session.credits_interview = userData.credits_interview || 0;
+    session.credits_resume = userData.credits_resume || 0;
+    session.credits_cover = userData.credits_cover || 0;
     session.credits_linkedin = userData.credits_linkedin || 0;
+    session.credits_30_60_90 = userData.credits_30_60_90 || 0;
+    session.credits_negotiation = userData.credits_negotiation || 0;
+    session.credits_inquisitor = userData.credits_inquisitor || 0;
+    session.credits_followup = userData.credits_followup || 0;
     session.role = userData.role;
     localStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
@@ -713,10 +715,10 @@ window.renderSmartTiles = function (user) {
         plan: (user.subscription_status === 'active' || user.is_unlimited) ? "ACE PRO" : "FREE",
         universal_credits: user.is_unlimited ? '∞' : (user.credits || 0),
         tool_vouchers: {
-            "rewrite": user.rewrite_credits || 0,
-            "mock_interview": user.interview_credits || 0,
+            "rewrite": user.credits_resume || 0,
+            "mock_interview": user.credits_interview || 0,
             "linkedin_opt": user.credits_linkedin || 0,
-            "cover_letter": user.credits_cover_letter || 0,
+            "cover_letter": user.credits_cover || 0,
             "plan_30_60_90": user.credits_30_60_90 || 0,
             "negotiation": user.credits_negotiation || 0,
             "follow_up": user.credits_followup || 0
@@ -977,7 +979,7 @@ function init() {
     // Run Access Check
     // Auto-Prompt ONLY if we are directly landing on the interview section to avoid dashboard annoyance
     const isInterviewContext = window.location.hash === '#interview' || window.location.hash === '#simulator';
-    checkAccess('interview_credits', isInterviewContext);
+    checkAccess('credits_interview', isInterviewContext);
 
     // Helper: Safely add event listener (only if el exists)
     function addClickListener(id, handler) {
@@ -1154,7 +1156,10 @@ function init() {
 
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${session?.access_token}`
+                    },
                     body: JSON.stringify({
                         action: 'strategy_linkedin',
                         email: email,
@@ -1709,7 +1714,7 @@ function init() {
     if (startInterviewBtn) {
         startInterviewBtn.addEventListener('click', async () => {
             // Permission Check (Silent check first, then prompt if failed)
-            const hasAccess = await checkAccess('interview_credits', true);
+            const hasAccess = await checkAccess('credits_interview', true);
             if (!hasAccess) return;
 
             // Prioritize Context Accordion inputs, fallback to sidebar
@@ -1735,7 +1740,7 @@ function init() {
             if (jobPosting.trim()) {
                 primeAudio();
                 primeAudio();
-                questionCount = 1; // Start at 1 so next request sends 2 (triggering Phase 2)
+                questionCount = 0; // Correctly start at 0 for Turn 1
                 interviewHistory = []; // Reset history
 
                 // Show Chat Interface, Hide Intro & Setup
@@ -1938,24 +1943,24 @@ function init() {
 
         try {
             // NEW: BLOCKING ARCHITECTURE (Quality Fix)
+            const session = getSession();
             const response = await fetch('/api/get-feedback', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session?.access_token}`
+                },
                 body: JSON.stringify({
                     message: message,
                     jobPosting: jobPosting,
                     resumeText: resumeText,
                     companyName: companyName,
-                    resumeText: resumeText,
-                    companyName: companyName,
-                    interviewer_intel: interviewerIntel, // Pass Intel!
-                    history: interviewHistory, // MEMORY PATCH: Send full history
+                    interviewer_intel: interviewerIntel,
+                    history: interviewHistory,
                     isStart: isStart,
-                    questionCount: questionCount + 1,
+                    questionCount: questionCount, // Align with 0-index based turns
                     email: email,
-                    voice: voice, // Pass voice preference
-
-                    // Pass Analyzed Data (if available and isStart)
+                    voice: voice,
                     role_title: isStart ? jobData.role : undefined,
                     company_name: isStart ? jobData.company : undefined,
                     role_summary: isStart ? jobData.summary : undefined
@@ -1974,10 +1979,12 @@ function init() {
 
             // MEMORY PATCH: Update History
             if (message && lastAiQuestion) {
-                // Store the PAIR: The question that prompted this answer, and the answer itself
+                // Store the full turn data for the Auditor
                 interviewHistory.push({
                     question: lastAiQuestion,
-                    answer: message
+                    answer: message,
+                    feedback: data.response?.feedback || '',
+                    internal_score: data.response?.internal_score || 0
                 });
                 // Keep history reasonable (last 20 turns)
                 if (interviewHistory.length > 20) interviewHistory.shift();
@@ -1986,6 +1993,7 @@ function init() {
             // MEMORY PATCH: Capture Next Question for next turn
             if (data.response && data.response.next_question) {
                 lastAiQuestion = data.response.next_question;
+                questionCount++; // Progress question counter
             }
 
             // --- REFEREE: CHECK FOR GAME OVER ---
@@ -2098,18 +2106,6 @@ function init() {
             }
 
             // POST-STREAM STATE UPDATES
-            // POST-STREAM STATE UPDATES
-            interviewHistory.push({
-                question: currentQuestionText,
-                answer: message,
-                feedback: aiData.feedback || "No feedback provided.",
-                internal_score: aiData.internal_score || aiData.score || 0,
-                rubric_data: aiData.rubric_data || null,  // Capture rubric checklist data
-                gap_analysis: aiData.gap_analysis || null
-            });
-
-
-            if (!isStart) questionCount++;
             currentQuestionText = aiData.next_question;
 
         } catch (e) {
@@ -2145,7 +2141,10 @@ function init() {
 
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getSession()?.access_token}`
+                    },
                     body: JSON.stringify({
                         action: 'generate_report',
                         email: email,
@@ -2318,7 +2317,10 @@ if (document.getElementById('generate-plan-btn')) {
             try {
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getSession()?.access_token}`
+                    },
                     body: JSON.stringify({ action: 'career_plan', jobTitle, company, jobPosting })
                 });
                 const result = await response.json();
@@ -2443,7 +2445,10 @@ if (document.getElementById('generate-plan-btn')) {
         try {
             const response = await fetch('/api', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getSession()?.access_token}`
+                },
                 body: JSON.stringify({ action: 'strategy_linkedin', aboutMe })
             });
             const result = await response.json();
@@ -2476,7 +2481,10 @@ if (document.getElementById('generate-plan-btn')) {
         try {
             const response = await fetch('/api', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getSession()?.access_token}`
+                },
                 body: JSON.stringify({ action: 'cover_letter', jobDesc, resume })
             });
             const result = await response.json();
@@ -2579,7 +2587,10 @@ if (document.getElementById('generate-plan-btn')) {
             try {
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getSession()?.access_token}`
+                    },
                     body: JSON.stringify({ action: 'parse_resume', resume_text: text })
                 });
                 const result = await response.json();
@@ -2650,7 +2661,7 @@ if (document.getElementById('generate-plan-btn')) {
     document.getElementById('rb-generate-btn').addEventListener('click', async () => {
         // CREDIT CHECK
         const session = getSession();
-        if (!session || ((session.rewrite_credits || 0) + (session.credits || 0)) < 1) {
+        if (!session || ((session.credits_resume || 0) + (session.credits || 0)) < 1) {
             if (confirm("You need 1 Rewrite Credit to generate. Unlock Executive Rewrite for $9.99?")) {
                 // Trigger Checkout
                 const btn = document.getElementById('unlock-rewrite-btn');
@@ -2719,7 +2730,10 @@ if (document.getElementById('generate-plan-btn')) {
             // Call API
             const response = await fetch('/api', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${getSession()?.access_token}`
+                },
                 body: JSON.stringify({
                     action: 'optimize',
                     user_data: userData,
@@ -2941,7 +2955,7 @@ if (urlParams.get('status') === 'success') {
     localStorage.setItem(storageKey, 'true');
 
     // Refresh User Data (Credits) - Silent check
-    checkAccess('interview_credits', false).then(() => {
+    checkAccess('credits_interview', false).then(() => {
         console.log("Credits refreshed.");
     });
 
@@ -3207,6 +3221,6 @@ window.renderUpgradeHub = function (containerId) {
 document.addEventListener('DOMContentLoaded', () => {
     // Only run if we are on a page that uses app.js logic (has supabase)
     if (window.supabase) {
-        checkAccess('interview_credits', false).catch(e => console.log("Init Check Failed:", e));
+        checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
     }
 });
