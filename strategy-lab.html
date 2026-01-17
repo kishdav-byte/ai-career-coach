@@ -254,7 +254,7 @@
             // 2. Cover
             renderCard('cover', creditsCover, '/strategy/cover-letter', 'strategy_cover', isUnlimited);
             // 3. Negotiation (Closer)
-            renderCard('negotiation', creditsNeg, '/strategy/closer', 'strategy_negotiation', isUnlimited);
+            renderCard('negotiation', creditsNeg, '/strategy/closer', 'strategy_closer', isUnlimited);
             // 4. Inquisitor
             renderCard('inquisitor', creditsInq, '/strategy/inquisitor', 'strategy_inquisitor', isUnlimited);
             // 5. Follow-Up
@@ -294,16 +294,17 @@
                 btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
 
                 try {
-                    const res = await fetch('/api', {
+                    const res = await fetch('/api/create-checkout-session', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
                         },
                         body: JSON.stringify({
-                            action: 'create-checkout-session',
-                            plan: planType,
+                            plan_type: planType,
                             email: userData.email,
-                            userId: userData.id || userData.user_id // Pass ID
+                            userId: userData.id || userData.user_id,
+                            successUrl: window.location.origin + '/dashboard.html'
                         })
                     });
                     const result = await res.json();

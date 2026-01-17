@@ -1567,12 +1567,22 @@ function init() {
                         checkoutBtn.disabled = true;
                         checkoutBtn.textContent = "Processing...";
                         try {
-                            const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                                body: {
-                                    price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
-                                    return_url: window.location.origin + '/app.html?status=success#resume-builder'
-                                }
+                            const token = localStorage.getItem('supabase.auth.token');
+                            const res = await fetch('/api/create-checkout-session', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify({
+                                    plan_type: 'strategy_rewrite',
+                                    successUrl: window.location.origin + '/app.html?status=success#resume-builder',
+                                    mode: 'payment'
+                                })
                             });
+                            const result = await res.json();
+                            if (result.url) window.location.href = result.url;
+                            else throw new Error(result.error);
 
                             if (error) throw error;
                             if (data?.url) window.location.href = data.url;
@@ -2669,12 +2679,22 @@ if (document.getElementById('generate-plan-btn')) {
                 else {
                     // Fallback if button hidden
                     try {
-                        const { data, error } = await supabase.functions.invoke('create-checkout-session', {
-                            body: {
-                                price_id: 'price_1SeRRnIH1WTKNasqQFCJDxH5', // Executive Rewrite
-                                return_url: window.location.origin + '/app.html?status=success#resume-builder'
-                            }
+                        const token = localStorage.getItem('supabase.auth.token');
+                        const res = await fetch('/api/create-checkout-session', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${token}`
+                            },
+                            body: JSON.stringify({
+                                plan_type: 'strategy_rewrite',
+                                successUrl: window.location.origin + '/app.html?status=success#resume-builder',
+                                mode: 'payment'
+                            })
                         });
+                        const result = await res.json();
+                        if (result.url) window.location.href = result.url;
+                        else throw new Error(result.error);
 
                         if (error) throw error;
                         if (data?.url) window.location.href = data.url;

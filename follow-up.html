@@ -348,17 +348,24 @@
             const btn = document.getElementById('btn-unlock-overlay');
             btn.innerHTML = 'Redirecting...';
             try {
-                const { data, error } = await supabaseClient.functions.invoke('create-checkout-session', {
-                    body: {
+                const token = (await supabaseClient.auth.getSession()).data.session?.access_token;
+                const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
                         price_id: 'price_1SeQHYIH1WTKNasqpFyl2ef0', // Strategic Follow-Up Price ID
                         plan_type: 'strategy_followup', // MATCHES BACKEND WEBHOOK
-                        return_url: window.location.href,
+                        successUrl: window.location.href,
                         email: userEmail,
-                        user_id: userId
-                    }
+                        userId: userId
+                    })
                 });
-                if (data?.url) window.location.href = data.url;
-                else alert("Error creating checkout session");
+                const result = await res.json();
+                if (result.url) window.location.href = result.url;
+                else throw new Error(result.error || "No URL returned");
             } catch (e) {
                 console.error(e);
                 alert("Checkout Error");

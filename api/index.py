@@ -2133,10 +2133,14 @@ def create_checkout_session():
                 'quantity': 1,
             }],
             mode=mode,
+            allow_promotion_codes=True,         # Enables discount codes & BOGOs (via coupons)
+            automatic_tax={'enabled': True},         # Enables Stripe Tax calculation
+            customer_update={'address': 'auto'},     # Syncs address back to customer record
+            billing_address_collection='required',   # Ensures we have SC address for tax
             success_url=success_url,
             cancel_url=cancel_url,
             metadata={
-                "userId": target_user_id, # Fixed key to match Webhook (userId)
+                "userId": target_user_id, 
                 "plan_type": plan_type
             }
         )

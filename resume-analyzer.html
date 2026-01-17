@@ -582,11 +582,23 @@
         // --- PAYMENT LOGIC ---
         window.buyCredits = async (priceId, mode) => {
             try {
-                const { data, error } = await window.supabase.functions.invoke('create-checkout-session', {
-                    body: { price_id: priceId, return_url: window.location.href, mode: mode }
+                const token = localStorage.getItem('supabase.auth.token');
+                const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        price_id: priceId,
+                        plan_type: 'strategy_rewrite',
+                        successUrl: window.location.href,
+                        mode: mode
+                    })
                 });
-                if (data?.url) window.location.href = data.url;
-                else throw new Error("No URL returned");
+                const result = await res.json();
+                if (result.url) window.location.href = result.url;
+                else throw new Error(result.error || "No URL returned");
             } catch (e) {
                 console.error("Payment Error:", e);
                 alert("Could not initiate payment. Please try again.");
