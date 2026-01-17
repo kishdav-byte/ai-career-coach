@@ -2081,27 +2081,7 @@ def create_checkout_session():
             'strategy_plan': 'price_1SePloIH1WTKNasq64loXSAv',      # 30-60-90 Plan ($8.99)
             'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',   # Value Follow-Up ($6.99)
             'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',     # The Closer/Negotiation ($6.99)
-            'strategy_inquisitor': 'price_1Sgsf9IH1WTKNasqxvk528yY', # Inquisitor/Executive Rewrite? WAIT. Image says Executive Rewrite is ...528yY.
-            # ERROR CHECK: Inquisitor ID is missing from Image? 
-            # Re-reading Image:
-            # - Cover Letter
-            # - LinkedIn
-            # - Executive Rewrite (price_1Sgsf9...528yY)
-            # - 30-60-90
-            # - Interview Simulator
-            # - Strategy Bundle
-            # - Monthly Unlimited
-            # - Value Follow-Up
-            # - The Closer
-            
-            # MISSING: "The Inquisitor".
-            # I will use a placeholder or check if Executive Rewrite ID was repurposed.
-            # Wait, the code had inquisitor mapped to Closer ID.
-            # I will separate them. For Inquisitor, I will assume it uses the standard Credit model if no dedicated Price exists, OR I will ask clarification.
-            # However, looking at the image list, "Inquisitor" IS NOT THERE.
-            # The user asked if features can be added.
-            # I'll map 'strategy_rewrite' to the Executive Rewrite ID.
-            # I'll map 'strategy_interview_sim' to Interview ID.
+            # Note: strategy_inquisitor uses fallback to Closer price (same tier) - see line 2118
             
             'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',    # Executive Rewrite ($12.99)
             'rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',             # Alias for Rewrite
