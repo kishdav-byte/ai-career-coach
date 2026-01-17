@@ -736,7 +736,7 @@ def get_feedback():
             )
             messages.append({"role": "user", "content": greeting_instruction})
 
-        elif real_q_num == 2:
+        elif real_q_num == 1:
             messages.append({
                 "role": "user",
                 "content": (
@@ -747,7 +747,7 @@ def get_feedback():
                 )
             })
 
-        elif real_q_num in [3, 4, 5]:
+        elif real_q_num in [2, 3, 4]:
              messages.append({
                 "role": "user",
                 "content": (
@@ -758,7 +758,7 @@ def get_feedback():
                 )
              })
 
-        elif real_q_num == 6:
+        elif real_q_num == 5:
              messages.append({
                 "role": "user",
                 "content": (
@@ -769,7 +769,7 @@ def get_feedback():
                 )
              })
 
-        elif real_q_num == 7:
+        elif real_q_num == 6:
              # NEW: Provide feedback on Q6 (final behavioral question) before ending
              messages.append({
                 "role": "user",
@@ -780,7 +780,7 @@ def get_feedback():
                 )
              })
 
-        elif real_q_num >= 8:
+        elif real_q_num >= 7:
              # FINAL REPORT LOGIC (MASTER PROTOCOL v2.1)
              # 1. Build Full Transcript WITH LIVE SCORES (Binding)
              full_transcript = "INTERVIEW_TRANSCRIPT WITH SILENT METADATA:\n"
@@ -1016,7 +1016,7 @@ def get_feedback():
         return jsonify({
             "response": ai_json,
             "audio": audio_b64,
-            "is_complete": real_q_num >= 8,
+            "is_complete": real_q_num >= 7,
             "average_score": ai_json.get("average_score", 0.0)
         }), 200
 
