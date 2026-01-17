@@ -456,7 +456,7 @@
                         maintainAspectRatio: false,
                         indexAxis: 'y', // Horizontal Bars for readable labels
                         scales: {
-                            x: { max: 5, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                            x: { max: 4, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
                             y: { grid: { display: false }, ticks: { color: '#fff', font: { weight: 'bold' } } }
                         },
                         plugins: {
@@ -511,14 +511,14 @@
                             displayColors: false,
                             callbacks: {
                                 label: function (context) {
-                                    return 'Score: ' + context.parsed.y + '/5';
+                                    return 'Score: ' + context.parsed.y + '/4';
                                 }
                             }
                         },
                         scales: {
                             y: {
                                 beginAtZero: true,
-                                max: 5,
+                                max: 4,
                                 grid: { color: 'rgba(255,255,255,0.05)' },
                                 ticks: { color: '#94a3b8' }
                             },
@@ -534,7 +534,7 @@
             // Calculate Global Average
             const validScores = data.filter(d => d.overall_score !== null).map(d => d.overall_score);
             const avg = validScores.length ? validScores.reduce((a, b) => a + b, 0) / validScores.length : 0;
-            document.getElementById('global-average').textContent = avg.toFixed(1) + "/5";
+            document.getElementById('global-average').textContent = avg.toFixed(1) + "/4";
         }
 
         // --- TABLE LOGIC ---
@@ -760,7 +760,7 @@
                         </div>
                         <div class="text-right">
                              <div class="text-xs text-gray-400 uppercase tracking-widest mb-1">Overall Score</div>
-                             <div class="text-4xl font-bold text-teal font-display">${score}<span class="text-lg text-gray-500">/5</span></div>
+                             <div class="text-4xl font-bold text-teal font-display">${score}<span class="text-lg text-gray-500">/4</span></div>
                         </div>
                     </div>
                 </div>
@@ -830,8 +830,8 @@
             rawContent = rawContent.replace(/<[hH][1-6][^>]*>\s*Final Executive Coaching Report\s*<\/[hH][1-6]>/gi, "");
 
             // 2. Remove redundant "Overall Score" lines (generic match for safety)
-            rawContent = rawContent.replace(/<[^>]+>\s*Overall Score:\s*[\d\.]+\s*\/\s*5\s*<\/[^>]+>/gi, "");
-            rawContent = rawContent.replace(/Overall Score:\s*[\d\.]+\s*\/\s*5/gi, "");
+            rawContent = rawContent.replace(/<[^>]+>\s*Overall Score:\s*[\d\.]+\s*\/\s*4\s*<\/[^>]+>/gi, "");
+            rawContent = rawContent.replace(/Overall Score:\s*[\d\.]+\s*\/\s*4/gi, "");
 
             // 3. Add Dashed Line above "Areas for Improvement"
             rawContent = rawContent.replace(/(<[hH][1-6][^>]*>\s*Areas for Improvement\s*<\/[hH][1-6]>)/gi, '$1');
@@ -936,7 +936,7 @@
                                 <div class="meta-item"><span class="meta-label">Interview Date:</span> ${dateStr}</div>
                             </div>
                             <div class="score-box">
-                                Overall Score: ${score} / 5
+                                Overall Score: ${score} / 4
                             </div>
                         </div>
                         

@@ -1052,7 +1052,7 @@ def general_api():
             {job_posting}
 
             CRITICAL TASKS:
-            1. Calculate an AVERAGE SCORE based on the scores found in the history (0-5 scale).
+            1. Calculate an AVERAGE SCORE based on the scores found in the history (0-4 scale).
             2. Identify 3 Key Strengths.
             3. Identify 3 Specific Areas for Improvement.
             
@@ -1065,7 +1065,7 @@ def general_api():
             
             HTML REQUIREMENTS:
             - Use a modern, dark-mode compatible style (Tailwind-like classes or inline styles).
-            - Include a big "Overall Score" badge (e.g., 4.2/5).
+            - Include a big "Overall Score" badge (e.g., 3.2/4).
             - Use bullet points for strengths/weaknesses.
             - Keep it professional and encouraging.
             """
@@ -3154,7 +3154,7 @@ def admin_run_test():
             score_call = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "Rate the answer 1-5 based on STAR method. Return ONLY the number."},
+                    {"role": "system", "content": "Rate the answer 1-4 based on STAR method (2=Weak, 3=Competent, 4=Strong). Return ONLY the number."},
                     {"role": "user", "content": f"Question: {q}\nAnswer: {ans_text}"}
                 ]
             )
@@ -3164,7 +3164,7 @@ def admin_run_test():
                 score = 3.0
             
             scores.append(score)
-            log(f"SYSTEM: Scored {score}/5.0")
+            log(f"SYSTEM: Scored {score}/4.0")
             
         # 4. GENERATE REPORT & SAVE
         final_avg = round(sum(scores) / len(scores), 1)
