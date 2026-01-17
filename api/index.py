@@ -2073,22 +2073,23 @@ def create_checkout_session():
         if not stripe.api_key: return jsonify({"error": "Server Missing Stripe Key"}), 500
         
         # PRICE MAPPING - Source of Truth: User Provided Table
+        # LIVE PRODUCTION PRICE IDs (Updated 2026-01-17)
         PRICE_MAP = {
             # Strategy Tools ($6.99 - $8.99)
-            'strategy_cover': 'price_1Shc7tIH1WTKNasqQNu7O5fL',     # Cover Letter ($6.99)
-            'cover_letter': 'price_1Shc7tIH1WTKNasqQNu7O5fL',       # Alias for Dashboard
-            'strategy_linkedin': 'price_1ShWBJIH1WTKNasqd7p9VA5f',  # LinkedIn Opt ($6.99)
-            'strategy_plan': 'price_1SePloIH1WTKNasq64loXSAv',      # 30-60-90 Plan ($8.99)
-            'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',   # Value Follow-Up ($6.99)
-            'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',     # The Closer/Negotiation ($6.99)
-            'strategy_inquisitor': 'price_1SeQGAIH1WTKNasqKwRR20TZ', # The Inquisitor ($6.99)
+            'strategy_cover': 'price_1Sqf3kIcU62GMuuQACT6uUQh',     # Cover Letter ($6.99)
+            'cover_letter': 'price_1Sqf3kIcU62GMuuQACT6uUQh',       # Alias for Dashboard
+            'strategy_linkedin': 'price_1SqfCyIcU62GMuuQfFC1oOL7',  # LinkedIn Optimizer ($6.99)
+            'strategy_plan': 'price_1SqfIEIcU62GMuuQK4gw5mOe',      # 30-60-90 Day Plan ($8.99)
+            'strategy_followup': 'price_1SqfHpIcU62GMuuQMhcFWxVb',  # Value Follow-Up ($6.99)
+            'strategy_closer': 'price_1SqfFiIcU62GMuuQsu1FhGcN',    # The Closer/Negotiation ($6.99)
+            'strategy_inquisitor': 'price_1SeQGAIH1WTKNasqKwRR20TZ', # The Inquisitor ($6.99) - NEEDS LIVE PRICE ID
             
-            'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',    # Executive Rewrite ($12.99)
-            'rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',             # Alias for Rewrite
-            'strategy_interview_sim': 'price_1SeRRnIH1WTKNasqQFCJDxH5', # Interview Sim ($9.99)
-            'strategy_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',      # Bundle ($29.99)
-            'pro_bundle': 'price_1SePqzlH1WTKNasq34FYIKNm',           # Alias for Bundle
-            'monthly_unlimited': 'price_1Sbq1WIH1WTKNasqXrlCBDSD'     # Monthly ($49.99)
+            'strategy_rewrite': 'price_1SqfJMIcU62GMuuQ2fzMNDCB',   # Executive Rewrite ($12.99)
+            'rewrite': 'price_1SqfJMIcU62GMuuQ2fzMNDCB',            # Alias for Rewrite
+            'strategy_interview_sim': 'price_1SqfIeIcU62GMuuQ8SsXMnPb', # Interview Simulator ($9.99)
+            'strategy_bundle': 'price_1SqfKqIcU62GMuuQKbnARwgI',     # Strategy Bundle ($29.99)
+            'pro_bundle': 'price_1SqfKqIcU62GMuuQKbnARwgI',          # Alias for Bundle
+            'monthly_unlimited': 'price_1SqfLwIcU62GMuuQaZ7MLJ5d'    # Monthly Unlimited ($49.99/mo)
         }
         
         price_id = PRICE_MAP.get(plan_type)
