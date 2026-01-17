@@ -2126,24 +2126,71 @@ def create_checkout_session():
         is_sub = plan_type in ['monthly_unlimited', 'strategy_mock']
         mode = data.get('mode', 'subscription' if is_sub else 'payment')
 
-        checkout_session = stripe.checkout.Session.create(
-            customer_email=target_email,
-            line_items=[{
+        # CREATE OR RETRIEVE STRIPE CUSTOMER
+        # This enables proper customer history, subscriptions, and address syncing
+        stripe_customer_id = None
+        
+        try:
+            # 1. Check if we already have a Stripe customer ID stored in Supabase
+            supabase = get_supabase()
+            user_profile = supabase.table('users').select('stripe_customer_id').eq('id', target_user_id).single().execute()
+            
+            if user_profile.data and user_profile.data.get('stripe_customer_id'):
+                stripe_customer_id = user_profile.data['stripe_customer_id']
+                print(f"✅ Found existing Stripe customer: {stripe_customer_id}")
+            else:
+                # 2. Search Stripe for existing customer by email
+                existing_customers = stripe.Customer.list(email=target_email, limit=1)
+                
+                if existing_customers.data:
+                    stripe_customer_id = existing_customers.data[0].id
+                    print(f"✅ Found Stripe customer by email: {stripe_customer_id}")
+                else:
+                    # 3. Create new Stripe customer
+                    new_customer = stripe.Customer.create(
+                        email=target_email,
+                        metadata={"supabase_user_id": target_user_id}
+                    )
+                    stripe_customer_id = new_customer.id
+                    print(f"✅ Created new Stripe customer: {stripe_customer_id}")
+                
+                # 4. Store customer ID in Supabase for future use
+                supabase.table('users').update({
+                    'stripe_customer_id': stripe_customer_id
+                }).eq('id', target_user_id).execute()
+                print(f"✅ Saved Stripe customer ID to Supabase")
+                
+        except Exception as customer_err:
+            print(f"⚠️ Customer lookup/creation failed: {customer_err}")
+            # Continue without customer ID - will fall back to email-only checkout
+            stripe_customer_id = None
+
+        # CREATE CHECKOUT SESSION
+        checkout_params = {
+            'line_items': [{
                 'price': price_id,
                 'quantity': 1,
             }],
-            mode=mode,
-            allow_promotion_codes=True,         # Enables discount codes & BOGOs (via coupons)
-            automatic_tax={'enabled': True},         # Enables Stripe Tax calculation
-            customer_update={'address': 'auto'},     # Syncs address back to customer record
-            billing_address_collection='required',   # Ensures we have SC address for tax
-            success_url=success_url,
-            cancel_url=cancel_url,
-            metadata={
+            'mode': mode,
+            'allow_promotion_codes': True,
+            'automatic_tax': {'enabled': True},
+            'billing_address_collection': 'required',
+            'success_url': success_url,
+            'cancel_url': cancel_url,
+            'metadata': {
                 "userId": target_user_id, 
                 "plan_type": plan_type
             }
-        )
+        }
+        
+        # Use customer ID if available, otherwise fall back to email
+        if stripe_customer_id:
+            checkout_params['customer'] = stripe_customer_id
+            checkout_params['customer_update'] = {'address': 'auto'}  # Only works with customer ID
+        else:
+            checkout_params['customer_email'] = target_email
+        
+        checkout_session = stripe.checkout.Session.create(**checkout_params)
         
         return jsonify({"url": checkout_session.url}), 200
 
