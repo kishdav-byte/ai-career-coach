@@ -2082,7 +2082,7 @@ def create_checkout_session():
             'strategy_plan': 'price_1SqfIEIcU62GMuuQK4gw5mOe',      # 30-60-90 Day Plan ($8.99)
             'strategy_followup': 'price_1SqfHpIcU62GMuuQMhcFWxVb',  # Value Follow-Up ($6.99)
             'strategy_closer': 'price_1SqfFiIcU62GMuuQsu1FhGcN',    # The Closer/Negotiation ($6.99)
-            'strategy_inquisitor': 'price_1SeQGAIH1WTKNasqKwRR20TZ', # The Inquisitor ($6.99) - NEEDS LIVE PRICE ID
+            'strategy_inquisitor': 'price_1SqfHRIcU62GMuuQWR1OMi1v', # The Inquisitor ($6.99)
             
             'strategy_rewrite': 'price_1SqfJMIcU62GMuuQ2fzMNDCB',   # Executive Rewrite ($12.99)
             'rewrite': 'price_1SqfJMIcU62GMuuQ2fzMNDCB',            # Alias for Rewrite
