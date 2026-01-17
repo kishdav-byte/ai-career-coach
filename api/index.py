@@ -741,9 +741,9 @@ def get_feedback():
                 "role": "user",
                 "content": (
                     f"User Answer: {message}. \n"
-                    "Step 1: Thank them (Put this in 'feedback' field).\n"
-                    "Step 2: Explain STAR Method: 'For the next questions, please use the STAR method: Situation, Task, Action, Result.' (Add to 'feedback' field).\n"
-                    "Step 3: Ask the first Behavioral Question (Conflict, Failure, or Strategy). (Put ONLY the Question in 'next_question' field)."
+                    "Step 1: Provide brief, structured feedback on their background. (Put in 'feedback' field).\n"
+                    "Step 2: Transition to Behavioral: 'Thank you for sharing your background. For the next several questions, I am going to ask for specific situational examples from your career. To provide the best answers, please follow the STAR method: Situation, Task, Action, and Result.' (Add to 'next_question' field).\n"
+                    "Step 3: Ask the first Behavioral Question (Conflict, Failure, or Strategy). (Append to 'next_question' field)."
                 )
             })
 
@@ -788,10 +788,8 @@ def get_feedback():
              for idx, h in enumerate(history):
                  q = h.get('question', '')
                  a = h.get('answer', '')
-                 
-                 # v7.0 FIX: Improved Purge (< 20 words + System Triggers)
-                 # Aggressively filter greetings/start commands to prevent indexing shift.
-                 if len(q) < 15 or len(a.split()) < 20 or a.strip().lower() in ["start", "ready", "hello", "begin", "hi"]: continue 
+                 # v7.2 FIX: Lowered word count filter to 5 words to catch concise, metric-heavy answers.
+                 if len(q) < 10 or len(a.split()) < 5 or a.strip().lower() in ["start", "ready", "hello", "begin", "hi"]: continue 
 
                  # BINDING: Include the ACTUAL feedback/score the user received live
                  live_fb = h.get('feedback', 'No feedback recorded')
@@ -822,7 +820,8 @@ def get_feedback():
                  "Identify every concrete KPI mentioned (e.g., $35M EBITDA, 22% Revenue). You MUST display these in the 'Business Impact Scoreboard'.\n\n"
                  "### STEP 2: SCORING RULES\n"
                  "- Use the scores provided in SESSION_METADATA.\n"
-                 "- CRITICAL: Ensure the overall score looks premium.\n\n"
+                 "- CRITICAL: Ensure the overall score looks premium.\n"
+                 "- ANTI-NAG: If a candidate provides metrics that you have included in the Scoreboard, DO NOT ask them to 'add metrics' or 'quantify impact' in the Growth Areas. Only suggest metrics if they are actually missing from their answers.\n\n"
                  "### STEP 3: OUTPUT JSON FORMAT (STRICT)\n"
                  "You must output a single JSON object with 'formatted_report' and 'q6_feedback_spoken'.\n"
                  "IMPORTANT: Leave {{TOTAL_SCORE}} and {{SCORE_LABEL}} exactly as-is - do NOT replace these placeholders.\n\n"
@@ -995,7 +994,7 @@ def get_feedback():
                     
                     # Map score to user-friendly label (2/3/4 system)
                     def get_score_label(score):
-                        if score >= 3.5:
+                        if score >= 3.3:
                             return "Well Done"
                         elif score >= 2.5:
                             return "Average"
