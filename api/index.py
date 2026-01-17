@@ -2081,7 +2081,7 @@ def create_checkout_session():
             'strategy_plan': 'price_1SePloIH1WTKNasq64loXSAv',      # 30-60-90 Plan ($8.99)
             'strategy_followup': 'price_1SeQHYIH1WTKNasqpFyl2ef0',   # Value Follow-Up ($6.99)
             'strategy_closer': 'price_1SePpZIH1WTKNasqLuNq4sSZ',     # The Closer/Negotiation ($6.99)
-            # Note: strategy_inquisitor uses fallback to Closer price (same tier) - see line 2118
+            'strategy_inquisitor': 'price_1SeQGAIH1WTKNasqKwRR20TZ', # The Inquisitor ($6.99)
             
             'strategy_rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',    # Executive Rewrite ($12.99)
             'rewrite': 'price_1Sgsf9IH1WTKNasqxvk528yY',             # Alias for Rewrite
