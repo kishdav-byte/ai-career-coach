@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Confirm Email Change - Total Package Interview</title>
+</head>
+
+<body
+    style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a; color: #ffffff;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+        style="background-color: #0f172a;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                    style="max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+
+                    <!-- Header -->
+                    <tr>
+                        <td
+                            style="background: #1e3a8a; padding: 40px 30px; text-align: center; border-bottom: 2px solid #20C997;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div
+                                            style="font-size: 13px; color: #20C997; font-weight: 700; text-transform: lowercase; margin-bottom: 4px; letter-spacing: 0.5px;">
+                                            total package</div>
+                                        <div
+                                            style="font-size: 28px; color: #ffffff; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">
+                                            INTERVIEW</div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Main Content -->
+                    <tr>
+                        <td style="padding: 50px 40px; background: #0f172a;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <h1
+                                            style="color: #ffffff; font-size: 28px; margin: 0 0 20px 0; font-weight: 700; line-height: 1.3;">
+                                            Confirm Your New Email 📧</h1>
+
+                                        <p
+                                            style="color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                            We received a request to change the email address for your Total Package
+                                            Interview account.
+                                        </p>
+
+                                        <p
+                                            style="color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                            Click the button below to confirm this change:
+                                        </p>
+
+                                        <!-- CTA Button -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0"
+                                            width="100%">
+                                            <tr>
+                                                <td style="text-align: center; padding: 20px 0;">
+                                                    <a href="{{ .ConfirmationURL }}"
+                                                        style="display: inline-block; padding: 18px 40px; background: #20C997; color: #0f172a; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 0 25px rgba(32, 201, 151, 0.4);">
+                                                        Confirm New Email
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        </table>
+
+                                        <!-- Security Notice -->
+                                        <div
+                                            style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 12px; padding: 20px; margin: 30px 0;">
+                                            <p style="color: #fca5a5; font-size: 14px; line-height: 1.6; margin: 0;">
+                                                <strong>⚠️ Important:</strong> If you didn't request this email change,
+                                                please contact our support team immediately to secure your account.
+                                            </p>
+                                        </div>
+
+                                        <!-- Alternative Link -->
+                                        <p
+                                            style="color: #64748b; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                                            Or copy and paste this link into your browser:<br>
+                                            <a href="{{ .ConfirmationURL }}"
+                                                style="color: #20C997; word-break: break-all; text-decoration: none;">{{
+                                                .ConfirmationURL }}</a>
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td
+                            style="padding: 30px 40px; text-align: center; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                            <p style="margin: 0 0 10px 0; font-size: 14px; color: #64748b;">
+                                © 2026 Total Package Interview. All rights reserved.
+                            </p>
+                            <p style="margin: 0; font-size: 14px;">
+                                <a href="{{ .SiteURL }}" style="color: #20C997; text-decoration: none;">Visit our
+                                    website</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+
+</html>
