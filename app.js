@@ -966,7 +966,7 @@ async function initiateCheckout(productKey, userEmail, userId) {
 }
 
 function init() {
-    console.log("AI Career Coach App v9.1 Loaded");
+    console.log("Total Package Interview App v9.1 Loaded");
     const versionDisplay = document.createElement('div');
     versionDisplay.style.position = 'fixed';
     versionDisplay.style.bottom = '10px';
@@ -1006,11 +1006,11 @@ function init() {
 
     if (hash === '#interview') {
         if (interviewSection) interviewSection.classList.add('active');
-        document.title = "Interview Coach - AI Career Coach";
+        document.title = "Interview Coach - Total Package Interview";
     } else if (adminHashes.includes(hash)) {
         // Do not activate Resume section. Wait for Admin Check to reveal specific tool.
         // We can set title here though
-        document.title = "Admin Tool - AI Career Coach";
+        document.title = "Admin Tool - Total Package Interview";
 
         // Temporarily activate it so we can see it if we are already logged in as admin?
         // Admin check later will unhide the *container* or specific elements, 
@@ -1023,7 +1023,7 @@ function init() {
     } else {
         // Default to Resume (or if hash is #resume)
         if (resumeSection) resumeSection.classList.add('active');
-        document.title = "Resume Analysis - AI Career Coach";
+        document.title = "Resume Analysis - Total Package Interview";
     }
 
     // Initialize Global Variables

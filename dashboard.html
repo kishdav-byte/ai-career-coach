@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Hub - AceInterview</title>
+    <title>Executive Hub - Total Package Interview</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -2020,7 +2020,7 @@
                     try {
                         const res = await fetch('/api/admin/config?key=support_bot_welcome');
                         const data = await res.json();
-                        const welcome = data.value || "Welcome to AceInterview. How can I help you today?";
+                        const welcome = data.value || "Welcome to Total Package Interview. How can I help you today?";
                         const bubbleEl = document.getElementById('support-welcome-bubble');
                         bubbleEl.innerHTML = welcome.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
                         isSupportInit = true;

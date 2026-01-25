@@ -14,97 +14,112 @@
 </head>
 
 <body
-    style="margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #0f172a; color: #ffffff;">
+    style="margin: 0 !important; padding: 0 !important; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif !important; background-color: #f1f5f9 !important;">
     <!-- Email Container -->
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-        style="background-color: #0f172a;">
+        style="background-color: #f1f5f9; min-height: 100%;" bgcolor="#f1f5f9">
         <tr>
-            <td style="padding: 40px 20px;">
+            <td style="padding: 40px 20px;" bgcolor="#f1f5f9">
                 <!-- Main Content Card -->
-                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
-                    style="max-width: 600px; margin: 0 auto; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 16px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center"
+                    style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);"
+                    bgcolor="#ffffff">
 
                     <!-- Header with Brand -->
                     <tr>
-                        <td
-                            style="background: #1e3a8a; padding: 40px 30px; text-align: center; border-bottom: 2px solid #20C997;">
-                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
-                                <tr>
-                                    <td style="text-align: center;">
-                                        <div
-                                            style="font-size: 13px; color: #20C997; font-weight: 700; text-transform: lowercase; margin-bottom: 4px; letter-spacing: 0.5px;">
-                                            total package</div>
-                                        <div
-                                            style="font-size: 28px; color: #ffffff; font-weight: 900; text-transform: uppercase; letter-spacing: 2px;">
-                                            INTERVIEW</div>
-                                    </td>
-                                </tr>
-                            </table>
+                        <td bgcolor="#0f172a"
+                            style="background-color: #0f172a; padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+                            <!-- Brand Text -->
+                            <p
+                                style="font-size: 13px; color: #20C997; font-weight: 700; margin: 0 0 4px 0; letter-spacing: 0.5px; font-family: Arial, sans-serif;">
+                                TOTAL PACKAGE
+                            </p>
+                            <h1
+                                style="font-size: 28px; color: #ffffff; font-weight: 900; margin: 0; letter-spacing: 2px; font-family: Arial, sans-serif;">
+                                INTERVIEW
+                            </h1>
                         </td>
                     </tr>
 
                     <!-- Main Content -->
                     <tr>
-                        <td style="padding: 50px 40px; background: #0f172a;">
+                        <td bgcolor="#ffffff" style="padding: 50px 40px; background-color: #ffffff;">
+                            <!-- Welcome Heading -->
+                            <h2
+                                style="color: #0f172a !important; font-size: 26px; margin: 0 0 20px 0; font-weight: 700; line-height: 1.3; font-family: Arial, sans-serif;">
+                                Welcome to Total Package Interview! 🎉
+                            </h2>
+
+                            <!-- Body Text -->
+                            <p
+                                style="color: #475569 !important; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0; font-family: Arial, sans-serif;">
+                                Thanks for signing up! We're excited to help you ace your next interview
+                                with AI-powered practice and real-time feedback.
+                            </p>
+
+                            <p
+                                style="color: #475569 !important; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0; font-family: Arial, sans-serif;">
+                                Click the button below to confirm your email address and get started:
+                            </p>
+
+                            <!-- CTA Button -->
                             <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                 <tr>
+                                    <td style="text-align: center; padding: 20px 0;">
+                                        <!--[if mso]>
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{ .ConfirmationURL }}" style="height:50px;v-text-anchor:middle;width:200px;" arcsize="20%" strokecolor="#20C997" fillcolor="#20C997">
+                                        <w:anchorlock/>
+                                        <center style="color:#ffffff;font-family:Arial, sans-serif;font-size:15px;font-weight:bold;">CONFIRM EMAIL</center>
+                                        </v:roundrect>
+                                        <![endif]-->
+                                        <!--[if !mso]><!-->
+                                        <a href="{{ .ConfirmationURL }}"
+                                            style="display: inline-block; padding: 16px 36px; background-color: #20C997; color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 15px; letter-spacing: 0.5px; font-family: Arial, sans-serif;"
+                                            bgcolor="#20C997">
+                                            CONFIRM EMAIL
+                                        </a>
+                                        <!--<![endif]-->
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Alternative Link -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%"
+                                style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                                <tr>
                                     <td>
-                                        <h1
-                                            style="color: #ffffff; font-size: 26px; margin: 0 0 20px 0; font-weight: 700; line-height: 1.3;">
-                                            Welcome to Total Package Interview! 🎉</h1>
-
                                         <p
-                                            style="color: #cbd5e1; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
-                                            Thanks for signing up! We're excited to help you ace your next interview
-                                            with AI-powered practice and real-time feedback.
+                                            style="color: #64748b !important; font-size: 13px; line-height: 1.6; margin: 0 0 10px 0; font-family: Arial, sans-serif;">
+                                            Or copy and paste this link into your browser:
                                         </p>
-
-                                        <p
-                                            style="color: #cbd5e1; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
-                                            Click the button below to confirm your email address and get started:
-                                        </p>
-
-                                        <!-- CTA Button -->
-                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0"
-                                            width="100%">
-                                            <tr>
-                                                <td style="text-align: center; padding: 20px 0;">
-                                                    <a href="{{ .ConfirmationURL }}"
-                                                        style="display: inline-block; padding: 16px 36px; background: #20C997; color: #0f172a; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(32, 201, 151, 0.3);">
-                                                        Confirm Email
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        </table>
-
-                                        <!-- Alternative Link -->
-                                        <p
-                                            style="color: #64748b; font-size: 13px; line-height: 1.6; margin: 30px 0 0 0; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-                                            Or copy and paste this link into your browser:<br>
+                                        <p style="margin: 0;">
                                             <a href="{{ .ConfirmationURL }}"
-                                                style="color: #20C997; word-break: break-all; text-decoration: none;">{{
+                                                style="color: #20C997 !important; word-break: break-all; text-decoration: underline; font-size: 13px; font-family: Arial, sans-serif;">{{
                                                 .ConfirmationURL }}</a>
-                                        </p>
-
-                                        <p
-                                            style="color: #64748b; font-size: 13px; line-height: 1.6; margin: 20px 0 0 0;">
-                                            If you didn't create an account, you can safely ignore this email.
                                         </p>
                                     </td>
                                 </tr>
                             </table>
+
+                            <p
+                                style="color: #64748b !important; font-size: 13px; line-height: 1.6; margin: 20px 0 0 0; font-family: Arial, sans-serif;">
+                                If you didn't create an account, you can safely ignore this email.
+                            </p>
                         </td>
                     </tr>
 
                     <!-- Footer -->
                     <tr>
-                        <td
-                            style="padding: 30px 40px; text-align: center; background: #0a1628; border-top: 1px solid rgba(255, 255, 255, 0.08);">
-                            <p style="margin: 0 0 10px 0; font-size: 13px; color: #64748b;">
+                        <td bgcolor="#f8fafc"
+                            style="padding: 30px 40px; text-align: center; background-color: #f8fafc; border-top: 1px solid #e2e8f0; border-radius: 0 0 8px 8px;">
+                            <p
+                                style="margin: 0 0 10px 0; font-size: 13px; color: #64748b !important; font-family: Arial, sans-serif;">
                                 © 2026 Total Package Interview. All rights reserved.
                             </p>
                             <p style="margin: 0; font-size: 13px;">
-                                <a href="{{ .SiteURL }}" style="color: #20C997; text-decoration: none;">Visit our
+                                <a href="{{ .SiteURL }}"
+                                    style="color: #0f172a !important; text-decoration: none; font-weight: 600; font-family: Arial, sans-serif;">Visit
+                                    our
                                     website</a>
                             </p>
                         </td>
