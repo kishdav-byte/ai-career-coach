@@ -118,6 +118,76 @@ def auth_signup():
         print(f"Signup Critical Error: {traceback.format_exc()}")
         return jsonify({"error": f"Server crash during signup: {str(e)}"}), 500
 
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def auth_forgot_password():
+    """Start password reset flow."""
+    try:
+        data = request.json
+        email = data.get('email')
+        
+        if not email:
+            return jsonify({"error": "Email is required"}), 400
+            
+        print(f"[AUTH] Reset request for: {email}")
+        
+        supabase = get_supabase()
+        
+        # Determine redirect URL (usually /update-password)
+        # Handle cases where the app might be on a subdomain or different port
+        origin = request.headers.get('Origin')
+        if not origin:
+            # Fallback to host-based URL if Origin header is missing
+            origin = request.host_url.rstrip('/')
+            
+        redirect_url = f"{origin}/update-password"
+        print(f"[AUTH] Redirect URL: {redirect_url}")
+        
+        try:
+            # Note: supabase-py uses snake_case for options
+            supabase.auth.reset_password_for_email(email, options={"redirect_to": redirect_url})
+            return jsonify({"success": True, "message": "Reset link sent"}), 200
+        except Exception as auth_err:
+            print(f"[AUTH] Reset failure: {auth_err}")
+            return jsonify({"error": str(auth_err)}), 400
+            
+    except Exception as e:
+        print(f"Forgot Password Critical Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/auth/update-password', methods=['POST'])
+def auth_update_password():
+    """Update password using the token sent to email."""
+    try:
+        data = request.json
+        new_password = data.get('password')
+        access_token = data.get('access_token')
+        refresh_token = data.get('refresh_token')
+        
+        if not new_password or not access_token:
+            return jsonify({"error": "Missing required fields"}), 400
+            
+        supabase = get_supabase()
+        
+        # 1. Set the session using the recovery token
+        try:
+            # This allows subsequent auth calls to be authenticated as the user
+            supabase.auth.set_session(access_token, refresh_token)
+        except Exception as session_err:
+            print(f"[AUTH] Session set failure: {session_err}")
+            return jsonify({"error": "Invalid or expired reset token"}), 401
+            
+        # 2. Update the password
+        try:
+            supabase.auth.update_user({"password": new_password})
+            return jsonify({"success": True}), 200
+        except Exception as update_err:
+            print(f"[AUTH] Password update failure: {update_err}")
+            return jsonify({"error": str(update_err)}), 400
+            
+    except Exception as e:
+        print(f"Update Password Critical Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 # 1. SETUP SUPABASE (Lazy Loader)
 def get_supabase():
     from supabase import create_client, Client
