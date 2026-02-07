@@ -902,7 +902,6 @@
                 const hasAccess = profile.is_unlimited ||
                     (profile.subscription_status === 'pro') ||
                     (profile.credits_resume && profile.credits_resume > 0) ||
-                    (profile.rewrite_credits && profile.rewrite_credits > 0) ||
                     (profile.credits && profile.credits > 0);
 
                 if (hasAccess) {

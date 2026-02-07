@@ -643,7 +643,7 @@
 
                 const { data: profile, error } = await window.supabase
                     .from('users')
-                    .select('credits, credits_resume, rewrite_credits, is_unlimited')
+                    .select('credits, credits_resume, is_unlimited')
                     .eq('id', user.id)
                     .single();
 
@@ -654,10 +654,9 @@
 
                 if (ctaBtn && profile) {
                     // 3. Logic: If they have access, change the button
-                    // Check standardized 'credits_resume', universal 'credits', and legacy 'rewrite_credits'
+                    // Check standardized 'credits_resume' and universal 'credits'
                     const hasAccess = profile.is_unlimited ||
                         (profile.credits_resume > 0) ||
-                        (profile.rewrite_credits > 0) ||
                         (profile.credits > 0);
 
                     if (hasAccess) {
