@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Executive Rewrite - Strategy Lab</title>
@@ -900,6 +901,7 @@
                 // Unlimited OR (Specific Credits > 0) OR (Universal Credits > 0)
                 const hasAccess = profile.is_unlimited ||
                     (profile.subscription_status === 'pro') ||
+                    (profile.credits_resume && profile.credits_resume > 0) ||
                     (profile.rewrite_credits && profile.rewrite_credits > 0) ||
                     (profile.credits && profile.credits > 0);
 

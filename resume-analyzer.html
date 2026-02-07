@@ -583,6 +583,21 @@
         // --- PAYMENT LOGIC ---
         window.buyCredits = async (priceId, mode) => {
             try {
+                // 1. Save Mission Context before redirecting to Stripe
+                // This ensures the current JD is available when the user returns to the Generator
+                const jdBox = document.getElementById('job-description') ||
+                    document.getElementById('job-description-input') ||
+                    document.getElementById('target-job-description') ||
+                    document.querySelector('textarea');
+                const jdText = jdBox ? jdBox.value : '';
+
+                localStorage.setItem('mission_context', JSON.stringify({
+                    jd: jdText,
+                    role: "Target Role",
+                    company: "Target Company",
+                    job_id: pendingJobId
+                }));
+
                 const token = localStorage.getItem('supabase.auth.token');
                 const res = await fetch('/api/create-checkout-session', {
                     method: 'POST',
@@ -593,7 +608,7 @@
                     body: JSON.stringify({
                         price_id: priceId,
                         plan_type: 'strategy_rewrite',
-                        successUrl: window.location.href,
+                        successUrl: window.location.origin + '/resume-rewriter.html',
                         mode: mode
                     })
                 });
