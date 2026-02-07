@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Analyzer - Strategy Lab</title>
@@ -609,22 +610,40 @@
         async function checkRewriteEligibility() {
             try {
                 // 1. Get User Status from Global Supabase
-                // Note: Auth state might be lazy loaded, so we wait or use specific method
                 const { data: { user } } = await window.supabase.auth.getUser();
-                if (!user) return;
+                if (!user) {
+                    console.warn("No user session found for credit check.");
+                    // FALLBACK: If no user, show Unlock state instead of getting stuck
+                    const ctaBtn = document.getElementById('rewrite-cta-btn');
+                    if (ctaBtn) {
+                        ctaBtn.innerHTML = `UNLOCK REWRITE ($12.99)`;
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'animate-pulse');
+                        ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+                        ctaBtn.onclick = (e) => {
+                            window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
+                        };
+                    }
+                    return;
+                }
 
-                const { data: profile } = await window.supabase
+                const { data: profile, error } = await window.supabase
                     .from('users')
-                    .select('credits, rewrite_credits, is_unlimited')
+                    .select('credits, credits_resume, rewrite_credits, is_unlimited')
                     .eq('id', user.id)
                     .single();
+
+                if (error) throw error;
 
                 // 2. Locate the "Unlock" Button
                 const ctaBtn = document.getElementById('rewrite-cta-btn');
 
                 if (ctaBtn && profile) {
                     // 3. Logic: If they have access, change the button
-                    const hasAccess = profile.is_unlimited || (profile.rewrite_credits > 0) || (profile.credits > 0);
+                    // Check standardized 'credits_resume', universal 'credits', and legacy 'rewrite_credits'
+                    const hasAccess = profile.is_unlimited ||
+                        (profile.credits_resume > 0) ||
+                        (profile.rewrite_credits > 0) ||
+                        (profile.credits > 0);
 
                     if (hasAccess) {
                         // VISUAL UPDATE
@@ -642,13 +661,10 @@
                         // ACTION UPDATE
                         ctaBtn.onclick = (e) => {
                             e.preventDefault();
-
-                            // 1. SCRAPE THE JD FROM THE SCREEN
-                            // Use the same "Dragnet" IDs to find where the JD is currently sitting
                             const jdBox = document.getElementById('job-description') ||
                                 document.getElementById('job-description-input') ||
                                 document.getElementById('target-job-description') ||
-                                document.querySelector('textarea'); // Fallback
+                                document.querySelector('textarea');
 
                             const jdText = jdBox ? jdBox.value : '';
 
@@ -658,18 +674,13 @@
                                 }
                             }
 
-                            // 2. PACK THE BAGS (Save to Mission Context)
-                            // We re-save it so the next page can read it immediately.
                             localStorage.setItem('mission_context', JSON.stringify({
                                 jd: jdText,
-                                role: "Target Role", // Default since we might not have specific role data here
+                                role: "Target Role",
                                 company: "Target Company",
-                                job_id: pendingJobId // Pass it forward to Rewriter
+                                job_id: pendingJobId
                             }));
 
-                            console.log("Payload Saved. Launching Rewrite...");
-
-                            // 3. LAUNCH
                             window.location.href = 'resume-rewriter.html';
                         };
 
@@ -680,13 +691,22 @@
                         ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
 
                         ctaBtn.onclick = (e) => {
-                            // Direct Checkout
                             window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
                         };
                     }
                 }
             } catch (e) {
                 console.error("Smart Auth Check Failed:", e);
+                // FALLBACK: If check fails, show Unlock state instead of getting stuck on "Checking Access"
+                const ctaBtn = document.getElementById('rewrite-cta-btn');
+                if (ctaBtn) {
+                    ctaBtn.innerHTML = `UNLOCK REWRITE ($12.99)`;
+                    ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'animate-pulse');
+                    ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+                    ctaBtn.onclick = (e) => {
+                        window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
+                    };
+                }
             }
         }
         function toggleSidebar() {
