@@ -643,7 +643,7 @@
 
                 const { data: profile, error } = await window.supabase
                     .from('users')
-                    .select('credits, credits_resume, is_unlimited')
+                    .select('credits, credits_resume, is_unlimited, subscription_status')
                     .eq('id', user.id)
                     .single();
 
@@ -654,17 +654,25 @@
 
                 if (ctaBtn && profile) {
                     // 3. Logic: If they have access, change the button
-                    // Check standardized 'credits_resume' and universal 'credits'
+                    // Check standardized 'credits_resume', universal 'credits', and subscription status
                     const hasAccess = profile.is_unlimited ||
+                        (profile.subscription_status === 'active') ||
+                        (profile.subscription_status === 'pro') ||
                         (profile.credits_resume > 0) ||
                         (profile.credits > 0);
 
                     if (hasAccess) {
+                        // Determine access label
+                        let accessLabel = '(Use 1 Credit)';
+                        if (profile.is_unlimited || profile.subscription_status === 'active' || profile.subscription_status === 'pro') {
+                            accessLabel = '(Included)';
+                        }
+
                         // VISUAL UPDATE
                         ctaBtn.innerHTML = `
                             <span class="flex items-center gap-2">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 
-                                Launch Executive Rewrite ${profile.is_unlimited ? '(Unlimited)' : '(Use 1 Credit)'}
+                                Launch Executive Rewrite ${accessLabel}
                             </span>
                         `;
 
