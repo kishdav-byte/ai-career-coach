@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resume Performance - Total Package Interview</title>
@@ -71,22 +72,22 @@
 
         <!-- Nav -->
         <nav class="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scroll">
-            <a href="/dashboard.html"
+            <a href="/dashboard"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
                 <i class="fas fa-th-large"></i>
                 <span>Performance Hub</span>
             </a>
-            <a href="/resume-analyzer.html"
+            <a href="/resume-analyzer"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
                 <i class="fas fa-file-alt"></i>
                 <span>Resume Analyzer</span>
             </a>
-            <a href="/resume-history.html"
+            <a href="/resume-history"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-white bg-teal/10 border border-teal/30 rounded-lg">
                 <i class="fas fa-history"></i>
                 <span>Resume Performance</span>
             </a>
-            <a href="/interview-history.html"
+            <a href="/interview-history"
                 class="flex items-center gap-3 px-4 py-3 text-sm font-medium text-slate-400 hover:text-white hover:bg-white/5 rounded-lg transition-all">
                 <i class="fas fa-chart-line"></i>
                 <span>Interview Performance</span>
@@ -124,7 +125,7 @@
                             class="text-teal">Performance</span></h1>
                     <p class="text-sm text-slate-400">Track your resume evolution and market relevance over time</p>
                 </div>
-                <a href="/resume-analyzer.html"
+                <a href="/resume-analyzer"
                     class="px-6 py-3 bg-teal hover:bg-teal/80 text-slate-900 font-bold rounded-lg transition-all flex items-center gap-2 justify-center shadow-lg shadow-teal/20">
                     <i class="fas fa-plus"></i>
                     <span>New Analysis</span>
@@ -229,7 +230,7 @@
     // Sign Out
     function signOut() {
         localStorage.removeItem(SESSION_KEY);
-        window.location.href = '/login.html';
+        window.location.href = '/login';
     }
 
     // Sort Data
@@ -402,7 +403,7 @@
         if (resume) {
             // Store resume data and redirect to analyzer
             localStorage.setItem('reanalyze_resume', JSON.stringify(resume));
-            window.location.href = '/resume-analyzer.html';
+            window.location.href = '/resume-analyzer';
         }
     }
 
@@ -411,7 +412,7 @@
         try {
             const sessionStr = localStorage.getItem(SESSION_KEY);
             if (!sessionStr) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -420,7 +421,7 @@
             const token = session.access_token;
 
             if (!userId || !token) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return;
             }
 

@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /admin
+Disallow: /app
+Disallow: /resume-analyzer
+Disallow: /resume-rewriter
+Disallow: /interview-history
+Disallow: /jobs-history
+Disallow: /resume-history
+Disallow: /star-drill
+Disallow: /strategy-lab
+Disallow: /lab-assistant
+Disallow: /cover-letter
+Disallow: /follow-up
+Disallow: /resume-viewer
+Disallow: /role-reversal
+Disallow: /debug
+
+Sitemap: https://totalpackageinterview.com/sitemap.xml

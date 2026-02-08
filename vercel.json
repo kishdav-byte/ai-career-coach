@@ -20,6 +20,22 @@
         {
             "src": "assets/**",
             "use": "@vercel/static"
+        },
+        {
+            "src": "robots.txt",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "sitemap.xml",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "manifest.json",
+            "use": "@vercel/static"
+        },
+        {
+            "src": "favicon.ico",
+            "use": "@vercel/static"
         }
     ],
     "cleanUrls": true,

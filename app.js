@@ -182,7 +182,7 @@ async function checkAccess(requiredType = 'credits_interview', autoPrompt = true
 
     // 1. Handle "Not Logged In"
     if (!user) {
-        window.location.href = '/login.html';
+        window.location.href = '/login';
         return false;
     }
 
@@ -1100,7 +1100,7 @@ function init() {
     if (unlockInterviewBtn) {
         unlockInterviewBtn.addEventListener('click', async () => {
             const session = getSession();
-            if (!session) return window.location.href = '/login.html';
+            if (!session) return window.location.href = '/login';
 
             initiateCheckout('strategy_interview_sim', session.email);
         });
@@ -1111,7 +1111,7 @@ function init() {
     if (unlockLinkedInBtn) {
         unlockLinkedInBtn.addEventListener('click', async () => {
             const session = getSession();
-            if (!session) return window.location.href = '/login.html';
+            if (!session) return window.location.href = '/login';
             initiateCheckout('strategy_linkedin', session.email, session.user_id); // Pass ID!
         });
     }
@@ -1576,7 +1576,7 @@ function init() {
                                 },
                                 body: JSON.stringify({
                                     plan_type: 'strategy_rewrite',
-                                    successUrl: window.location.origin + '/app.html?status=success#resume-builder',
+                                    successUrl: window.location.origin + '/app?status=success#resume-builder',
                                     mode: 'payment'
                                 })
                             });
@@ -2259,7 +2259,7 @@ function init() {
                 addMessage(result.data.report, 'system', true);
 
                 // Add a small return link after the report
-                addMessage('<div class="mt-4"><a href="/dashboard.html" class="text-blue-500 hover:underline">← Return to Dashboard</a></div>', 'system', true);
+                addMessage('<div class="mt-4"><a href="/dashboard" class="text-blue-500 hover:underline">← Return to Dashboard</a></div>', 'system', true);
             } else {
                 addMessage("Error: Could not generate structured report. Please check your connection.", 'system');
             }
@@ -2274,7 +2274,7 @@ function init() {
     // Payment alert function for upsell buttons
     window.showPaymentAlert = function () {
         // Redirect to pricing page
-        window.location.href = '/pricing.html';
+        window.location.href = '/pricing';
     };
 
     function addMessage(text, sender, isHtml = false) {
@@ -2688,7 +2688,7 @@ if (document.getElementById('generate-plan-btn')) {
                             },
                             body: JSON.stringify({
                                 plan_type: 'strategy_rewrite',
-                                successUrl: window.location.origin + '/app.html?status=success#resume-builder',
+                                successUrl: window.location.origin + '/app?status=success#resume-builder',
                                 mode: 'payment'
                             })
                         });

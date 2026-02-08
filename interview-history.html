@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Total Package Interview</title>
@@ -109,13 +110,13 @@
 
         <!-- Nav -->
         <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
-            <a href="/dashboard.html"
+            <a href="/dashboard"
                 class="flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
                 <i class="fas fa-th-large group-hover:text-teal transition-colors text-lg w-6 text-center"></i>
                 <span class="font-medium">Dashboard</span>
             </a>
 
-            <a href="/interview-history.html"
+            <a href="/interview-history"
                 class="flex items-center gap-4 px-4 py-3 text-white bg-white/10 rounded-xl transition-all group shadow-[0_0_10px_rgba(32,201,151,0.1)] border border-teal/20">
                 <i class="fas fa-chart-line text-teal text-lg w-6 text-center"></i>
                 <span class="font-medium">Performance</span>
@@ -164,7 +165,7 @@
                         class="text-teal">Performance</span></h1>
                 <p class="text-xs text-gray-400 mt-1">Track your progress and review past simulations</p>
             </div>
-            <a href="app.html"
+            <a href="app"
                 class="bg-teal hover:bg-teal/80 text-navy font-bold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_20px_rgba(32,201,151,0.4)] hover:shadow-[0_0_30px_rgba(32,201,151,0.6)] flex items-center gap-2">
                 <i class="fas fa-microphone"></i>
                 New Session
@@ -337,7 +338,7 @@
             const { data: { session } } = await supabaseClient.auth.getSession();
 
             if (!session) {
-                window.location.href = '/index.html'; // Redirect to login
+                window.location.href = '/index'; // Redirect to login
                 return;
             }
 
@@ -550,7 +551,7 @@
 
         async function logout() {
             await supabaseClient.auth.signOut();
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
 
         function renderTable(data) {
@@ -848,6 +849,7 @@
             printWindow.document.write(`
                 <html>
                     <head>
+    <meta name="robots" content="noindex">
                         <title>Interview Performance Report - ${dateStr}</title>
                         <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;900&display=swap" rel="stylesheet">
                         <style>
@@ -956,7 +958,7 @@
         // Auth Logout
         window.logout = async function () {
             if (supabaseClient) await supabaseClient.auth.signOut();
-            window.location.href = '/index.html';
+            window.location.href = '/index';
         }
 
     </script>

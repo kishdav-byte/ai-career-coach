@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>STAR Drill - Strategy Lab</title>
@@ -85,7 +86,7 @@
 
         <!-- Nav Items -->
         <nav class="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scroll">
-            <a href="/dashboard.html"
+            <a href="/dashboard"
                 class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all relative group mb-1 text-slate-400 hover:text-white hover:bg-white/5">
                 <i class="fas fa-th-large text-slate-500 group-hover:text-white"></i>
                 <span>Performance Hub</span>
@@ -102,13 +103,13 @@
                     <i id="icon-clinic" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                 </button>
                 <div id="group-clinic" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                    <a href="/resume-analyzer.html"
+                    <a href="/resume-analyzer"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Resume
                         Scanner</a>
-                    <a href="/resume-rewriter.html"
+                    <a href="/resume-rewriter"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Executive
                         Rewrite</a>
-                    <a href="/app.html#linkedin"
+                    <a href="/app#linkedin"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">LinkedIn
                         Optimizer</a>
                 </div>
@@ -125,13 +126,13 @@
                     <i id="icon-simulator" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                 </button>
                 <div id="group-simulator" class="ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                    <a href="/app.html"
+                    <a href="/app"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Mock
                         Interview</a>
-                    <a href="/role-reversal.html"
+                    <a href="/role-reversal"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Role
                         Reversal</a>
-                    <a href="/star-drill.html"
+                    <a href="/star-drill"
                         class="block px-3 py-2 text-sm rounded-md text-teal bg-teal/5 font-bold">STAR Method Drill</a>
                 </div>
             </div>
@@ -147,13 +148,13 @@
                     <i id="icon-strategy" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                 </button>
                 <div id="group-strategy" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                    <a href="/jobs-history.html"
+                    <a href="/jobs-history"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Job
                         Tracker</a>
-                    <a href="/strategy/30-60-90.html"
+                    <a href="/strategy/30-60-90"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">30-60-90
                         Plan</a>
-                    <a href="/strategy/closer.html"
+                    <a href="/strategy/closer"
                         class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Salary
                         Negotiation</a>
                 </div>
@@ -165,11 +166,11 @@
                     Upgrade Hub
                 </div>
                 <div class="space-y-1">
-                    <a href="/pricing.html"
+                    <a href="/pricing"
                         class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group bg-teal-500/10 text-teal font-bold border border-teal/20">
                         <span>Go Unlimited</span>
                     </a>
-                    <a href="/pricing.html"
+                    <a href="/pricing"
                         class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group text-slate-400 hover:text-white hover:bg-white/5 font-medium">
                         <span>Add Credits</span>
                     </a>
@@ -224,7 +225,7 @@
                 class="bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white px-3 py-1 rounded text-xs font-bold mr-4 transition-colors">
                 <i class="fas fa-history mr-1"></i> HISTORY
             </button>
-            <a href="/dashboard.html"
+            <a href="/dashboard"
                 class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
@@ -417,7 +418,7 @@
             <h3 class="text-2xl font-bold text-white mb-2">Free Limit Reached</h3>
             <p class="text-slate-400 mb-8">You've used your 3 free STAR Drills for this month. Upgrade to the Monthly
                 Plan for unlimited access to all tools.</p>
-            <a href="/pricing.html"
+            <a href="/pricing"
                 class="block w-full py-4 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl transition-all mb-3 shadow-[0_0_20px_rgba(37,99,235,0.4)]">
                 Upgrade Now ($49.99/mo)
             </a>
@@ -465,7 +466,7 @@
 
         function signOut() {
             localStorage.removeItem(APP_SESSION_KEY);
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
 
         window.applyMissionContext = (raw) => {

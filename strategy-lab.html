@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Total Package Interview</title>
@@ -97,10 +98,10 @@
 
     <nav class="nav">
         <div class="nav-container">
-            <a href="/dashboard.html" class="nav-logo">Total Package Interview</a>
+            <a href="/dashboard" class="nav-logo">Total Package Interview</a>
             <div style="display: flex; gap: 1rem; align-items: center;">
                 <span id="credit-display" style="font-size: 0.9rem; font-weight: 600;"></span>
-                <a href="/dashboard.html" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Back to Dashboard</a>
+                <a href="/dashboard" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Back to Dashboard</a>
             </div>
         </div>
     </nav>
@@ -136,7 +137,7 @@
                 <p>Track your active campaigns, resume scores, and tool usage in one dashboard.</p>
                 <div class="tool-status status-unlocked">Free Access</div>
                 <div>
-                    <a href="/strategy/strategy-log.html" class="btn btn-open" style="background: #2563eb;">Open Log</a>
+                    <a href="/strategy/strategy-log" class="btn btn-open" style="background: #2563eb;">Open Log</a>
                 </div>
             </div>
 
@@ -204,7 +205,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('supabase.auth.token');
             if (!token) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -278,7 +279,7 @@
                 if (hasAccess) {
                     statusEl.textContent = isUnlimited ? "Unlimited Access" : `${credits} Credit${credits > 1 ? 's' : ''} Available`;
                     statusEl.classList.add('status-unlocked');
-                    actionEl.innerHTML = `<a href="${url}.html" class="btn btn-open">Open Tool</a>`;
+                    actionEl.innerHTML = `<a href="${url}" class="btn btn-open">Open Tool</a>`;
                 } else {
                     statusEl.textContent = "Locked";
                     statusEl.classList.add('status-locked');
@@ -304,7 +305,7 @@
                             plan_type: planType,
                             email: userData.email,
                             userId: userData.id || userData.user_id,
-                            successUrl: window.location.origin + '/dashboard.html'
+                            successUrl: window.location.origin + '/dashboard'
                         })
                     });
                     const result = await res.json();

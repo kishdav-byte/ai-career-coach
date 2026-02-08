@@ -118,9 +118,9 @@
 
                     // Redirect
                     if (user.user_metadata?.role === 'admin' || user.email === 'david@aceinterview.ai') {
-                        window.location.href = '/admin.html';
+                        window.location.href = '/admin';
                     } else {
-                        window.location.href = '/dashboard.html';
+                        window.location.href = '/dashboard';
                     }
                 } else {
                     showAlert('Session not created. Please try again.', 'error');

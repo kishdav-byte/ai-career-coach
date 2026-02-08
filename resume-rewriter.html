@@ -375,7 +375,7 @@
                 <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">EXECUTIVE<span
                         class="text-blue-500">_REWRITE</span></div>
             </div>
-            <a href="/dashboard.html"
+            <a href="/dashboard"
                 class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
@@ -745,7 +745,7 @@
         }
 
         (function checkAuth() {
-            if (!localStorage.getItem(SESSION_KEY) && !window.supabase) window.location.href = '/login.html';
+            if (!localStorage.getItem(SESSION_KEY) && !window.supabase) window.location.href = '/login';
         })();
 
         // --- GLOBAL DATA STORE ---
@@ -896,7 +896,7 @@
                 // 1. Get User
                 const { data: { user } } = await window.supabase.auth.getUser();
                 if (!user) {
-                    window.location.href = '/login.html';
+                    window.location.href = '/login';
                     return;
                 }
 
@@ -1350,7 +1350,7 @@
                 // GATEKEEPER: Check for 402 Payment Required
                 if (response.status === 402) {
                     alert("⛔️ OUT OF CREDITS\n\nYou have used all your Strategy Credits. Upgrade to the Monthly Plan for unlimited access.");
-                    window.location.href = '/pricing.html';
+                    window.location.href = '/pricing';
                     btn.disabled = false;
                     btn.innerHTML = originalHTML;
                     return;
@@ -1576,7 +1576,7 @@
 
         // NEW: Launch Function
         window.launchStandaloneViewer = () => {
-            window.open('resume-viewer.html', '_blank');
+            window.open('resume-viewer', '_blank');
         };
 
         function printResume() {

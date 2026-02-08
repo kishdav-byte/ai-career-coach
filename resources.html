@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Career Vault | Total Package Interview - Expert Resources</title>
+    <meta name="description"
+        content="Expert guides, interview checklists, and AI-powered career strategies to help you land your next executive role.">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- SEO & Social Sharing -->
+    <link rel="canonical" href="https://totalpackageinterview.com/resources">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://totalpackageinterview.com/resources">
+    <meta property="og:title" content="Career Vault | Expert Interview & Resume Resources">
+    <meta property="og:description"
+        content="Access our library of expert guides and AI-powered career tools to master the STAR method and executive interviewing.">
+    <meta property="og:image" content="https://totalpackageinterview.com/assets/resources-banner.png">
+
+    <!-- Google Site Verification -->
+    <meta name="google-site-verification" content="eOff8RzI0-vB0yrxfWmeKxQfr4DQaDs7r1gmH7rkeZs" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0A2540;
+            --primary-dark: #051b30;
+            --primary-light: #20C997;
+            --secondary: #20C997;
+            --accent: #FF6B6B;
+            --dark: #111827;
+            --gray-900: #111827;
+            --gray-800: #1f2937;
+            --gray-400: #9ca3af;
+            --gray-200: #e5e7eb;
+            --white: #ffffff;
+            --gradient-hero: linear-gradient(135deg, #0A2540 0%, #0f172a 100%);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: var(--gray-200);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Navigation */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .nav-logo .top-line {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: lowercase;
+            font-weight: 700;
+        }
+
+        .nav-logo .bottom-line {
+            font-size: 1.25rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-200);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-light);
+        }
+
+        .nav-cta {
+            background: var(--secondary);
+            color: var(--primary) !important;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700 !important;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 10rem 2rem 6rem;
+            background: var(--gradient-hero);
+            position: relative;
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(32, 201, 151, 0.05) 0%, transparent 50%);
+            z-index: 0;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--white);
+            letter-spacing: -0.02em;
+        }
+
+        .hero h1 span {
+            color: var(--secondary);
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--gray-400);
+            margin-bottom: 3rem;
+        }
+
+        /* Grid */
+        .resources-grid {
+            max-width: 1200px;
+            margin: -4rem auto 6rem;
+            padding: 0 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .resource-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .resource-card:hover {
+            transform: translateY(-10px);
+            border-color: rgba(32, 201, 151, 0.3);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .card-image {
+            height: 200px;
+            background-color: var(--primary-dark);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.7;
+            transition: transform 0.5s ease;
+        }
+
+        .resource-card:hover .card-image img {
+            transform: scale(1.1);
+            opacity: 0.9;
+        }
+
+        .card-content {
+            padding: 2rem;
+            flex-grow: 1;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            background: rgba(32, 201, 151, 0.1);
+            color: var(--secondary);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(32, 201, 151, 0.2);
+        }
+
+        .resource-card h3 {
+            font-size: 1.5rem;
+            color: var(--white);
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .resource-card p {
+            color: var(--gray-400);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+        }
+
+        .card-footer {
+            padding: 1.5rem 2rem;
+            border-top: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .read-more {
+            color: var(--secondary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .read-more i {
+            transition: transform 0.3s ease;
+        }
+
+        .resource-card:hover .read-more i {
+            transform: translateX(5px);
+        }
+
+        /* Newsletter Section */
+        .newsletter {
+            padding: 6rem 2rem;
+            background: #020617;
+            text-align: center;
+        }
+
+        .newsletter-box {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--gradient-hero);
+            padding: 3rem;
+            border-radius: 30px;
+            border: 1px solid var(--glass-border);
+        }
+
+        .newsletter h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .newsletter p {
+            color: var(--gray-400);
+            margin-bottom: 2rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .input-group input {
+            flex-grow: 1;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--glass-border);
+            color: var(--white);
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: var(--secondary);
+        }
+
+        .btn-newsletter {
+            padding: 1rem 2rem;
+            background: var(--secondary);
+            color: var(--primary);
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .btn-newsletter:hover {
+            background: var(--primary-light);
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            background: var(--primary-dark);
+            border-top: 1px solid var(--glass-border);
+            text-align: center;
+        }
+
+        .footer-logo {
+            margin-bottom: 2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            margin-bottom: 3rem;
+            list-style: none;
+        }
+
+        .footer-links a {
+            color: var(--gray-400);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .footer-links a:hover {
+            color: var(--white);
+        }
+
+        .copyright {
+            color: var(--gray-800);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .hero {
+                padding: 8rem 2rem 4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="top-line">total package</span>
+                <span class="bottom-line">INTERVIEW</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/features">Features</a></li>
+                <li><a href="/resources">Resources</a></li>
+                <li><a href="/pricing">Pricing</a></li>
+                <li><a href="/login" class="nav-cta">Log In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <div class="hero-content">
+            <h1>The Executive <span>Career Vault</span></h1>
+            <p>Advanced strategies, scripts, and frameworks for the modern executive search.</p>
+        </div>
+    </header>
+
+    <!-- Grid -->
+    <main class="resources-grid">
+        <!-- Resource 1 -->
+        <article class="resource-card">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80"
+                    alt="STAR Method">
+            </div>
+            <div class="card-content">
+                <span class="tag">Methodology</span>
+                <h3>The STAR Method Masterclass</h3>
+                <p>Beyond the basics. Learn how to layer technical complexity and leadership impact into your STAR
+                    stories.</p>
+            </div>
+            <div class="card-footer">
+                <a href="/guides/star-method-masterclass" class="read-more">Read Guide <i
+                        class="fas fa-arrow-right"></i></a>
+                <span class="text-xs text-slate-500">12 min read</span>
+            </div>
+        </article>
+
+        <!-- Resource 2 -->
+        <article class="resource-card">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1454165833767-027ffea7028c?auto=format&fit=crop&q=80"
+                    alt="Executive Checklist">
+            </div>
+            <div class="card-content">
+                <span class="tag">Strategy</span>
+                <h3>Executive Interview Checklist</h3>
+                <p>The 48-hour countdown. Every ritual and research step required before stepping into the boardroom.
+                </p>
+            </div>
+            <div class="card-footer">
+                <a href="/guides/executive-checklist" class="read-more">Download PDF <i
+                        class="fas fa-arrow-right"></i></a>
+                <span class="text-xs text-slate-500">5 min read</span>
+            </div>
+        </article>
+
+        <!-- Resource 3 -->
+        <article class="resource-card">
+            <div class="card-image">
+                <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80"
+                    alt="AI Recruiter">
+            </div>
+            <div class="card-content">
+                <span class="tag">Future of Work</span>
+                <h3>Beating the AI Recruiter</h3>
+                <p>How Large Language Models (LLMs) are scanning your resume and how to ensure you're in the top 1%.</p>
+            </div>
+            <div class="card-footer">
+                <a href="/guides/beating-the-ai-recruiter" class="read-more">Read Guide <i
+                        class="fas fa-arrow-right"></i></a>
+                <span class="text-xs text-slate-500">8 min read</span>
+            </div>
+        </article>
+    </main>
+
+    <!-- Newsletter -->
+    <section class="newsletter">
+        <div class="newsletter-box">
+            <h2>Weekly Strategy Drops</h2>
+            <p>Join 2,000+ executives receiving our "Interview Lab" insights once a week.</p>
+            <form class="input-group">
+                <input type="email" placeholder="executive@email.com" required>
+                <button type="submit" class="btn-newsletter">Subscribe</button>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-logo">
+            <a href="/" class="nav-logo" style="align-items: center;">
+                <span class="top-line">total package</span>
+                <span class="bottom-line">INTERVIEW</span>
+            </a>
+        </div>
+        <ul class="footer-links">
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/contact">Contact</a></li>
+            <li><a href="/terms">Terms</a></li>
+            <li><a href="/privacy">Privacy</a></li>
+        </ul>
+        <p class="copyright">&copy; 2026 Total Package Interview. Powered by AI Career Coach.</p>
+    </footer>
+
+</body>
+
+</html>

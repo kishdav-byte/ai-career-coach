@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Features & Methodology | Total Package Interview AI</title>
+    <meta name="description"
+        content="Explore the full suite of AI-powered career coaching tools. From resume diagnosis to voice-simulated interviews, discover the tech behind the 3-stage process.">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- SEO & Social Sharing -->
+    <link rel="canonical" href="https://totalpackageinterview.com/features">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://totalpackageinterview.com/features">
+    <meta property="og:title" content="Total Package Interview Features | The AI Career Suite">
+    <meta property="og:description"
+        content="A deep dive into the technology powering your next executive role. Discover our 13+ specialized AI career tools.">
+    <meta property="og:image" content="https://totalpackageinterview.com/assets/og-image.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0A2540;
+            --primary-dark: #051b30;
+            --primary-light: #20C997;
+            --secondary: #20C997;
+            --accent: #3b82f6;
+            --dark: #020617;
+            --gray-900: #111827;
+            --gray-800: #1f2937;
+            --gray-400: #9ca3af;
+            --gray-200: #e5e7eb;
+            --white: #ffffff;
+            --gradient-hero: linear-gradient(135deg, #0A2540 0%, #0f172a 100%);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #020617;
+            color: var(--gray-200);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Nav */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            font-weight: 800;
+            display: flex;
+            flex-direction: column;
+            line-height: 1;
+            text-decoration: none;
+        }
+
+        .nav-logo .top-line {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: lowercase;
+            font-weight: 700;
+        }
+
+        .nav-logo .bottom-line {
+            font-size: 1.25rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--gray-200);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary-light);
+        }
+
+        .nav-cta {
+            background: var(--secondary);
+            color: var(--primary) !important;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 700 !important;
+        }
+
+        /* Hero */
+        .hero {
+            padding: 10rem 2rem 6rem;
+            background: var(--gradient-hero);
+            text-align: center;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 800;
+            margin-bottom: 1rem;
+            color: var(--white);
+        }
+
+        .hero h1 span {
+            color: var(--secondary);
+        }
+
+        .hero p {
+            color: var(--gray-400);
+            font-size: 1.25rem;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Stage Sections */
+        .stage-section {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stage-header {
+            margin-bottom: 4rem;
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .stage-number {
+            width: 80px;
+            height: 80px;
+            background: var(--secondary);
+            color: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            flex-shrink: 0;
+            box-shadow: 0 0 30px rgba(32, 201, 151, 0.3);
+        }
+
+        .stage-info h2 {
+            font-size: 2.5rem;
+            color: var(--white);
+            margin-bottom: 0.5rem;
+        }
+
+        .stage-info p {
+            color: var(--secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Feature Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 2.5rem;
+        }
+
+        .feature-card {
+            background: rgba(30, 41, 59, 0.3);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .feature-card:hover {
+            background: rgba(30, 41, 59, 0.5);
+            border-color: rgba(32, 201, 151, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .feature-card i {
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            color: var(--white);
+        }
+
+        .feature-card .badge {
+            display: inline-block;
+            padding: 0.2rem 0.6rem;
+            background: rgba(32, 201, 151, 0.1);
+            color: var(--secondary);
+            border: 1px solid rgba(32, 201, 151, 0.2);
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .feature-card .premium {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+
+        .feature-card p {
+            color: var(--gray-400);
+            font-size: 0.95rem;
+        }
+
+        .benefit-tag {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+            color: var(--gray-200);
+            font-weight: 500;
+        }
+
+        .benefit-tag i {
+            font-size: 0.9rem;
+            color: var(--secondary);
+        }
+
+        /* Comparison Table */
+        .comparison {
+            background: var(--primary-dark);
+            padding: 8rem 2rem;
+        }
+
+        .comparison-container {
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .comparison h2 {
+            font-size: 2.5rem;
+            color: var(--white);
+            margin-bottom: 4rem;
+        }
+
+        .comp-box {
+            background: rgba(2, 6, 23, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 30px;
+            padding: 4rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+        }
+
+        .comp-column h4 {
+            font-size: 1.5rem;
+            color: var(--white);
+            margin-bottom: 2rem;
+        }
+
+        .comp-column ul {
+            list-style: none;
+            text-align: left;
+        }
+
+        .comp-column li {
+            margin-bottom: 1rem;
+            color: var(--gray-400);
+            display: flex;
+            gap: 1rem;
+        }
+
+        .comp-column.premium-side li i {
+            color: var(--secondary);
+        }
+
+        .comp-column.basic-side li i {
+            color: var(--accent);
+            opacity: 0.5;
+        }
+
+        /* Footer */
+        footer {
+            padding: 6rem 2rem;
+            background: #020617;
+            text-align: center;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        @media (max-width: 768px) {
+            .comp-box {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+                padding: 2rem;
+            }
+
+            .hero {
+                padding: 8rem 2rem 4rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">
+                <span class="top-line">total package</span>
+                <span class="bottom-line">INTERVIEW</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/resources">Resources</a></li>
+                <li><a href="/pricing">Pricing</a></li>
+                <li><a href="/login" class="nav-cta">Log In</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <header class="hero">
+        <h1>The 3-Stage <span>AI Suite</span></h1>
+        <p>A comprehensive ecosystem of 13+ specialized tools designed to streamline every step of the high-stakes
+            executive search.</p>
+    </header>
+
+    <!-- Stage 1: Diagnose -->
+    <section class="stage-section" id="stage1">
+        <div class="stage-header">
+            <div class="stage-number">1</div>
+            <div class="stage-info">
+                <h2>The Clinic</h2>
+                <p>Diagnosis & Optimization</p>
+            </div>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-file-medical"></i>
+                <div>
+                    <span class="badge">Included</span>
+                    <h3>Resume Scanner</h3>
+                </div>
+                <p>Instant 50-point ATS inspection and keyword gap detection. See your resume through the eyes of an
+                    algorithm before you apply.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> AIParsable Format Check</div>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-magic"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>Executive Rewrite</h3>
+                </div>
+                <p>Complete narrative transformation. Our AI elevates your bullet points from "tasks performed" to
+                    "outcomes achieved" at the executive level.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Metric-Driven Rewriting</div>
+            </div>
+            <div class="feature-card">
+                <i class="fab fa-linkedin"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>LinkedIn Optimizer</h3>
+                </div>
+                <p>Turn your profile into a recruiter magnet. Headlines, summaries, and experience optimized for the
+                    LinkedIn search algorithm.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Headline SEO Tuning</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stage 2: Simulate -->
+    <section class="stage-section" style="background: rgba(255,255,255,0.02);" id="stage2">
+        <div class="stage-header">
+            <div class="stage-number">2</div>
+            <div class="stage-info">
+                <h2>The Simulator</h2>
+                <p>Voice-Based Performance</p>
+            </div>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-microphone-alt"></i>
+                <div>
+                    <span class="badge">Included</span>
+                    <h3>Role Reversal</h3>
+                </div>
+                <p>Practice with a realistic AI bot that adapts to your target role. Perfect your delivery in a
+                    low-stakes environment.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Real-Time Voice Synthesis</div>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-bullseye"></i>
+                <div>
+                    <span class="badge">Included</span>
+                    <h3>STAR Drill</h3>
+                </div>
+                <p>Structure your experiences into high-impact STAR stories. The system helps you extract metrics you
+                    forgot you had.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Framework Scaffolding</div>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-tachometer-alt"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>Interview Simulator</h3>
+                </div>
+                <p>Full-scale voice mock interview with real-time scoring. Get feedback on verbal tics, confidence, and
+                    answer content.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Comprehensive Score Reports</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stage 3: Strategize -->
+    <section class="stage-section" id="stage3">
+        <div class="stage-header">
+            <div class="stage-number">3</div>
+            <div class="stage-info">
+                <h2>The Strategy Lab</h2>
+                <p>The Final Close</p>
+            </div>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card">
+                <i class="fas fa-road"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>30-60-90 Day Plan</h3>
+                </div>
+                <p>Show them you're ready to lead on day one. Custom onboarding roadmaps that map to specific company
+                    challenges.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Leadership Roadmap Builder</div>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-handshake"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>The Closer</h3>
+                </div>
+                <p>Salary negotiation scripts and data-driven benchmarks. Maximize your compensation package with
+                    confidence.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> Negotiation Scenarios</div>
+            </div>
+            <div class="feature-card">
+                <i class="fas fa-search-dollar"></i>
+                <div>
+                    <span class="badge premium">Premium</span>
+                    <h3>The Inquisitor</h3>
+                </div>
+                <p>Generate high-level strategic questions to ask your interviewers. Prove your business acumen via
+                    reverse inquiry.</p>
+                <div class="benefit-tag"><i class="fas fa-check-circle"></i> ROI-Focused Questions</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison -->
+    <section class="comparison">
+        <div class="comparison-container">
+            <h2>The Premium Edge</h2>
+            <div class="comp-box">
+                <div class="comp-column basic-side">
+                    <h4>Free Tools</h4>
+                    <ul>
+                        <li><i class="fas fa-times-circle"></i> Shows you the gaps</li>
+                        <li><i class="fas fa-times-circle"></i> Basic practice</li>
+                        <li><i class="fas fa-times-circle"></i> Limited feedback</li>
+                        <li><i class="fas fa-times-circle"></i> Organizing only</li>
+                    </ul>
+                </div>
+                <div class="comp-column premium-side">
+                    <h4>Premium Suite</h4>
+                    <ul>
+                        <li><i class="fas fa-check-circle"></i> Closes the gaps automatically</li>
+                        <li><i class="fas fa-check-circle"></i> Full voice simulation</li>
+                        <li><i class="fas fa-check-circle"></i> Executive-grade rewrites</li>
+                        <li><i class="fas fa-check-circle"></i> Total strategy execution</li>
+                    </ul>
+                </div>
+            </div>
+            <a href="/login" class="btn-primary"
+                style="display: inline-block; background: var(--secondary); color: var(--primary); padding: 1rem 3rem; border-radius: 50px; font-weight: 800; text-decoration: none; margin-top: 4rem; text-transform: uppercase;">Unlock
+                The Full Suite</a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="nav-logo" style="align-items: center; margin-bottom: 2rem;">
+            <span class="top-line">total package</span>
+            <span class="bottom-line">INTERVIEW</span>
+        </div>
+        <p style="color: var(--gray-800); font-size: 0.8rem;">&copy; 2026 Total Package Interview. All rights reserved.
+        </p>
+    </footer>
+
+</body>
+
+</html>

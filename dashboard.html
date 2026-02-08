@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
     <title>Executive Hub - Total Package Interview</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -44,7 +45,7 @@
         const AUTH_TOKEN_KEY = 'supabase.auth.token';
         const token = localStorage.getItem(AUTH_TOKEN_KEY);
         if (!token) {
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
     </script>
     <style>
@@ -233,7 +234,7 @@
 
             <!-- Nav Items -->
             <nav class="flex-1 px-4 space-y-1 mt-4 overflow-y-auto custom-scroll">
-                <a href="/dashboard.html"
+                <a href="/dashboard"
                     class="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium rounded-lg transition-all relative group mb-1 bg-teal-500/10 text-teal">
                     <i class="fas fa-th-large text-teal"></i>
                     <span>Performance Hub</span>
@@ -241,14 +242,14 @@
                 </a>
 
                 <!-- Admin (Mobile only, hidden by default) -->
-                <a id="admin-link-sb" href="/admin.html"
+                <a id="admin-link-sb" href="/admin"
                     class="hidden w-full flex items-center gap-3 px-3 py-2.5 text-sm font-bold text-rose-400 rounded-lg hover:bg-rose-500/10 transition-all group">
                     <i class="fas fa-shield-cat"></i>
                     <span>Admin Control</span>
                 </a>
 
                 <!-- Lab Assistant (Mobile only) -->
-                <a href="/lab-assistant.html"
+                <a href="/lab-assistant"
                     class="md:hidden w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-purple-400 rounded-lg hover:bg-purple-500/10 transition-all group">
                     <i class="fas fa-flask"></i>
                     <span>Lab Assistant</span>
@@ -273,13 +274,13 @@
                         <i id="icon-clinic" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                     </button>
                     <div id="group-clinic" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                        <a href="/resume-analyzer.html"
+                        <a href="/resume-analyzer"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Resume
                             Scanner</a>
-                        <a href="/resume-rewriter.html"
+                        <a href="/resume-rewriter"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Executive
                             Rewrite</a>
-                        <a href="/app.html#linkedin"
+                        <a href="/app#linkedin"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">LinkedIn
                             Optimizer</a>
                     </div>
@@ -296,13 +297,13 @@
                         <i id="icon-simulator" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                     </button>
                     <div id="group-simulator" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                        <a href="/app.html"
+                        <a href="/app"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Mock
                             Interview</a>
-                        <a href="/role-reversal.html"
+                        <a href="/role-reversal"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Role
                             Reversal</a>
-                        <a href="/star-drill.html"
+                        <a href="/star-drill"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">STAR
                             Method Drill</a>
                     </div>
@@ -319,13 +320,13 @@
                         <i id="icon-strategy" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                     </button>
                     <div id="group-strategy" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                        <a href="/jobs-history.html"
+                        <a href="/jobs-history"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Job
                             Tracker</a>
-                        <a href="/strategy/30-60-90.html"
+                        <a href="/strategy/30-60-90"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">30-60-90
                             Plan</a>
-                        <a href="/strategy/closer.html"
+                        <a href="/strategy/closer"
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Salary
                             Negotiation</a>
                     </div>
@@ -337,12 +338,12 @@
                         Upgrade Hub
                     </div>
                     <div class="space-y-1">
-                        <a href="/pricing.html"
+                        <a href="/pricing"
                             class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group bg-teal-500/10 text-teal font-bold border border-teal/20">
                             <i class="fas fa-star text-xs"></i>
                             <span>Go Unlimited</span>
                         </a>
-                        <a href="/pricing.html"
+                        <a href="/pricing"
                             class="w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all group text-slate-400 hover:text-white hover:bg-white/5 font-medium">
                             <i class="fas fa-plus-circle text-xs"></i>
                             <span>Add Credits</span>
@@ -390,11 +391,11 @@
                                     class="text-teal">Candidate</span>?</p>
                         </div>
                         <div class="hidden md:flex items-center gap-4">
-                            <a id="admin-btn" href="/admin.html"
+                            <a id="admin-btn" href="/admin"
                                 class="hidden bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-800 hover:border-teal-500 px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2">
                                 <i class="fas fa-shield-cat"></i> ADMIN
                             </a>
-                            <button onclick="shuttleToTool('/lab-assistant.html')"
+                            <button onclick="shuttleToTool('/lab-assistant')"
                                 class="text-xs font-bold text-purple-400 hover:text-white transition-all bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/50 hover:border-purple-400 px-4 py-2 rounded-lg flex items-center gap-2 shadow-[0_0_10px_rgba(168,85,247,0.2)] hover:shadow-[0_0_15px_rgba(168,85,247,0.4)]">
                                 <i class="fas fa-flask"></i> Lab Assistant
                             </button>
@@ -434,7 +435,7 @@
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Preparation</label>
 
-                                    <a href="/resume-analyzer.html" id="tool-card-scanner" class="block group">
+                                    <a href="/resume-analyzer" id="tool-card-scanner" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -453,7 +454,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/resume-rewriter.html" id="tool-card-rewrite" class="block group">
+                                    <a href="/resume-rewriter" id="tool-card-rewrite" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-yellow-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -471,7 +472,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/cover-letter.html" id="tool-card-cover" class="block group">
+                                    <a href="/cover-letter" id="tool-card-cover" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-purple-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -489,7 +490,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/app.html#linkedin" id="tool-card-linkedin" class="block group">
+                                    <a href="/app#linkedin" id="tool-card-linkedin" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-400/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -513,7 +514,7 @@
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Interview</label>
 
-                                    <a href="/app.html" id="tool-card-mock" class="block group">
+                                    <a href="/app" id="tool-card-mock" class="block group">
                                         <!-- Verified filename assumption or will fix if 404, usually interview-coach based on previous context -->
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-green-500/50 rounded-xl p-4 transition-all">
@@ -532,7 +533,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/star-drill.html" id="tool-card-star" class="block group">
+                                    <a href="/star-drill" id="tool-card-star" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-orange-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -552,7 +553,7 @@
                                     </a>
 
                                     <!-- NEW: The Inquisitor -->
-                                    <a href="/strategy/inquisitor.html" id="tool-card-inquisitor" class="block group">
+                                    <a href="/strategy/inquisitor" id="tool-card-inquisitor" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-fuchsia-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -577,7 +578,7 @@
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Post-Interview</label>
 
                                     <!-- NEW: Value Follow-Up -->
-                                    <a href="/strategy/follow-up.html" id="tool-card-followup" class="block group">
+                                    <a href="/strategy/follow-up" id="tool-card-followup" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-rose-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -596,7 +597,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/strategy/closer.html" id="tool-card-closer" class="block group">
+                                    <a href="/strategy/closer" id="tool-card-closer" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -615,7 +616,7 @@
                                     </a>
 
                                     <!-- NEW: 30-60-90 Plan -->
-                                    <a href="/strategy/30-60-90.html" id="tool-card-plan" class="block group">
+                                    <a href="/strategy/30-60-90" id="tool-card-plan" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-cyan-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -633,7 +634,7 @@
                                         </div>
                                     </a>
 
-                                    <a href="/strategy-lab.html" id="tool-card-lab" class="block group">
+                                    <a href="/strategy-lab" id="tool-card-lab" class="block group">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-indigo-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -681,7 +682,7 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
 
                     <!-- Metric 1: Resume Health -->
-                    <a href="/resume-history.html"
+                    <a href="/resume-history"
                         class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
@@ -704,7 +705,7 @@
                     </a>
 
                     <!-- Metric 2: Avg Interview Score (Span 1) -->
-                    <a href="interview-history.html"
+                    <a href="interview-history"
                         class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
@@ -722,7 +723,7 @@
                     </a>
 
                     <!-- Metric 3: Strategy Log (Span 1) -->
-                    <div onclick="window.location.href='jobs-history.html'"
+                    <div onclick="window.location.href='jobs-history'"
                         class="glass-card rounded-2xl p-4 flex flex-col items-center justify-between relative group transition-all hover:-translate-y-1 cursor-pointer min-h-[160px]">
                         <div class="absolute top-0 left-0 w-full h-1 bg-teal/20 group-hover:bg-teal transition-all">
                         </div>
@@ -923,21 +924,21 @@
 
                     <div id="mission-toolkit-grid" class="grid grid-cols-2 md:grid-cols-1 gap-3">
                         <!-- Buttons injected via JS or Default -->
-                        <button onclick="shuttleToTool('/resume-analyzer.html')"
+                        <button onclick="shuttleToTool('/resume-analyzer')"
                             class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
                             <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                                     class="fas fa-microscope text-blue-500 mr-2"></i>Resume Scanner</div>
                             <div class="text-[10px] text-slate-500">Audit vs JD</div>
                         </button>
 
-                        <button onclick="shuttleToTool('/cover-letter.html')"
+                        <button onclick="shuttleToTool('/cover-letter')"
                             class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-purple-500/50 rounded-lg text-left transition-all group">
                             <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                                     class="fas fa-file-alt text-purple-500 mr-2"></i>Cover Letter</div>
                             <div class="text-[10px] text-slate-500">Draft Narrative</div>
                         </button>
 
-                        <button onclick="shuttleToTool('app.html#linkedin')"
+                        <button onclick="shuttleToTool('app#linkedin')"
                             class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-400/50 rounded-lg text-left transition-all group">
                             <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                                     class="fab fa-linkedin text-blue-400 mr-2"></i>LinkedIn Opt.</div>
@@ -1124,20 +1125,20 @@
 
             if (statusDisplay === 'Post Interview') {
                 toolkitGrid.innerHTML = `
-                <button onclick="shuttleToTool('/strategy/closer.html')"
+                <button onclick="shuttleToTool('/strategy/closer')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-red-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-bullseye text-red-500 mr-2"></i>The Closer</div>
                     <div class="text-[10px] text-slate-500">Closing Strategy</div>
                 </button>
-                <button onclick="shuttleToTool('/strategy/inquisitor.html')"
+                <button onclick="shuttleToTool('/strategy/inquisitor')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-user-secret text-indigo-500 mr-2"></i>The Inquisitor</div>
                     <div class="text-[10px] text-slate-500">Due Diligence</div>
                 </button>
 
-                <button onclick="shuttleToTool('/strategy/follow-up.html')"
+                <button onclick="shuttleToTool('/strategy/follow-up')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-envelope-open-text text-blue-500 mr-2"></i>Value Follow-Up</div>
@@ -1146,31 +1147,31 @@
                 `;
             } else if (statusDisplay === 'Interviewing') {
                 toolkitGrid.innerHTML = `
-                <button onclick="shuttleToTool('/app.html')"
+                <button onclick="shuttleToTool('/app')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-green-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-microphone-alt text-green-500 mr-2"></i>Mock Interview</div>
                     <div class="text-[10px] text-slate-500">AI Roleplay Simulation</div>
                 </button>
-                <button onclick="shuttleToTool('/star-drill.html')"
+                <button onclick="shuttleToTool('/star-drill')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-orange-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-star text-orange-500 mr-2"></i>STAR Drill</div>
                     <div class="text-[10px] text-slate-500">Behavioral Stories</div>
                 </button>
-                <button onclick="shuttleToTool('/strategy/inquisitor.html')"
+                <button onclick="shuttleToTool('/strategy/inquisitor')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-indigo-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-user-secret text-indigo-500 mr-2"></i>The Inquisitor</div>
                     <div class="text-[10px] text-slate-500">Due Diligence</div>
                 </button>
-                <button onclick="shuttleToTool('/role-reversal.html')"
+                <button onclick="shuttleToTool('/role-reversal')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-pink-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-exchange-alt text-pink-500 mr-2"></i>Reverse Interview</div>
                     <div class="text-[10px] text-slate-500">Ask the Recruiter</div>
                 </button>
-                <button onclick="shuttleToTool('/strategy/30-60-90.html')"
+                <button onclick="shuttleToTool('/strategy/30-60-90')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-cyan-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-road text-cyan-500 mr-2"></i>30-60-90 Plan</div>
@@ -1180,27 +1181,27 @@
             } else {
                 // Default (Engage)
                 toolkitGrid.innerHTML = `
-                <button onclick="shuttleToTool('/resume-analyzer.html')"
+                <button onclick="shuttleToTool('/resume-analyzer')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-microscope text-blue-500 mr-2"></i>Resume Scanner</div>
                     <div class="text-[10px] text-slate-500">Audit vs JD</div>
                 </button>
 
-                <button onclick="shuttleToTool('/resume-rewriter.html')"
+                <button onclick="shuttleToTool('/resume-rewriter')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-yellow-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-pen-nib text-yellow-500 mr-2"></i>Executive Rewrite</div>
                     <div class="text-[10px] text-slate-500">Targeted Optimization</div>
                 </button>
 
-                <button onclick="shuttleToTool('/cover-letter.html')"
+                <button onclick="shuttleToTool('/cover-letter')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-purple-500/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fas fa-file-alt text-purple-500 mr-2"></i>Cover Letter</div>
                     <div class="text-[10px] text-slate-500">Draft Narrative</div>
                 </button>
-                <button onclick="shuttleToTool('app.html#linkedin')"
+                <button onclick="shuttleToTool('app#linkedin')"
                     class="p-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-blue-400/50 rounded-lg text-left transition-all group">
                     <div class="text-xs font-bold text-slate-300 group-hover:text-white mb-1"><i
                             class="fab fa-linkedin text-blue-400 mr-2"></i>LinkedIn Opt.</div>
@@ -1344,7 +1345,7 @@
             localStorage.setItem('mission_context', JSON.stringify(context));
             sessionStorage.setItem('missionLaunch', 'true');
 
-            // Construct URL with Query Param: /app.html?id=123#interview
+            // Construct URL with Query Param: /app?id=123#interview
             if (url.includes('#')) {
                 const [path, hash] = url.split('#');
                 window.location.href = `${path}?id=${id}#${hash}`;
@@ -1471,7 +1472,7 @@
 
         window.launchMission = (id) => {
             const job = localJobsInfo.find(j => j.id === id);
-            if (job) smartLaunch(id, '/app.html#interview', job); // Default to Simulator
+            if (job) smartLaunch(id, '/app#interview', job); // Default to Simulator
         };
 
         window.smartLaunch = (id, url, job) => {
@@ -1479,7 +1480,7 @@
             localStorage.setItem('mission_context', JSON.stringify(context));
             sessionStorage.setItem('missionLaunch', 'true');
 
-            // Construct URL with Query Param: /app.html?id=123#interview
+            // Construct URL with Query Param: /app?id=123#interview
             if (url.includes('#')) {
                 const [path, hash] = url.split('#');
                 window.location.href = `${path}?id=${id}#${hash}`;
@@ -1808,7 +1809,7 @@
 
         window.signOut = () => {
             localStorage.removeItem(SESSION_KEY);
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
 
         // INITIALIZATION: Load jobs on page load

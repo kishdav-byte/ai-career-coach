@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <meta name="robots" content="noindex">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Total Package Interview</title>
@@ -88,20 +89,20 @@
 
         <!-- Nav -->
         <nav class="flex-1 py-8 flex flex-col gap-2 px-2 lg:px-4">
-            <a href="dashboard.html"
+            <a href="dashboard"
                 class="flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
                 <i class="fas fa-grid-2 group-hover:text-teal transition-colors text-lg w-6 text-center"></i>
                 <span class="hidden lg:block font-medium">Dashboard</span>
             </a>
 
-            <a href="interview-history.html"
+            <a href="interview-history"
                 class="flex items-center gap-4 px-4 py-3 text-gray-400 hover:text-white hover:bg-white/5 rounded-xl transition-all group">
                 <i class="fas fa-chart-line group-hover:text-teal transition-colors text-lg w-6 text-center"></i>
                 <span class="hidden lg:block font-medium">Performance</span>
             </a>
 
             <!-- Active Page Indicator using inline style for simplicity or dedicated class -->
-            <a href="jobs-history.html"
+            <a href="jobs-history"
                 class="flex items-center gap-4 px-4 py-3 text-white bg-white/10 rounded-xl transition-all group shadow-[0_0_10px_rgba(32,201,151,0.1)] border border-teal/20">
                 <i class="fas fa-briefcase text-teal text-lg w-6 text-center"></i>
                 <span class="hidden lg:block font-medium">Job History</span>
@@ -144,7 +145,7 @@
                         class="text-teal">Archive</span></h1>
                 <p class="text-xs text-gray-400 mt-1">Review active and closed opportunities</p>
             </div>
-            <a href="dashboard.html" onclick="openAddModalFromHistory()"
+            <a href="dashboard" onclick="openAddModalFromHistory()"
                 class="bg-teal hover:bg-teal/80 text-navy font-bold px-6 py-2.5 rounded-xl transition-all shadow-[0_0_20px_rgba(32,201,151,0.4)] hover:shadow-[0_0_30px_rgba(32,201,151,0.6)] flex items-center gap-2">
                 <i class="fas fa-plus"></i>
                 Add Job
@@ -314,7 +315,7 @@
             // AUTH CHECK
             const { data: { session } } = await supabaseClient.auth.getSession();
             if (!session) {
-                window.location.href = '/index.html';
+                window.location.href = '/index';
                 return;
             }
             currentUser = session.user;
@@ -471,9 +472,9 @@
             document.getElementById('drawer-notes').innerText = job.notes || 'No notes.';
 
             // Buttons
-            document.getElementById('btn-launch').onclick = () => window.location.href = `/dashboard.html?id=${id}`;
-            document.getElementById('btn-interview').onclick = () => launchTool(job, '/app.html#interview');
-            document.getElementById('btn-resume').onclick = () => launchTool(job, '/resume-analyzer.html');
+            document.getElementById('btn-launch').onclick = () => window.location.href = `/dashboard?id=${id}`;
+            document.getElementById('btn-interview').onclick = () => launchTool(job, '/app#interview');
+            document.getElementById('btn-resume').onclick = () => launchTool(job, '/resume-analyzer');
 
             // Optimized Resume Button
             const resumeBtn = document.getElementById('btn-opt-resume');
@@ -528,7 +529,7 @@
                 job_id: job.id
             };
             localStorage.setItem('mission_context', JSON.stringify(context));
-            if (url.includes('app.html')) sessionStorage.setItem('missionLaunch', 'true'); // Trigger auto-start for simulator
+            if (url.includes('app')) sessionStorage.setItem('missionLaunch', 'true'); // Trigger auto-start for simulator
 
             window.location.href = url.includes('#') ? `${url.split('#')[0]}?id=${job.id}#${url.split('#')[1]}` : `${url}?id=${job.id}`;
         }
@@ -581,11 +582,11 @@
         function logout() {
             localStorage.removeItem('supabase.auth.token');
             localStorage.removeItem('aceinterview_session');
-            window.location.href = '/login.html';
+            window.location.href = '/login';
         }
         // Redirect to dashboard modal logic is complex, simpler to just go to dashboard
         window.openAddModalFromHistory = function () {
-            window.location.href = 'dashboard.html';
+            window.location.href = 'dashboard';
             // Ideally passing a param to open modal, but simple redirect is safer for now.
         }
 
@@ -613,7 +614,7 @@
             localStorage.setItem('mission_context', JSON.stringify(context));
 
             // 3. Launch NEW Viewer
-            window.open('/resume-viewer.html', '_blank');
+            window.open('/resume-viewer', '_blank');
         }
 
     </script>

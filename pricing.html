@@ -53,14 +53,14 @@
     <!-- Header -->
     <nav class="border-b border-white/5 bg-slate-950/50 backdrop-blur-xl sticky top-0 z-50">
         <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-            <a href="/dashboard.html" class="flex flex-col">
+            <a href="/dashboard" class="flex flex-col">
                 <span class="text-[10px] font-bold text-teal uppercase tracking-[0.2em] leading-tight">Total
                     Package</span>
                 <span class="text-xl font-black text-white tracking-tighter leading-tight">INTERVIEW</span>
             </a>
             <div id="header-auth" class="flex items-center gap-4">
-                <a href="/login.html" class="text-sm text-slate-400 hover:text-white transition-colors">Login</a>
-                <a href="/signup.html"
+                <a href="/login" class="text-sm text-slate-400 hover:text-white transition-colors">Login</a>
+                <a href="/signup"
                     class="px-4 py-2 bg-teal hover:bg-teal/80 text-slate-950 font-bold rounded-lg transition-all text-sm">
                     Sign Up
                 </a>
@@ -295,7 +295,7 @@
                 headerAuth.innerHTML = `
                     <div class="flex items-center gap-3">
                         <span class="text-sm text-slate-400">Welcome, <span class="text-white font-medium">${email.split('@')[0]}</span></span>
-                        <a href="/dashboard.html" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-all text-sm">
+                        <a href="/dashboard" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-all text-sm">
                             <i class="fas fa-arrow-left mr-2"></i>Dashboard
                         </a>
                     </div>
@@ -311,7 +311,7 @@
             // Check authentication
             const sessionStr = localStorage.getItem('aceinterview_session');
             if (!sessionStr) {
-                window.location.href = '/login.html?redirect=/pricing.html';
+                window.location.href = '/login?redirect=/pricing';
                 return;
             }
 
@@ -335,7 +335,7 @@
                         plan_type: planType,
                         email: email,
                         userId: session.user_id || session.id || session.user?.id,
-                        successUrl: window.location.origin + '/dashboard.html'
+                        successUrl: window.location.origin + '/dashboard'
                     })
                 });
 

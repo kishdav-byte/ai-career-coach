@@ -143,7 +143,7 @@
                 <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">COVER<span
                         class="text-blue-500">_LETTER</span></div>
             </div>
-            <a href="../dashboard.html"
+            <a href="../dashboard"
                 class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
         </div>
 
@@ -317,7 +317,7 @@
         // --- AUTH & STATE ---
         let extractedResumeText = "";
         const token = localStorage.getItem('supabase.auth.token');
-        // if (!token) window.location.href = '/login.html'; // Relax for now or use session
+        // if (!token) window.location.href = '/login'; // Relax for now or use session
 
         window.applyMissionContext = (ctx) => {
             if (!ctx) return;
@@ -447,7 +447,7 @@
                 if (!profileRes.ok) {
                     if (profileRes.status === 401) {
                         alert("Session expired. Please log in again.");
-                        window.location.href = '/login.html';
+                        window.location.href = '/login';
                         return;
                     }
                     const errData = await profileRes.json();

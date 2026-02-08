@@ -58,7 +58,7 @@
     <nav class="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md z-40 shrink-0">
         <div class="px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-4">
-                <a href="../dashboard.html" class="text-slate-400 hover:text-white transition-colors">
+                <a href="../dashboard" class="text-slate-400 hover:text-white transition-colors">
                     <i class="fas fa-arrow-left"></i>
                 </a>
                 <div>
@@ -244,7 +244,7 @@
             const refreshToken = localStorage.getItem('supabase.auth.refresh_token');
 
             if (!currentToken) {
-                window.location.href = '/login.html';
+                window.location.href = '/login';
                 return;
             }
 
@@ -279,7 +279,7 @@
                     const res = await fetch('/api/jobs', {
                         headers: { 'Authorization': `Bearer ${currentToken}` }
                     });
-                    if (res.status === 401) window.location.href = '/login.html';
+                    if (res.status === 401) window.location.href = '/login';
                     if (!res.ok) throw new Error("Failed to load jobs");
 
                     const jobs = await res.json();
@@ -364,7 +364,7 @@
                          <button onclick="window.openWarRoom('${job.id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-[10px] font-bold py-1.5 rounded transition-colors text-center border border-transparent hover:border-blue-500/30">
                             WAR ROOM
                         </button>
-                         <button onclick="smartLaunch('${job.id}', '30-60-90.html', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
+                         <button onclick="smartLaunch('${job.id}', '30-60-90', ${JSON.stringify(job).replace(/"/g, '&quot;')})" 
                             class="bg-blue-900/20 hover:bg-blue-900/40 text-blue-400 border border-blue-900/50 hover:border-blue-500/50 px-2 rounded transition-colors" title="Quick Plan">
                             <i class="fas fa-road text-[10px]"></i>
                         </button>
@@ -416,7 +416,7 @@
                 // Actually, let's make the War Room button trigger a small context menu in the future.
                 // For this MVP step 1: War Room -> Resume Rewriter (the base).
                 const job = findJobById(id);
-                if (job) smartLaunch(id, '../resume-rewriter.html', job);
+                if (job) smartLaunch(id, '../resume-rewriter', job);
             };
 
             let localJobsInfo = []; // Cache to find job by ID

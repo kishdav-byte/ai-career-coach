@@ -9,6 +9,65 @@
         content="Practice interviews with voice-based AI, get real-time scoring, and see the perfect STAR-format answers you should have said.">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#2563eb">
+
+    <!-- SEO & Social Sharing -->
+    <link rel="canonical" href="https://totalpackageinterview.com/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://totalpackageinterview.com/">
+    <meta property="og:title" content="Total Package Interview | AI-Powered Career Coach">
+    <meta property="og:description"
+        content="Diagnose your resume, simulate realistic interviews with AI, and build a winning career strategy. The complete 3-stage process for landing your next executive role.">
+    <meta property="og:image" content="https://totalpackageinterview.com/assets/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://totalpackageinterview.com/">
+    <meta property="twitter:title" content="Total Package Interview | AI-Powered Career Coach">
+    <meta property="twitter:description"
+        content="Diagnose your resume, simulate realistic interviews with AI, and build a winning career strategy.">
+    <meta property="twitter:image" content="https://totalpackageinterview.com/assets/og-image.png">
+    <meta name="google-site-verification" content="eOff8RzI0-vB0yrxfWmeKxQfr4DQaDs7r1gmH7rkeZs" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": "https://totalpackageinterview.com/#organization",
+          "name": "Total Package Interview",
+          "url": "https://totalpackageinterview.com/",
+          "logo": {
+            "@type": "ImageObject",
+            "url": "https://totalpackageinterview.com/assets/og-image.png"
+          },
+          "description": "Premium AI career coaching and interview simulation platform designed to help executives land their next major role."
+        },
+        {
+          "@type": "SoftwareApplication",
+          "@id": "https://totalpackageinterview.com/#application",
+          "name": "Total Package Interview AI Coach",
+          "operatingSystem": "Web",
+          "applicationCategory": "BusinessApplication",
+          "offers": {
+            "@type": "Offer",
+            "price": "0.00",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "WebSite",
+          "@id": "https://totalpackageinterview.com/#website",
+          "url": "https://totalpackageinterview.com/",
+          "name": "Total Package Interview",
+          "publisher": {
+            "@id": "https://totalpackageinterview.com/#organization"
+          }
+        }
+      ]
+    }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -860,8 +919,9 @@
             </button>
             <ul class="nav-links" id="nav-links">
 
-                <li><a href="#features">Features</a></li>
-                <li><a href="/login.html"
+                <li><a href="/resources">Resources</a></li>
+                <li><a href="/features">Features</a></li>
+                <li><a href="/login"
                         style="margin-right: -1rem; color: var(--gray-200); text-decoration: none; font-weight: 500; white-space: nowrap;">Log
                         In</a></li>
                 <li><a href="/signup" class="nav-cta">Get Started</a></li>
@@ -871,29 +931,10 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-content">
-            <div class="ambient-glow"></div>
-            <div class="hero-badge">✨ v2.0 Update: Introducing Role Reversal</div>
-            <h1>Total Package Interview<br><span>With a 3-Stage Process</span></h1>
-            <p class="hero-subtitle">Diagnose your resume. Simulate your interview. Build your strategy.</p>
-            <div class="hero-buttons">
-                <!-- Guest State -->
-                <div id="guest-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                    <a href="/signup.html" class="btn btn-primary animate-pulse">Get Started</a>
-                    <!-- Log In Moved to Header -->
-                </div>
-                <!-- Auth State (Hidden by default) -->
-                <div id="auth-buttons" style="display: none;">
-                    <a href="/dashboard.html" class="btn btn-primary animate-pulse" style="padding: 1rem 3rem;">Go to
-                        Dashboard</a>
-                </div>
-            </div>
-        </div>
-
-        <!-- New Marquee Strip (Moved outside hero-content) -->
-        <div class="marquee-container">
+        <!-- Ticker Swapped to Top -->
+        <div class="marquee-container"
+            style="margin-bottom: 4rem; opacity: 0.6; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 1.5rem;">
             <div class="marquee-content">
-                <!-- Duplicated content for seamless scroll -->
                 <span class="marquee-item">🧬 Resume Diagnosis •</span>
                 <span class="marquee-item">📝 Executive Rewrite •</span>
                 <span class="marquee-item">💼 LinkedIn Opt •</span>
@@ -904,7 +945,6 @@
                 <span class="marquee-item">🕵️ The Inquisitor •</span>
                 <span class="marquee-item">🤝 The Closer •</span>
                 <span class="marquee-item">💰 Salary Negotiation •</span>
-
                 <!-- Duplicate -->
                 <span class="marquee-item">🧬 Resume Diagnosis •</span>
                 <span class="marquee-item">📝 Executive Rewrite •</span>
@@ -915,6 +955,77 @@
                 <span class="marquee-item">📈 30-60-90 Plan •</span>
                 <span class="marquee-item">🕵️ The Inquisitor •</span>
                 <span class="marquee-item">🤝 The Closer •</span>
+            </div>
+        </div>
+        <div class="hero-content">
+            <div class="ambient-glow"></div>
+            <h1>Total Package Interview<br><span>With a 3-Stage Process</span></h1>
+            <p class="hero-subtitle">Diagnose your resume. Simulate your interview. Build your strategy.</p>
+            <div class="hero-buttons">
+                <!-- Guest State -->
+                <div id="guest-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
+                    <a href="/signup" class="btn btn-primary animate-pulse">Get Started</a>
+                </div>
+                <!-- Auth State (Hidden by default) -->
+                <div id="auth-buttons" style="display: none;">
+                    <a href="/dashboard" class="btn btn-primary animate-pulse" style="padding: 1rem 3rem;">Go to
+                        Dashboard</a>
+                </div>
+            </div>
+            <div class="hero-badge" style="margin-top: 3rem; margin-bottom: 0;">✨ v2.0 Update: Introducing Role Reversal
+            </div>
+        </div>
+    </section>
+
+    <!-- 3-Stage Process Section -->
+    <section id="features" class="steps"
+        style="padding: 6rem 2rem; background: #020617; border-top: 1px solid rgba(255,255,255,0.05);">
+        <div style="max-width: 1200px; margin: 0 auto;">
+            <div style="text-align: center; margin-bottom: 4rem;">
+                <h2 style="font-size: 2.5rem; color: var(--white); margin-bottom: 1rem;">The Professional 3-Stage
+                    Process</h2>
+                <p style="color: var(--gray-400); font-size: 1.1rem; max-width: 700px; margin: 0 auto;">Our methodology
+                    is designed to transform complex career histories into streamlined, executive-grade narratives.</p>
+            </div>
+
+            <div class="steps-grid">
+                <!-- Stage 1 -->
+                <div class="step-card"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="step-number">1</div>
+                    <h3 style="color: var(--white);">Diagnose</h3>
+                    <p style="color: var(--gray-400);">Start with <strong>The Clinic</strong>. Our AI performs a
+                        50-point inspection of your resume,
+                        identifying keyword gaps and ATS friction points that block executive applications.</p>
+                </div>
+
+                <!-- Stage 2 -->
+                <div class="step-card"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="step-number">2</div>
+                    <h3 style="color: var(--white);">Simulate</h3>
+                    <p style="color: var(--gray-400);">Enter <strong>The Simulator</strong>. Practice with voice-based
+                        AI using Role Reversal. Master
+                        the STAR method through real-time scoring and delivery calibration.</p>
+                </div>
+
+                <!-- Stage 3 -->
+                <div class="step-card"
+                    style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1);">
+                    <div class="step-number">3</div>
+                    <h3 style="color: var(--white);">Strategize</h3>
+                    <p style="color: var(--gray-400);">Finish in <strong>The Strategy Lab</strong>. Generate
+                        job-specific 30-60-90 day plans, salary
+                        negotiation scripts, and high-impact follow-up sequences.</p>
+                </div>
+            </div>
+
+            <div style="text-align: center; margin-top: 4rem;">
+                <a href="/features"
+                    style="color: var(--secondary); text-decoration: none; font-weight: 700; margin-right: 2rem;">Deep
+                    Dive Into Tech →</a>
+                <a href="/signup" class="nav-cta" style="padding: 1rem 3rem; font-size: 1.1rem;">Start Stage 1
+                    Today</a>
             </div>
         </div>
     </section>
@@ -1039,7 +1150,7 @@
 
                 // 2. Update Nav Bar
                 if (lastNavItem) {
-                    lastNavItem.innerHTML = '<a href="/dashboard.html" class="nav-cta">Dashboard</a>';
+                    lastNavItem.innerHTML = '<a href="/dashboard" class="nav-cta">Dashboard</a>';
 
                     // Add logout button
                     const logoutItem = document.createElement('li');
@@ -1077,7 +1188,7 @@
 
             if (accessToken && type === 'recovery') {
                 console.log('Recovery token detected. Redirecting to update-password page...');
-                window.location.href = '/update-password.html' + window.location.hash;
+                window.location.href = '/update-password' + window.location.hash;
             }
         })();
     </script>
