@@ -1469,11 +1469,21 @@ def general_api():
             if missing_keywords:
                 keyword_instruction = f"MANDATORY KEYWORD INJECTION: You MUST naturally integrate the following missing keywords into the Experience bullets where supported by context: {', '.join(missing_keywords)}."
 
+            # Fallback: Extraction from Resume if name is still "Identify from Resume"
+            name_val = user_data.get('personal', {}).get('name', 'N/A')
+            if name_val == "Identify from Resume":
+                # Look at first few lines for a valid name
+                potential_lines = [l.strip() for l in resume_text.split('\n') if l.strip() and len(l.strip()) < 50]
+                if potential_lines:
+                    # Heuristic: the first line is usually the name
+                    name_val = potential_lines[0]
+                    print(f"HEURISTIC EXTRACTION: Found possible name '{name_val}' in first line.")
+
             prompt = f"""
             Optimize this resume for the target job using the specified strategy.
             
-            USER IDENTITY (MANDATORY - DO NOT HALLUCINATE):
-            Name: {user_data.get('personal', {}).get('name', 'N/A')}
+            USER IDENTITY (MANDATORY):
+            Name: {name_val}
             Email: {user_data.get('personal', {}).get('email', 'N/A')}
             Phone: {user_data.get('personal', {}).get('phone', 'N/A')}
             Location: {user_data.get('personal', {}).get('location', 'N/A')}
@@ -1489,12 +1499,12 @@ def general_api():
 
             INSTRUCTIONS:
             1. Rewrite ONLY the Summary and Experience sections to align with the Job Description.
-            2. USE THE PROVIDED IDENTITY. NEVER use placeholders.
+            2. USE THE PROVIDED IDENTITY. If Name is 'Identify from Resume', extract the real name from the Resume Content. NEVER use placeholders like [Your Name].
             3. {keyword_instruction}
             4. FACT-CHECK DIRECTIVE: Do NOT invent experience. You are STRICTLY FORBIDDEN from adding technical tools (e.g., 'Power BI') or domain expertise (e.g., 'Market Intelligence') that are not present in the ORIGINAL RESUME.
             5. STRATEGIC GAPS: If a core requirement from the JD (like 'Forecasting') is missing from the candidate's history, document this as a 'Critical Gap'.
             6. For Experience: Use clear, professional bullet points starting with a dash or asterisk (e.g. "- Achievement...").
-            7. DO NOT include Education or Skills in your response - the system handles those separately.
+            7. Include Education and Skills sections in your response. Clean them for formatting but keep original content.
 
             ENHANCEMENT OVERVIEW FORMAT (MANDATORY):
             You MUST format the 'enhancement_overview' field using Markdown for visual hierarchy:
@@ -1511,7 +1521,7 @@ def general_api():
             Output JSON structure:
             {{
                 "personal": {{
-                    "name": "{user_data.get('personal', {}).get('name', 'N/A')}",
+                    "name": "{name_val if name_val != 'Identify from Resume' else '... (Extract from Resume)'}",
                     "email": "{user_data.get('personal', {}).get('email', 'N/A')}",
                     "phone": "{user_data.get('personal', {}).get('phone', 'N/A')}",
                     "location": "{user_data.get('personal', {}).get('location', 'N/A')}",
@@ -1520,6 +1530,10 @@ def general_api():
                 "experience": [
                     {{ "role": "...", "company": "...", "dates": "...", "description": "BULLET POINTS" }}
                 ],
+                "education": [
+                     {{ "degree": "...", "school": "...", "dates": "..." }}
+                ],
+                "skills": ["Skill 1", "Skill 2", ...],
                 "enhancement_overview": "MARKDOWN CONTOUR AS DEFINED ABOVE"
             }}
             """
@@ -1540,21 +1554,22 @@ def general_api():
             try:
                 ai_json = json.loads(ai_content)
                 
-                # STEP 1: Force-inject Education (ALWAYS)
+                # STEP 1: Guardrail Education
                 input_edu = user_data.get('education', [])
-                if backup_education and len(backup_education) > 0:
-                    ai_json['education'] = backup_education
-                    print(f"FORCE-INJECTED: {len(backup_education)} education items from raw text")
-                elif input_edu and len(input_edu) > 0:
-                    ai_json['education'] = input_edu
-                    print(f"FORCE-INJECTED: {len(input_edu)} education items from user input")
-                else:
-                    ai_json['education'] = [{
-                        "school": "Education information not found in resume",
-                        "degree": "",
-                        "dates": ""
-                    }]
-                    print("WARNING: No education data available")
+                output_edu = ai_json.get('education', [])
+                
+                if not output_edu or len(output_edu) == 0:
+                    print("GUARDRAIL ALERT: AI dropped Education. Using backup.")
+                    if backup_education:
+                        ai_json['education'] = backup_education
+                    elif input_edu:
+                        ai_json['education'] = input_edu
+                    else:
+                        ai_json['education'] = [{
+                            "school": "Education information not found in resume",
+                            "degree": "",
+                            "dates": ""
+                        }]
                 
                 # STEP 2: Force-inject Skills (ALWAYS)
                 input_skills = user_data.get('skills', [])
