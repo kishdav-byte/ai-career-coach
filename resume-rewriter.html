@@ -400,6 +400,27 @@
                 </div>
             </div>
 
+            <!-- Strategy Selector -->
+            <div class="mb-10 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+                <label
+                    class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                    <i class="fas fa-magic"></i> Rewriting Strategy
+                </label>
+                <div class="relative">
+                    <select id="rewrite-strategy"
+                        class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                        <option value="Professional and Results-Driven">Professional & Results-Driven (Default)</option>
+                        <option value="Technical and ATS Optimized">Technical & ATS Optimized</option>
+                        <option value="Executive Presence & Leadership">Executive Presence & Leadership</option>
+                        <option value="Bold and Disruptive">Bold & Disruptive</option>
+                        <option value="Minimalist and Precise">Minimalist & Precise</option>
+                    </select>
+                    <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <label
                     class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
@@ -1309,6 +1330,7 @@
                     job_description: document.getElementById('target-job').value,
                     template_name: 'modern',
                     resume_text: resumeContent, // SEND THE CORRECT VARIABLE
+                    strategy: document.getElementById('rewrite-strategy').value, // PASS SELECTED STRATEGY
                     job_id: pendingJobId // PASS TO BACKEND FOR PERSISTENCE
                 };
 
