@@ -1184,7 +1184,7 @@ def general_api():
             prompt = f"""
             Extract structured data from this resume text.
             Resume Text:
-            {resume_text[:8000]} (truncated)
+            {resume_text[:20000]} (truncated)
 
             Output JSON structure:
             {{
@@ -1217,7 +1217,7 @@ def general_api():
             prompt = f"""
             Analyze this resume against the following job description.
             RESUME:
-            {resume_text[:8000]}
+            {resume_text[:20000]}
             
             JOB DESCRIPTION:
             {jd_text[:4000]}
@@ -1298,7 +1298,7 @@ def general_api():
                                 'job_title': job_title,
                                 'company_name': company_name,
                                 'version_type': 'analysis',
-                                'resume_text': resume_text[:10000] if resume_text else None,  # Truncate if too long
+                                'resume_text': resume_text[:30000] if resume_text else None,  # Truncate if too long
                                 'content': ai_json
                             }
                             
@@ -1339,37 +1339,34 @@ def general_api():
                     # 1. Get User
                     user_res = sb.auth.get_user(token)
                     if user_res and user_res.user:
-                       real_email = user_res.user.email
-                       user_id = user_res.user.id
-                       
-                       # 2. Get Profile
-                       profile_res = sb.table('users').select('*').eq('id', user_id).single().execute()
-                       if profile_res and profile_res.data:
-                           real_name = profile_res.data.get('full_name') or profile_res.data.get('name')
-                           
-                           # Fallback: Extract from email if name is missing
-                           if not real_name and real_email:
-                               name_part = real_email.split('@')[0]
-                               # formalized: david.kish -> David Kish
-                               real_name = ' '.join([n.capitalize() for n in re.split(r'[._-]', name_part)])
+                        real_email = user_res.user.email
+                        user_id = user_res.user.id
+                        
+                        # 2. Get Profile
+                        profile_res = sb.table('users').select('*').eq('id', user_id).single().execute()
+                        if profile_res and profile_res.data:
+                            real_name = profile_res.data.get('full_name') or profile_res.data.get('name')
+                            
+                            # Fallback: Extract from email if name is missing
+                            if not real_name and real_email:
+                                name_part = real_email.split('@')[0]
+                                # formalized: david.kish -> David Kish
+                                real_name = ' '.join([n.capitalize() for n in re.split(r'[._-]', name_part)])
 
-                           # 3. Override if missing or placeholder
-                           current_name = user_data.get('personal', {}).get('name', 'N/A')
-                           # 3. Override if missing or placeholder
-                           current_name = user_data.get('personal', {}).get('name', 'N/A')
-                           # Check for generic placeholders or empty (Case Insensitive)
-                           cn_lower = current_name.lower() if current_name else ""
-                           if not current_name or cn_lower in ["n/a", "your name", "full name", ""] or "your name" in cn_lower or len(current_name) < 3:
-                               if 'personal' not in user_data: user_data['personal'] = {}
-                               user_data['personal']['name'] = real_name or "Executive Candidate"
-                               # Force update prompt context
-                               prompt_name = real_name or "Executive Candidate"
-                               print(f"IDENTITY ENFORCEMENT: Overriding Name '{current_name}' with '{real_name}'")
-                           
-                           current_email = user_data.get('personal', {}).get('email', 'N/A')
-                           if not current_email or "email@example.com" in current_email or len(current_email) < 5:
-                               if 'personal' not in user_data: user_data['personal'] = {}
-                               user_data['personal']['email'] = real_email
+                            # 3. Override if missing or placeholder
+                            current_name = user_data.get('personal', {}).get('name', 'N/A')
+                            # Check for generic placeholders or empty (Case Insensitive)
+                            cn_lower = current_name.lower() if current_name else ""
+                            if not current_name or cn_lower in ["n/a", "your name", "full name", ""] or "your name" in cn_lower or len(current_name) < 3:
+                                if 'personal' not in user_data: user_data['personal'] = {}
+                                # If no real name from DB, use "Identify from Resume" to signal AI to extract it
+                                user_data['personal']['name'] = real_name or "Identify from Resume"
+                                print(f"IDENTITY ENFORCEMENT: Name is generic. Using '{user_data['personal']['name']}' for extraction.")
+                            
+                            current_email = user_data.get('personal', {}).get('email', 'N/A')
+                            if not current_email or "email@example.com" in current_email or len(current_email) < 5:
+                                if 'personal' not in user_data: user_data['personal'] = {}
+                                user_data['personal']['email'] = real_email
             except Exception as e:
                 print(f"Identity Enforcement Warning: {e}")
 
@@ -1390,7 +1387,7 @@ def general_api():
                 print(f"Total lines: {len(lines)}")
                 
                 for i, line in enumerate(lines):
-                    if len(line) > 300: continue
+                    if len(line) > 10000: continue
                     l = line.lower()
                     
                     # 1. Broad education detection
@@ -1482,7 +1479,7 @@ def general_api():
             Location: {user_data.get('personal', {}).get('location', 'N/A')}
 
             ORIGINAL RESUME CONTENT:
-            {resume_text[:8000]}
+            {resume_text[:20000]}
 
             TARGET JOB:
             {jd_text[:4000]}
@@ -1660,7 +1657,7 @@ def general_api():
             Location: {p.get('location', 'N/A')}
 
             RESUME CONTENT:
-            {resume_text[:8000]}
+            {resume_text[:20000]}
             
             JOB DESCRIPTION:
             {jd_text[:4000]}
