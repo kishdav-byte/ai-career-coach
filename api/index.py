@@ -46,46 +46,65 @@ def health_check():
         }
     }), 200
 
-def send_sms_notification(new_user_email, new_user_name):
-    """Sends an SMS via email gateway to the admin."""
+def send_sms_notification(message, category="Alert"):
+    """Sends an SMS via email gateway to the admin using settings from DB."""
     try:
-        # Check for credentials (silent fail if not present)
+        admin_supabase = get_admin_supabase()
+        res = admin_supabase.table('admin_settings').select('value').eq('key', 'notification_settings').single().execute()
+        
+        if not res or not res.data:
+            print("[SMS] Settings missing in DB. Using defaults.")
+            settings = {
+                "phone_number": "8649099115",
+                "carrier_gateway": "vtext.com",
+                "notify_on_signup": True,
+                "notify_on_complaint": True
+            }
+        else:
+            settings = res.data['value']
+
+        # Check if this category is enabled
+        if category == "signup" and not settings.get("notify_on_signup", True):
+            return
+        if category == "complaint" and not settings.get("notify_on_complaint", True):
+            return
+
+        phone = settings.get("phone_number", "8649099115")
+        gateway = settings.get("carrier_gateway", "vtext.com")
+        target_number = f"{phone}@{gateway}"
+
+        # SMTP Config
         smtp_host = os.environ.get("SMTP_HOST")
         smtp_port = int(os.environ.get("SMTP_PORT", 587))
         smtp_user = os.environ.get("SMTP_USER")
         smtp_pass = os.environ.get("SMTP_PASS")
-        smtp_sender = os.environ.get("SMTP_SENDER", smtp_user) # Allow override
+        smtp_sender = os.environ.get("SMTP_SENDER", smtp_user)
 
         if not smtp_host or not smtp_user or not smtp_pass:
-            print("[SMS] SMTP credentials missing. Skipping notification.")
+            print("[SMS] SMTP credentials missing.")
             return
 
         import smtplib
         from email.mime.text import MIMEText
 
-        # Verizon SMS Gateway
-        target_number = "8649099115@vtext.com"
-        
-        msg = MIMEText(f"New User Signup:\nName: {new_user_name}\nEmail: {new_user_email}")
-        msg['Subject'] = "New User Alert"
+        msg = MIMEText(message)
+        msg['Subject'] = f"{category.upper()} Alert"
         msg['From'] = smtp_sender
         msg['To'] = target_number
 
         if smtp_port == 465:
-            # SSL Connection (Resend / Gmail)
             with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
                 server.login(smtp_user, smtp_pass)
                 server.send_message(msg)
         else:
-            # TLS Connection (Standard)
             with smtplib.SMTP(smtp_host, smtp_port) as server:
                 server.starttls()
                 server.login(smtp_user, smtp_pass)
                 server.send_message(msg)
             
-        print(f"[SMS] Notification sent to {target_number}")
+        print(f"[SMS] {category} notification sent to {target_number}")
     except Exception as e:
-        print(f"[SMS] Failed to send notification: {e}")
+        print(f"[SMS] Failed: {e}")
 
 # 0B. AUTHENTICATION ROUTES
 @app.route('/api/auth/signup', methods=['POST'])
@@ -122,8 +141,8 @@ def auth_signup():
                 }
             })
             
-            # --- SMS NOTIFICATION (PAUSED) ---
-            # send_sms_notification(email, name)
+            # --- SMS NOTIFICATION ---
+            send_sms_notification(f"New User Signup:\nName: {name}\nEmail: {email}", category="signup")
             # ------------------------
 
         except Exception as auth_err:
@@ -475,6 +494,10 @@ def submit_feedback():
             "metadata": metadata
         }).execute()
 
+        # SMS Notification for complaints or refunds
+        if category in ['complaint', 'refund', 'bug']:
+            send_sms_notification(f"Critical Feedback ({category}):\nFrom: {email}\nMsg: {message[:100]}", category="complaint")
+
         return jsonify({"success": True}), 200
     except Exception as e:
         print(f"Feedback error: {e}")
@@ -507,6 +530,45 @@ def update_admin_feedback(feedback_id):
 
         supabase = get_admin_supabase()
         res = supabase.table('user_feedback').update(updates).eq('id', feedback_id).execute()
+        return jsonify(res.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# 18B. ADMIN SETTINGS
+@app.route('/api/admin/settings', methods=['GET'])
+def get_admin_settings():
+    """Fetch admin settings."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+    
+    try:
+        supabase = get_admin_supabase()
+        res = supabase.table('admin_settings').select('*').execute()
+        return jsonify(res.data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/admin/settings', methods=['POST'])
+def update_admin_settings():
+    """Update or create admin settings."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+    
+    try:
+        data = request.json
+        key = data.get('key')
+        value = data.get('value')
+        
+        if not key or value is None:
+            return jsonify({"error": "Key and Value are required"}), 400
+            
+        supabase = get_admin_supabase()
+        res = supabase.table('admin_settings').upsert({
+            "key": key,
+            "value": value,
+            "updated_at": "now()"
+        }).execute()
+        
         return jsonify(res.data), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -429,6 +429,40 @@
             </div>
         </div>
 
+        <!-- SMS NOTIFICATIONS -->
+        <div class="glass-panel p-5 rounded-xl border border-orange-500/20 shadow-lg shadow-orange-500/5">
+            <h3
+                class="text-xs font-bold text-orange-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                <span><i class="fas fa-sms mr-2"></i> SMS NOTIFICATIONS</span>
+                <span id="sms-config-status" class="text-[10px] text-slate-500 italic">ready</span>
+            </h3>
+
+            <div class="space-y-4">
+                <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                    <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Admin
+                        Mobile Number</label>
+                    <input type="text" id="admin-sms-number" placeholder="e.g. 8649099115"
+                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+                </div>
+
+                <div class="space-y-3 px-1">
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] text-slate-300">New Signup Alerts</label>
+                        <input type="checkbox" id="notify-signup" class="w-4 h-4 accent-orange-500">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <label class="text-[11px] text-slate-300">Complaint/Refund Alerts</label>
+                        <input type="checkbox" id="notify-complaint" class="w-4 h-4 accent-orange-500">
+                    </div>
+                </div>
+
+                <button onclick="saveSmsSettings()"
+                    class="w-full py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg transition-all flex items-center justify-center gap-2">
+                    <i class="fas fa-save"></i> SAVE SMS SETTINGS
+                </button>
+            </div>
+        </div>
+
         <!-- WIDGET C: SUPPORT BOT TUNING -->
         <div class="glass-panel p-5 rounded-xl border border-teal-500/20 shadow-lg shadow-teal-500/5">
             <h3
@@ -897,6 +931,59 @@
         frame.className = `device-frame shadow-2xl ${sizeClass}`;
     }
 
+    // 5B. SMS SETTINGS
+    async function fetchSmsSettings() {
+        try {
+            const res = await fetch('/api/admin/settings', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
+            const settings = data.find(s => s.key === 'notification_settings');
+
+            if (settings && settings.value) {
+                const val = settings.value;
+                document.getElementById('admin-sms-number').value = val.phone_number || "";
+                document.getElementById('notify-signup').checked = val.notify_on_signup !== false;
+                document.getElementById('notify-complaint').checked = val.notify_on_complaint !== false;
+            }
+        } catch (err) {
+            console.error("Failed to fetch SMS settings", err);
+        }
+    }
+
+    async function saveSmsSettings() {
+        const status = document.getElementById('sms-config-status');
+        status.textContent = "saving...";
+
+        const value = {
+            phone_number: document.getElementById('admin-sms-number').value.replace(/\D/g, ''),
+            carrier_gateway: "vtext.com", // Keeping Verizon default for now
+            notify_on_signup: document.getElementById('notify-signup').checked,
+            notify_on_complaint: document.getElementById('notify-complaint').checked
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                },
+                body: JSON.stringify({ key: 'notification_settings', value: value })
+            });
+
+            if (res.ok) {
+                status.textContent = "saved";
+                setTimeout(() => status.textContent = "ready", 2000);
+            } else {
+                status.textContent = "error";
+            }
+        } catch (err) {
+            console.error("Failed to save SMS settings", err);
+            status.textContent = "error";
+        }
+    }
+
     // 6. AI BOT CONFIG (TUNING)
     async function fetchBotConfig() {
         const botType = document.getElementById('bot-selector').value;
@@ -1345,10 +1432,13 @@
     }
 
     // STARTUP
-    refreshAll();
-    fetchBotConfig();
-    fetchFeedback();
-    loadMissions();
+    window.addEventListener('DOMContentLoaded', () => {
+        refreshAll();
+        loadMissions();
+        fetchBotConfig();
+        fetchSmsSettings(); // Add this
+        fetchFeedback();
+    });
     setInterval(fetchFeedback, 30000); // Auto-refresh feedback every 30s
 </script>
 
