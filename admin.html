@@ -438,11 +438,27 @@
             </h3>
 
             <div class="space-y-4">
-                <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
-                    <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Admin
-                        Mobile Number</label>
-                    <input type="text" id="admin-sms-number" placeholder="e.g. 8649099115"
-                        class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                        <label
+                            class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Admin
+                            Mobile</label>
+                        <input type="text" id="admin-sms-number" placeholder="8649099115"
+                            class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white font-mono focus:outline-none focus:border-orange-500">
+                    </div>
+                    <div class="p-3 bg-slate-900/50 rounded-lg border border-slate-700">
+                        <label
+                            class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Carrier
+                            Gateway</label>
+                        <select id="admin-sms-gateway"
+                            class="w-full bg-slate-950 border border-slate-700 rounded p-2 text-xs text-white focus:outline-none focus:border-orange-500">
+                            <option value="vtext.com">Verizon</option>
+                            <option value="txt.att.net">AT&T</option>
+                            <option value="tmomail.net">T-Mobile</option>
+                            <option value="messaging.sprintpcs.com">Sprint</option>
+                            <option value="vmobl.com">Virgin Mobile</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="space-y-3 px-1">
@@ -943,6 +959,7 @@
             if (settings && settings.value) {
                 const val = settings.value;
                 document.getElementById('admin-sms-number').value = val.phone_number || "";
+                document.getElementById('admin-sms-gateway').value = val.carrier_gateway || "vtext.com";
                 document.getElementById('notify-signup').checked = val.notify_on_signup !== false;
                 document.getElementById('notify-complaint').checked = val.notify_on_complaint !== false;
             }
@@ -957,7 +974,7 @@
 
         const value = {
             phone_number: document.getElementById('admin-sms-number').value.replace(/\D/g, ''),
-            carrier_gateway: "vtext.com", // Keeping Verizon default for now
+            carrier_gateway: document.getElementById('admin-sms-gateway').value,
             notify_on_signup: document.getElementById('notify-signup').checked,
             notify_on_complaint: document.getElementById('notify-complaint').checked
         };
