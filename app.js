@@ -1800,11 +1800,22 @@ function init() {
 
 
     function primeAudio() {
+        // Unlock Audio Context for Mobile Safari/iOS
         const audioPlayer = document.getElementById('ai-audio-player');
-        // Attempt to play and immediately pause to unlock audio context
-        audioPlayer.play().catch(() => { });
-        audioPlayer.pause();
+        if (audioPlayer) {
+            audioPlayer.play().then(() => {
+                audioPlayer.pause();
+                audioPlayer.currentTime = 0;
+            }).catch(e => {
+                // Ignore "The play() request was interrupted" errors which are normal here
+                if (e.name !== 'AbortError') console.log("Audio Unlock Attempt:", e);
+            });
+        }
     }
+
+    // Attach to GLOBAL events to catch first interaction anywhere
+    document.addEventListener('click', primeAudio, { once: true });
+    document.addEventListener('touchstart', primeAudio, { once: true });
     if (chatInput) {
         chatInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') sendChatMessage();
@@ -2036,7 +2047,11 @@ function init() {
                         // Play Audio NOW (Synced with "Thank You" text)
                         if (data.audio) {
                             const audio = new Audio("data:audio/mp3;base64," + data.audio);
-                            audio.play().catch(e => console.error("Playback failed:", e));
+                            audio.play().catch(e => {
+                                console.error("Closing Audio Playback failed:", e);
+                                // Add manual fallback here too
+                                addMessage(`<button onclick="this.nextElementSibling.play()" class="text-xs bg-blue-500 text-white px-2 py-1 rounded mt-2">Hear closing remarks</button><audio src="data:audio/mp3;base64,${data.audio}"></audio>`, 'system', true);
+                            });
                         }
 
                         if (data.response.next_question) {
@@ -2105,9 +2120,14 @@ function init() {
             if (audioBase64) {
                 console.log("[Audio] Received audio from backend.");
                 try {
+                    // Create a dedicated audio object for this turn
+                    // This creates a new Context for each response, which is safer on mobile
                     const audio = new Audio("data:audio/mp3;base64," + audioBase64);
-                    audio.play().catch(e => console.error("Playback failed:", e));
-                    console.log("Audio playing...");
+                    audio.play().catch(e => {
+                        console.error("Playback failed (likely user interaction required):", e);
+                        // Fallback: Add a manual play button if auto-play fails
+                        addMessage(`<button onclick="this.nextElementSibling.play()" class="text-xs bg-blue-500 text-white px-2 py-1 rounded mt-2">Could not autoplay. Click to hear.</button><audio src="data:audio/mp3;base64,${audioBase64}"></audio>`, 'system', true);
+                    });
                 } catch (e) {
                     console.error("Audio setup error:", e);
                 }

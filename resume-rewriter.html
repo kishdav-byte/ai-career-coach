@@ -352,10 +352,15 @@
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
-        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
-        <div class="font-black text-xl tracking-tighter text-blue-500">ACE_CORP</div>
-        <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
-            <i class="fas fa-bars text-xl"></i>
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900/95 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
+        <div class="flex flex-col justify-center">
+            <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-tight">Total Package
+                Interview</div>
+            <div class="text-sm font-black text-white tracking-wide">EXECUTIVE REWRITE</div>
+        </div>
+        <button onclick="toggleSidebar()"
+            class="p-2 text-white hover:text-blue-400 transition-colors border border-blue-500/30 rounded-lg bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+            <i class="fas fa-bars"></i>
         </button>
     </div>
 
@@ -365,10 +370,10 @@
 
     <!-- LEFT PANEL: CONTROLS (35%) -->
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 w-[280px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1">
+        class="fixed inset-y-0 left-0 w-[280px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
 
         <!-- Header -->
-        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
                     LAB</h1>
@@ -631,7 +636,7 @@
                 <span class="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_5px_rgba(34,197,94,0.5)]"></span>
                 Live Preview
             </h2>
-            <div class="flex items-center gap-4">
+            <div id="print-actions" class="flex items-center gap-4 hidden">
                 <button onclick="printResume()"
                     class="bg-slate-800 hover:bg-slate-700 hover:text-white text-slate-400 border border-slate-700 px-4 py-2 rounded-lg text-xs font-bold transition-all flex items-center gap-2 shadow-lg">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1400,10 +1405,23 @@
                 // 4. Update UI with Optimized Content
                 populateForm(data);
 
+                // Mobile Fix: Auto-close sidebar so user sees result
+                if (window.innerWidth < 1024) {
+                    const sb = document.getElementById('sidebar');
+                    const mo = document.getElementById('mobile-overlay');
+                    if (sb) sb.classList.add('-translate-x-full');
+                    if (mo) mo.classList.add('hidden');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                }
+
                 // Refresh Preview (requires payload for user_data merging if strictly needed, but verify renderPreview logic)
                 // renderPreview expects the AI response structure.
                 // Let's pass the data directly as it contains the optimized content.
                 renderPreview(data, payload.user_data);
+
+                // Show Print Actions
+                const pa = document.getElementById('print-actions');
+                if (pa) pa.classList.remove('hidden');
 
             } catch (e) {
                 console.error(e);

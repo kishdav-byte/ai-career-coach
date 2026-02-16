@@ -88,9 +88,16 @@ const SaaSLayout = ({ children, user = { name: 'David Kish', initials: 'DK' } })
             >
                 {/* Logo */}
                 <div className="h-20 flex items-center px-6 mt-4 lg:mt-0">
-                    <h1 className="font-bold text-xl tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                        AI Career Coach
-                    </h1>
+                    <a href="/" className="nav-logo flex items-center gap-3 no-underline group">
+                        <svg className="logo-icon w-8 h-8 text-[#20C997] flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <rect className="logo-box stroke-current" x="2" y="2" width="20" height="20" rx="5" strokeWidth="2.5" />
+                            <path className="check-mark stroke-current" d="M7 12L10 15L17 8" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                        <div className="logo-text flex flex-col line-tight">
+                            <span className="top-line text-[10px] text-[#20C997] font-bold uppercase tracking-widest">total package</span>
+                            <span className="bottom-line text-lg text-white font-black uppercase tracking-tighter group-hover:text-[#20C997] transition-colors">INTERVIEW</span>
+                        </div>
+                    </a>
                 </div>
 
                 {/* Nav Items */}

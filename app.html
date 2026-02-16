@@ -46,6 +46,8 @@
             margin-bottom: 10px;
             font-size: 0.95rem;
             line-height: 1.5;
+            max-width: 90%;
+            /* Prevent full width stretch */
         }
 
         .msg-user {
@@ -53,6 +55,8 @@
             color: #e2e8f0;
             border: 1px solid #334155;
             margin-left: 20px;
+            align-self: flex-end;
+            text-align: right;
         }
 
         .msg-system {
@@ -63,13 +67,20 @@
             align-self: flex-start;
         }
 
-        .msg-user {
-            background: #1e293b;
-            color: #e2e8f0;
-            border: 1px solid #334155;
-            margin-left: 20px;
-            align-self: flex-end;
-            text-align: right;
+
+        @media (max-width: 768px) {
+            .msg-user {
+                margin-left: 10px;
+            }
+
+            .msg-system {
+                margin-right: 10px;
+            }
+
+            .msg-bubble {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
         }
 
         /* Thinking Indicator */
@@ -114,12 +125,29 @@
     </style>
 </head>
 
-<body
-    class="flex flex-col md:flex-row min-h-screen md:h-screen bg-slate-950 text-slate-300 overflow-y-auto md:overflow-hidden">
+<body class="flex h-screen overflow-hidden bg-slate-950 text-slate-300 md:flex-row relative">
+
+    <!-- MOBILE HEADER (Visible < md) -->
+    <div
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900/95 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
+        <div class="flex flex-col justify-center">
+            <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-tight">Total Package
+                Interview</div>
+            <div class="text-sm font-black text-white tracking-wide">THE SIMULATOR</div>
+        </div>
+        <button onclick="toggleSidebar()"
+            class="p-2 text-white hover:text-blue-400 transition-colors border border-blue-500/30 rounded-lg bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+        onclick="toggleSidebar()"></div>
 
     <!-- LEFT SIDEBAR: INPUTS & CONTROLS (35%) -->
-    <aside
-        class="w-full md:w-[35%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
 
         <!-- Universal Header -->
         <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
@@ -278,47 +306,14 @@
 
         </div>
 
-        <!-- Footer Actions -->
-        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
-
-            <!-- Interview Action -->
-            <div id="action-interview" class="tool-action">
-                <button id="start-interview-btn"
-                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2">
-                    START SESSION
-                </button>
-                <div id="active-session-controls" class="hidden flex flex-col gap-3">
-                    <div class="flex gap-2">
-                        <textarea id="chat-input" rows="1"
-                            class="flex-1 bg-slate-950 border border-slate-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none resize-none custom-scroll"
-                            placeholder="Type response..."></textarea>
-                        <button id="send-chat-btn"
-                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 rounded-lg transition-all flex items-center justify-center">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                    <button id="record-btn" onclick="toggleRecording()"
-                        class="w-full bg-slate-800 border border-slate-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-all text-xs tracking-widest">
-                        <i class="fas fa-microphone"></i> MUTE/UNMUTE MIC
-                    </button>
-                </div>
-            </div>
-
-            <!-- LinkedIn Action -->
-            <div id="action-linkedin" class="tool-action hidden">
-                <button id="optimize-linkedin-btn"
-                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">
-                    OPTIMIZE PROFILE
-                </button>
-            </div>
+        </div>
 
         </div>
 
     </aside>
 
     <!-- RIGHT MAIN PANEL: OUTPUT (65%) -->
-    <main
-        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+    <main class="w-full md:flex-1 h-full bg-slate-950 relative overflow-hidden flex flex-col order-2 pt-16 md:pt-0">
 
         <!-- Background Grids -->
         <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
@@ -327,7 +322,7 @@
 
         <!-- Toolbar -->
         <div
-            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm">
+            class="relative z-20 h-16 border-b border-slate-800/50 flex items-center justify-between px-8 bg-slate-900/30 backdrop-blur-sm flex-shrink-0">
             <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2"
                 id="status-indicator">
                 <span id="status-dot" class="w-2 h-2 rounded-full bg-slate-600"></span>
@@ -339,7 +334,7 @@
         </div>
 
         <!-- Main Content Scroll Area -->
-        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 relative z-10">
+        <div class="flex-1 overflow-auto custom-scroll p-8 md:p-12 relative z-10" id="scroll-container">
 
             <!-- VIEW: INTERVIEW LAB OUTPUT -->
             <div id="view-interview-main" class="tool-main-view">
@@ -397,7 +392,7 @@
                 </div>
 
                 <!-- Chat Transcript -->
-                <div id="chat-interface" class="hidden max-w-3xl mx-auto pb-20">
+                <div id="chat-interface" class="hidden max-w-3xl mx-auto pb-4">
                     <div id="chat-window" class="space-y-4">
                         <!-- Messages go here -->
 
@@ -451,6 +446,42 @@
                     </div>
 
                 </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Actions (Moved from Sidebar) -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-950/95 backdrop-blur-md relative z-20 flex-shrink-0">
+
+            <!-- Interview Action -->
+            <div id="action-interview" class="tool-action max-w-3xl mx-auto w-full">
+                <button id="start-interview-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all flex items-center justify-center gap-2">
+                    START SESSION
+                </button>
+                <div id="active-session-controls" class="hidden flex flex-col gap-3">
+                    <div class="flex gap-2">
+                        <textarea id="chat-input" rows="1"
+                            class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-3 text-white text-sm focus:border-blue-500 outline-none resize-none custom-scroll"
+                            placeholder="Type response..."></textarea>
+                        <button id="send-chat-btn"
+                            class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 rounded-lg transition-all flex items-center justify-center">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    <button id="record-btn" onclick="toggleRecording()"
+                        class="w-full bg-slate-800 border border-slate-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-all text-xs tracking-widest">
+                        <i class="fas fa-microphone"></i> MUTE/UNMUTE MIC
+                    </button>
+                </div>
+            </div>
+
+            <!-- LinkedIn Action -->
+            <div id="action-linkedin" class="tool-action hidden max-w-3xl mx-auto w-full">
+                <button id="optimize-linkedin-btn"
+                    class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] transition-all">
+                    OPTIMIZE PROFILE
+                </button>
             </div>
 
         </div>
@@ -608,6 +639,13 @@
             // Start loading missions in background
             loadMissions();
         });
+        // Initialize Sidebar Toggle
+        window.toggleSidebar = () => {
+            const sb = document.getElementById('sidebar');
+            const mo = document.getElementById('mobile-overlay');
+            if (sb) sb.classList.toggle('-translate-x-full');
+            if (mo) mo.classList.toggle('hidden');
+        };
     </script>
 </body>
 

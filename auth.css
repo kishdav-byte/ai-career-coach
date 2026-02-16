@@ -135,6 +135,28 @@ h1 {
     color: rgba(148, 163, 184, 0.5);
 }
 
+.password-container {
+    position: relative;
+    width: 100%;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+    user-select: none;
+    z-index: 10;
+}
+
+.password-toggle:hover {
+    color: var(--white);
+}
+
 .btn {
     width: 100%;
     padding: 1rem;

@@ -97,16 +97,19 @@
             flex-direction: column;
         }
 
-        .nav-logo .top {
+        .nav-logo .top-line {
             font-size: 0.7rem;
             color: var(--secondary);
             text-transform: lowercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
         }
 
-        .nav-logo .bottom {
+        .nav-logo .bottom-line {
             font-size: 1.1rem;
             color: var(--secondary);
             text-transform: uppercase;
+            font-weight: 900;
             letter-spacing: 0.05em;
         }
 
@@ -217,8 +220,16 @@
     <nav class="nav">
         <div class="nav-container">
             <a href="/" class="nav-logo">
-                <span class="top">total package</span>
-                <span class="bottom">INTERVIEW</span>
+                <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect class="logo-box" x="2" y="2" width="20" height="20" rx="4" stroke="currentColor"
+                        stroke-width="2.5" />
+                    <path class="check-mark" d="M7 12L10 15L17 8" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+                <div class="logo-text">
+                    <span class="top-line">total package</span>
+                    <span class="bottom-line">INTERVIEW</span>
+                </div>
             </a>
             <a href="/resources"
                 style="color: var(--gray-400); text-decoration: none; font-size: 0.9rem; font-weight: 600;">← Back to

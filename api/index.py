@@ -46,6 +46,47 @@ def health_check():
         }
     }), 200
 
+def send_sms_notification(new_user_email, new_user_name):
+    """Sends an SMS via email gateway to the admin."""
+    try:
+        # Check for credentials (silent fail if not present)
+        smtp_host = os.environ.get("SMTP_HOST")
+        smtp_port = int(os.environ.get("SMTP_PORT", 587))
+        smtp_user = os.environ.get("SMTP_USER")
+        smtp_pass = os.environ.get("SMTP_PASS")
+        smtp_sender = os.environ.get("SMTP_SENDER", smtp_user) # Allow override
+
+        if not smtp_host or not smtp_user or not smtp_pass:
+            print("[SMS] SMTP credentials missing. Skipping notification.")
+            return
+
+        import smtplib
+        from email.mime.text import MIMEText
+
+        # Verizon SMS Gateway
+        target_number = "8649099115@vtext.com"
+        
+        msg = MIMEText(f"New User Signup:\nName: {new_user_name}\nEmail: {new_user_email}")
+        msg['Subject'] = "New User Alert"
+        msg['From'] = smtp_sender
+        msg['To'] = target_number
+
+        if smtp_port == 465:
+            # SSL Connection (Resend / Gmail)
+            with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+        else:
+            # TLS Connection (Standard)
+            with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls()
+                server.login(smtp_user, smtp_pass)
+                server.send_message(msg)
+            
+        print(f"[SMS] Notification sent to {target_number}")
+    except Exception as e:
+        print(f"[SMS] Failed to send notification: {e}")
+
 # 0B. AUTHENTICATION ROUTES
 @app.route('/api/auth/signup', methods=['POST'])
 def auth_signup():
@@ -71,10 +112,20 @@ def auth_signup():
                 "password": password,
                 "options": {
                     "data": {
-                        "name": name
+                        "name": name,
+                        "subscription_status": "free",
+                        "role": "user",
+                        "credits": 0, # Universal
+                        "credits_resume": 1, # Free Gift
+                        "created_at": "now()"
                     }
                 }
             })
+            
+            # --- SMS NOTIFICATION (PAUSED) ---
+            # send_sms_notification(email, name)
+            # ------------------------
+
         except Exception as auth_err:
             print(f"[AUTH] sign_up failure: {auth_err}")
             return jsonify({"error": f"Supabase Auth Failure: {str(auth_err)}"}), 400

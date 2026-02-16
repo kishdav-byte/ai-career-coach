@@ -38,7 +38,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- App Logic -->
-    <script src="/app.js"></script>
+    <script src="./app.js"></script>
 
     <script>
         // Auth Logic Pre-check (Restored)
@@ -152,6 +152,31 @@
             border: 1px solid rgba(32, 201, 151, 0.3);
             border-radius: 12px 12px 2px 12px;
             color: #20C997;
+        }
+
+        /* TOOLTIP SYSTEM */
+        .tip-bubble {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(32, 201, 151, 0.3);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 0 15px rgba(32, 201, 151, 0.1);
+        }
+
+        .tip-pulse {
+            animation: tip-entrance 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes tip-entrance {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
     </style>
 </head>
@@ -274,15 +299,33 @@
                         <i id="icon-clinic" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                     </button>
                     <div id="group-clinic" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                        <a href="/resume-analyzer"
-                            class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Resume
-                            Scanner</a>
-                        <a href="/resume-rewriter"
-                            class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Executive
-                            Rewrite</a>
-                        <a href="/app#linkedin"
-                            class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">LinkedIn
-                            Optimizer</a>
+                        <div class="relative flex items-center group">
+                            <a href="/resume-analyzer"
+                                data-tip="Analyze your resume against any job description to find missing keywords and gaps."
+                                class="flex-1 block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Resume
+                                Scanner</a>
+                            <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger>
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                        <div class="relative flex items-center group">
+                            <a href="/resume-rewriter"
+                                data-tip="A professional rewrite tool that transforms your experience into a more closely matched resume for the job."
+                                class="flex-1 block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Executive
+                                Rewrite</a>
+                            <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger>
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
+                        <div class="relative flex items-center group">
+                            <a href="/app#linkedin"
+                                data-tip="Refine your LinkedIn profile to attract recruiters and align with your resume strategy."
+                                class="flex-1 block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">LinkedIn
+                                Optimizer</a>
+                            <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger>
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -297,15 +340,28 @@
                         <i id="icon-simulator" class="fas fa-chevron-right text-slate-500 transition-transform"></i>
                     </button>
                     <div id="group-simulator" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
-                        <a href="/app"
-                            class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Mock
-                            Interview</a>
+                        <div class="relative flex items-center group">
+                            <a href="/app"
+                                data-tip="Practice realistic interview questions with an AI recruiter and get real-time feedback on your performance."
+                                class="flex-1 block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Mock
+                                Interview</a>
+                            <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger>
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
                         <a href="/role-reversal"
+                            data-tip="Step into the recruiter's shoes and see how candidates are evaluated for your target role."
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Role
                             Reversal</a>
-                        <a href="/star-drill"
-                            class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">STAR
-                            Method Drill</a>
+                        <div class="relative flex items-center group">
+                            <a href="/star-drill"
+                                data-tip="Master behavioral questions by practicing the STAR method with an AI coach that is willing to ask you those probing questions."
+                                class="flex-1 block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">STAR
+                                Method Drill</a>
+                            <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger>
+                                <i class="fas fa-info-circle"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -321,12 +377,15 @@
                     </button>
                     <div id="group-strategy" class="hidden ml-4 mt-1 space-y-0.5 border-l border-white/5 pl-2">
                         <a href="/jobs-history"
+                            data-tip="Organize your applications and track every stage of your job search progress."
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Job
                             Tracker</a>
                         <a href="/strategy/30-60-90"
+                            data-tip="Generate a strategic roadmap to show how you'll deliver value in your first 90 days."
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">30-60-90
                             Plan</a>
                         <a href="/strategy/closer"
+                            data-tip="Build a data-backed negotiation script to maximize your total compensation."
                             class="block px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5">Salary
                             Negotiation</a>
                     </div>
@@ -435,44 +494,64 @@
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Preparation</label>
 
-                                    <a href="/resume-analyzer" id="tool-card-scanner" class="block group">
-                                        <div
-                                            class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-500/50 rounded-xl p-4 transition-all">
-                                            <div class="flex items-center gap-4">
-                                                <div
-                                                    class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
-                                                    <i class="fas fa-microscope text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3
-                                                        class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
-                                                        Resume Scanner</h3>
-                                                    <p class="text-[10px] text-slate-400">Audit vs Job Description
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </a>
-
-                                    <a href="/resume-rewriter" id="tool-card-rewrite" class="block group">
-                                        <div
-                                            class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-yellow-500/50 rounded-xl p-4 transition-all">
-                                            <div class="flex items-center gap-4">
-                                                <div
-                                                    class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
-                                                    <i class="fas fa-pen-nib text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3
-                                                        class="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">
-                                                        Executive Rewrite</h3>
-                                                    <p class="text-[10px] text-slate-400">Targeted Optimization</p>
+                                    <div class="relative group">
+                                        <a href="/resume-analyzer" id="tool-card-scanner" class="block"
+                                            data-tip="Analyze your resume against any job description to find missing keywords and gaps."
+                                            data-tip-delay="3000">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-microscope text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-blue-400 transition-colors">
+                                                            Resume Scanner</h3>
+                                                        <p class="text-[10px] text-slate-400">Audit vs Job Description
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </a>
+                                        </a>
+                                        <button
+                                            class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40"
+                                            data-tip-trigger>
+                                            <i class="fas fa-info-circle text-lg"></i>
+                                        </button>
+                                    </div>
 
-                                    <a href="/cover-letter" id="tool-card-cover" class="block group">
+                                    <div class="relative group">
+                                        <a href="/resume-rewriter" id="tool-card-rewrite" class="block"
+                                            data-tip="A professional rewrite tool that transforms your experience into a more closely matched resume for the job."
+                                            data-tip-delay="3000">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-yellow-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-pen-nib text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-yellow-400 transition-colors">
+                                                            Executive Rewrite</h3>
+                                                        <p class="text-[10px] text-slate-400">Targeted Optimization</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </a>
+                                        <button
+                                            class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40"
+                                            data-tip-trigger>
+                                            <i class="fas fa-info-circle text-lg"></i>
+                                        </button>
+                                    </div>
+
+                                    <a href="/cover-letter" id="tool-card-cover" class="block group"
+                                        data-tip="Generate a tailored narrative that explains why you're the perfect fit for the specific role."
+                                        data-tip-delay="3000">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-purple-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -490,7 +569,9 @@
                                         </div>
                                     </a>
 
-                                    <a href="/app#linkedin" id="tool-card-linkedin" class="block group">
+                                    <a href="/app#linkedin" id="tool-card-linkedin" class="block group"
+                                        data-tip="Refine your LinkedIn profile to attract recruiters and align with your resume strategy."
+                                        data-tip-delay="3000">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-blue-400/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -514,46 +595,65 @@
                                     <label
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Interview</label>
 
-                                    <a href="/app" id="tool-card-mock" class="block group">
-                                        <!-- Verified filename assumption or will fix if 404, usually interview-coach based on previous context -->
-                                        <div
-                                            class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-green-500/50 rounded-xl p-4 transition-all">
-                                            <div class="flex items-center gap-4">
-                                                <div
-                                                    class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
-                                                    <i class="fas fa-microphone-alt text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3
-                                                        class="text-sm font-bold text-white group-hover:text-green-400 transition-colors">
-                                                        Mock Interview</h3>
-                                                    <p class="text-[10px] text-slate-400">AI Roleplay Simulation</p>
+                                    <div class="relative group">
+                                        <a href="/app" id="tool-card-mock" class="block"
+                                            data-tip="Practice realistic interview questions with an AI recruiter and get real-time feedback on your performance."
+                                            data-tip-delay="3000">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-green-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center text-green-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-microphone-alt text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-green-400 transition-colors">
+                                                            Mock Interview</h3>
+                                                        <p class="text-[10px] text-slate-400">AI Roleplay Simulation</p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </a>
+                                        </a>
+                                        <button
+                                            class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40"
+                                            data-tip-trigger>
+                                            <i class="fas fa-info-circle text-lg"></i>
+                                        </button>
+                                    </div>
 
-                                    <a href="/star-drill" id="tool-card-star" class="block group">
-                                        <div
-                                            class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-orange-500/50 rounded-xl p-4 transition-all">
-                                            <div class="flex items-center gap-4">
-                                                <div
-                                                    class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
-                                                    <i class="fas fa-star text-lg"></i>
-                                                </div>
-                                                <div>
-                                                    <h3
-                                                        class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">
-                                                        STAR Drill</h3>
-                                                    <p class="text-[10px] text-slate-400">Behavioral Answer Builder
-                                                    </p>
+                                    <div class="relative group">
+                                        <a href="/star-drill" id="tool-card-star" class="block"
+                                            data-tip="Master behavioral questions by practicing the STAR method with an AI coach that is willing to ask you those probing questions."
+                                            data-tip-delay="3000">
+                                            <div
+                                                class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-orange-500/50 rounded-xl p-4 transition-all">
+                                                <div class="flex items-center gap-4">
+                                                    <div
+                                                        class="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
+                                                        <i class="fas fa-star text-lg"></i>
+                                                    </div>
+                                                    <div>
+                                                        <h3
+                                                            class="text-sm font-bold text-white group-hover:text-orange-400 transition-colors">
+                                                            STAR Drill</h3>
+                                                        <p class="text-[10px] text-slate-400">Behavioral Answer Builder
+                                                        </p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </a>
+                                        </a>
+                                        <button
+                                            class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40"
+                                            data-tip-trigger>
+                                            <i class="fas fa-info-circle text-lg"></i>
+                                        </button>
+                                    </div>
 
                                     <!-- NEW: The Inquisitor -->
-                                    <a href="/strategy/inquisitor" id="tool-card-inquisitor" class="block group">
+                                    <a href="/strategy/inquisitor" id="tool-card-inquisitor" class="block group"
+                                        data-tip="Step into the recruiter's shoes and see how candidates are evaluated for your target role."
+                                        data-tip-delay="3000">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-fuchsia-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -578,7 +678,9 @@
                                         class="text-xs font-bold text-slate-500 uppercase tracking-widest pl-1">Post-Interview</label>
 
                                     <!-- NEW: Value Follow-Up -->
-                                    <a href="/strategy/follow-up" id="tool-card-followup" class="block group">
+                                    <a href="/strategy/follow-up" id="tool-card-followup" class="block group"
+                                        data-tip="Generate high-impact follow-up messages that reinforce your value after an interview."
+                                        data-tip-delay="3000">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-rose-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -597,7 +699,9 @@
                                         </div>
                                     </a>
 
-                                    <a href="/strategy/closer" id="tool-card-closer" class="block group">
+                                    <a href="/strategy/closer" id="tool-card-closer" class="block group"
+                                        data-tip="Build a data-backed negotiation script to maximize your total compensation."
+                                        data-tip-delay="3000">
                                         <div
                                             class="bg-slate-800/50 hover:bg-slate-800 border border-slate-700/50 hover:border-teal-500/50 rounded-xl p-4 transition-all">
                                             <div class="flex items-center gap-4">
@@ -2117,6 +2221,179 @@
             }
         });
     </script>
+    <style>
+        /* Tooltip CSS */
+        .tip-bubble {
+            background-color: #0F172A;
+            /* slate-900 */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            /* white/10 */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* shadow-lg */
+            position: absolute;
+        }
+
+        .tip-bubble .absolute {
+            background-color: #0F172A;
+            /* slate-900 */
+            border-color: rgba(255, 255, 255, 0.1);
+            /* white/10 */
+        }
+
+        @keyframes pulse-fade {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .tip-pulse {
+            animation: pulse-fade 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+    </style>
+    <script>
+        // --- MOBILE-OPTIMIZED TOOLTIP MANAGER ---
+        class TooltipManager {
+            constructor() {
+                this.timer = null;
+                this.tooltip = null;
+                this.activeTrigger = null;
+                // Detect touch capability
+                this.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                this.init();
+            }
+
+            init() {
+                // Create tooltip element
+                this.tooltip = document.createElement('div');
+                this.tooltip.className = 'fixed z-[100] hidden pointer-events-none tip-bubble p-4 rounded-xl max-w-[280px] tip-pulse';
+                this.tooltip.innerHTML = `
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-info-circle text-teal-400 text-xs"></i>
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Guide</span>
+                        </div>
+                        <p id="tooltip-text" class="text-[11px] font-medium text-slate-200 leading-relaxed"></p>
+                    </div>
+                    <div id="tip-arrow" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-r border-b border-white/10 rotate-45"></div>
+                `;
+                document.body.appendChild(this.tooltip);
+
+                // Desktop Event Listeners
+                if (!this.isTouch) {
+                    document.addEventListener('mouseover', (e) => this.handleMouseOver(e));
+                    document.addEventListener('mouseout', (e) => this.handleMouseOut(e));
+                }
+
+                // Unified Click/Touch Trigger Listeners (for mobile icons)
+                document.addEventListener('click', (e) => this.handleTrigger(e));
+
+                // Close on scroll or mousedown elsewhere
+                window.addEventListener('scroll', () => this.hide(), { passive: true });
+                document.addEventListener('mousedown', (e) => {
+                    if (!this.tooltip.contains(e.target) && !e.target.closest('[data-tip-trigger]')) {
+                        this.hide();
+                    }
+                });
+            }
+
+            handleMouseOver(e) {
+                const target = e.target.closest('[data-tip]');
+                if (!target) return;
+
+                const text = target.getAttribute('data-tip');
+                // Standard delay: 3s for dashboard cards, 0.8s for sidebar
+                const delay = parseInt(target.getAttribute('data-tip-delay')) || (target.id?.includes('tool-card') ? 3000 : 800);
+
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => {
+                    this.show(target, text);
+                }, delay);
+            }
+
+            handleMouseOut(e) {
+                // Only hide if we aren't in a sticky mobile state
+                if (!this.activeTrigger) {
+                    clearTimeout(this.timer);
+                    this.hide();
+                }
+            }
+
+            handleTrigger(e) {
+                const trigger = e.target.closest('[data-tip-trigger]');
+                if (trigger) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    // Find the actual tooltip source (sibling or parent data-tip)
+                    const source = trigger.closest('.relative')?.querySelector('[data-tip]') || trigger.closest('[data-tip]');
+                    if (!source) return;
+
+                    const text = source.getAttribute('data-tip');
+
+                    if (this.activeTrigger === trigger) {
+                        this.hide();
+                    } else {
+                        this.show(trigger, text, true);
+                        this.activeTrigger = trigger;
+                    }
+                }
+            }
+
+            show(target, text, isMobile = false) {
+                const textEl = this.tooltip.querySelector('#tooltip-text');
+                const arrow = this.tooltip.querySelector('#tip-arrow');
+                textEl.textContent = text;
+
+                this.tooltip.classList.remove('hidden');
+
+                const rect = target.getBoundingClientRect();
+                const tooltipRect = this.tooltip.getBoundingClientRect();
+
+                let top = rect.top - tooltipRect.height - 15;
+                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+                // Boundary/Position Checks
+                if (top < 20) {
+                    // Show below if no space above
+                    top = rect.bottom + 15;
+                    arrow.className = 'absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-l border-t border-white/10 rotate-45';
+                } else {
+                    arrow.className = 'absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-r border-b border-white/10 rotate-45';
+                }
+
+                // Horizontal screen boundary safety
+                const minMargin = 15;
+                if (left < minMargin) left = minMargin;
+                if (left + tooltipRect.width > window.innerWidth - minMargin) {
+                    left = window.innerWidth - tooltipRect.width - minMargin;
+                }
+
+                // Reposition arrow to point at trigger center even if bubble shifted
+                const shiftedX = left - (rect.left + (rect.width / 2) - (tooltipRect.width / 2));
+                arrow.style.transform = `translateX(calc(-50% - ${shiftedX}px)) rotate(45deg)`;
+
+                this.tooltip.style.top = `${top}px`;
+                this.tooltip.style.left = `${left}px`;
+            }
+
+            hide() {
+                this.tooltip.classList.add('hidden');
+                this.activeTrigger = null;
+                clearTimeout(this.timer);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.advisorTip = new TooltipManager();
+        });
+    </script>
 </body>
 
 </html>
+```
