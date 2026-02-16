@@ -50,10 +50,11 @@ def send_sms_notification(message, category="Alert"):
     """Sends an SMS via email gateway to the admin using settings from DB."""
     try:
         admin_supabase = get_admin_supabase()
-        res = admin_supabase.table('admin_settings').select('value').eq('key', 'notification_settings').single().execute()
+        # Use a list select and safe indexing instead of .single() to avoid exceptions if empty
+        res = admin_supabase.table('admin_settings').select('value').eq('key', 'notification_settings').execute()
         
-        if not res or not res.data:
-            print("[SMS] Settings missing in DB. Using defaults.")
+        if not res.data or len(res.data) == 0:
+            print("[SMS] Settings not found in DB. Using defaults.")
             settings = {
                 "phone_number": "8649099115",
                 "carrier_gateway": "vtext.com",
@@ -61,7 +62,7 @@ def send_sms_notification(message, category="Alert"):
                 "notify_on_complaint": True
             }
         else:
-            settings = res.data['value']
+            settings = res.data[0]['value']
 
         # Check if this category is enabled
         if category == "signup" and not settings.get("notify_on_signup", True):
@@ -563,15 +564,17 @@ def update_admin_settings():
             return jsonify({"error": "Key and Value are required"}), 400
             
         supabase = get_admin_supabase()
-        res = supabase.table('admin_settings').upsert({
+        # Use list for upsert which is more standard
+        res = supabase.table('admin_settings').upsert([{
             "key": key,
             "value": value,
             "updated_at": "now()"
-        }).execute()
+        }], on_conflict="key").execute()
         
         return jsonify(res.data), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"[ADMIN] Settings update failed: {e}")
+        return jsonify({"error": f"Database Error: {str(e)}"}), 500
 
 # 4. UPDATE JOB (PUT) - Saving Dossier Intel
 @app.route('/api/jobs/<job_id>', methods=['PUT'])
