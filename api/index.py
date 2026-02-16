@@ -576,6 +576,18 @@ def update_admin_settings():
         print(f"[ADMIN] Settings update failed: {e}")
         return jsonify({"error": f"Database Error: {str(e)}"}), 500
 
+@app.route('/api/admin/test-sms', methods=['POST'])
+def test_admin_sms():
+    """Trigger a test SMS notification."""
+    auth_header = request.headers.get('Authorization')
+    if not auth_header: return jsonify({"error": "Admin Access Required"}), 401
+    
+    try:
+        send_sms_notification("🚀 TEST ALERT: Your Total Package Interview SMS system is now LIVE!", category="Test")
+        return jsonify({"success": True, "message": "Test SMS triggered. Check your phone!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # 4. UPDATE JOB (PUT) - Saving Dossier Intel
 @app.route('/api/jobs/<job_id>', methods=['PUT'])
 def update_job(job_id):
