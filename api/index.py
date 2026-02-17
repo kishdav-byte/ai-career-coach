@@ -2270,7 +2270,7 @@ def create_checkout_session():
         
         data = request.json
         plan_type = data.get('plan_type')
-        success_url = data.get('successUrl', 'https://totalpackageinterview.com/dashboard.html')
+        success_url = data.get('successUrl', 'https://www.totalpackageinterview.com/dashboard')
         cancel_url = success_url # Just go back
         
         # Use token ID over body ID for security, fallback to body if token fails (unlikely)

@@ -18,4 +18,4 @@ Disallow: /resume-viewer
 Disallow: /role-reversal
 Disallow: /debug
 
-Sitemap: https://totalpackageinterview.com/sitemap.xml
+Sitemap: https://www.totalpackageinterview.com/sitemap.xml
