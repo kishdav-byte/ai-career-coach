@@ -115,7 +115,7 @@ def auth_signup():
         data = request.json
         email = data.get('email')
         password = data.get('password')
-        name = data.get('name', 'Executive Candidate')
+        name = data.get('name', 'Professional Candidate')
         
         referral = data.get('referral', 'Direct')
         
@@ -1821,7 +1821,7 @@ def general_api():
             completion = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    { "role": "system", "content": "You are an expert executive cover letter writer. Use provided identity and resume. No placeholders for user info." },
+                    { "role": "system", "content": "You are an expert professional cover letter writer. Use provided identity and resume. No placeholders for user info." },
                     { "role": "user", "content": prompt }
                 ]
             )
@@ -2495,7 +2495,7 @@ def generate_strategy_tool():
             
             INSTRUCTIONS:
             1. Provide a strategic breakdown of priorities for the first 30, 60, and 90 days.
-            2. Focus on "Vision, Culture, & ROI Dominance" as befits an executive role.
+            2. Focus on "Efficiency, Culture, & ROI Impact" as befits a high-impact professional role.
             3. Use specific actions, metrics for success, and clear milestones.
             4. Output in Markdown format with clear headers for each section (Day 1-30, Day 31-60, Day 61-90).
             """
@@ -2506,7 +2506,7 @@ def generate_strategy_tool():
         completion = client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "You are a world-class Executive Career Strategist."},
+                {"role": "system", "content": "You are a world-class Professional Career Strategist."},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -3321,7 +3321,7 @@ def admin_run_test():
     
     try:
         data = request.json
-        persona_type = data.get('persona', 'executive').lower()
+        persona_type = data.get('persona', 'professional').lower()
         
         logs = []
         def log(msg): logs.append(msg)
@@ -3330,11 +3330,11 @@ def admin_run_test():
         
         # 1. SETUP PERSONA
         personas = {
-            "executive": "You are a seasoned CEO with 20 years experience. You use STAR method perfectly. You are confident, concise, and strategic.",
+            "professional": "You are a seasoned Hiring Manager with 20 years experience. You use STAR method perfectly. You are confident, concise, and professional.",
             "quitter": "You are annoyed. You give one-word answers. You hate interviews. You want to leave.",
             "cliffhanger": "You answer the first part detailed, but then stop mid-sentence."
         }
-        candidate_instruction = personas.get(persona_type, personas['executive'])
+        candidate_instruction = personas.get(persona_type, personas['professional'])
 
         # 2. INITIALIZE CLIENTS
         from openai import OpenAI

@@ -1,0 +1,13 @@
+TESTING: EXCEPTIONAL CANDIDATE
+Expected Average: ~3.7/4.0
+→ Average Score: 3.8/4.0 (expected ~3.7)
+Average: 3.8/4.0
+TESTING: MID-GRADE CANDIDATE
+Expected Average: ~2.8/4.0
+→ Average Score: 2.8/4.0 (expected ~2.8)
+Average: 2.8/4.0
+TESTING: WEAK CANDIDATE
+Expected Average: ~2.2/4.0
+→ Average Score: 2.3/4.0 (expected ~2.2)
+Average: 2.3/4.0
+FINAL RESULTS - OPTION B (2/3/4 System)

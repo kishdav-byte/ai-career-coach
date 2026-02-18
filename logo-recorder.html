@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Animation Recorder (Green Screen)</title>
+    <style>
+        :root {
+            --accent-color: #20C997;
+            /* Your brand teal */
+            --bg-color: #00FF00;
+            /* Pure Green for Chroma Key */
+            --text-color: #0A2540;
+            /* Your brand navy */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border-radius: 12px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        button {
+            background: var(--accent-color);
+            color: #0A2540;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* The Logo Container */
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            transform: scale(2.5);
+        }
+
+        .logo-icon {
+            width: 120px;
+            height: 120px;
+            color: var(--text-color);
+            flex-shrink: 0;
+        }
+
+        .logo-box {
+            stroke-dasharray: 80;
+            stroke-dashoffset: 80;
+        }
+
+        .check-mark {
+            stroke-dasharray: 30;
+            stroke-dashoffset: 30;
+        }
+
+        @keyframes draw-box {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes draw-check {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        .logo-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+
+        .top-line {
+            font-size: 24px;
+            color: var(--text-color);
+            text-transform: lowercase;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            opacity: 0;
+        }
+
+        .bottom-line {
+            font-size: 48px;
+            color: var(--text-color);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.05em;
+            opacity: 0;
+        }
+
+        @keyframes fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="controls">
+        <p style="margin-top:0"><strong>Logo Recorder</strong></p>
+        <button onclick="playAll()">Animate All</button>
+        <button onclick="playCheckOnly()">Check Only</button>
+        <button onclick="reset()" style="background: #ef4444; color: white; margin-left:10px;">Reset</button>
+        <p style="font-size: 12px; margin-bottom:0; color: #aaa; margin-top:15px;">
+            1. Screen Record (4K/HD)<br>
+            2. Click a button<br>
+            3. Use '3D Keyer' in Resolve or 'Chroma Key' in HeyGen
+        </p>
+    </div>
+
+    <div id="logo-root" class="logo-container">
+        <svg id="svg-logo" class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect id="rect-el" class="logo-box" x="2" y="2" width="20" height="20" rx="4" stroke="currentColor"
+                stroke-width="2" />
+            <path id="check-el" class="check-mark" d="M7 12L10 15L17 8" stroke="currentColor" stroke-width="2.5"
+                stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <div class="logo-text">
+            <span id="top-text" class="top-line">total package</span>
+            <span id="bottom-text" class="bottom-line">INTERVIEW</span>
+        </div>
+    </div>
+
+    <script>
+        const rect = document.getElementById('rect-el');
+        const check = document.getElementById('check-el');
+        const topText = document.getElementById('top-text');
+        const bottomText = document.getElementById('bottom-text');
+
+        function reset() {
+            rect.style.animation = 'none';
+            check.style.animation = 'none';
+            topText.style.animation = 'none';
+            bottomText.style.animation = 'none';
+            rect.style.strokeDashoffset = '80';
+            check.style.strokeDashoffset = '30';
+            topText.style.opacity = '0';
+            bottomText.style.opacity = '0';
+            void rect.offsetWidth; // Force reflow
+        }
+
+        function playAll() {
+            reset();
+            setTimeout(() => {
+                rect.style.animation = 'draw-box 1.2s ease-out forwards';
+                check.style.animation = 'draw-check 0.8s ease-out 1.2s forwards';
+                topText.style.animation = 'fade-in 0.5s ease-out 0.5s forwards';
+                bottomText.style.animation = 'fade-in 0.5s ease-out 0.7s forwards';
+            }, 100);
+        }
+
+        function playCheckOnly() {
+            reset();
+            rect.style.strokeDashoffset = '0'; // Static box
+            topText.style.opacity = '1';
+            bottomText.style.opacity = '1';
+            setTimeout(() => {
+                check.style.animation = 'draw-check 1s ease-out forwards';
+            }, 100);
+        }
+    </script>
+</body>
+
+</html>

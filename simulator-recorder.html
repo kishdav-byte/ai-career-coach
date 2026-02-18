@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Demo Recorder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-nav: #0f172a;
+            --bg-main: #020617;
+            --accent-blue: #3b82f6;
+            --accent-teal: #20C997;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Video Frame Context */
+        .preview-container {
+            width: 1200px;
+            height: 675px;
+            /* 16:9 */
+            background: var(--bg-main);
+            position: relative;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        /* Mock App Header */
+        .mock-header {
+            height: 80px;
+            background: var(--bg-nav);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            justify-content: space-between;
+        }
+
+        .logo-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand-logo {
+            height: 40px;
+            width: auto;
+            display: block;
+        }
+
+        /* Main Content */
+        .content {
+            flex: 1;
+            display: flex;
+            padding: 40px;
+            gap: 40px;
+        }
+
+        /* Left side: Voice Representation */
+        .voice-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+        }
+
+        .mic-orb {
+            width: 120px;
+            height: 120px;
+            background: var(--accent-teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 0 50px rgba(32, 201, 151, 0.4);
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Pulsing voice circles */
+        .pulse-ring {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--accent-teal);
+            border-radius: 50%;
+            opacity: 0;
+            animation: pulse-out 2s infinite ease-out;
+        }
+
+        .pulse-ring:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .pulse-ring:nth-child(3) {
+            animation-delay: 1s;
+        }
+
+        @keyframes pulse-out {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+
+            100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        /* Real-time wave */
+        .wave-container {
+            margin-top: 60px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            height: 40px;
+        }
+
+        .bar {
+            width: 4px;
+            height: 20px;
+            background: var(--accent-teal);
+            border-radius: 2px;
+            animation: bar-dance 1.5s infinite ease-in-out;
+        }
+
+        @keyframes bar-dance {
+
+            0%,
+            100% {
+                height: 10px;
+                opacity: 0.5;
+            }
+
+            50% {
+                height: 40px;
+                opacity: 1;
+            }
+        }
+
+        /* Right side: Feedback Display */
+        .feedback-section {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .feedback-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateX(50px);
+            animation: slide-in 0.8s forwards;
+        }
+
+        .feedback-card:nth-child(1) {
+            animation-delay: 1s;
+        }
+
+        .feedback-card:nth-child(2) {
+            animation-delay: 3s;
+        }
+
+        .feedback-card:nth-child(3) {
+            animation-delay: 5s;
+        }
+
+        @keyframes slide-in {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .type-pill {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .type-insight {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--accent-blue);
+        }
+
+        .type-success {
+            background: rgba(32, 201, 151, 0.2);
+            color: var(--accent-teal);
+        }
+
+        .card-body {
+            font-size: 18px;
+            line-height: 1.5;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Score Gauge Mock */
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        .progress-track {
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            flex: 1;
+            border-radius: 10px;
+            margin: 0 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent-blue), var(--accent-teal));
+            width: 0%;
+            animation: grow-progress 2s forwards 4s;
+        }
+
+        @keyframes grow-progress {
+            to {
+                width: 71%;
+            }
+        }
+
+        .score-val {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--accent-teal);
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            z-index: 1000;
+        }
+
+        button {
+            background: var(--accent-teal);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+
+
+    <div class="preview-container">
+        <!-- Modern App Context -->
+        <div class="mock-header">
+            <div class="logo-box">
+                <img src="assets/brand-logo.png" alt="Total Package Interview" class="brand-logo">
+            </div>
+            <div style="display: flex; gap: 20px;">
+                <div style="width: 40px; height: 40px; border-radius: 50%; background: #334155;"></div>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Voice/Mic Area -->
+            <div class="voice-section">
+                <div id="orb" class="mic-orb">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+                <!-- Pulsing Rings -->
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+
+                <div class="wave-container">
+                    <!-- Dynamic bars -->
+                    <div class="bar" style="animation-delay: 0.1s; height: 30px;"></div>
+                    <div class="bar" style="animation-delay: 0.3s; height: 25px;"></div>
+                    <div class="bar" style="animation-delay: 0.5s; height: 40px;"></div>
+                    <div class="bar" style="animation-delay: 0.2s; height: 35px;"></div>
+                    <div class="bar" style="animation-delay: 0.4s; height: 20px;"></div>
+                    <div class="bar" style="animation-delay: 0.6s; height: 45px;"></div>
+                    <div class="bar" style="animation-delay: 0.1s; height: 30px;"></div>
+                    <div class="bar" style="animation-delay: 0.3s; height: 25px;"></div>
+                </div>
+
+                <div style="margin-top: 20px; font-weight: 600; color: var(--accent-teal); letter-spacing: 2px;">
+                    AI SPEAKING_
+                </div>
+            </div>
+
+            <!-- Feedback Area -->
+            <div class="feedback-section">
+                <div class="feedback-card">
+                    <div class="type-pill type-insight">STRONG FOUNDATION</div>
+                    <div class="card-body">"You provided a great example of the situation and solid details related to
+                        the actions you took."</div>
+                </div>
+
+                <div class="feedback-card" style="border-left: 4px solid #ef4444;">
+                    <div class="type-pill" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">IMPROVEMENT
+                        NEEDED</div>
+                    <div class="card-body">"You missed an opportunity to include measurable results. Numbers are the
+                        language of leadership—without them, your impact isn't verified."</div>
+                </div>
+
+                <div class="feedback-card" style="background: rgba(59, 130, 246, 0.05);">
+                    <div class="type-pill type-insight">AI COACHING</div>
+                    <div class="card-body">"To improve your score, quantify your success. Mentioning a specific
+                        metric—like a 15% reduction in customer complaints—would move this to a winning score."</div>
+
+                    <div class="score-row">
+                        <span style="font-size: 14px; color: var(--text-secondary); font-weight: 700;">STRATEGY
+                            SCORE</span>
+                        <div class="progress-track">
+                            <div class="progress-fill"></div>
+                        </div>
+                        <span class="score-val" style="color: #60a5fa;">71%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>

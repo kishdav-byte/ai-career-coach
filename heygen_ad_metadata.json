@@ -1,0 +1,72 @@
+{
+    "campaign_name": "Total Package Interview - Phase 1 - 2026",
+    "promo_code": "TAKE50",
+    "expiry_date": "2026-02-28",
+    "video_metadata": {
+        "aspect_ratio": "9:16",
+        "recommended_avatar_id": "Daisy-Professional-Executive-v2",
+        "recommended_voice_id": "en-US-Andrew-Professional-Neutral",
+        "style": "Coach/Authority"
+    },
+    "script_segments": [
+        {
+            "id": 1,
+            "stage": "Hook",
+            "audio": "Let’s face it: career transitions are hard, and the market is more competitive than ever. Your experience is elite, but that doesn't always translate into a callback. <break time='1s' /> It’s time to stop settling and start winning.",
+            "visual_overlay": "TEXT: Is your resume the problem? / Stop Settling. Start Winning.",
+            "duration_est": "12s"
+        },
+        {
+            "id": 2,
+            "stage": "Value Prop",
+            "audio": "The Total Package Interview program changes the game. We don't just build a resume; we build a high-performance career strategy that targets the high-paying roles you actually want. We give you the roadmap to move from Candidate to Hired.",
+            "visual_overlay": "GRAPHIC: Candidate → Hired Roadmap / 3-Stage Process",
+            "duration_est": "13s"
+        },
+        {
+            "id": 3,
+            "stage": "Step 1: Diagnose",
+            "audio": "Visit Total Package Interview today and set up your free account. You can immediately use our AI Resume Scanner to see exactly how you align with specific job postings and get instant refinements. <break time='0.5s' /> Not sure which stories to tell in the room?",
+            "visual_overlay": "UI PREVIEW: AI Resume Scanner Score / 'TryAceInterview.com'",
+            "duration_est": "13s"
+        },
+        {
+            "id": 4,
+            "stage": "Step 2 & 3: Prepare/Perfect",
+            "audio": "Our STAR Drill helps you organize your most impactful experiences into tailored, high-scoring answers before you step into the Mock Interview Simulator. The simulator asks you specific questions based on the job description you’re actually preparing for.",
+            "visual_overlay": "UI PREVIEW: STAR Drill Interface / Practice by Voice",
+            "duration_est": "12s"
+        },
+        {
+            "id": 5,
+            "stage": "Secret Sauce",
+            "audio": "What makes this so powerful? It doesn't just ask questions—it listens. It provides real-time feedback after every answer, highlighting your wins and showing you exactly where to improve. No more guessing. No more same-old motions.",
+            "visual_overlay": "UI PREVIEW: Real-time Feedback UI / '0-5 Scoring'",
+            "duration_est": "15s"
+        },
+        {
+            "id": 6,
+            "stage": "CTA",
+            "audio": "Give your career the Total Package. Sign up now at Try-Ace-Interview-dot-com and use discount code TAKE 5-0—that’s T-A-K-E, 5, 0—to get 50% off all our premium strategy tools. <break time='1s' /> Your next role is waiting. Let’s go get it.",
+            "visual_overlay": "BIG TEXT: CODE: TAKE50 (50% OFF) / URL: tryaceinterview.com",
+            "duration_est": "15s"
+        }
+    ],
+    "heygen_api_v2_payload": {
+        "video_inputs": [
+            {
+                "character": {
+                    "type": "avatar",
+                    "avatar_id": "REPLACE_WITH_PREFERRED_AVATAR_ID",
+                    "avatar_style": "normal"
+                },
+                "voice": {
+                    "type": "text",
+                    "input_text": "Let’s face it: career transitions are hard, and the market is more competitive than ever. Your experience is elite, but that doesn't always translate into a callback. It’s time to stop settling and start winning. The Total Package Interview program changes the game. We don't just build a resume; we build a high-performance career strategy that targets the high-paying roles you actually want. We give you the roadmap to move from Candidate to Hired. Visit Total Package Interview today and set up your free account. You can immediately use our AI Resume Scanner to see exactly how you align with specific job postings and get instant refinements. Not sure which stories to tell in the room? Our STAR Drill helps you organize your most impactful experiences into tailored, high-scoring answers before you step into the Mock Interview Simulator. The simulator asks you specific questions based on the job description you’re actually preparing for. What makes this so powerful? It doesn't just ask questions—it listens. It provides real-time feedback after every answer, highlighting your wins and showing you exactly where to improve. No more guessing. No more same-old motions. Give your career the Total Package. Sign up now at Try-Ace-Interview-dot-com and use discount code TAKE 5-0—that’s T-A-K-E-5-0—to get 50% off all our premium strategy tools. Your next role is waiting. Let’s go get it.",
+                    "voice_id": "REPLACE_WITH_PREFERRED_VOICE_ID"
+                }
+            }
+        ],
+        "test": true
+    }
+}

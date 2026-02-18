@@ -1,0 +1,193 @@
+
+================================================================================
+TESTING: EXCEPTIONAL CANDIDATE
+Expected Average: ~3.7/4.0
+================================================================================
+DEBUG: Generating Final Report for count 1...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 641 | Output: 82 | Cost: $0.00015
+DEBUG: Turn=1 AI Response: {
+  "next_question": "Hello, and welcome. Thank you for joining me today. I am the Hiring Manager fo...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 349 | Cost: $0.01047
+[TURN 1] Greeting delivered
+DEBUG: Generating Final Report for count 2...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 715 | Output: 110 | Cost: $0.00017
+DEBUG: Turn=2 AI Response: {"feedback":"Thank you for sharing your background; it's impressive to see your extensive experience...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 405 | Cost: $0.01215
+[TURN 2] ⚠️  Score 1 (expected 4)
+DEBUG: Generating Final Report for count 3...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 782 | Output: 193 | Cost: $0.00023
+DEBUG: Turn=3 AI Response: {
+  "feedback": "✅ What Worked: You effectively identified a significant challenge and outlined how ...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 711 | Cost: $0.02133
+[TURN 3] ✅ Score 4/4
+DEBUG: Generating Final Report for count 4...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 858 | Output: 159 | Cost: $0.00022
+DEBUG: Turn=4 AI Response: {"feedback":"✅ What Worked: You demonstrated strong leadership skills by managing multiple AI projec...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 620 | Cost: $0.01860
+[TURN 4] ✅ Score 3/3
+DEBUG: Generating Final Report for count 5...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 860 | Output: 184 | Cost: $0.00024
+DEBUG: Turn=5 AI Response: {
+  "feedback": "✅ What Worked: You clearly articulated the context of the compliance framework impl...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 646 | Cost: $0.01938
+[TURN 5] ✅ Score 4/4
+DEBUG: Generating Final Report for count 6...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 876 | Output: 145 | Cost: $0.00022
+DEBUG: Turn=6 AI Response: {"feedback":"✅ What Worked: You effectively articulated a clear value proposition with quantifiable ...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 603 | Cost: $0.01809
+[TURN 6] ✅ Score 4/4
+DEBUG: Generating Final Report for count 7...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 867 | Output: 163 | Cost: $0.00023
+DEBUG: Turn=7 AI Response: {
+  "feedback": "✅ What Worked: You effectively highlighted quantifiable metrics, showcasing a 22% r...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 536 | Cost: $0.01608
+[TURN 7] ✅ Score 4/4
+
+[TURN 8] Generating Final Report...
+DEBUG: Generating Final Report for count 8...
+[COST] Action: Interview Turn | Model: gpt-4o | Input: 1660 | Output: 887 | Cost: $0.01302
+DEBUG: Turn=8 AI Response: {
+  "formatted_report": "<div class=\"ace-report p-6 bg-slate-900 text-slate-100 rounded-xl border b...
+✅ Report generated
+→ Average Score: 3.3/4.0 (expected ~3.7)
+⚠️  Score outside expected range
+
+================================================================================
+SUMMARY: EXCEPTIONAL CANDIDATE
+Scores: [1, 4, 3, 4, 4, 4]
+Average: 3.3/4.0
+Errors: 2
+================================================================================
+
+================================================================================
+TESTING: MID-GRADE CANDIDATE
+Expected Average: ~2.8/4.0
+================================================================================
+DEBUG: Generating Final Report for count 1...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 641 | Output: 82 | Cost: $0.00015
+DEBUG: Turn=1 AI Response: {
+  "next_question": "Hello, and welcome. Thank you for joining me today. I am the Hiring Manager fo...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 349 | Cost: $0.01047
+[TURN 1] Greeting delivered
+DEBUG: Generating Final Report for count 2...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 714 | Output: 100 | Cost: $0.00017
+DEBUG: Turn=2 AI Response: {"feedback":"Thank you for sharing your background with us. It's great to hear about your educationa...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 311 | Cost: $0.00933
+[TURN 2] ⚠️  Score 2 (expected 3)
+DEBUG: Generating Final Report for count 3...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 755 | Output: 147 | Cost: $0.00020
+DEBUG: Turn=3 AI Response: {
+  "feedback": "✅ What Worked: You demonstrated initiative by organizing meetings to address the pr...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 416 | Cost: $0.01248
+[TURN 3] ✅ Score 3/3
+DEBUG: Generating Final Report for count 4...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 810 | Output: 177 | Cost: $0.00023
+DEBUG: Turn=4 AI Response: {
+  "feedback": "✅ What Worked: Your ability to collaborate with stakeholders showcases strong commu...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 635 | Cost: $0.01905
+[TURN 4] ⚠️  Score 1 (expected 3)
+DEBUG: Generating Final Report for count 5...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 791 | Output: 146 | Cost: $0.00021
+DEBUG: Turn=5 AI Response: {
+  "feedback": "✅ What Worked: You demonstrated an initiative to address data quality issues and co...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 437 | Cost: $0.01311
+[TURN 5] ✅ Score 3/3
+DEBUG: Generating Final Report for count 6...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 805 | Output: 191 | Cost: $0.00024
+DEBUG: Turn=6 AI Response: {
+  "feedback": "✅ What Worked: You demonstrated your ability to present data in a way that was valu...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 697 | Cost: $0.02091
+[TURN 6] ⚠️  Score 1 (expected 3)
+DEBUG: Generating Final Report for count 7...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 811 | Output: 167 | Cost: $0.00022
+DEBUG: Turn=7 AI Response: {
+  "feedback": "✅ What Worked: You demonstrated initiative by creating a new reporting process and ...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 577 | Cost: $0.01731
+[TURN 7] ✅ Score 3/3
+
+[TURN 8] Generating Final Report...
+DEBUG: Generating Final Report for count 8...
+[COST] Action: Interview Turn | Model: gpt-4o | Input: 1326 | Output: 796 | Cost: $0.01128
+DEBUG: Turn=8 AI Response: {
+  "formatted_report": "<div class=\"ace-report p-6 bg-slate-900 text-slate-100 rounded-xl border b...
+✅ Report generated
+→ Average Score: 2.2/4.0 (expected ~2.8)
+⚠️  Score outside expected range
+
+================================================================================
+SUMMARY: MID-GRADE CANDIDATE
+Scores: [2, 3, 1, 3, 1, 3]
+Average: 2.2/4.0
+Errors: 4
+================================================================================
+
+================================================================================
+TESTING: WEAK CANDIDATE
+Expected Average: ~2.2/4.0
+================================================================================
+DEBUG: Generating Final Report for count 1...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 641 | Output: 82 | Cost: $0.00015
+DEBUG: Turn=1 AI Response: {
+  "next_question": "Hello, and welcome. Thank you for joining me today. I am the Hiring Manager fo...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 349 | Cost: $0.01047
+[TURN 1] Greeting delivered
+DEBUG: Generating Final Report for count 2...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 705 | Output: 91 | Cost: $0.00016
+DEBUG: Turn=2 AI Response: {"feedback":"Thank you for sharing your background with me. It's a good start. For the next question...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 294 | Cost: $0.00882
+[TURN 2] ⚠️  Score 1 (expected 2)
+DEBUG: Generating Final Report for count 3...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 735 | Output: 103 | Cost: $0.00017
+DEBUG: Turn=3 AI Response: {"feedback":"✅ What Worked: You identified a specific challenge related to data quality, which is a ...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 551 | Cost: $0.01653
+[TURN 3] ⚠️  Score 1 (expected 2)
+DEBUG: Generating Final Report for count 4...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 789 | Output: 110 | Cost: $0.00018
+DEBUG: Turn=4 AI Response: {"feedback":"✅ What Worked: Your enthusiasm for data and positivity are great assets that can foster...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 584 | Cost: $0.01752
+[TURN 4] ⚠️  Score 1 (expected 2)
+DEBUG: Generating Final Report for count 5...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 765 | Output: 161 | Cost: $0.00021
+DEBUG: Turn=5 AI Response: {
+  "feedback": "✅ What Worked: It's great to hear your enthusiasm and that your team values your en...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 523 | Cost: $0.01569
+[TURN 5] ⚠️  Score 1 (expected 2)
+DEBUG: Generating Final Report for count 6...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 771 | Output: 164 | Cost: $0.00021
+DEBUG: Turn=6 AI Response: {
+  "feedback": "✅ What Worked: Your acknowledgment of the importance of communication with stakehol...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 618 | Cost: $0.01854
+[TURN 6] ⚠️  Score 1 (expected 2)
+DEBUG: Generating Final Report for count 7...
+[COST] Action: Interview Turn | Model: gpt-4o-mini | Input: 780 | Output: 160 | Cost: $0.00021
+DEBUG: Turn=7 AI Response: {
+  "feedback": "✅ What Worked: Your initiative to use Excel and create charts demonstrates your wil...
+[COST] Action: Feedback Audio | Model: tts-1-hd | Chars: 602 | Cost: $0.01806
+[TURN 7] ⚠️  Score 1 (expected 3)
+
+[TURN 8] Generating Final Report...
+DEBUG: Generating Final Report for count 8...
+[COST] Action: Interview Turn | Model: gpt-4o | Input: 837 | Output: 824 | Cost: $0.01033
+DEBUG: Turn=8 AI Response: {
+  "formatted_report": "<div class=\"ace-report p-6 bg-slate-900 text-slate-100 rounded-xl border b...
+✅ Report generated
+→ Average Score: 1.0/4.0 (expected ~2.2)
+⚠️  Score outside expected range
+
+================================================================================
+SUMMARY: WEAK CANDIDATE
+Scores: [1, 1, 1, 1, 1, 1]
+Average: 1.0/4.0
+Errors: 7
+================================================================================
+
+================================================================================
+FINAL RESULTS - OPTION B (2/3/4 System)
+================================================================================
+EXCEPTIONAL CANDIDATE     Avg: 3.3/4.0 (exp: 3.7)  ✅ PASS
+MID-GRADE CANDIDATE       Avg: 2.2/4.0 (exp: 2.8)  ❌ FAIL
+WEAK CANDIDATE            Avg: 1.0/4.0 (exp: 2.2)  ❌ FAIL
+
+⚠️  OPTION B needs adjustment
+   Total errors: 13
+================================================================================

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Ad Closer Recorder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand-navy: #0F172A;
+            --brand-teal: #20C997;
+            --brand-white: #F8FAFC;
+            --accent-blue: #3b82f6;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--brand-navy);
+            color: var(--brand-white);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* 16:9 Production Frame */
+        .closer-frame {
+            width: 1280px;
+            height: 720px;
+            background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 50px 100px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+
+        /* Animated URL */
+        .url-wrapper {
+            overflow: hidden;
+            margin-bottom: 50px;
+        }
+
+        .url-text {
+            font-size: 58px;
+            font-weight: 800;
+            letter-spacing: -2px;
+            color: var(--brand-white);
+            display: block;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+        }
+
+        /* Premium Promo Box */
+        .promo-container {
+            opacity: 0;
+            transform: scale(0.95);
+            animation: bounce-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards 1.4s;
+        }
+
+        .promo-pill {
+            display: inline-flex;
+            flex-direction: column;
+            background: rgba(15, 23, 42, 0.6);
+            border: 3px solid var(--brand-teal);
+            padding: 25px 80px;
+            border-radius: 24px;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4),
+                inset 0 0 20px rgba(32, 201, 151, 0.05);
+            overflow: hidden;
+        }
+
+        /* Shining/Shimmer Effect for Premium Feel */
+        .promo-pill::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg,
+                    transparent 45%,
+                    rgba(32, 201, 151, 0.1) 50%,
+                    transparent 55%);
+            animation: shimmer 4s infinite linear;
+        }
+
+        .promo-label {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--brand-teal);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        /* Neon Glowing Promo Code */
+        .promo-code {
+            font-size: 84px;
+            font-weight: 950;
+            color: var(--brand-teal);
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px rgba(32, 201, 151, 0.8),
+                0 0 30px rgba(32, 201, 151, 0.6),
+                0 0 60px rgba(32, 201, 151, 0.4);
+            animation: flicker-glow 3s infinite alternate;
+        }
+
+        .discount-text {
+            margin-top: 15px;
+            font-size: 22px;
+            font-weight: 600;
+            color: rgba(248, 250, 252, 0.7);
+            letter-spacing: 1px;
+        }
+
+        /* Background Pulse */
+        .bg-glow {
+            position: absolute;
+            width: 600px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(32, 201, 151, 0.15) 0%, transparent 80%);
+            bottom: 10%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: pulse-aura 5s infinite infinite;
+        }
+
+        /* KEYFRAMES */
+        @keyframes reveal-up {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
+        @keyframes bounce-in {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes shimmer {
+            from {
+                transform: translateX(-100%) rotate(45deg);
+            }
+
+            to {
+                transform: translateX(100%) rotate(45deg);
+            }
+        }
+
+        @keyframes flicker-glow {
+
+            0%,
+            100% {
+                text-shadow: 0 0 10px rgba(32, 201, 151, 0.8),
+                    0 0 30px rgba(32, 201, 151, 0.6),
+                    0 0 60px rgba(32, 201, 151, 0.4);
+            }
+
+            50% {
+                text-shadow: 0 0 15px rgba(32, 201, 151, 1),
+                    0 0 45px rgba(32, 201, 151, 0.8),
+                    0 0 90px rgba(32, 201, 151, 0.6);
+            }
+        }
+
+        @keyframes pulse-aura {
+
+            0%,
+            100% {
+                opacity: 0.3;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.6;
+                transform: scale(1.1);
+            }
+        }
+
+        /* UI Controls */
+        .ui-layer {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        body.ui-hidden .ui-layer {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="ui-layer">
+        'R' to REFRESH | 'H' to HIDE UI
+    </div>
+
+    <div class="closer-frame">
+        <div class="bg-glow"></div>
+    </div>
+</body>
+
+</html>

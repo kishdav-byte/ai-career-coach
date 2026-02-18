@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Recording Suite | Total Package Interview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --brand-teal: #20C997;
+            --brand-navy: #11274C;
+            --bg-primary: #FFFFFF;
+            --ui-bg: rgba(15, 23, 42, 0.95);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Pro UI Layout */
+        .recording-interface {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--ui-bg);
+            backdrop-filter: blur(12px);
+            padding: 12px 24px;
+            border-radius: 100px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .recording-interface.hidden {
+            opacity: 0;
+            transform: translate(-50%, 100px);
+            pointer-events: none;
+        }
+
+        .ui-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            padding-right: 20px;
+        }
+
+        .btn {
+            background: var(--brand-teal);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(32, 201, 151, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Logo Suite */
+        .composition {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            transform: scale(1.6);
+        }
+
+        .logo-icon {
+            width: 140px;
+            height: 140px;
+            position: relative;
+        }
+
+        .icon-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .bubble-frame {
+            fill: none;
+            stroke: var(--brand-teal);
+            stroke-width: 9;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .checkmark-stroke {
+            fill: none;
+            stroke: var(--brand-teal);
+            stroke-width: 12;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+        }
+
+        /* Animation */
+        .composition.animate .checkmark-stroke {
+            animation: write-check 1s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+        }
+
+        @keyframes write-check {
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        /* Typography */
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 0.92;
+        }
+
+        .brand-top {
+            font-size: 50px;
+            font-weight: 400;
+            color: var(--brand-navy);
+            margin: 0;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-bottom {
+            font-size: 82px;
+            font-weight: 800;
+            color: var(--brand-navy);
+            margin: 0;
+            letter-spacing: -0.04em;
+            text-transform: uppercase;
+        }
+
+        /* Master Hint */
+        #hint {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            color: #ccc;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="hint">Press 'H' to toggle interface</div>
+
+    <div id="ui" class="recording-interface">
+        <div class="ui-label">Recording Suite</div>
+        <button class="btn" onclick="startAnimation()">Start Animation</button>
+        <button class="btn btn-secondary" onclick="reset()">Reset</button>
+        <button class="btn btn-secondary" onclick="toggleUI()">Hide Controls</button>
+    </div>
+
+    <div id="logo-root" class="composition">
+        <div class="logo-icon">
+            <svg class="icon-svg" viewBox="0 0 120 120">
+                <!-- Precision Bubble with Geometric Gaps -->
+                <path class="bubble-frame" d="
+                    M 20,20 
+                    H 10 
+                    V 100 
+                    H 45 
+                    L 30,115 
+                    V 100 
+                    H 100 
+                    V 60
+                    M 85,15
+                    H 115" />
+
+                <!-- Signature Checkmark breakthrough -->
+                <path class="checkmark-stroke" d="M22,60 L50,90 L115,5" />
+            </svg>
+        </div>
+
+        <div class="brand-text">
+            <div class="brand-top">total package</div>
+            <div class="brand-bottom">INTERVIEW</div>
+        </div>
+    </div>
+
+    <script>
+        const root = document.getElementById('logo-root');
+        const ui = document.getElementById('ui');
+
+        function startAnimation() {
+            reset();
+            setTimeout(() => {
+                root.classList.add('animate');
+            }, 100);
+        }
+
+        function reset() {
+            root.classList.remove('animate');
+            void root.offsetWidth;
+        }
+
+        function toggleUI() {
+            ui.classList.toggle('hidden');
+        }
+
+        // Global shortcuts for professional recording
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === 'h') toggleUI();
+            if (e.key.toLowerCase() === ' ') startAnimation();
+            if (e.key.toLowerCase() === 'r') reset();
+        });
+    </script>
+</body>
+
+</html>

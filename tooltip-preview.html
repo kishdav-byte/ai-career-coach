@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Optimized Tooltips - Preview</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: #0b1121;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        /* Sidebar Responsive */
+        .sidebar {
+            width: 280px;
+            background: #0f172a;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                padding: 12px;
+            }
+
+            .sidebar-nav {
+                display: flex;
+                overflow-x: auto;
+                gap: 8px;
+                padding-bottom: 8px;
+            }
+
+            .sidebar-nav a {
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, #1e293b, #0b1121);
+        }
+
+        /* TOOLTIP SYSTEM */
+        .tip-bubble {
+            background: rgba(15, 23, 42, 0.98);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(32, 201, 151, 0.4);
+            box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.7), 0 0 20px rgba(32, 201, 151, 0.1);
+            color: white;
+            transition: opacity 0.2s ease;
+        }
+
+        .tip-pulse {
+            animation: tip-entrance 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes tip-entrance {
+            from {
+                opacity: 0;
+                transform: translateY(8px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Icon Pulse for Mobile */
+        .info-pulse {
+            animation: soft-pulse 2s infinite;
+        }
+
+        @keyframes soft-pulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="flex flex-col md:flex-row">
+
+    <!-- RESPONSIVE SIDEBAR -->
+    <div class="sidebar">
+        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-2 mb-3">The Clinic</div>
+        <div class="sidebar-nav space-y-1 md:space-y-1">
+            <div class="relative flex items-center group">
+                <a href="#"
+                    class="flex-1 px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                    data-tip="Analyze your resume against any job description to find missing keywords and gaps.">Resume
+                    Scanner</a>
+                <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger><i
+                        class="fas fa-info-circle"></i></button>
+            </div>
+            <div class="relative flex items-center group">
+                <a href="#"
+                    class="flex-1 px-3 py-2 text-sm rounded-md text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+                    data-tip="A professional rewrite tool that transforms your experience into a more closely matched resume for the job.">Executive
+                    Rewrite</a>
+                <button class="md:hidden p-2 text-teal-400/50 hover:text-teal-400" data-tip-trigger><i
+                        class="fas fa-info-circle"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="w-full max-w-[480px] space-y-4">
+            <div class="text-center mb-6">
+                <h2 class="text-xs font-bold text-slate-500 uppercase tracking-widest text-teal-400">Mobile Responsive
+                    Test</h2>
+                <p class="text-[10px] text-slate-400 mt-1">Tap the info icon on mobile, hover on desktop.</p>
+            </div>
+
+            <!-- Tool Card with Info Trigger -->
+            <div class="relative group">
+                <a href="#" id="tool-card-scanner" class="block"
+                    data-tip="Analyze your resume against any job description to find missing keywords and gaps."
+                    data-tip-delay="3000">
+                    <div
+                        class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:border-blue-500/30 transition-all">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
+                                <i class="fas fa-microscope text-lg"></i></div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-bold text-white">Resume Scanner</h3>
+                                <p class="text-[10px] text-slate-400">Audit vs Job Description</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <!-- Mobile Only Trigger -->
+                <button
+                    class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40 info-pulse"
+                    data-tip-trigger>
+                    <i class="fas fa-info-circle text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Tool Card 2 -->
+            <div class="relative group">
+                <a href="#" id="tool-card-rewrite" class="block"
+                    data-tip="A professional rewrite tool that transforms your experience into a more closely matched resume for the job."
+                    data-tip-delay="3000">
+                    <div
+                        class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4 hover:border-yellow-500/30 transition-all text-left">
+                        <div class="flex items-center gap-4">
+                            <div
+                                class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center text-yellow-400">
+                                <i class="fas fa-pen-nib text-lg"></i></div>
+                            <div class="flex-1">
+                                <h3 class="text-sm font-bold text-white">Executive Rewrite</h3>
+                                <p class="text-[10px] text-slate-400">Professional Optimization</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                <button
+                    class="md:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center text-teal-400/40 info-pulse"
+                    data-tip-trigger>
+                    <i class="fas fa-info-circle text-lg"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        class TooltipManager {
+            constructor() {
+                this.timer = null;
+                this.tooltip = null;
+                this.activeTrigger = null;
+                this.isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                this.init();
+            }
+
+            init() {
+                this.tooltip = document.createElement('div');
+                this.tooltip.className = 'fixed z-[100] hidden pointer-events-none tip-bubble p-4 rounded-xl max-w-[280px] tip-pulse';
+                this.tooltip.innerHTML = `
+                    <div class="flex flex-col gap-1">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-info-circle text-teal-400 text-xs"></i>
+                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Guide</span>
+                        </div>
+                        <p id="tooltip-text" class="text-[11px] font-medium text-slate-200 leading-relaxed"></p>
+                    </div>
+                    <div id="tip-arrow" class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-r border-b border-white/10 rotate-45"></div>
+                `;
+                document.body.appendChild(this.tooltip);
+
+                // Desktop Listeners
+                if (!this.isTouch) {
+                    document.addEventListener('mouseover', (e) => this.handleMouseOver(e));
+                    document.addEventListener('mouseout', (e) => this.handleMouseOut(e));
+                }
+
+                // Mobile / Unified Click/Touch Listeners
+                document.addEventListener('click', (e) => this.handleTrigger(e));
+
+                // Hide on scroll or touch elsewhere
+                window.addEventListener('scroll', () => this.hide(), { passive: true });
+                document.addEventListener('touchstart', (e) => {
+                    if (!this.tooltip.contains(e.target) && !e.target.closest('[data-tip-trigger]') && !e.target.closest('[data-tip]')) {
+                        this.hide();
+                    }
+                }, { passive: true });
+            }
+
+            handleMouseOver(e) {
+                const target = e.target.closest('[data-tip]');
+                if (!target) return;
+                const text = target.getAttribute('data-tip');
+                const delay = parseInt(target.getAttribute('data-tip-delay')) || (target.id?.includes('tool-card') ? 3000 : 800);
+                clearTimeout(this.timer);
+                this.timer = setTimeout(() => this.show(target, text), delay);
+            }
+
+            handleMouseOut(e) {
+                const target = e.target.closest('[data-tip]');
+                if (target) { clearTimeout(this.timer); this.hide(); }
+            }
+
+            handleTrigger(e) {
+                const trigger = e.target.closest('[data-tip-trigger]');
+                if (trigger) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const parent = trigger.closest('.relative').querySelector('[data-tip]');
+                    const text = parent.getAttribute('data-tip');
+
+                    if (this.activeTrigger === trigger) {
+                        this.hide();
+                    } else {
+                        this.show(trigger, text, true);
+                        this.activeTrigger = trigger;
+                    }
+                }
+            }
+
+            show(target, text, isMobile = false) {
+                const textEl = this.tooltip.querySelector('#tooltip-text');
+                textEl.textContent = text;
+                this.tooltip.classList.remove('hidden');
+
+                const rect = target.getBoundingClientRect();
+                const tooltipRect = this.tooltip.getBoundingClientRect();
+                const arrow = this.tooltip.querySelector('#tip-arrow');
+
+                let top = rect.top - tooltipRect.height - 15;
+                let left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+
+                // Boundaries
+                if (top < 20) {
+                    top = rect.bottom + 15;
+                    arrow.className = 'absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-l border-t border-white/10 rotate-45';
+                } else {
+                    arrow.className = 'absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-slate-900 border-r border-b border-white/10 rotate-45';
+                }
+
+                if (left < 15) left = 15;
+                if (left + tooltipRect.width > window.innerWidth - 15) left = window.innerWidth - tooltipRect.width - 15;
+
+                // Adjust arrow position if tooltip was shifted
+                const shiftedAmount = left - (rect.left + (rect.width / 2) - (tooltipRect.width / 2));
+                arrow.style.transform = `translateX(calc(-50% - ${shiftedAmount}px)) rotate(45deg)`;
+
+                this.tooltip.style.top = `${top}px`;
+                this.tooltip.style.left = `${left}px`;
+            }
+
+            hide() {
+                this.tooltip.classList.add('hidden');
+                this.activeTrigger = null;
+                clearTimeout(this.timer);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { new TooltipManager(); });
+    </script>
+</body>
+
+</html>
