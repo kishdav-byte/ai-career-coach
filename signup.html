@@ -422,7 +422,8 @@
                         email,
                         password,
                         confirm_password: confirmPassword,
-                        name
+                        name,
+                        referral: new URLSearchParams(window.location.search).get('ref') || 'Direct'
                     })
                 });
 

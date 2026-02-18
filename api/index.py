@@ -117,10 +117,12 @@ def auth_signup():
         password = data.get('password')
         name = data.get('name', 'Executive Candidate')
         
+        referral = data.get('referral', 'Direct')
+        
         if not email or not password:
             return jsonify({"error": "Email and password are required"}), 400
             
-        print(f"[AUTH] Target: {email}")
+        print(f"[AUTH] Target: {email} | Source: {referral}")
         
         # 1. Initialize Supabase (Anon/Standard)
         supabase = get_supabase()
@@ -143,7 +145,7 @@ def auth_signup():
             })
             
             # --- SMS NOTIFICATION ---
-            send_sms_notification(f"New User Signup:\nName: {name}\nEmail: {email}", category="signup")
+            send_sms_notification(f"New User Signup:\nName: {name}\nEmail: {email}\nSource: {referral}", category="signup")
             # ------------------------
 
         except Exception as auth_err:
