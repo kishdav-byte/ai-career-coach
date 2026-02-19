@@ -415,7 +415,7 @@
     <script>
         const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         const form = document.getElementById('signup-form');
         const alertBox = document.getElementById('alert');
@@ -473,7 +473,8 @@
         const googleBtn = document.getElementById('google-btn');
         googleBtn.addEventListener('click', async () => {
             console.log("[AUTH] Initiating Google Sign-In");
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+
                 provider: 'google',
                 options: {
                     redirectTo: window.location.origin + '/dashboard',
