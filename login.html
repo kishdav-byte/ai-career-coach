@@ -11,6 +11,51 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="auth.css">
+    <style>
+        .btn-google {
+            width: 100%;
+            padding: 0.875rem;
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-google:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: #94a3b8;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .divider span {
+            padding: 0 1rem;
+            font-size: 0.9rem;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,6 +68,16 @@
         <p class="subtitle">Log in to your account</p>
 
         <div id="alert" class="alert"></div>
+
+        <button type="button" class="btn-google" id="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                style="width: 20px;">
+            Continue with Google
+        </button>
+
+        <div class="divider">
+            <span>or use email</span>
+        </div>
 
         <form id="login-form">
             <div class="form-group">
@@ -58,6 +113,24 @@
         const form = document.getElementById('login-form');
         const alertEl = document.getElementById('alert');
         const submitBtn = document.getElementById('submit-btn');
+        const googleBtn = document.getElementById('google-btn');
+
+        googleBtn.addEventListener('click', async () => {
+            console.log("[AUTH] Initiating Google Sign-In");
+            const { data, error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/dashboard',
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    }
+                }
+            });
+            if (error) {
+                showAlert("Google login failed: " + error.message, "error");
+            }
+        });
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('signup') === 'success') {

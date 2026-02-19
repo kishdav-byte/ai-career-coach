@@ -250,6 +250,36 @@
             box-shadow: none;
         }
 
+        .btn-google {
+            width: 100%;
+            padding: 0.875rem;
+            background: #ffffff;
+            color: #1e293b;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn-google:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-google img {
+            width: 20px;
+            height: 20px;
+        }
+
         .password-requirements {
             font-size: 0.8rem;
             color: var(--text-subtle);
@@ -332,26 +362,36 @@
 
         <div id="alert" class="alert"></div>
 
-        <div class="form-group" style="display: none;">
-            <label for="name">Name <span class="optional">(optional)</span></label>
-            <input type="text" id="name" name="name" placeholder="John Doe">
-        </div>
-        <div class="form-group">
-            <label for="email">Email Address</label>
-            <input type="email" id="email" name="email" placeholder="john@example.com" required>
-            <div class="error-message" id="email-error"></div>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <div class="password-container">
-                <input type="password" id="password" name="password" placeholder="••••••••" required>
-                <i class="fa-solid fa-eye-slash password-toggle" id="togglePassword"></i>
-            </div>
-            <div class="password-requirements">Must be at least 8 characters</div>
-            <div class="error-message" id="password-error"></div>
+        <button type="button" class="btn-google" id="google-btn">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+            Continue with Google
+        </button>
+
+        <div class="divider">
+            <span>or use email</span>
         </div>
 
-        <button type="submit" class="btn" id="submit-btn" style="margin-top: 1rem;">Start Diagnosis Now</button>
+        <form id="signup-form">
+            <div class="form-group" style="display: none;">
+                <label for="name">Name <span class="optional">(optional)</span></label>
+                <input type="text" id="name" name="name" placeholder="John Doe">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" name="email" placeholder="john@example.com" required>
+                <div class="error-message" id="email-error"></div>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="password-container">
+                    <input type="password" id="password" name="password" placeholder="••••••••" required>
+                    <i class="fa-solid fa-eye-slash password-toggle" id="togglePassword"></i>
+                </div>
+                <div class="password-requirements">Must be at least 8 characters</div>
+                <div class="error-message" id="password-error"></div>
+            </div>
+
+            <button type="submit" class="btn" id="submit-btn" style="margin-top: 1rem;">Start Diagnosis Now</button>
         </form>
 
         <div class="login-link">
@@ -413,6 +453,26 @@
                 this.classList.toggle('fa-eye-slash');
             });
         }
+
+        // --- GOOGLE SIGN IN LOGIC ---
+        const googleBtn = document.getElementById('google-btn');
+        googleBtn.addEventListener('click', async () => {
+            console.log("[AUTH] Initiating Google Sign-In");
+            const { data, error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: window.location.origin + '/dashboard',
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'consent',
+                    }
+                }
+            });
+            if (error) {
+                showAlert("Google Sign-In failed: " + error.message, "error");
+            }
+        });
+        // ----------------------------
 
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
