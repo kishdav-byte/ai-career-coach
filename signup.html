@@ -36,13 +36,19 @@
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--primary);
             background-image: var(--gradient-bg);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 2rem;
+            padding: 2rem 1rem;
             margin: 0;
             color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            overflow-y: auto;
+            align-items: flex-start;
+        }
+
+        @media (min-height: 800px) {
+            body {
+                align-items: center;
+            }
         }
 
         .signup-container {
@@ -235,6 +241,8 @@
             text-transform: uppercase;
             letter-spacing: 0.025em;
             box-shadow: 0 0 15px var(--accent-glow);
+            position: relative;
+            z-index: 10;
         }
 
         .btn:hover {
@@ -266,6 +274,8 @@
             justify-content: center;
             gap: 12px;
             margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 10;
         }
 
         .btn-google:hover {

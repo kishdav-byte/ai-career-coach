@@ -344,6 +344,8 @@
             gap: 0.5rem;
             cursor: pointer;
             border: none;
+            position: relative;
+            z-index: 5;
         }
 
         .btn-primary {
@@ -369,6 +371,11 @@
             box-shadow: 0 0 0 0 rgba(32, 201, 151, 0.7);
             animation: ring-pulse 3s infinite cubic-bezier(0.66, 0, 0, 1);
             z-index: -1;
+        }
+
+        .hero-buttons {
+            position: relative;
+            z-index: 20;
         }
 
         @keyframes ring-pulse {
@@ -1217,9 +1224,12 @@
 
         // Close menu when clicking on a link
         navLinks.querySelectorAll('a').forEach(link => {
-            link.addEventListener('click', () => {
-                navToggle.classList.remove('active');
-                navLinks.classList.remove('active');
+            link.addEventListener('click', (e) => {
+                // Short delay to allow browser to register the click/navigation before hiding the element
+                setTimeout(() => {
+                    navToggle.classList.remove('active');
+                    navLinks.classList.remove('active');
+                }, 100);
             });
         });
 
