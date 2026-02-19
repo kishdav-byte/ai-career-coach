@@ -1492,13 +1492,25 @@
         };
 
         // --- JOB LOGIC ---
-        async function loadJobs() {
+        async function loadJobs(passedToken = null) {
             try {
-                const session = getSession();
+                // Use passed token (from app.js) OR fallback to session
+                const token = passedToken || getSession()?.access_token;
+
+                if (!token) {
+                    console.log("[DASH] No token available for loadJobs yet.");
+                    return;
+                }
+
                 const res = await fetch('/api/jobs', {
-                    headers: { 'Authorization': `Bearer ${session?.access_token}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (!res.ok) return; // Silent fail if still syncing
+
+                if (res.status === 401) {
+                    console.log("[DASH] 401 Unauthorized during loadJobs. Token might be stale.");
+                    return;
+                }
+
                 const jobs = await res.json();
                 renderBoard(jobs);
             } catch (e) { console.error(e); }

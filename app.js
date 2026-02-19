@@ -3172,10 +3172,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Run Data Checks
                     checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
 
-                    // Dashboard Specific: Load Jobs
+                    // Dashboard Specific: Load Jobs with FRESH token
                     if (typeof window.loadJobs === 'function') {
-                        console.log("[DASH] Triggering job load from app.js...");
-                        window.loadJobs();
+                        console.log("[DASH] Triggering job load from app.js with fresh session...");
+                        window.loadJobs(session.access_token);
                     }
 
                     // Run Deep Links (Now safe)
