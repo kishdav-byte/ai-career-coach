@@ -41,11 +41,20 @@
     <script src="./app.js"></script>
 
     <script>
-        // Auth Logic Pre-check (Restored)
+        // Auth Logic Pre-check (Optimized for Google OAuth)
         const AUTH_TOKEN_KEY = 'supabase.auth.token';
-        const token = localStorage.getItem(AUTH_TOKEN_KEY);
-        if (!token) {
-            window.location.href = '/login';
+        const LEGACY_SESSION_KEY = 'aceinterview_session';
+
+        // If we have a hash in the URL, it's likely a Google/OAuth redirect.
+        // We let the main script (with Supabase library) handle it.
+        const isOAuthRedirect = window.location.hash && window.location.hash.includes('access_token=');
+
+        if (!isOAuthRedirect) {
+            const token = localStorage.getItem(AUTH_TOKEN_KEY) || localStorage.getItem(LEGACY_SESSION_KEY);
+            if (!token) {
+                console.log("[AUTH] No session found, redirecting to login...");
+                window.location.href = '/login';
+            }
         }
     </script>
     <style>
