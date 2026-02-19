@@ -3261,6 +3261,17 @@ window.renderUpgradeHub = function (containerId) {
 document.addEventListener('DOMContentLoaded', () => {
     // Only run if we are on a page that uses app.js logic (has supabase)
     if (window.supabase) {
-        checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
+        // Wait for session to be established (especially for OAuth redirects)
+        window.supabase.auth.onAuthStateChange((event, session) => {
+            console.log("[AUTH] Auth State Change:", event);
+            if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
+                if (session) {
+                    console.log("[AUTH] Session confirmed. Initializing app data...");
+                    // Sync token for legacy components
+                    localStorage.setItem('supabase.auth.token', session.access_token);
+                    checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
+                }
+            }
+        });
     }
 });
