@@ -3172,6 +3172,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Run Data Checks
                     checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
 
+                    // Dashboard Specific: Load Jobs
+                    if (typeof window.loadJobs === 'function') {
+                        console.log("[DASH] Triggering job load from app.js...");
+                        window.loadJobs();
+                    }
+
                     // Run Deep Links (Now safe)
                     handleDeepLinks();
                 }

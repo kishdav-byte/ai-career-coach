@@ -1925,10 +1925,8 @@
             window.location.href = '/login';
         }
 
-        // INITIALIZATION: Load jobs on page load
-        (async function init() {
-            await loadJobs();
-        })();
+        // INITIALIZATION: Handled by app.js session listener
+        console.log("[DASH] UI Ready, waiting for app.js sync...");
 
     </script>
     <!-- UPGRADE DRAWER (Reusing Drawer Styles) -->
