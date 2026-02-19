@@ -6,9 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <link rel="canonical" href="https://www.totalpackageinterview.com/signup">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -156,6 +158,24 @@
             border-color: var(--error);
         }
 
+        .password-container {
+            position: relative;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-subtle);
+            transition: color 0.3s ease;
+        }
+
+        .password-toggle:hover {
+            color: var(--accent);
+        }
+
         .error-message {
             color: #fca5a5;
             font-size: 0.85rem;
@@ -297,33 +317,41 @@
             <span class="top-line">total package</span>
             <span class="bottom-line">INTERVIEW</span>
         </div>
-        <h1>Create Account</h1>
-        <p class="subtitle">Get started with your interview prep</p>
+        <h1>Start Your Free Resume Diagnosis</h1>
+        <p class="subtitle">Join the professionals using AI to beat the ATS and land major roles. No credit card
+            required.</p>
+
+        <div
+            style="background: rgba(32, 201, 151, 0.1); border: 1px solid var(--accent); border-radius: 12px; padding: 1rem; margin-bottom: 2rem; display: flex; align-items: center; gap: 1rem;">
+            <div style="font-size: 1.5rem;">🧬</div>
+            <div style="font-size: 0.85rem; line-height: 1.4;">
+                <strong>FREE RESOURCE INCLUDED:</strong><br>
+                Complete a 50-point ATS inspection of your resume after signup.
+            </div>
+        </div>
 
         <div id="alert" class="alert"></div>
 
-        <form id="signup-form">
-            <div class="form-group">
-                <label for="name">Name <span class="optional">(optional)</span></label>
-                <input type="text" id="name" name="name" placeholder="John Doe">
-            </div>
-            <div class="form-group">
-                <label for="email">Email Address</label>
-                <input type="email" id="email" name="email" placeholder="john@example.com" required>
-                <div class="error-message" id="email-error"></div>
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
+        <div class="form-group" style="display: none;">
+            <label for="name">Name <span class="optional">(optional)</span></label>
+            <input type="text" id="name" name="name" placeholder="John Doe">
+        </div>
+        <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="john@example.com" required>
+            <div class="error-message" id="email-error"></div>
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="password-container">
                 <input type="password" id="password" name="password" placeholder="••••••••" required>
-                <div class="password-requirements">Must be at least 8 characters</div>
-                <div class="error-message" id="password-error"></div>
+                <i class="fa-solid fa-eye-slash password-toggle" id="togglePassword"></i>
             </div>
-            <div class="form-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" name="confirm-password" placeholder="••••••••" required>
-                <div class="error-message" id="confirm-error"></div>
-            </div>
-            <button type="submit" class="btn" id="submit-btn">Create Account</button>
+            <div class="password-requirements">Must be at least 8 characters</div>
+            <div class="error-message" id="password-error"></div>
+        </div>
+
+        <button type="submit" class="btn" id="submit-btn" style="margin-top: 1rem;">Start Diagnosis Now</button>
         </form>
 
         <div class="login-link">
@@ -374,15 +402,26 @@
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        if (togglePassword && passwordInput) {
+            togglePassword.addEventListener('click', function () {
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+                this.classList.toggle('fa-eye');
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             hideAlert();
             clearErrors();
 
-            const name = document.getElementById('name').value.trim();
+            const name = document.getElementById('name').value.trim() || 'Professional Candidate';
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirm-password').value;
 
             // Client-side validation
             let hasError = false;
@@ -403,16 +442,11 @@
                 hasError = true;
             }
 
-            if (password !== confirmPassword) {
-                showError('confirm', 'Passwords must match');
-                hasError = true;
-            }
-
             if (hasError) return;
 
             // Submit to API
             submitBtn.disabled = true;
-            submitBtn.textContent = 'Creating Account...';
+            submitBtn.textContent = 'Launching Mission...';
 
             try {
                 const response = await fetch('/api/auth/signup', {
@@ -421,7 +455,6 @@
                     body: JSON.stringify({
                         email,
                         password,
-                        confirm_password: confirmPassword,
                         name,
                         referral: new URLSearchParams(window.location.search).get('ref') || 'Direct'
                     })
@@ -430,7 +463,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    showAlert('Mission Accomplished! Account created. Please check your email to confirm your signup, then log in.', 'success');
+                    showAlert('Mission Accomplished! Diagnosis lab ready.', 'success');
                     setTimeout(() => {
                         window.location.href = '/login?signup=success';
                     }, 4000);
