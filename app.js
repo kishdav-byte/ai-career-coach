@@ -3085,39 +3085,30 @@ if (document.readyState === 'loading') {
 window.init = init;
 
 // --- AUTO-LOAD CONTEXT FROM DASHBOARD ---
-document.addEventListener('DOMContentLoaded', () => {
-    // Ghost Data Fix: Clear if not explicit War Room launch
-    const isWarRoomLaunch = sessionStorage.getItem('warRoomLaunch');
-    if (!isWarRoomLaunch) {
-        console.log("Fresh Session: Clearing previous job data.");
-        if (document.getElementById('interview-job-posting')) document.getElementById('interview-job-posting').value = "";
-        if (document.getElementById('job-description-input')) document.getElementById('job-description-input').value = "";
-        localStorage.removeItem('strategy_context');
-    } else {
-        sessionStorage.removeItem('warRoomLaunch');
-    }
-    // --- DEEP LINK HANDLER (URL Params) ---
+// --- DEEP LINK HANDLER (URL Params) ---
+async function handleDeepLinks() {
     const urlParams = new URLSearchParams(window.location.search);
     const deepLinkId = urlParams.get('id');
 
     if (deepLinkId) {
         console.log("Deep Link Detected: Job " + deepLinkId);
-        addMessage("Loading Mission Context...", 'system');
+        if (window.addMessage) addMessage("Loading Mission Context...", 'system');
 
-        // Fetch Job to get fresh data
-        fetch('/api/jobs', {
-            headers: { 'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}` }
-        }).then(res => res.json()).then(jobs => {
+        try {
+            const token = localStorage.getItem('supabase.auth.token');
+            const res = await fetch('/api/jobs', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const jobs = await res.json();
             const job = jobs.find(j => j.id === deepLinkId);
+
             if (job) {
-                // Populate Inputs
                 const inputs = ['interview-job-posting', 'job-description-input'];
                 inputs.forEach(id => {
                     const el = document.getElementById(id);
                     if (el) el.value = job.job_description || '';
                 });
 
-                // Set Context
                 const context = {
                     job_id: job.id,
                     role: job.job_title,
@@ -3127,149 +3118,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                 localStorage.setItem('mission_context', JSON.stringify(context));
 
-                addMessage(`**Mission Loaded:** ${job.job_title} at ${job.company_name}`, 'system');
+                if (window.addMessage) addMessage(`**Mission Loaded:** ${job.job_title} at ${job.company_name}`, 'system');
 
-                // Auto-Start if we have a JD
                 if (job.job_description && job.job_description.length > 50) {
                     const startBtn = document.getElementById('start-interview-btn');
-                    // DO NOT CLICK AUTOMATICALLY - Browser blocks audio
-                    // startBtn.click(); 
                     if (startBtn) {
                         startBtn.innerHTML = '<i class="fas fa-play"></i> INITIALIZE MISSION';
                         startBtn.classList.remove('bg-blue-600');
                         startBtn.classList.add('bg-purple-600', 'animate-pulse');
-                        addMessage("**Mission Ready.** Click 'Initialize Mission' to begin.", 'system');
+                        if (window.addMessage) addMessage("**Mission Ready.** Click 'Initialize Mission' to begin.", 'system');
                     }
                 }
             }
-        }).catch(e => console.error("Deep Link Fetch Error", e));
-    }
-
-    try {
-        const activeJD = localStorage.getItem('activeJobDescription');
-        if (activeJD) {
-            console.log("Found Active JD from Dashboard. Injecting...");
-            // Try both potential IDs just in case
-            const inputs = ['interview-job-posting', 'job-description-input'];
-            let found = false;
-            inputs.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.value = activeJD;
-                    found = true;
-                    // Trigger input event for auto-resizers or validation
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            });
-
-            if (found) {
-                // Auto-expand the context section if hidden
-                const contextContainer = document.getElementById('context-container');
-                if (contextContainer && contextContainer.classList.contains('hidden')) {
-                    // Optional: window.toggleContext() if available or manual class removal
-                    // For now, we just populate the data.
-                }
-            }
+        } catch (e) {
+            console.error("Deep Link Fetch Error", e);
         }
-    } catch (e) {
-        console.error("Error auto-loading JD:", e);
     }
-});
-
-// --- UPGRADE HUB RENDERER ---
-window.renderUpgradeHub = function (containerId) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    container.innerHTML = `
-        <!-- FEATURED: Monthly Unlimited -->
-        <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-xl border border-teal/30 hover:border-teal/60 transition-all relative overflow-hidden mb-6">
-            <div class="absolute top-0 right-0 bg-teal text-slate-900 text-[10px] font-bold px-3 py-1 rounded-bl-lg">BEST VALUE</div>
-            <h3 class="text-xl font-bold text-white mb-2">Monthly Unlimited</h3>
-            <p class="text-xs text-slate-400 mb-4">Unlimited Text Tools + 50 Voice Sessions/mo</p>
-            <div class="text-3xl font-bold text-white mb-4">$49.99 <span class="text-xs font-normal text-slate-500">/mo</span></div>
-            <button onclick="initiateCheckout('monthly_unlimited')" class="w-full bg-teal hover:bg-teal/90 text-slate-900 font-bold py-3 rounded-lg transition-all shadow-[0_0_15px_rgba(20,184,166,0.3)]">
-                Go Unlimited
-            </button>
-        </div>
-
-        <!-- Strategy Bundle -->
-        <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 hover:border-purple-500/50 transition-all mb-4">
-            <h3 class="text-lg font-bold text-white mb-1">Strategy Bundle</h3>
-            <p class="text-xs text-slate-400 mb-3">5 Universal Credits (Save ~$15)</p>
-            <div class="flex justify-between items-center">
-                <div class="text-2xl font-bold text-white">$29.99</div>
-                <button onclick="initiateCheckout('strategy_bundle')" class="bg-purple-600 hover:bg-purple-500 text-white font-bold py-2 px-4 rounded-lg transition-all">
-                    Purchase
-                </button>
-            </div>
-        </div>
-
-        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3 mt-6">A La Carte Tools</h4>
-        
-        <div class="grid grid-cols-1 gap-3">
-            <!-- Executive Rewrite -->
-            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-yellow-500/30 transition-all">
-                <div>
-                    <h3 class="text-sm font-bold text-white">Executive Rewrite</h3>
-                    <p class="text-[10px] text-slate-400">$12.99 / use</p>
-                </div>
-                <button onclick="initiateCheckout('strategy_rewrite')" class="text-xs bg-slate-700 hover:bg-yellow-500 hover:text-slate-900 border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
-            </div>
-
-            <!-- Interview Simulator -->
-            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-green-500/30 transition-all">
-                <div>
-                    <h3 class="text-sm font-bold text-white">Interview Simulator</h3>
-                    <p class="text-[10px] text-slate-400">$9.99 / session</p>
-                </div>
-                <button onclick="initiateCheckout('strategy_interview_sim')" class="text-xs bg-slate-700 hover:bg-green-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
-            </div>
-
-            <!-- 30-60-90 Plan -->
-            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-cyan-500/30 transition-all">
-                <div>
-                    <h3 class="text-sm font-bold text-white">30-60-90 Day Plan</h3>
-                    <p class="text-[10px] text-slate-400">$8.99 / plan</p>
-                </div>
-                <button onclick="initiateCheckout('strategy_plan')" class="text-xs bg-slate-700 hover:bg-cyan-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
-            </div>
-
-            <!-- The Closer -->
-            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-teal-500/30 transition-all">
-                <div>
-                    <h3 class="text-sm font-bold text-white">The Closer</h3>
-                    <p class="text-[10px] text-slate-400">$6.99 / use</p>
-                </div>
-                <button onclick="initiateCheckout('strategy_closer')" class="text-xs bg-slate-700 hover:bg-teal-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
-            </div>
-            
-            <!-- Value Follow Up -->
-            <div class="bg-slate-800/50 p-4 rounded-lg border border-slate-700 flex justify-between items-center hover:border-rose-500/30 transition-all">
-                <div>
-                    <h3 class="text-sm font-bold text-white">Value Follow-Up</h3>
-                    <p class="text-[10px] text-slate-400">$6.99 / use</p>
-                </div>
-                <button onclick="initiateCheckout('strategy_followup')" class="text-xs bg-slate-700 hover:bg-rose-500 hover:text-white border border-slate-600 text-white px-3 py-2 rounded font-bold transition-all">Buy</button>
-            </div>
-        </div>
-    `;
-};
+}
 
 // --- INITIALIZATION ---
-// Automatically fetch profile and update tool belt on load
 document.addEventListener('DOMContentLoaded', () => {
-    // Only run if we are on a page that uses app.js logic (has supabase)
+    // 1. Static UI Cleanup
+    const isWarRoomLaunch = sessionStorage.getItem('warRoomLaunch');
+    if (!isWarRoomLaunch) {
+        if (document.getElementById('interview-job-posting')) document.getElementById('interview-job-posting').value = "";
+        if (document.getElementById('job-description-input')) document.getElementById('job-description-input').value = "";
+        localStorage.removeItem('strategy_context');
+    } else {
+        sessionStorage.removeItem('warRoomLaunch');
+    }
+
+    const activeJD = localStorage.getItem('activeJobDescription');
+    if (activeJD) {
+        const inputs = ['interview-job-posting', 'job-description-input'];
+        inputs.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.value = activeJD;
+                el.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        });
+    }
+
+    // 2. Auth-Linked Logic
     if (window.supabase) {
-        // Wait for session to be established (especially for OAuth redirects)
         window.supabase.auth.onAuthStateChange((event, session) => {
-            console.log("[AUTH] Auth State Change:", event);
+            console.log("[AUTH] State Change:", event);
             if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
                 if (session) {
                     console.log("[AUTH] Session confirmed. Initializing app data...");
-                    // Sync token for legacy components
                     localStorage.setItem('supabase.auth.token', session.access_token);
+
+                    // Run Data Checks
                     checkAccess('credits_interview', false).catch(e => console.log("Init Check Failed:", e));
+
+                    // Run Deep Links (Now safe)
+                    handleDeepLinks();
                 }
             }
         });
