@@ -3169,14 +3169,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log("[AUTH] Session confirmed. Initializing app data...");
                     localStorage.setItem('supabase.auth.token', session.access_token);
 
-                    // Google Ads Conversion Tracking: Trigger on first dashboard land this session
-                    if (!sessionStorage.getItem('tpi_conversion_sent')) {
-                        console.log("[AUTH] Sending conversion event to Google Ads...");
-                        if (typeof gtag === 'function') {
-                            gtag('event', 'conversion', { 'send_to': 'AW-17558233772' });
-                            sessionStorage.setItem('tpi_conversion_sent', 'true');
-                        }
-                    }
+                    // Note: Google Ads conversion tracking has been moved directly to signup.html 
+                    // where it can properly track when a user successfully registers, 
+                    // rather than tracking every time a session is initialized here.
 
 
                     // Run Data Checks

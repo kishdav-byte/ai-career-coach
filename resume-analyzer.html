@@ -647,11 +647,11 @@
                     // FALLBACK: If no user, show Unlock state instead of getting stuck
                     const ctaBtn = document.getElementById('rewrite-cta-btn');
                     if (ctaBtn) {
-                        ctaBtn.innerHTML = `UNLOCK REWRITE ($12.99)`;
+                        ctaBtn.innerHTML = `CLAIM YOUR FULL DIAGNOSIS (FREE)`;
                         ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'animate-pulse');
-                        ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+                        ctaBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-lg');
                         ctaBtn.onclick = (e) => {
-                            window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
+                            window.location.href = '/signup?ref=guest_scan';
                         };
                     }
                     return;
@@ -760,9 +760,11 @@
         const token = localStorage.getItem(SESSION_KEY);
 
         (function checkAuth() {
-            if (!token) {
-                // Redirect to login if absolutely no token, but allow viewing if we want public demo? 
-                // Strict:
+            const urlParams = new URLSearchParams(window.location.search);
+            const isGuest = urlParams.get('mode') === 'guest';
+
+            if (!token && !isGuest) {
+                // Redirect to login if absolutely no token and NOT guest
                 window.location.href = '/login';
             }
         })();
@@ -940,16 +942,23 @@
                     if (sessionStr) {
                         const session = JSON.parse(sessionStr);
                         email = session.email;
-                        userId = session.user_id || session.user?.id || session.id; // Handle various session shapes
+                        userId = session.user_id || session.user?.id || session.id;
+                        // Ensure token is synced if missing from standalone key
+                        if (session.access_token && !localStorage.getItem('supabase.auth.token')) {
+                            localStorage.setItem('supabase.auth.token', session.access_token);
+                        }
                     }
                 } catch (e) { }
 
+                const token = localStorage.getItem('supabase.auth.token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token && token !== 'null' && token !== 'undefined') {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+
                 const response = await fetch('/api', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token')}`
-                    },
+                    headers: headers,
                     body: JSON.stringify({
                         action: 'analyze_resume',
                         email: email,

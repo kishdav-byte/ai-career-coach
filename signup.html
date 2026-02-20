@@ -11,6 +11,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17558233772"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'AW-17558233772');
+    </script>
     <style>
         * {
             margin: 0;
@@ -547,6 +556,10 @@
 
                 if (result.success) {
                     showAlert('Mission Accomplished! Diagnosis lab ready.', 'success');
+
+                    // Fire Google Ads Conversion Event
+                    gtag('event', 'conversion', { 'send_to': 'AW-17558233772/a4SNCMLmi_wbEKzFtbRB' });
+
                     setTimeout(() => {
                         window.location.href = '/login?signup=success';
                     }, 4000);

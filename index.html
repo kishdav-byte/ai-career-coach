@@ -1037,9 +1037,13 @@
                 <!-- Guest State -->
                 <div id="guest-buttons" style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
                     <a href="/signup" class="btn btn-primary animate-pulse">Get Started</a>
-                    <button id="open-demo" class="btn btn-secondary">
+                    <button id="open-demo" class="btn btn-secondary" style="display: none;">
                         <i class="fas fa-play-circle"></i> Watch Video
                     </button>
+                    <a href="/resume-analyzer?mode=guest" id="guest-scan-btn" class="btn btn-secondary"
+                        style="display: none; border-color: #20C997; color: #20C997; background: rgba(32, 201, 151, 0.05); box-shadow: 0 0 15px rgba(32, 201, 151, 0.2); font-weight: 800;">
+                        <i class="fas fa-dna"></i> &nbsp;Free Resume Scan
+                    </a>
                 </div>
                 <!-- Auth State (Hidden by default) -->
                 <div id="auth-buttons" style="display: none;">
@@ -1235,7 +1239,7 @@
 
         // Dynamic Navigation Based on Login Status
         // Dynamic Navigation & Hero Buttons Based on Login Status (Phase 22)
-        (function updateNavForUser() {
+        (async function updateNavForUser() {
             const SESSION_KEY = 'aceinterview_session';
             const sessionStr = localStorage.getItem(SESSION_KEY);
             const guestButtons = document.getElementById('guest-buttons');
@@ -1295,6 +1299,22 @@
                     nav.parentNode.insertBefore(message, nav.nextSibling);
                     setTimeout(() => message.remove(), 3000);
                 }
+            }
+            // 1. Check Feature Flags for Guest Hook
+            try {
+                const res = await fetch('/api/feature-flags');
+                if (res.ok) {
+                    const flags = await res.json();
+                    if (flags && flags.guest_resume_scan_enabled) {
+                        const scanBtn = document.getElementById('guest-scan-btn');
+                        if (scanBtn && !isLoggedIn) {
+                            scanBtn.style.display = 'inline-flex';
+                            scanBtn.classList.add('animate-pulse');
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Feature flag fetch failed:", e);
             }
         })();
 
