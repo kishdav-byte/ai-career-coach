@@ -39,5 +39,18 @@ def check_recent_signups():
     except Exception as e:
         print(f"Error checking database: {e}")
 
+    # --- CHECK GUEST SCANS ---
+    print("\nChecking for anonymous guest scans...")
+    try:
+        guests = supabase.table('guest_scans').select('*').order('created_at', desc=True).limit(10).execute()
+        if guests.data:
+            print(f"Found {len(guests.data)} recent guest scans:")
+            for g in guests.data:
+                print(f" - {g['created_at']} | Score: {g['overall_score']} | Referral: {g['referral']}")
+        else:
+            print("No guest scans found yet.")
+    except Exception as e:
+        print(f"Could not read guest_scans table (it may not be created yet): {e}")
+
 if __name__ == "__main__":
     check_recent_signups()

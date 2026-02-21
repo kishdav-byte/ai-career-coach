@@ -1412,61 +1412,65 @@ def general_api():
                     score = int(str(raw_score).replace('%', '').strip())
                 except:
                     score = 0
-                
+
                 auth_header = request.headers.get('Authorization')
                 user_id = None
                 
+                # Check for logged-in user
                 if auth_header and "Bearer " in auth_header:
-                    token = auth_header.split(" ")[1]
-                    user_client = get_supabase()
-                    user_client.postgrest.auth(token)
-                    
-                    # Get user ID
-                    user_res = user_client.auth.get_user(token)
-                    if user_res and user_res.user:
-                        user_id = user_res.user.id
+                    try:
+                        token = auth_header.split(" ")[1]
+                        user_client = get_supabase()
+                        user_client.postgrest.auth(token)
+                        user_res = user_client.auth.get_user(token)
+                        if user_res and user_res.user:
+                            user_id = user_res.user.id
+                    except: pass
+
+                if user_id:
+                    # LOGGED IN FLOW
+                    try:
+                        job_title = None
+                        company_name = None
                         
-                        # Save to resumes table for history tracking if we have a user
-                        if user_id:
-                            try:
-                                job_title = None
-                                company_name = None
-                                
-                                # Try to get job details if job_id provided
-                                if job_id:
-                                    job_res = user_client.table('user_jobs').select('job_title, company_name').eq('id', job_id).single().execute()
-                                    if job_res and job_res.data:
-                                        job_title = job_res.data.get('job_title')
-                                        company_name = job_res.data.get('company_name')
-                                
-                                resume_record = {
-                                    'user_id': user_id,
-                                    'overall_score': score,
-                                    'job_title': job_title,
-                                    'company_name': company_name,
-                                    'version_type': 'analysis',
-                                    'resume_text': resume_text[:30000] if resume_text else None,  # Truncate if too long
-                                    'content': ai_json
-                                }
-                                
-                                user_client.table('resumes').insert(resume_record).execute()
-                                print(f"✅ Resume history saved: Score {score}, Job: {job_title or 'General'}")
-                            except Exception as e:
-                                print(f"⚠️ Failed to save resume history: {e}")
-                            
-                            # Update user_jobs if job_id provided
-                            if job_id:
-                                print(f"DEBUG: Persisting Score {score} for Job {job_id}")
-                                res = user_client.table('user_jobs').update({"resume_score": score}).eq('id', job_id).execute()
-                                print(f"DEBUG: Persistence Result: {res}")
-                        else:
-                            print("DEBUG: Guest Scan successfully performed without persistence.")
+                        if job_id:
+                            job_res = user_client.table('user_jobs').select('job_title, company_name').eq('id', job_id).single().execute()
+                            if job_res and job_res.data:
+                                job_title = job_res.data.get('job_title')
+                                company_name = job_res.data.get('company_name')
+                        
+                        resume_record = {
+                            'user_id': user_id,
+                            'overall_score': score,
+                            'job_title': job_title,
+                            'company_name': company_name,
+                            'version_type': 'analysis',
+                            'resume_text': resume_text[:30000] if resume_text else None,
+                            'content': ai_json
+                        }
+                        user_client.table('resumes').insert(resume_record).execute()
+                        
+                        if job_id:
+                            user_client.table('user_jobs').update({"resume_score": score}).eq('id', job_id).execute()
+                        print(f"✅ Registered scan saved: {score}")
+                    except Exception as e:
+                        print(f"⚠️ Registered scan save failed: {e}")
                 else:
-                    print("DEBUG: No Auth Header for Persistence (Guest/Anon)")
+                    # GUEST/ANONYMOUS FLOW
+                    print("DEBUG: Guest Scan. Logging to guest_scans.")
+                    try:
+                        admin_supabase = get_admin_supabase()
+                        guest_record = {
+                            'overall_score': score,
+                            'word_count': len(resume_text.split()) if resume_text else 0,
+                            'referral': data.get('referral', 'Direct'),
+                        }
+                        admin_supabase.table('guest_scans').insert(guest_record).execute()
+                        print("✅ Guest scan logged.")
+                    except Exception as ge:
+                        print(f"⚠️ Guest scan log failed: {ge}")
             except Exception as e:
-                print(f"Persistence Failed: {e}")
-                import traceback
-                traceback.print_exc()
+                print(f"Persistence Critical Error: {e}")
             # --- PERSISTENCE LOGIC END ---
 
             return jsonify({"data": ai_content, "debug_job_id": job_id if job_id else "None"}), 200
