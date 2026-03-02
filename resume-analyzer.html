@@ -939,6 +939,15 @@
                         // Visual Confirmation
                         alert("Resume Saved to Strategy Memory!");
                     }
+
+                    // TRACKING: Successful file upload
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'file_uploaded', {
+                            'event_category': 'Engagement',
+                            'file_type': fileType
+                        });
+                    }
+
                     showFileSuccess();
                 } catch (e) {
                     console.error("PDF Read Error:", e);
@@ -979,6 +988,14 @@
                 btnPa.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
                 btnPa.classList.add('text-slate-500');
 
+                // TRACKING: User switched to Upload mode
+                if (typeof gtag === 'function') {
+                    gtag('event', 'select_content', {
+                        'content_type': 'input_mode',
+                        'item_id': 'upload_doc'
+                    });
+                }
+
                 // Switch global state back to file
                 currentFileText = "";
                 document.getElementById('resume-paste').value = "";
@@ -989,6 +1006,14 @@
                 btnPa.classList.remove('text-slate-500');
                 btnUp.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
                 btnUp.classList.add('text-slate-500');
+
+                // TRACKING: User switched to Paste mode
+                if (typeof gtag === 'function') {
+                    gtag('event', 'select_content', {
+                        'content_type': 'input_mode',
+                        'item_id': 'paste_text'
+                    });
+                }
 
                 // Read from paste
                 currentFileText = document.getElementById('resume-paste').value;
@@ -1004,7 +1029,14 @@
             // Validate
             if (!currentFileText) {
                 alert("Please provide a resume file.");
-                return;
+                return; // Tracks bounce off empty form
+            }
+
+            // TRACKING: Initiated Scan (Form Passed Validation)
+            if (typeof gtag === 'function') {
+                gtag('event', 'scan_initiated', {
+                    'event_category': 'Engagement'
+                });
             }
 
             // UI Transition
