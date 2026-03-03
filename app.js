@@ -1744,6 +1744,11 @@ function init() {
 
             const resumeText = document.getElementById('resume-text-input') ? document.getElementById('resume-text-input').value : '';
 
+            // DEFAULT FALLBACK for Frictionless Start
+            if (!jobPosting || !jobPosting.trim()) {
+                jobPosting = "MISSION BRIEFING:\nTarget Role: General Professional at a dynamic company.\n\nMISSION PRIORITIES (FOCUS AREAS):\nSeeking a versatile candidate with strong communication, problem-solving, and teamwork skills. The candidate should be adaptable to new challenges and eager to grow with our team.";
+            }
+
             const chatInterface = document.getElementById('chat-interface');
             const activeState = document.getElementById('interview-active-state');
 
@@ -1753,7 +1758,6 @@ function init() {
                 questionCount = 0; // Correctly start at 0 for Turn 1
                 interviewHistory = []; // Reset history
 
-                // Show Chat Interface, Hide Intro & Setup
                 // Show Chat Interface, Hide Intro & Setup
                 if (activeState) activeState.classList.add('hidden');
                 // Chat Interface will be revealed by finishSetup() after countdown
@@ -1778,8 +1782,8 @@ function init() {
                 await processJobDescription(); // Analyze JD before starting
 
                 // Pass resume info & Company Name & Interviewer Intel & Role
-                let companyName = "the target company";
-                let roleTitle = "the open position"; // Default
+                let companyName = "a dynamic company";
+                let roleTitle = "a versatile professional position"; // Default
                 let interviewerIntel = "";
 
                 try {
@@ -1791,9 +1795,7 @@ function init() {
                     }
                 } catch (e) { }
 
-                sendChatMessage("I have provided the job description. Please start the interview.", true, false, resumeText, companyName, interviewerIntel, roleTitle);
-            } else {
-                alert("Please paste a job description first.");
+                sendChatMessage("I am ready to begin the interview. Please start.", true, false, resumeText, companyName, interviewerIntel, roleTitle);
             }
         });
     }
