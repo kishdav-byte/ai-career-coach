@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-3F21WXSMPB');
+    </script>
     <meta charset="UTF-8">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17558233772"></script>
@@ -146,7 +154,7 @@
 
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('signup') === 'success') {
-            showAlert('Account created! Please check your email to confirm your signup, then log in below.', 'success');
+            showAlert('Account created successfully! Please log in below to access your dashboard.', 'success');
         }
 
         function showAlert(message, type) {
