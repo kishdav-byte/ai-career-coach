@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-3F21WXSMPB');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex">
@@ -365,7 +373,8 @@
             </h3>
 
             <!-- MISSION SELECTOR (Standardized Across Tools) -->
-            <div class="mb-6 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
+            <div id="mission-selector-container"
+                class="mb-6 p-3 bg-slate-900/50 rounded-lg border border-slate-700/50 hidden">
                 <label class="block text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Active
                     Mission Context</label>
                 <div class="relative group">
@@ -485,8 +494,37 @@
             </div>
         </div>
 
-        <!-- WIDGET C: FEATURE FLAGS -->
-        <div class="glass-panel p-5 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5">
+        <!-- WIDGET C: PROMOTIONS & MARKETING -->
+        <div class="glass-panel p-5 rounded-xl border border-pink-500/20 shadow-lg shadow-pink-500/5 mt-4">
+            <h3
+                class="text-xs font-bold text-pink-400 uppercase tracking-widest mb-4 flex justify-between items-center">
+                <span><i class="fas fa-bullhorn mr-2"></i> PROMOTIONS</span>
+                <span id="promo-config-status" class="text-[10px] text-slate-500 italic">ready</span>
+            </h3>
+
+            <div class="space-y-4">
+                <div class="space-y-3 px-1">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-300">Free Interview on Signup</label>
+                            <span class="text-[9px] text-slate-500">Grants 1 Simulator credit to all new users
+                                immediately.</span>
+                        </div>
+                        <input type="checkbox" id="promo-free-interview" class="w-4 h-4 accent-pink-500">
+                    </div>
+                </div>
+
+                <div class="pt-2 border-t border-slate-800">
+                    <button onclick="savePromoSettings()"
+                        class="w-full py-2 bg-pink-600 hover:bg-pink-500 text-white text-[10px] font-black rounded-lg transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> SAVE PROMOS
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- WIDGET D: FEATURE FLAGS -->
+        <div class="glass-panel p-5 rounded-xl border border-blue-500/20 shadow-lg shadow-blue-500/5 mt-4">
             <h3
                 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4 flex justify-between items-center">
                 <span><i class="fas fa-toggle-on mr-2"></i> FEATURE FLAGS</span>
@@ -779,22 +817,29 @@
             allJobs = await res.json();
 
             const selector = document.getElementById('mission-selector');
+            const container = document.getElementById('mission-selector-container');
             if (!selector) return;
 
             const activeJobs = allJobs.filter(j => j.status !== 'closed');
-            selector.innerHTML = '<option value="">Choose a Mission...</option>';
 
-            activeJobs.forEach(job => {
-                const opt = document.createElement('option');
-                opt.value = job.id;
-                opt.textContent = `${job.job_title} @ ${job.company_name}`;
-                selector.appendChild(opt);
-            });
+            if (activeJobs.length > 0) {
+                if (container) container.classList.remove('hidden');
+                selector.innerHTML = '<option value="">Choose a Mission...</option>';
 
-            // Pre-select if current exists
-            const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
-            if (currentCtx.job_id) {
-                selector.value = currentCtx.job_id;
+                activeJobs.forEach(job => {
+                    const opt = document.createElement('option');
+                    opt.value = job.id;
+                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                    selector.appendChild(opt);
+                });
+
+                // Pre-select if current exists
+                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                if (currentCtx.job_id) {
+                    selector.value = currentCtx.job_id;
+                }
+            } else {
+                if (container) container.classList.add('hidden');
             }
         } catch (e) {
             console.error("Failed to load missions", e);
@@ -1030,6 +1075,54 @@
             }
         } catch (err) {
             console.error("Failed to save SMS settings", err);
+            status.textContent = "error";
+        }
+    }
+
+    // 5C. PROMO SETTINGS
+    async function fetchPromoSettings() {
+        try {
+            const res = await fetch('/api/admin/settings', {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token') }
+            });
+            const data = await res.json();
+            const settings = data.find(s => s.key === 'promo_settings');
+
+            if (settings && settings.value) {
+                const val = settings.value;
+                document.getElementById('promo-free-interview').checked = val.free_interview === true;
+            } else {
+                // Default to false if not set
+                document.getElementById('promo-free-interview').checked = false;
+            }
+        } catch (err) {
+            console.error("Failed to fetch Promo settings", err);
+        }
+    }
+
+    async function savePromoSettings() {
+        const status = document.getElementById('promo-config-status');
+        status.textContent = "saving...";
+        const value = {
+            free_interview: document.getElementById('promo-free-interview').checked
+        };
+        try {
+            const res = await fetch('/api/admin/settings', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + localStorage.getItem('supabase.auth.token')
+                },
+                body: JSON.stringify({ key: 'promo_settings', value: value })
+            });
+            if (res.ok) {
+                status.textContent = "saved";
+                setTimeout(() => status.textContent = "ready", 2000);
+            } else {
+                status.textContent = "error";
+            }
+        } catch (err) {
+            console.error("Failed to save Promo settings", err);
             status.textContent = "error";
         }
     }
@@ -1555,6 +1648,7 @@
         loadMissions();
         fetchBotConfig();
         fetchSmsSettings();
+        fetchPromoSettings();
         fetchFeatureFlags(); // Add this
         fetchFeedback();
     });

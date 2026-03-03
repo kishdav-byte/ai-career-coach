@@ -126,6 +126,15 @@ def auth_signup():
         
         # 1. Initialize Supabase (Anon/Standard)
         supabase = get_supabase()
+        admin_supabase = get_admin_supabase()
+        
+        # Check promo settings for free interview
+        promo_res = admin_supabase.table('admin_settings').select('value').eq('key', 'promo_settings').execute()
+        free_interview = False
+        if promo_res.data and 'free_interview' in promo_res.data[0]['value']:
+            free_interview = promo_res.data[0]['value']['free_interview']
+            
+        credits_interview_to_grant = 1 if free_interview else 0
         
         # 2. Sign up in Supabase Auth
         try:
@@ -139,6 +148,7 @@ def auth_signup():
                         "role": "user",
                         "credits": 0, # Universal
                         "credits_resume": 1, # Free Gift
+                        "credits_interview": credits_interview_to_grant,
                         "created_at": "now()"
                     }
                 }
@@ -172,6 +182,8 @@ def auth_signup():
                 "email": email,
                 "name": name,
                 "credits": 0,
+                "credits_interview": credits_interview_to_grant,
+                "credits_resume": 1,
                 "role": "user"
             }).execute()
             
