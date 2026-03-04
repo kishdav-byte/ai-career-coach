@@ -1746,7 +1746,10 @@ function init() {
 
             // DEFAULT FALLBACK for Frictionless Start
             if (!jobPosting || !jobPosting.trim()) {
-                jobPosting = "MISSION BRIEFING:\nTarget Role: General Professional at a dynamic company.\n\nMISSION PRIORITIES (FOCUS AREAS):\nSeeking a versatile candidate with strong communication, problem-solving, and teamwork skills. The candidate should be adaptable to new challenges and eager to grow with our team.";
+                const quickRoleSelect = document.getElementById('quick-role-select');
+                const selectedRole = quickRoleSelect ? quickRoleSelect.value : 'General Professional';
+
+                jobPosting = `MISSION BRIEFING:\nTarget Role: ${selectedRole}.\n\nMISSION PRIORITIES (FOCUS AREAS):\nSeeking a competent candidate with typical skills for a ${selectedRole} position.`;
             }
 
             const chatInterface = document.getElementById('chat-interface');
@@ -1876,7 +1879,23 @@ function init() {
             console.log("Starting recording...");
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                mediaRecorder = new MediaRecorder(stream);
+                let options = {};
+                // Use Opus codec with low bitrate (16kbps) to radically reduce file size 
+                // and fit within Vercel's 4.5MB payload limit for 5+ min recordings.
+                if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
+                    // Mobile/Chrome standard
+                    options = { mimeType: 'audio/webm;codecs=opus', audioBitsPerSecond: 16000 };
+                } else if (MediaRecorder.isTypeSupported('audio/mp4;codecs=mp4a.40.2')) {
+                    // Safari fallback
+                    options = { mimeType: 'audio/mp4;codecs=mp4a.40.2', audioBitsPerSecond: 16000 };
+                }
+
+                try {
+                    mediaRecorder = new MediaRecorder(stream, options);
+                } catch (e) {
+                    // Absolute fallback if options fail on some older browsers
+                    mediaRecorder = new MediaRecorder(stream);
+                }
                 audioChunks = [];
 
                 mediaRecorder.ondataavailable = event => {
@@ -1886,7 +1905,8 @@ function init() {
                 mediaRecorder.onstop = async () => {
                     console.log("Recording stopped, processing...");
                     showThinkingState(); // Trigger Thinking UI immediately
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                    const mimeType = mediaRecorder.mimeType || 'audio/webm';
+                    const audioBlob = new Blob(audioChunks, { type: mimeType });
                     const reader = new FileReader();
                     reader.readAsDataURL(audioBlob);
                     reader.onloadend = () => {

@@ -235,8 +235,29 @@
                                 </div>
                             </div>
 
-                            <!-- Hidden input for logic -->
                             <input type="hidden" id="interview-job-posting">
+                        </div>
+
+                        <!-- QUICK ROLE FALLBACK (Visible when no JD loaded) -->
+                        <div id="quick-role-container"
+                            class="bg-gray-800 rounded-lg p-4 border border-slate-700 shadow-lg hidden mb-2">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Quick Role
+                                Context</h3>
+                            <p class="text-[10px] text-slate-400 mb-3 italic">No specific mission loaded. Choose a
+                                general role for this simulation.</p>
+                            <div class="relative">
+                                <select id="quick-role-select"
+                                    class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                                    <option value="Analyst">Analyst</option>
+                                    <option value="Executive Leader">Executive Leader</option>
+                                    <option value="Technician">Technician</option>
+                                    <option value="Hospitality Lead">Hospitality Lead</option>
+                                </select>
+                                <div
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                    <i class="fas fa-chevron-down text-xs"></i>
+                                </div>
+                            </div>
                         </div>
                         <div class="hidden">
                             <label
@@ -617,6 +638,18 @@
                 if (ctx.role) document.getElementById('mission-role').textContent = ctx.role;
                 if (ctx.company) document.getElementById('mission-company').textContent = ctx.company;
 
+                const quickRoleContainer = document.getElementById('quick-role-container');
+                const missionBriefCard = document.getElementById('mission-brief-card');
+
+                // Toggle logic based on JD availability
+                if (!ctx.jd || !ctx.jd.trim()) {
+                    if (quickRoleContainer) quickRoleContainer.classList.remove('hidden');
+                    if (missionBriefCard) missionBriefCard.classList.add('hidden');
+                } else {
+                    if (quickRoleContainer) quickRoleContainer.classList.add('hidden');
+                    if (missionBriefCard) missionBriefCard.classList.remove('hidden');
+                }
+
                 // Priorities (JD)
                 if (ctx.jd) {
                     const listContainer = document.getElementById('mission-priorities');
@@ -636,6 +669,15 @@
 
                     const jdInput = document.getElementById('job-description-input');
                     if (jdInput) jdInput.value = ctx.jd;
+                } else {
+                    const listContainer = document.getElementById('mission-priorities');
+                    if (listContainer) listContainer.innerHTML = '<p class="italic text-slate-500">No priorities set.</p>';
+
+                    const hiddenInput = document.getElementById('interview-job-posting');
+                    if (hiddenInput) hiddenInput.value = '';
+
+                    const jdInput = document.getElementById('job-description-input');
+                    if (jdInput) jdInput.value = '';
                 }
 
                 // 2. Master Resume
