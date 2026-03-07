@@ -21,9 +21,11 @@
         rel="stylesheet">
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Static Tailwind CSS -->
+    <link rel="stylesheet" href="./dist/tailwind.css">
+    <!-- <script src="https://cdn.tailwindcss.com"></script> -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"
+        media="print" onload="this.media='all'">
 
     <style>
         body {
@@ -518,7 +520,7 @@
     </main>
 
     <!-- Scripts -->
-    <script src="app.js?v=refactor_9.4"></script>
+    <script src="app.js?v=refactor_10.0" type="module" defer></script>
     <script>
         // Inline View Switching Logic
         document.addEventListener('DOMContentLoaded', () => {

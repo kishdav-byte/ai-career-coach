@@ -1,5 +1,8 @@
 {
     "scripts": {
         "deploy": "npx vercel deploy --prod"
+    },
+    "devDependencies": {
+        "tailwindcss": "^3.4.1"
     }
 }

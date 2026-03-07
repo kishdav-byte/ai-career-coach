@@ -87,25 +87,33 @@ def send_sms_notification(message, category="Alert"):
 
         import smtplib
         from email.mime.text import MIMEText
+        import threading
 
-        msg = MIMEText(message)
-        msg['Subject'] = f"{category.upper()} Alert"
-        msg['From'] = smtp_sender
-        msg['To'] = target_number
+        def _send():
+            try:
+                msg = MIMEText(message)
+                msg['Subject'] = f"{category.upper()} Alert"
+                msg['From'] = smtp_sender
+                msg['To'] = target_number
 
-        if smtp_port == 465:
-            with smtplib.SMTP_SSL(smtp_host, smtp_port) as server:
-                server.login(smtp_user, smtp_pass)
-                server.send_message(msg)
-        else:
-            with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls()
-                server.login(smtp_user, smtp_pass)
-                server.send_message(msg)
-            
-        print(f"[SMS] {category} notification sent to {target_number}")
+                if smtp_port == 465:
+                    with smtplib.SMTP_SSL(smtp_host, smtp_port, timeout=5) as server:
+                        server.login(smtp_user, smtp_pass)
+                        server.send_message(msg)
+                else:
+                    with smtplib.SMTP(smtp_host, smtp_port, timeout=5) as server:
+                        server.starttls()
+                        server.login(smtp_user, smtp_pass)
+                        server.send_message(msg)
+                print(f"[SMS] {category} notification sent to {target_number}")
+            except Exception as e:
+                print(f"[SMS] Background send failed: {e}")
+
+        # Fire and forget in a background thread
+        threading.Thread(target=_send, daemon=True).start()
+        print(f"[SMS] {category} notification queued in background thread.")
     except Exception as e:
-        print(f"[SMS] Failed: {e}")
+        print(f"[SMS] Immediate failure queuing notification: {e}")
 
 # 0B. AUTHENTICATION ROUTES
 @app.route('/api/auth/signup', methods=['POST'])

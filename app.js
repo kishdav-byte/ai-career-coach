@@ -1,181 +1,25 @@
-// SAFE INITIALIZATION PATTERN
-const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+import * as auth from './js/modules/auth.js';
+import * as ui from './js/modules/ui.js';
+import * as interview from './js/modules/interview.js';
 
-// Check if Supabase library is loaded, then create client
-if (typeof window.supabase === 'undefined' || typeof window.supabase.createClient === 'function') {
-    // Library loaded from CDN, create client
-    window.supabaseClient = window.supabase ? window.supabase.createClient(supabaseUrl, supabaseKey) : null;
-    window.supabase = window.supabaseClient;
-} else if (!window.supabase) {
-    console.error('Supabase library not loaded! Add CDN script to app.html');
-}
+// --- GLOBAL COMPATIBILITY BRIDGE ---
+// Re-exporting to window to prevent breaking legacy inline HTML handlers
+window.supabaseClient = auth.supabaseClient;
+window.supabase = auth.supabaseClient;
+window.getSession = auth.getSession;
+window.updateCreditDisplay = ui.updateCreditDisplay;
+window.updateToolBelt = ui.updateToolBelt;
+window.getVoiceSettings = interview.getVoiceSettings;
+window.startCountdown = interview.startCountdown;
+window.showThinkingState = interview.showThinkingState;
+window.hideThinkingState = interview.hideThinkingState;
 
-// Helper functions (Global Scope)
-let currentSessionVoice = null;
+// Re-expose constants for legacy checks
+window.SESSION_KEY = auth.SESSION_KEY;
+window.TOOL_CONFIG = ui.TOOL_CONFIG;
+window.PRODUCTS = ui.PRODUCTS;
 
-function getVoiceSettings() {
-    const voiceSelect = document.getElementById('voice-select');
-    let voice = voiceSelect ? voiceSelect.value : null;
-
-    // Sticky Random Logic (One voice per session)
-    if (!voice || voice === 'random') {
-        if (!currentSessionVoice) {
-            const variants = ['alloy', 'onyx', 'nova', 'fable'];
-            currentSessionVoice = variants[Math.floor(Math.random() * variants.length)];
-            console.log("Selected Random Voice for Session:", currentSessionVoice);
-        }
-        voice = currentSessionVoice;
-    }
-
-    const speed = '+0%'; // Default speed
-    return { voice, speed };
-}
-
-// --- DYNAMIC TOOL BELT CONFIG ---
-const TOOL_CONFIG = {
-    // Prep
-    'tool-card-scanner': { type: 'free' },
-    'tool-card-rewrite': { type: 'credit', price: '$9.99', creditKey: 'credits_resume', label: 'Credit' },
-    'tool-card-cover': { type: 'credit', price: '$6.99', creditKey: 'credits_cover', label: 'Credit' },
-    'tool-card-linkedin': { type: 'credit', price: '$6.99', creditKey: 'credits_linkedin', label: 'Credit' },
-
-    // Interview
-    'tool-card-mock': { type: 'subscription', price: '$9.99/mo', creditKey: 'credits_interview', label: 'Session' },
-    'tool-card-star': { type: 'free' }, // STAR Drill is free capability
-    'tool-card-inquisitor': { type: 'credit', price: '$6.99', creditKey: 'credits_inquisitor', label: 'Credit' },
-
-    // Post
-    'tool-card-followup': { type: 'credit', price: '$6.99', creditKey: 'credits_followup', label: 'Credit' },
-    'tool-card-closer': { type: 'credit', price: '$6.99', creditKey: 'credits_negotiation', label: 'Credit' },
-    'tool-card-plan': { type: 'credit', price: '$8.99', creditKey: 'credits_30_60_90', label: 'Plan' },
-    'tool-card-lab': { type: 'free' } // Hub is free
-};
-
-// Global scope definition for verifyInterviewAccess to allow external calls
-function verifyInterviewAccess(session) {
-    if (!session) return;
-
-    const lockedState = document.getElementById('interview-locked-state');
-    const activeState = document.getElementById('interview-active-state');
-    const startBtn = document.getElementById('start-interview-btn');
-
-    // Safety check if elements exist (might not be on app page)
-    if (!lockedState || !activeState) return;
-
-    const credits = (session.credits_interview || 0) + (session.credits || 0); // Include Universal Credits
-    const isUnlimited = session.is_unlimited || false;
-
-    // Logic: 
-    // If credits > 0 OR user is unlimited -> Show Start Screen (unlocked)
-
-    const statusDot = document.getElementById('status-dot');
-
-    if (credits > 0 || isUnlimited) {
-        lockedState.classList.add('hidden');
-        activeState.classList.remove('hidden');
-
-        // Enable Start Button
-        if (startBtn) {
-            startBtn.disabled = false;
-            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-
-        // Status Indicator: Glowing Green
-        if (statusDot) {
-            statusDot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse';
-        }
-    } else {
-        // Locked
-        lockedState.classList.remove('hidden');
-        activeState.classList.add('hidden');
-
-        // Status Indicator: Grey
-        if (statusDot) {
-            statusDot.className = 'w-2 h-2 rounded-full bg-slate-600';
-        }
-    }
-}
-
-// LinkedIn Visual Unlock Logic (Global Scope for checkAccess to call)
-function verifyLinkedInAccess(session) {
-    if (!session) return;
-
-    // New Overlay Ref
-    const overlay = document.getElementById('linkedin-unlock-overlay');
-    const optimizeBtn = document.getElementById('optimize-linkedin-btn');
-    // We no longer toggle the sidebar inputs - they are always open (Freemium Style)
-
-    if (!overlay) return;
-
-    // Prevent Flicker: If session data is incomplete (e.g. valid session but missing credit keys from old cache),
-    // do NOT force lock yet. Wait for checkAccess() to populate fresh data.
-    if (session.credits_linkedin === undefined && session.credits === undefined && !session.is_unlimited) {
-        return;
-    }
-
-    const credits = (session.credits_linkedin || 0) + (session.credits || 0);
-    const isUnlimited = session.is_unlimited || false;
-
-    if (credits > 0 || isUnlimited) {
-        overlay.classList.add('hidden');
-        if (optimizeBtn) {
-            optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
-            optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
-            optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-            optimizeBtn.onclick = null; // Revert to default binding (handled elsewhere)
-        }
-    } else {
-        overlay.classList.remove('hidden');
-        if (optimizeBtn) {
-            optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
-            optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500'); // Ensure green is removed
-            optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
-
-            // Direct Checkout Trigger
-            optimizeBtn.onclick = async () => {
-                const btn = document.getElementById('optimize-linkedin-btn');
-                if (btn) {
-                    btn.textContent = 'Redirecting...';
-                    btn.disabled = true;
-                }
-                const { data: { user } } = await supabase.auth.getUser();
-                initiateCheckout('strategy_linkedin', user ? user.email : null, user ? user.id : null);
-            };
-        }
-    }
-}
-
-// Session Helper (Duplicated from dashboard for standalone app usage)
-// Session Helper (Duplicated from dashboard for standalone app usage)
-const SESSION_KEY = 'aceinterview_session';
-function getSession() {
-    const sessionStr = localStorage.getItem(SESSION_KEY);
-    if (!sessionStr) return null;
-    try {
-        // Support both Raw Token (Edge Case) and Session Object (Standard)
-        // If raw token, wrap it in a pseudo-session object to prevent crashes
-        let session;
-        try {
-            session = JSON.parse(sessionStr);
-        } catch (e) {
-            // Assume string is token
-            return { access_token: sessionStr, email: null, subscription_status: 'unknown' };
-        }
-
-        // Check expiry (7 days - Matching Dashboard)
-        const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
-        // FIX: Default to now if missing
-        const loggedInAt = session.logged_in_at || Date.now();
-        if (Date.now() - loggedInAt > SESSION_DURATION) {
-            localStorage.removeItem(SESSION_KEY);
-            return null;
-        }
-        return session;
-    } catch (e) {
-        return null;
-    }
-}
+let currentSessionVoice = null; // Still needed for some internal logic if not fully moved
 
 async function checkAccess(requiredType = 'credits_interview', autoPrompt = true) {
     const { data: { user } } = await supabase.auth.getUser();

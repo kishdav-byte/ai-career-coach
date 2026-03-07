@@ -2,6 +2,14 @@
 <html lang="en">
 
 <head>
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-3F21WXSMPB');
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Executive Cover Letter | Strategy Lab</title>
@@ -151,7 +159,8 @@
         <div class="flex-1 overflow-y-auto custom-scroll p-8 space-y-10">
 
             <!-- Mission Selector -->
-            <div id="mission-selector-container" class="mb-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl">
+            <div id="mission-selector-container"
+                class="mb-4 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl hidden">
                 <label
                     class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
                     <i class="fas fa-crosshairs"></i> Select Active Mission
@@ -514,31 +523,39 @@
         window.loadMissions = async () => {
             try {
                 const session = JSON.parse(localStorage.getItem('aceinterview_session'));
-                if (!session) return;
+                const token = session?.access_token || localStorage.getItem('supabase.auth.token');
+                if (!token) return;
 
                 const res = await fetch('/api/jobs', {
-                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (!res.ok) return;
                 allJobs = await res.json();
 
                 const selector = document.getElementById('mission-selector');
+                const container = document.getElementById('mission-selector-container');
                 if (!selector) return;
 
                 const activeJobs = allJobs.filter(j => j.status !== 'closed');
-                selector.innerHTML = '<option value="">Choose a Mission...</option>';
 
-                activeJobs.forEach(job => {
-                    const opt = document.createElement('option');
-                    opt.value = job.id;
-                    opt.textContent = `${job.job_title} @ ${job.company_name}`;
-                    selector.appendChild(opt);
-                });
+                if (activeJobs.length > 0) {
+                    if (container) container.classList.remove('hidden');
+                    selector.innerHTML = '<option value="">Choose a Mission...</option>';
 
-                // Pre-select if current exists
-                const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
-                if (currentCtx.job_id) {
-                    selector.value = currentCtx.job_id;
+                    activeJobs.forEach(job => {
+                        const opt = document.createElement('option');
+                        opt.value = job.id;
+                        opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                        selector.appendChild(opt);
+                    });
+
+                    // Pre-select if current exists
+                    const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                    if (currentCtx.job_id) {
+                        selector.value = currentCtx.job_id;
+                    }
+                } else {
+                    if (container) container.classList.add('hidden');
                 }
             } catch (e) {
                 console.error("Failed to load missions", e);

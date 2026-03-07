@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google Analytics GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-3F21WXSMPB');
+    </script>
+    <meta name="robots" content="noindex">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Analyzer - Strategy Lab</title>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17558233772"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'AW-17558233772');
+    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <!-- PDF.js -->
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+        window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    </script>
+    <!-- PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.0.2/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow-y: auto;
+            /* Allow scroll on mobile, handled via flex classes on desktop */
+        }
+
+        /* Custom Scrollbar for Dark Theme */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 3px;
+        }
+
+        /* Step Loader Animations */
+        @keyframes pulse-glow {
+
+            0%,
+            100% {
+                opacity: 0.6;
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            50% {
+                opacity: 1;
+                box-shadow: 0 0 20px 0 rgba(59, 130, 246, 0.6);
+            }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 2s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .step-item {
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .step-item:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .step-item:nth-child(2) {
+            animation-delay: 1.5s;
+        }
+
+        .step-item:nth-child(3) {
+            animation-delay: 3.0s;
+        }
+
+        .step-item:nth-child(4) {
+            animation-delay: 4.5s;
+        }
+
+        /* Drag Zone Active State */
+        .drag-active {
+            border-color: #3b82f6 !important;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+            background-color: rgba(30, 41, 59, 0.5) !important;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+
+<div class="flex h-screen bg-slate-950 relative flex-col md:flex-row overflow-hidden md:overflow-hidden">
+
+    <!-- MOBILE HEADER (Visible < md) -->
+    <div
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900/95 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
+        <div class="flex flex-col justify-center">
+            <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-tight">Total Package
+                Interview</div>
+            <div class="text-sm font-black text-white tracking-wide">RESUME ANALYZER</div>
+        </div>
+        <button onclick="toggleSidebar()"
+            class="p-2 text-white hover:text-blue-400 transition-colors border border-blue-500/30 rounded-lg bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="mobile-overlay" class="md:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden"
+        onclick="toggleSidebar()"></div>
+
+    <!-- LEFT PANEL: INPUTS (35%) -->
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
+
+        <!-- Header -->
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
+            <div>
+                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">STRATEGY
+                    LAB</h1>
+                <div class="text-2xl font-black tracking-tight text-white drop-shadow-xl">RESUME<span
+                        class="text-blue-500">_AUDIT</span></div>
+            </div>
+            <a href="/dashboard"
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+        </div>
+
+        <!-- Top Spacer for Mobile when sidebar is active/fixed if needed, but here it's full height anyway -->
+
+        <!-- Scrollable Controls -->
+        <div class="flex-1 overflow-y-auto custom-scroll p-6 md:p-8 space-y-8 md:space-y-10">
+
+            <!-- Input 1: Resume Upload -->
+            <div>
+                <!-- Mission Selector -->
+                <div id="mission-selector-container"
+                    class="mb-8 p-4 bg-blue-500/5 border border-blue-500/20 rounded-xl hidden">
+                    <label
+                        class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                        <i class="fas fa-crosshairs"></i> Select Active Mission
+                    </label>
+                    <div class="relative">
+                        <select id="mission-selector" onchange="window.selectMission(this.value)"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                            <option value="">Loading Missions...</option>
+                        </select>
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                            <i class="fas fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
+                    1. Source Document
+                </label>
+                <div id="dropzone"
+                    class="border-2 border-dashed border-blue-500/30 bg-slate-900/20 rounded-xl p-6 md:p-10 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/60 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                    <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
+
+                    <div id="upload-idle">
+                        <div
+                            class="w-14 h-14 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:text-blue-400 transition-all shadow-inner border border-white/5">
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-400" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                                </path>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[10px] text-slate-500 mt-2 font-mono uppercase">Parses structure & keywords</p>
+                    </div>
+
+                    <div id="upload-success" class="hidden">
+                        <div
+                            class="w-14 h-14 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm font-semibold text-white truncate px-2" id="filename-display">resume.pdf</p>
+                        <button onclick="resetUpload(event)"
+                            class="text-[10px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-3 font-bold transition-colors">Remove
+                            File</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input 2: Job Description -->
+            <div>
+                <label
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    2. Target Calibration
+                </label>
+                <div class="relative group">
+                    <textarea id="job-description"
+                        class="w-full h-48 bg-slate-900/60 border border-slate-700/60 rounded-xl p-5 text-sm text-slate-300 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-900 resize-none custom-scroll transition-all shadow-inner"
+                        placeholder="Paste JD here for gap analysis..."></textarea>
+                    <div
+                        class="absolute bottom-3 right-3 text-[10px] text-slate-600 font-mono tracking-wider group-focus-within:text-blue-500/50 transition-colors">
+                        OPTIONAL</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Footer Action -->
+        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+            <button id="run-btn" onclick="runAnalysis()"
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                <span>RUN DIAGNOSTIC</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </button>
+        </div>
+
+    </aside>
+
+
+    <!-- RIGHT PANEL: RESULTS (65%) -->
+    <main class="w-full md:flex-1 flex-1 min-h-0 bg-slate-950 relative overflow-hidden flex flex-col order-2">
+        <!-- Top Spacer for Mobile Header -->
+        <div class="h-16 md:hidden flex-shrink-0"></div>
+
+        <!-- DECORATIVE GRIDS -->
+        <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
+            style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+        <div
+            class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950 via-slate-950 to-blue-900/10 pointer-events-none">
+        </div>
+
+        <!-- CONTAINER -->
+        <div id="results-scroller" class="h-full overflow-y-auto custom-scroll relative z-10 p-6 md:p-12 flex flex-col">
+
+            <!-- STATE A: IDLE -->
+            <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center">
+                <div
+                    class="w-24 h-24 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-8 rotate-3 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+                    <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                </div>
+                <h2 class="text-xl font-bold text-white mb-2 tracking-tight">System Ready</h2>
+                <p class="text-slate-500 max-w-sm text-sm mb-6">Awaiting source documents to initialize AI analysis
+                    logic.
+                </p>
+
+                <!-- Mobile Only CTA -->
+                <button onclick="toggleSidebar()"
+                    class="md:hidden flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95 animate-pulse">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+                    </svg>
+                    Upload Resume
+                </button>
+            </div>
+
+            <!-- STATE B: LOADING -->
+            <div id="state-loading"
+                class="hidden flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full">
+                <div class="w-full flex justify-between items-center border-b border-slate-800 pb-4 mb-8">
+                    <h3 class="text-sm font-bold text-blue-400 uppercase tracking-widest animate-pulse">Running
+                        Diagnostics</h3>
+                    <span class="text-xs font-mono text-slate-500">v2.4.0</span>
+                </div>
+
+                <div class="w-full space-y-8">
+                    <!-- Steps -->
+                    <div class="step-item flex items-center gap-5 group">
+                        <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
+                            id="step-dot-1"></div>
+                        <span class="text-slate-300 font-medium tracking-wide">Parsing Document Structure...</span>
+                    </div>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-2"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Extracting Core Competencies...</span>
+                    </div>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-3"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Performing Gap Analysis...</span>
+                    </div>
+                    <div class="step-item flex items-center gap-5">
+                        <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-4"></div>
+                        <span class="text-slate-500 font-medium tracking-wide">Generating Impact Models...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STATE C: RESULTS -->
+            <div id="state-result" class="hidden max-w-5xl mx-auto w-full pb-20 fade-in">
+
+                <!-- Score Header -->
+                <!-- Score Header (Compact) -->
+                <div
+                    class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-gradient-to-r from-slate-900/80 to-transparent p-6 rounded-3xl border border-slate-800/60 shadow-2xl">
+                    <div class="relative shrink-0">
+                        <!-- Glow Behind -->
+                        <div class="absolute inset-0 bg-green-500/20 blur-2xl rounded-full"></div>
+                        <svg viewBox="0 0 128 128" class="w-24 h-24 md:w-32 md:h-32 transform -rotate-90 relative z-10">
+                            <circle cx="64" cy="64" r="56" stroke="#1e293b" stroke-width="6" fill="none" />
+                            <circle cx="64" cy="64" r="56" stroke="#4ade80" stroke-width="6" fill="none"
+                                stroke-dasharray="351" stroke-dashoffset="351" stroke-linecap="round"
+                                class="drop-shadow-[0_0_10px_rgba(74,222,128,0.5)] transition-all duration-1000 ease-out"
+                                id="score-circle" />
+                        </svg>
+                        <div
+                            class="absolute inset-0 flex flex-col items-center justify-center z-10 scale-75 md:scale-100">
+                            <span class="text-4xl font-black text-white tracking-tighter drop-shadow-lg">78</span>
+                            <span
+                                class="text-[9px] font-bold text-green-400 uppercase tracking-widest mt-0.5">Match</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-2 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
+                            Top 20% Candidate
+                        </div>
+                        <h2 class="text-2xl font-bold text-white mb-2">Strong Foundation Detected</h2>
+                        <p class="text-slate-400 leading-relaxed text-sm max-w-2xl">Your profile demonstrates
+                            senior-level
+                            capacity, but semantic layering for the "Product Strategy" vector is below threshold.
+                            Refinement required for ATS optimization.</p>
+                    </div>
+                </div>
+
+                <!-- Bento Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <!-- Card 1: Critical Gaps -->
+                    <div
+                        class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl border border-slate-700/50 p-8 shadow-lg section-card group hover:border-slate-600 transition-colors">
+                        <h3
+                            class="flex items-center gap-3 text-xs font-bold text-red-400 uppercase tracking-widest mb-6 border-b border-red-500/10 pb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z">
+                                </path>
+                            </svg>
+                            Critical Missing Keywords
+                        </h3>
+                        <div class="flex flex-wrap gap-2">
+                            <span
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">Strategic
+                                Planning</span>
+                            <span
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">P&L
+                                Management</span>
+                            <span
+                                class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">Cross-function</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-6 italic">High-frequency terms in JD absent from profile
+                            vector.</p>
+                    </div>
+
+                    <!-- Card 2: Formatting -->
+                    <div
+                        class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl border border-slate-700/50 p-8 shadow-lg section-card hover:border-slate-600 transition-colors">
+                        <h3
+                            class="flex items-center gap-3 text-xs font-bold text-green-400 uppercase tracking-widest mb-6 border-b border-green-500/10 pb-4">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Formatting Integrity
+                        </h3>
+                        <ul class="space-y-4 text-sm text-slate-400">
+                            <li class="flex items-center justify-between">
+                                <span>PDF Parsability</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-400">100%</span>
+                            </li>
+                            <li class="flex items-center justify-between">
+                                <span>Font Legibility</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-400">Inter</span>
+                            </li>
+                            <li class="flex items-center justify-between opacity-80">
+                                <span>Token Length</span>
+                                <span
+                                    class="text-white font-bold text-xs bg-yellow-500/20 px-2 py-0.5 rounded text-yellow-400">2.5
+                                    Pg</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Card 3: Action Plan (Full Width) -->
+                    <div
+                        class="md:col-span-2 bg-gradient-to-br from-blue-900/20 to-slate-900 rounded-2xl border border-blue-500/20 p-8 shadow-lg">
+                        <h3
+                            class="flex items-center gap-3 text-xs font-bold text-blue-400 uppercase tracking-widest mb-6">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Optimization Protocol
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+                                <div
+                                    class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">
+                                    01</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-1">Quantify Leadership Achievements</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Found 4 instances of "Managed
+                                        team". Rewrite with specific metrics. <br><span
+                                            class="text-blue-400/80">Example: "Led 15-person sales team to $5M
+                                            revenue."</span></p>
+                                </div>
+                            </div>
+                            <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+                                <div
+                                    class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">
+                                    02</div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white mb-1">Integrate Strategy Keywords</h4>
+                                    <p class="text-xs text-slate-400 leading-relaxed">Inject "Strategic Planning" and
+                                        "Cross-functional" into the Core Competencies section to boost semantic
+                                        relevance scores.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- UPSELL MODULE (Executive Rewrite) -->
+                    <div id="upsell-module"
+                        class="md:col-span-2 mt-2 border border-yellow-500/30 bg-gradient-to-r from-blue-900/10 to-slate-900 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden group shadow-lg">
+                        <!-- Added md:col-span-2 -->
+
+                        <!-- Decorative Glow -->
+                        <div
+                            class="absolute inset-0 bg-yellow-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000">
+                        </div>
+
+                        <div class="relative z-10 flex gap-4 items-center">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-yellow-500/10 border border-yellow-500/20 flex items-center justify-center shrink-0">
+                                <span class="text-2xl">✨</span>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white leading-tight">Ready to fix these gaps?</h3>
+                                <p class="text-sm text-slate-400">Instantly generate a top-tier version of this resume
+                                    using our Executive Rewrite engine.</p>
+                            </div>
+                        </div>
+
+                        <div id="upsell-btn-container" class="relative z-10 shrink-0 w-full md:w-auto">
+                            <!-- Button Will Be Injected By JS -->
+                            <button id="rewrite-cta-btn"
+                                class="w-full md:w-auto px-6 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg text-sm border border-slate-700">Loading
+                                Access...</button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- MISSION SELECTOR LOGIC ---
+        let allJobs = [];
+        window.loadMissions = async () => {
+            try {
+                const session = JSON.parse(localStorage.getItem('aceinterview_session'));
+                const token = session?.access_token || localStorage.getItem('supabase.auth.token');
+                if (!token) return;
+
+                const res = await fetch('/api/jobs', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (!res.ok) return;
+                allJobs = await res.json();
+
+                const selector = document.getElementById('mission-selector');
+                const container = document.getElementById('mission-selector-container');
+                if (!selector) return;
+
+                const activeJobs = allJobs.filter(j => j.status !== 'closed');
+
+                if (activeJobs.length > 0) {
+                    if (container) container.classList.remove('hidden');
+                    selector.innerHTML = '<option value="">Choose a Mission...</option>';
+
+                    activeJobs.forEach(job => {
+                        const opt = document.createElement('option');
+                        opt.value = job.id;
+                        opt.textContent = `${job.job_title} @ ${job.company_name}`;
+                        selector.appendChild(opt);
+                    });
+
+                    // Pre-select if current exists
+                    const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
+                    if (currentCtx.job_id) {
+                        selector.value = currentCtx.job_id;
+                    }
+                } else {
+                    if (container) container.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error("Failed to load missions", e);
+            }
+        };
+
+        window.selectMission = (id) => {
+            if (!id) return;
+            const job = allJobs.find(j => j.id == id);
+            if (!job) return;
+
+            const context = {
+                job_id: job.id,
+                role: job.job_title,
+                company: job.company_name,
+                description: job.job_description,
+                jd: job.job_description
+            };
+
+            localStorage.setItem('mission_context', JSON.stringify(context));
+            applyMissionContext(context);
+        };
+
+        window.applyMissionContext = (ctx) => {
+            if (!ctx || !ctx.jd) return;
+            console.log("Applying Mission Context:", ctx.role);
+
+            // Locate the JD Input Box (Verified ID: job-description)
+            const jdInput = document.getElementById('job-description');
+
+            if (jdInput) {
+                jdInput.value = ctx.jd;
+
+                // Visual Feedback: Flash the box
+                jdInput.classList.add('ring-2', 'ring-blue-500', 'bg-blue-900/10');
+                setTimeout(() => jdInput.classList.remove('ring-2', 'ring-blue-500', 'bg-blue-900/10'), 2000);
+            }
+
+            // Save Job ID if present
+            if (ctx.job_id) {
+                pendingJobId = ctx.job_id;
+                console.log("Job ID captured for persistence:", pendingJobId);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. CHECK FOR MISSION CONTEXT (JD from Dashboard)
+            try {
+                const missionContext = JSON.parse(localStorage.getItem('mission_context'));
+                if (missionContext) {
+                    applyMissionContext(missionContext);
+                }
+            } catch (e) {
+                console.error("Context Injection Failed:", e);
+            }
+
+            // 2. Load Missions for Selector
+            loadMissions();
+
+            // 3. CHECK SMART AUTH (Button State)
+            checkRewriteEligibility();
+        });
+
+        // --- PAYMENT LOGIC ---
+        window.buyCredits = async (priceId, mode) => {
+            try {
+                // 1. Save Mission Context before redirecting to Stripe
+                // This ensures the current JD is available when the user returns to the Generator
+                const jdBox = document.getElementById('job-description') ||
+                    document.getElementById('job-description-input') ||
+                    document.getElementById('target-job-description') ||
+                    document.querySelector('textarea');
+                const jdText = jdBox ? jdBox.value : '';
+
+                localStorage.setItem('mission_context', JSON.stringify({
+                    jd: jdText,
+                    role: "Target Role",
+                    company: "Target Company",
+                    job_id: pendingJobId
+                }));
+
+                const token = localStorage.getItem('supabase.auth.token');
+                const res = await fetch('/api/create-checkout-session', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        price_id: priceId,
+                        plan_type: 'strategy_rewrite',
+                        successUrl: window.location.origin + '/resume-rewriter',
+                        mode: mode
+                    })
+                });
+                const result = await res.json();
+                if (result.url) window.location.href = result.url;
+                else throw new Error(result.error || "No URL returned");
+            } catch (e) {
+                console.error("Payment Error:", e);
+                alert("Could not initiate payment. Please try again.");
+            }
+        };
+
+        // --- SMART AUTH CHECK ---
+        async function checkRewriteEligibility() {
+            try {
+                // 1. Get User Status from Global Supabase
+                const { data: { user } } = await window.supabase.auth.getUser();
+                if (!user) {
+                    console.warn("No user session found for credit check.");
+                    // FALLBACK: If no user, show Unlock state instead of getting stuck
+                    const ctaBtn = document.getElementById('rewrite-cta-btn');
+                    if (ctaBtn) {
+                        ctaBtn.innerHTML = `CLAIM YOUR FULL DIAGNOSIS (FREE)`;
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'animate-pulse');
+                        ctaBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-lg');
+                        ctaBtn.onclick = (e) => {
+                            window.location.href = '/signup?ref=guest_scan';
+                        };
+                    }
+                    return;
+                }
+
+                const { data: profile, error } = await window.supabase
+                    .from('users')
+                    .select('credits, credits_resume, is_unlimited, subscription_status')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+
+                // 2. Locate the "Unlock" Button
+                const ctaBtn = document.getElementById('rewrite-cta-btn');
+
+                if (ctaBtn && profile) {
+                    // 3. Logic: If they have access, change the button
+                    // Check standardized 'credits_resume', universal 'credits', and subscription status
+                    const hasAccess = profile.is_unlimited ||
+                        (profile.subscription_status === 'active') ||
+                        (profile.subscription_status === 'pro') ||
+                        (profile.credits_resume > 0) ||
+                        (profile.credits > 0);
+
+                    if (hasAccess) {
+                        // Determine access label
+                        let accessLabel = '(Use 1 Credit)';
+                        if (profile.is_unlimited || profile.subscription_status === 'active' || profile.subscription_status === 'pro') {
+                            accessLabel = '(Included)';
+                        }
+
+                        // VISUAL UPDATE
+                        ctaBtn.innerHTML = `
+                            <span class="flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> 
+                                Launch Executive Rewrite ${accessLabel}
+                            </span>
+                        `;
+
+                        // REMOVE LOADING/PAYMENT STYLE
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'hover:bg-yellow-500');
+                        ctaBtn.classList.add('bg-blue-600', 'text-white', 'hover:bg-blue-500', 'shadow-[0_0_15px_rgba(37,99,235,0.5)]', 'animate-pulse');
+
+                        // ACTION UPDATE
+                        ctaBtn.onclick = (e) => {
+                            e.preventDefault();
+                            const jdBox = document.getElementById('job-description') ||
+                                document.getElementById('job-description-input') ||
+                                document.getElementById('target-job-description') ||
+                                document.querySelector('textarea');
+
+                            const jdText = jdBox ? jdBox.value : '';
+
+                            if (!jdText || jdText.length < 50) {
+                                if (!confirm("Warning: No Job Description detected. The Rewrite tool works best with a JD. Continue anyway?")) {
+                                    return;
+                                }
+                            }
+
+                            localStorage.setItem('mission_context', JSON.stringify({
+                                jd: jdText,
+                                role: "Target Role",
+                                company: "Target Company",
+                                job_id: pendingJobId
+                            }));
+
+                            window.location.href = 'resume-rewriter';
+                        };
+
+                    } else {
+                        // NO ACCESS: Show Upsell
+                        ctaBtn.innerHTML = `UNLOCK REWRITE ($12.99)`;
+                        ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'bg-blue-600', 'text-white', 'hover:bg-blue-500', 'animate-pulse');
+                        ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+
+                        ctaBtn.onclick = (e) => {
+                            window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
+                        };
+                    }
+                }
+            } catch (e) {
+                console.error("Smart Auth Check Failed:", e);
+                // FALLBACK: If check fails, show Unlock state instead of getting stuck on "Checking Access"
+                const ctaBtn = document.getElementById('rewrite-cta-btn');
+                if (ctaBtn) {
+                    ctaBtn.innerHTML = `UNLOCK REWRITE ($12.99)`;
+                    ctaBtn.classList.remove('bg-slate-800', 'text-slate-400', 'border-slate-700', 'animate-pulse');
+                    ctaBtn.classList.add('bg-yellow-500', 'text-slate-900', 'hover:bg-yellow-400', 'shadow-lg');
+                    ctaBtn.onclick = (e) => {
+                        window.buyCredits('price_1Sgsf9IH1WTKNasqxvk528yY', 'payment');
+                    };
+                }
+            }
+        }
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('mobile-overlay');
+            if (sb) sb.classList.toggle('-translate-x-full');
+            if (ov) ov.classList.toggle('hidden');
+        }
+
+        // --- AUTH CHECK ---
+        const SESSION_KEY = 'supabase.auth.token';
+        const APP_SESSION_KEY = 'aceinterview_session';
+        const token = localStorage.getItem(SESSION_KEY);
+
+        (function checkAuth() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const isGuest = urlParams.get('mode') === 'guest';
+
+            if (!token && !isGuest) {
+                // Redirect to login if absolutely no token and NOT guest
+                window.location.href = '/login';
+            }
+        })();
+
+        // --- UI REFS ---
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('resume-upload');
+        const uploadIdle = document.getElementById('upload-idle');
+        const uploadSuccess = document.getElementById('upload-success');
+        const filenameDisplay = document.getElementById('filename-display');
+        const runBtn = document.getElementById('run-btn');
+        const jobDescInput = document.getElementById('job-description');
+
+        const stateIdle = document.getElementById('state-idle');
+        const stateLoading = document.getElementById('state-loading');
+        const stateResult = document.getElementById('state-result');
+
+        // Global State
+        let currentFileText = "";
+        let pendingJobId = null; // Store Job ID for persistence
+
+        // --- INIT ---
+        document.addEventListener('DOMContentLoaded', () => {
+            checkForPendingResume();
+        });
+
+        function checkForPendingResume() {
+            const pendingText = localStorage.getItem('pending_resume_text');
+            const pendingName = localStorage.getItem('pending_resume_filename');
+
+            if (pendingText) {
+                // Auto-load
+                currentFileText = pendingText;
+                filenameDisplay.textContent = pendingName || "Imported Resume";
+                showFileSuccess();
+
+                // Clear
+                localStorage.removeItem('pending_resume_text');
+                localStorage.removeItem('pending_resume_filename');
+            }
+        }
+
+        // --- DRAG & DROP LOGIC ---
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropzone.addEventListener(eventName, highlight, false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropzone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() { dropzone.classList.add('drag-active'); }
+        function unhighlight() { dropzone.classList.remove('drag-active'); }
+
+        dropzone.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        }
+
+        fileInput.addEventListener('change', function () { handleFiles(this.files); });
+
+        async function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                filenameDisplay.textContent = file.name;
+
+                // Read content
+                try {
+                    if (file.type === "application/pdf") {
+                        // Parse PDF using PDF.js
+                        const arrayBuffer = await file.arrayBuffer();
+                        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                        let fullText = "";
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+
+                            // Enhanced: Preserve line breaks using Y-coordinates
+                            let lastY = null;
+                            let pageText = "";
+
+                            textContent.items.forEach(item => {
+                                const currentY = item.transform[5]; // Y-coordinate
+
+                                // New line detected (Y changed significantly)
+                                if (lastY !== null && Math.abs(currentY - lastY) > 2) {
+                                    pageText += "\n";
+                                }
+
+                                pageText += item.str + " ";
+                                lastY = currentY;
+                            });
+
+                            fullText += pageText + "\n";
+                        }
+
+                        currentFileText = fullText;
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', fullText);
+                        localStorage.setItem('master_resume_name', file.name);
+
+                        // Visual Confirmation
+                        alert("Resume Saved to Strategy Memory!");
+                        // console.log("PDF Extracted:", fullText.substring(0, 100) + "...");
+                    } else {
+                        currentFileText = await file.text();
+                        // Sticky Memory
+                        localStorage.setItem('master_resume_text', currentFileText);
+                        localStorage.setItem('master_resume_name', file.name);
+
+                        // Visual Confirmation
+                        alert("Resume Saved to Strategy Memory!");
+                    }
+                    showFileSuccess();
+                } catch (e) {
+                    console.error("PDF Read Error:", e);
+                    alert("Could not process this PDF. Please try a text file.");
+                }
+            }
+        }
+
+        function showFileSuccess() {
+            uploadIdle.classList.add('hidden');
+            uploadSuccess.classList.remove('hidden');
+            dropzone.classList.remove('border-dashed');
+            dropzone.classList.add('border-green-500/30', 'bg-slate-900/80');
+        }
+
+        window.resetUpload = function (e) {
+            e.stopPropagation();
+            fileInput.value = '';
+            currentFileText = "";
+            uploadIdle.classList.remove('hidden');
+            uploadSuccess.classList.add('hidden');
+            dropzone.classList.add('border-dashed');
+            dropzone.classList.remove('border-green-500/30', 'bg-slate-900/80');
+            dropzone.classList.remove('drag-active');
+        }
+
+        // --- ANALYSIS LOGIC ---
+        window.runAnalysis = async function () {
+            // Validate
+            if (!currentFileText) {
+                alert("Please provide a resume file.");
+                return;
+            }
+
+            // UI Transition
+            if (window.innerWidth < 768) {
+                const sb = document.getElementById('sidebar');
+                if (sb && !sb.classList.contains('-translate-x-full')) {
+                    toggleSidebar();
+                }
+            }
+            stateIdle.classList.add('hidden');
+            stateResult.classList.add('hidden');
+            stateLoading.classList.remove('hidden');
+            runBtn.disabled = true;
+            runBtn.innerHTML = `<span class="animate-pulse">DIAGNOSTIC RUNNING...</span>`;
+
+            // Animate Steps (Visual)
+            animateSteps();
+
+            // API Call
+            try {
+                // Get Email/ID from session
+                let email = null;
+                let userId = null;
+                try {
+                    const sessionStr = localStorage.getItem(APP_SESSION_KEY);
+                    if (sessionStr) {
+                        const session = JSON.parse(sessionStr);
+                        email = session.email;
+                        userId = session.user_id || session.user?.id || session.id;
+                        // Ensure token is synced if missing from standalone key
+                        if (session.access_token && !localStorage.getItem('supabase.auth.token')) {
+                            localStorage.setItem('supabase.auth.token', session.access_token);
+                        }
+                    }
+                } catch (e) { }
+
+                const token = localStorage.getItem('supabase.auth.token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token && token !== 'null' && token !== 'undefined') {
+                    headers['Authorization'] = `Bearer ${token}`;
+                } else {
+                    // Track guest scan in GA
+                    if (typeof gtag === 'function') {
+                        gtag('event', 'guest_resume_scan', {
+                            'event_category': 'Engagement',
+                            'event_label': 'Guest Mode'
+                        });
+                    }
+                }
+
+                const response = await fetch('/api', {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify({
+                        action: 'analyze_resume',
+                        email: email,
+                        user_id: userId,
+                        filename: filenameDisplay.textContent || "resume.pdf",
+                        resume: currentFileText,
+                        job_description: jobDescInput.value,
+                        job_id: pendingJobId,
+                        referral: new URLSearchParams(window.location.search).get('ref') || 'Direct'
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    throw new Error(result.error);
+                }
+
+                // Data Normalization
+                let data = result.data;
+
+                // DEBUG: Check if save failed
+                if (result.debug_save_status && !result.debug_save_status.startsWith('Success')) {
+                    console.warn("Resume Save Failed:", result.debug_save_status);
+                    alert("Debug: Saving failed -> " + result.debug_save_status);
+                }
+
+                if (typeof data === 'string') {
+                    // Clean markdown
+                    let clean = data.trim().replace(/^```json/, '').replace(/^```/, '').replace(/```$/, '');
+                    data = JSON.parse(clean);
+                }
+
+                // Render
+                renderResults(data);
+
+                // Show Results (after min delay for effect)
+                setTimeout(() => {
+                    stateLoading.classList.add('hidden');
+                    stateResult.classList.remove('hidden');
+
+                    // Reset scroll to top
+                    const scroller = document.getElementById('results-scroller');
+                    if (scroller) scroller.scrollTop = 0;
+
+                    runBtn.disabled = false;
+                    runBtn.innerHTML = `<span>RUN DIAGNOSTIC</span> <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`;
+                }, 2000); // Ensure user sees some animation
+
+            } catch (e) {
+                console.error(e);
+                alert("Analysis Failed: " + e.message);
+                stateLoading.classList.add('hidden');
+                stateIdle.classList.remove('hidden');
+                runBtn.disabled = false;
+                runBtn.innerHTML = `<span>RETRY DIAGNOSTIC</span>`;
+            }
+        }
+
+        function animateSteps() {
+            const steps = [1, 2, 3, 4];
+            steps.forEach((step, i) => {
+                setTimeout(() => {
+                    const dot = document.getElementById(`step-dot-${step}`);
+                    const nextText = dot?.parentElement?.querySelector('span');
+                    if (dot) dot.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_15px_rgba(59,130,246,1)]";
+                    if (nextText) {
+                        nextText.classList.remove('text-slate-500');
+                        nextText.classList.add('text-white', 'drop-shadow-md');
+                    }
+                }, i * 800);
+            });
+        }
+
+        function renderResults(data) {
+            console.log("Rendering Data:", data);
+
+            // CHECK: Education Parsing Integrity & Integrity
+            const educationSection = currentFileText.match(/Education|University|College|Degree/i);
+            const educationContent = data.education || [];
+            data.formatting = data.formatting || []; // Ensure array exists
+
+            if (educationSection && (!educationContent || educationContent.length === 0 || JSON.stringify(educationContent).includes("undefined"))) {
+                data.formatting.push({
+                    issue: 'Education Parsing Error',
+                    fix: 'The parser detected an Education section but failed to read the School or Degree. Ensure standard formatting.'
+                });
+            } else if (!educationSection) {
+                data.formatting.push({
+                    issue: 'Missing Education Section',
+                    fix: 'No "Education" header found. Add an Education section to ensure ATS compliance.'
+                });
+            }
+
+            // 1. SCORE
+            const scoreDisplay = document.querySelector('#state-result .text-4xl');
+            const scoreCircle = document.getElementById('score-circle');
+            const score = data.overall_score || 0;
+
+            if (scoreDisplay) scoreDisplay.textContent = score;
+            if (scoreCircle) {
+                const circumference = 351;
+                const offset = circumference - (score / 100) * circumference;
+                scoreCircle.style.strokeDashoffset = offset;
+            }
+
+            // Score Message
+            const headline = document.querySelector('#state-result h2.text-2xl'); // Updated selector
+            const subhead = document.querySelector('#state-result p.text-slate-400');
+            // Logic for message
+            if (data.overall_score >= 80) {
+                headline.textContent = "Elite Profile Detected";
+                subhead.textContent = "Your profile is performing well against the benchmarks.";
+            } else if (data.overall_score >= 60) {
+                headline.textContent = "Strong Foundation";
+                subhead.textContent = "Good base, but needs strategic refinement for ATS systems.";
+            } else {
+                headline.textContent = "Optimization Required";
+                subhead.textContent = "Critical gaps detected that may block your application.";
+            }
+
+            // 2. CRITICAL GAPS (Card 1)
+            const gapContainer = document.querySelector('.section-card:nth-child(1) .flex-wrap');
+            if (gapContainer) {
+                gapContainer.innerHTML = '';
+                const gaps = [];
+                if (data.keywords && data.keywords.missing) {
+                    data.keywords.missing.slice(0, 3).forEach(k => gaps.push(k.word));
+                }
+                if (gaps.length === 0 && data.red_flags) {
+                    data.red_flags.slice(0, 3).forEach(f => gaps.push(f.title));
+                }
+
+                gaps.forEach(gap => {
+                    gapContainer.innerHTML += `<span class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">${gap}</span>`;
+                });
+            }
+
+            // 3. FORMATTING (Card 2)
+            const fmtList = document.querySelector('.section-card:nth-child(2) ul');
+            if (fmtList) {
+                let html = '';
+                const atsScore = data.ats_compatibility ? data.ats_compatibility.score : 'N/A';
+                html += `
+                <li class="flex items-center justify-between">
+                    <span>ATS Parse Rate</span>
+                    <span class="text-white font-bold text-xs bg-blue-500/20 px-2 py-0.5 rounded text-blue-400">${atsScore}/10</span>
+                </li>`;
+
+                const fmtItems = data.formatting || [];
+                const fmtIssuesCount = fmtItems.length;
+                const statusColor = fmtIssuesCount === 0 ? 'text-green-400 bg-green-500/20' : 'text-yellow-400 bg-yellow-500/20';
+                html += `
+                <li class="flex items-center justify-between">
+                    <span>Layout Integrity</span>
+                    <span class="text-white font-bold text-xs px-2 py-0.5 rounded ${statusColor}">${fmtIssuesCount === 0 ? 'Optimal' : fmtIssuesCount + ' Alerts'}</span>
+                </li>`;
+
+                // Detailed Formatting Items
+                if (fmtIssuesCount > 0) {
+                    fmtItems.forEach(item => {
+                        html += `
+                        <li class="mt-2 pl-4 border-l border-slate-700">
+                            <p class="text-[10px] font-bold text-slate-300 uppercase leading-none mb-1">${item.issue}</p>
+                            <p class="text-[10px] text-slate-500 leading-tight">${item.fix}</p>
+                        </li>`;
+                    });
+                }
+
+                const wordCount = data.word_count || currentFileText.split(/\s+/).length || 0;
+                html += `
+                <li class="flex items-center justify-between mt-4 pt-4 border-t border-white/5 opacity-80">
+                    <span>Word Count</span>
+                    <span class="text-white font-bold text-xs bg-slate-700 px-2 py-0.5 rounded text-slate-300">${wordCount} words</span>
+                </li>`;
+
+                fmtList.innerHTML = html;
+            }
+
+            // 4. PROTOCOL / ACTION PLAN (Card 3)
+            const planContainer = document.querySelector('.md\\:col-span-2 .space-y-4');
+            if (planContainer) {
+                planContainer.innerHTML = '';
+                const improvements = data.improvements || [];
+                improvements.slice(0, 5).forEach((imp, idx) => {
+                    const num = String(idx + 1).padStart(2, '0');
+                    // Rich text formatting: Convert newlines to breaks or ensure bullet points render nicely
+                    // Increased contrast text-slate-200
+                    planContainer.innerHTML += `
+                    <div class="flex gap-5 items-start bg-slate-900/50 p-5 rounded-xl border border-slate-800">
+                        <div class="bg-blue-600/20 p-2 rounded text-blue-400 font-bold border border-blue-500/30 text-xs w-8 h-8 flex items-center justify-center shrink-0">${num}</div>
+                        <div class="w-full">
+                            <h4 class="text-sm font-bold text-white mb-2">${imp.title}</h4>
+                            <div class="text-xs text-slate-300 leading-relaxed font-medium">
+                                ${imp.suggestion.replace(/\n/g, '<br>')}
+                            </div>
+                            ${imp.current ? `<div class="mt-3 text-[10px] text-slate-500 italic"><span class="font-bold uppercase text-red-500/50 mr-1">Found:</span> "${imp.current}"</div>` : ''}
+                            ${imp.better ? `<div class="mt-2 text-xs bg-blue-900/20 p-3 rounded border-l-2 border-blue-500 text-blue-300 font-mono"><span class="font-bold text-blue-400 mr-1">FIX:</span> "${imp.better}"</div>` : ''}
+                        </div>
+                    </div>`;
+                });
+            }
+
+            // 5. UPSELL BUTTON LOGIC
+            const btnContainer = document.getElementById('upsell-btn-container');
+            if (btnContainer) {
+                // RESET Button to "Thinking" state logic so CheckFunction can grab it
+                btnContainer.innerHTML = `
+                            <button id="rewrite-cta-btn"
+                                class="w-full md:w-auto px-6 py-3 bg-slate-800 text-slate-400 font-bold rounded-lg text-sm border border-slate-700">Checking Access...</button>`;
+
+                // Call Smart Auth
+                checkRewriteEligibility();
+            }
+        }
+
+        function triggerUpsell() {
+            if (confirm("Unlock Executive Rewrite for $9.99?")) {
+                window.location.href = '/app#resume-builder';
+            }
+        }
+
+        // --- NAVIGATION LOGIC ---
+        window.goToRewriter = function () {
+            // Save data to localStorage - DISABLED PER USER REQUEST
+            // if (currentFileText) localStorage.setItem('rewrite_source_text', currentFileText);
+            // const jd = document.getElementById('job-description').value;
+            // if (jd) localStorage.setItem('rewrite_job_desc', jd);
+
+            // Redirect
+            window.location.href = '/resume-rewriter';
+        }
+
+    </script>
+    </body>
+
+</html>
