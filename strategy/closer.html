@@ -5,10 +5,10 @@
     <!-- Google Analytics GA4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
     <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-3F21WXSMPB');
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-3F21WXSMPB');
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,7 +28,7 @@
     <script src="https://js.stripe.com/v3/"></script>
     <!-- Supabase Client for Auth -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=refactor_10.0" type="module"></script>
 
     <style>
         body {
@@ -313,13 +313,15 @@
     </main>
 
     <script>
-        // Use window.supabase from app.js or initialize fallback
+        // Use window.supabaseClient from app.js or initialize fallback
         const initSupabase = () => {
-            if (window.supabase) return window.supabase;
-            const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
-            const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
-            window.supabase = supabase.createClient(supabaseUrl, supabaseKey);
-            return window.supabase;
+            if (window.supabaseClient) return window.supabaseClient;
+            if (window.supabase && typeof window.supabase.createClient === 'function') {
+                const supabaseUrl = 'https://nvfjmqacxzlmfamiynuu.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52ZmptcWFjeHpsbWZhbWl5bnV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUxMzk3MzAsImV4cCI6MjA4MDcxNTczMH0.W3J-E2ldrc99btVeChF0SauTQxr_48uFwImVaoHfOXI';
+                window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+            }
+            return window.supabaseClient;
         };
 
         const supabaseClient = initSupabase();

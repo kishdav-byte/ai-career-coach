@@ -132,10 +132,17 @@
             background-color: #ef4444 !important;
             border-color: #ef4444 !important;
         }
+
+        /* Mobile Safe Area Fixes */
+        @media (max-width: 768px) {
+            .mobile-safe-bottom {
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 24px)) !important;
+            }
+        }
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden bg-slate-950 text-slate-300 md:flex-row relative">
+<body class="flex min-h-screen h-[100dvh] overflow-hidden bg-slate-950 text-slate-300 md:flex-row relative">
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
@@ -482,7 +489,8 @@
         </div>
 
         <!-- Footer Actions (Moved from Sidebar) -->
-        <div class="p-6 border-t border-slate-800/60 bg-slate-950/95 backdrop-blur-md relative z-20 flex-shrink-0">
+        <div
+            class="p-6 border-t border-slate-800/60 bg-slate-950/95 backdrop-blur-md relative z-20 flex-shrink-0 mobile-safe-bottom">
 
             <!-- Interview Action -->
             <div id="action-interview" class="tool-action max-w-3xl mx-auto w-full">

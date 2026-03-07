@@ -2,27 +2,16 @@
 <html lang="en">
 
 <head>
-    <!-- Google Analytics GA4 -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-3F21WXSMPB');
-    </script>
     <meta charset="UTF-8">
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17558233772"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'AW-17558233772');
-    </script>
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Total Package Interview - Ace Your Next Interview With AI</title>
+
+    <!-- Preload Critical Font for LCP -->
+    <link rel="preload"
+        href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuGkyMZhrib2Bg-4.woff2"
+        as="font" type="font/woff2" crossorigin>
+
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <meta name="description"
         content="Practice interviews with voice-based AI, get real-time scoring, and see the perfect STAR-format answers you should have said.">
@@ -1321,6 +1310,16 @@
                 window.location.href = '/update-password' + window.location.hash;
             }
         })();
+    </script>
+    <!-- Defer Heavy Scripts to unblock LCP -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3F21WXSMPB"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17558233772"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-3F21WXSMPB');
+        gtag('config', 'AW-17558233772');
     </script>
 </body>
 

@@ -4,8 +4,9 @@ import * as interview from './js/modules/interview.js';
 
 // --- GLOBAL COMPATIBILITY BRIDGE ---
 // Re-exporting to window to prevent breaking legacy inline HTML handlers
+// window.supabase is usually the library constructor, so we use window.supabaseClient for the instance
+window.supabase = auth.supabaseClient; // Restore global supabase reference
 window.supabaseClient = auth.supabaseClient;
-window.supabase = auth.supabaseClient;
 window.getSession = auth.getSession;
 window.updateCreditDisplay = ui.updateCreditDisplay;
 window.updateToolBelt = ui.updateToolBelt;
@@ -13,11 +14,17 @@ window.getVoiceSettings = interview.getVoiceSettings;
 window.startCountdown = interview.startCountdown;
 window.showThinkingState = interview.showThinkingState;
 window.hideThinkingState = interview.hideThinkingState;
+window.verifyLinkedInAccess = verifyLinkedInAccess; // Expose missing function
+window.verifyInterviewAccess = verifyInterviewAccess; // Expose missing function
 
 // Re-expose constants for legacy checks
 window.SESSION_KEY = auth.SESSION_KEY;
 window.TOOL_CONFIG = ui.TOOL_CONFIG;
 window.PRODUCTS = ui.PRODUCTS;
+
+// Internal shorthand for module scope
+const supabase = auth.supabaseClient;
+const SESSION_KEY = auth.SESSION_KEY;
 
 let currentSessionVoice = null; // Still needed for some internal logic if not fully moved
 
@@ -2998,6 +3005,73 @@ async function handleDeepLinks() {
             }
         } catch (e) {
             console.error("Deep Link Fetch Error", e);
+        }
+    }
+}
+
+// --- RECOVERED FUNCTIONS (LinkedIn & Interview Access) ---
+
+function verifyInterviewAccess(session) {
+    if (!session) return;
+
+    const lockedState = document.getElementById('interview-locked-state');
+    const activeState = document.getElementById('interview-active-state');
+    const startBtn = document.getElementById('start-interview-btn');
+
+    if (!lockedState || !activeState) return;
+
+    const credits = (session.interview_credits || 0) + (session.credits || 0);
+    const isUnlimited = session.is_unlimited || false;
+    const statusDot = document.getElementById('status-dot');
+
+    if (credits > 0 || isUnlimited) {
+        lockedState.classList.add('hidden');
+        activeState.classList.remove('hidden');
+        if (startBtn) {
+            startBtn.disabled = false;
+            startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+        if (statusDot) {
+            statusDot.className = 'w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse';
+        }
+    } else {
+        lockedState.classList.remove('hidden');
+        activeState.classList.add('hidden');
+        if (statusDot) {
+            statusDot.className = 'w-2 h-2 rounded-full bg-slate-600';
+        }
+    }
+}
+
+function verifyLinkedInAccess(session) {
+    if (!session) return;
+
+    const overlay = document.getElementById('linkedin-unlock-overlay');
+    const optimizeBtn = document.getElementById('optimize-linkedin-btn');
+
+    if (!overlay) return;
+
+    if (session.credits_linkedin === undefined && session.credits === undefined && !session.is_unlimited) {
+        return;
+    }
+
+    const credits = (session.credits_linkedin || 0) + (session.credits || 0);
+    const isUnlimited = session.is_unlimited || false;
+
+    if (credits > 0 || isUnlimited) {
+        overlay.classList.add('hidden');
+        if (optimizeBtn) {
+            optimizeBtn.innerHTML = 'OPTIMIZE PROFILE';
+            optimizeBtn.classList.remove('bg-green-600', 'hover:bg-green-500');
+            optimizeBtn.classList.add('bg-blue-600', 'hover:bg-blue-500');
+            optimizeBtn.onclick = null;
+        }
+    } else {
+        overlay.classList.remove('hidden');
+        if (optimizeBtn) {
+            optimizeBtn.innerHTML = `<i class="fas fa-lock"></i> UNLOCK ($6.99)`;
+            optimizeBtn.classList.remove('bg-blue-600', 'hover:bg-blue-500');
+            optimizeBtn.classList.add('bg-green-600', 'hover:bg-green-500');
         }
     }
 }

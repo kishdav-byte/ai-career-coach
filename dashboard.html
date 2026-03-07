@@ -39,7 +39,7 @@
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- App Logic -->
-    <script src="./app.js" defer></script>
+    <script src="./app.js?v=refactor_10.0" type="module" defer></script>
 
     <script>
         // Auth Logic Pre-check (Optimized for Google OAuth)
@@ -97,6 +97,13 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             border-color: #475569;
+        }
+
+        /* Mobile Safe Area Fixes */
+        @media (max-width: 768px) {
+            .mobile-safe-bottom {
+                padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 24px)) !important;
+            }
         }
 
         /* Custom Ring for Resume Health */
@@ -194,7 +201,7 @@
 
 <body class="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-teal selection:text-black">
 
-    <div class="flex md:h-screen min-h-screen bg-slate-950 relative flex-col md:flex-row">
+    <div class="flex md:h-screen min-h-screen h-[100dvh] bg-slate-950 relative flex-col md:flex-row">
 
         <!-- MOBILE HEADER (Visible < md) -->
         <div
@@ -1689,6 +1696,17 @@
         // --- USER & SIDEBAR LOGIC ---
         async function loadUserProfile() {
             try {
+                // Wait for supabase to be defined if called too early
+                if (typeof supabase === 'undefined') {
+                    console.log("[DASH] Supabase not ready, waiting 500ms...");
+                    await new Promise(r => setTimeout(r, 500));
+                    if (typeof supabase === 'undefined') {
+                        // Try window reference as fallback
+                        if (window.supabase) window.supabase = window.supabase;
+                        else throw new Error("Supabase still undefined");
+                    }
+                }
+
                 // Get User from Supabase
                 const session = getSession();
                 const { data: { user } } = await supabase.auth.getUser(session?.access_token);
