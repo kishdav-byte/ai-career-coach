@@ -2,6 +2,11 @@ from flask import Flask, request, jsonify
 import os
 import json
 import base64
+from dotenv import load_dotenv
+load_dotenv()
+if 'OPENAI_API_KEY' not in os.environ and 'OPENAI_API_KEY_' in os.environ:
+    os.environ['OPENAI_API_KEY'] = os.environ['OPENAI_API_KEY_']
+
 # External libs will be lazy imported to prevent boot crashes
 # from supabase import create_client, Client
 # import stripe

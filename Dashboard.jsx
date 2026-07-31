@@ -1,7 +1,147 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from './supabaseClient';
+import { useViewMode } from './useViewMode';
+
+// --- CAREER HUB MOBILE COMPONENT ---
+const CareerHub = () => {
+    const [activeGroup, setActiveGroup] = useState(null);
+
+    const toggleHubGroup = (group) => {
+        setActiveGroup(prev => prev === group ? null : group);
+    };
+
+    return (
+        <div className="space-y-4 pb-12 max-w-md mx-auto w-full">
+            
+            {/* 1. The Clinic Card */}
+            <div className="w-full">
+                <button
+                    onClick={() => toggleHubGroup('clinic')}
+                    className="w-full bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-left flex items-center justify-between group active:scale-[0.98] transition-all outline-none"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                            <i className="fas fa-file-alt text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-white group-hover:text-blue-400 transition-colors">The Clinic</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Resume Scans & Executive Optimization</p>
+                        </div>
+                    </div>
+                    <div className="text-slate-500 group-hover:text-blue-400 transition-colors">
+                        <i className={`fas fa-chevron-right transition-transform duration-200 ${activeGroup === 'clinic' ? 'rotate-90' : ''}`}></i>
+                    </div>
+                </button>
+                {activeGroup === 'clinic' && (
+                    <div className="mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                        <a href="/resume-analyzer" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-500/30 rounded-xl transition-all group">
+                            <i className="fas fa-microscope text-blue-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Resume Scanner</span>
+                        </a>
+                        <a href="/resume-rewriter" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-yellow-500/30 rounded-xl transition-all group">
+                            <i className="fas fa-pen-nib text-yellow-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Executive Rewrite</span>
+                        </a>
+                        <a href="/app#linkedin" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-400/30 rounded-xl transition-all group">
+                            <i className="fab fa-linkedin text-blue-300 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">LinkedIn Optimizer</span>
+                        </a>
+                    </div>
+                )}
+            </div>
+
+            {/* 2. The Simulator Card */}
+            <div className="w-full">
+                <button
+                    onClick={() => toggleHubGroup('simulator')}
+                    className="w-full bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-left flex items-center justify-between group active:scale-[0.98] transition-all outline-none"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal group-hover:scale-105 transition-transform">
+                            <i className="fas fa-microphone text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-white group-hover:text-teal transition-colors">The Simulator</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Voice Interviews & STAR Calibrators</p>
+                        </div>
+                    </div>
+                    <div className="text-slate-500 group-hover:text-teal transition-colors">
+                        <i className={`fas fa-chevron-right transition-transform duration-200 ${activeGroup === 'simulator' ? 'rotate-90' : ''}`}></i>
+                    </div>
+                </button>
+                {activeGroup === 'simulator' && (
+                    <div className="mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                        <a href="/app" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-teal/30 rounded-xl transition-all group">
+                            <i className="fas fa-microphone-alt text-teal text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Mock Interview Simulator</span>
+                        </a>
+                        <a href="/role-reversal" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-cyan-500/30 rounded-xl transition-all group">
+                            <i className="fas fa-undo text-cyan-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Role Reversal Practice</span>
+                        </a>
+                        <a href="/star-drill" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-yellow-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-star text-yellow-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">STAR Method Drill</span>
+                        </a>
+                    </div>
+                )}
+            </div>
+
+            {/* 3. The Strategy Card */}
+            <div className="w-full">
+                <button
+                    onClick={() => toggleHubGroup('strategy')}
+                    className="w-full bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-2xl p-5 text-left flex items-center justify-between group active:scale-[0.98] transition-all outline-none"
+                >
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+                            <i className="fas fa-crosshairs text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 className="text-base font-bold text-white group-hover:text-purple-400 transition-colors">The Strategy</h3>
+                            <p className="text-xs text-slate-400 mt-0.5">Onboard Plans, Negotiation & Logs</p>
+                        </div>
+                    </div>
+                    <div className="text-slate-500 group-hover:text-purple-400 transition-colors">
+                        <i className={`fas fa-chevron-right transition-transform duration-200 ${activeGroup === 'strategy' ? 'rotate-90' : ''}`}></i>
+                    </div>
+                </button>
+                {activeGroup === 'strategy' && (
+                    <div className="mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                        <a href="/jobs-history" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-th-list text-blue-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Job Tracker</span>
+                        </a>
+                        <a href="/strategy/30-60-90" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-cyan-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-calendar-alt text-cyan-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">30-60-90 Day Plan</span>
+                        </a>
+                        <a href="/strategy/closer" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-emerald-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-handshake text-emerald-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">The Closer (Negotiator)</span>
+                        </a>
+                        <a href="/strategy/inquisitor" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-amber-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-question-circle text-amber-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">The Inquisitor (Reverse Qs)</span>
+                        </a>
+                        <a href="/strategy/follow-up" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-indigo-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-paper-plane text-indigo-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Value Follow-Up Email</span>
+                        </a>
+                        <a href="/strategy-lab" className="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-purple-400/30 rounded-xl transition-all group">
+                            <i className="fas fa-chess-knight text-purple-400 text-sm group-hover:scale-110 transition-transform"></i>
+                            <span className="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Strategy Lab Dashboard</span>
+                        </a>
+                    </div>
+                )}
+            </div>
+
+        </div>
+    );
+};
 
 const Dashboard = () => {
+    const [viewMode, setViewMode] = useViewMode();
     // User State
     const [stats, setStats] = useState({
         resumeScore: 0,
@@ -125,11 +265,30 @@ const Dashboard = () => {
         <div className="min-h-screen bg-gradient-to-br from-slate-900 via-[#0A2540] to-black text-white font-sans p-6">
 
             {/* Header */}
-            <header className="flex justify-between items-center mb-10 max-w-7xl mx-auto">
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-                    Executive Performance Hub
-                </h1>
-                <div className="flex items-center gap-4">
+            <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10 max-w-7xl mx-auto w-full">
+                <div>
+                    <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
+                        Executive Performance Hub
+                    </h1>
+                </div>
+                
+                {/* View Mode Toggle Pill */}
+                <div className="flex items-center bg-slate-900/60 border border-white/10 rounded-full p-0.5 text-[10px] md:text-xs font-medium self-center sm:self-auto z-10">
+                    <button
+                        onClick={() => setViewMode('command-center')}
+                        className={`px-3 py-1 rounded-full transition-all duration-200 font-semibold ${viewMode === 'command-center' ? 'bg-slate-800 text-white border border-slate-700/50 shadow-sm font-bold' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        Command Center
+                    </button>
+                    <button
+                        onClick={() => setViewMode('career-hub')}
+                        className={`px-3 py-1 rounded-full transition-all duration-200 font-semibold ${viewMode === 'career-hub' ? 'bg-teal-500 text-slate-900 font-bold shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        Career Hub
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-4 self-end sm:self-auto">
                     {loading ? <Skeleton className="w-24 h-4" /> : <span className="text-sm text-gray-400">{userProfile.name}</span>}
                     <button
                         onClick={handleLogout}
@@ -141,7 +300,9 @@ const Dashboard = () => {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto grid gap-8">
+            {viewMode === 'command-center' ? (
+                <>
+                    <div className="max-w-7xl mx-auto grid gap-8">
 
                 {/* 1. Key Metrics Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -351,7 +512,10 @@ const Dashboard = () => {
                         </tbody>
                     </table>
                 </div>
-            </div>
+            </>
+        ) : (
+            <CareerHub />
+        )}
 
         </div>
     );

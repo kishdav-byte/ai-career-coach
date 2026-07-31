@@ -137,19 +137,21 @@
     </style>
 </head>
 
-<div class="flex h-screen bg-slate-50 relative flex-col md:flex-row overflow-hidden md:overflow-hidden">
+<body class="bg-black text-slate-100">
+<div class="flex h-screen relative flex-col md:flex-row overflow-hidden md:overflow-hidden">
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
-        class="md:hidden fixed top-0 left-0 w-full h-16 bg-white/95 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 z-50">
-        <div class="flex flex-col justify-center">
-            <div class="text-[10px] font-bold text-blue-600 uppercase tracking-widest leading-tight">Total Package
-                Interview</div>
-            <div class="text-sm font-black text-slate-900 tracking-wide">RESUME ANALYZER</div>
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-black/95 backdrop-blur-md border-b border-slate-900 flex items-center justify-between px-4 z-50">
+        <div class="flex items-center gap-3">
+            <a href="/dashboard" class="text-slate-400 hover:text-white mr-1">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <div class="text-sm font-bold text-white tracking-wide uppercase">Resume Scan</div>
         </div>
         <button onclick="toggleSidebar()"
-            class="p-2 text-slate-900 hover:text-blue-600 transition-colors border border-blue-300 rounded-lg bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-            <i class="fas fa-bars"></i>
+            class="p-2 text-slate-400 hover:text-white transition-colors border border-slate-800 rounded-lg bg-slate-800/50">
+            <i class="fas fa-sliders-h"></i>
         </button>
     </div>
 
@@ -159,19 +161,16 @@
 
     <!-- LEFT PANEL: INPUTS (35%) -->
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-200 bg-white/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800/80 bg-[#0c1424]/90 backdrop-blur-md shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
 
         <!-- Header -->
-        <div class="p-6 md:p-8 border-b border-slate-200/60 flex justify-between items-center">
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
             <div>
-                <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-600 uppercase mb-1 drop-shadow-md">TOTAL
-                    PACKAGE
-                    INTERVIEW</h1>
-                <div class="text-2xl font-black tracking-tight text-slate-900 drop-shadow-xl">Resume <span
-                        class="text-blue-600">Scan</span></div>
+                <div class="text-xl font-bold tracking-tight text-white">Resume <span
+                        class="text-blue-500">Scan</span></div>
             </div>
             <a href="/dashboard"
-                class="text-slate-500 hover:text-slate-900 transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+                class="text-slate-400 hover:text-white transition-colors text-xs font-mono tracking-wide hidden md:block">[EXIT]</a>
         </div>
 
         <!-- Top Spacer for Mobile when sidebar is active/fixed if needed, but here it's full height anyway -->
@@ -183,67 +182,67 @@
             <div>
                 <!-- Mission Selector -->
                 <div id="mission-selector-container"
-                    class="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-xl hidden">
+                    class="mb-8 p-4 bg-blue-950/20 border border-blue-900/30 rounded-xl hidden">
                     <label
-                        class="block text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                        class="block text-[10px] font-black text-blue-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
                         <i class="fas fa-crosshairs"></i> Select Active Mission
                     </label>
                     <div class="relative">
                         <select id="mission-selector" onchange="window.selectMission(this.value)"
-                            class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:border-blue-500 outline-none appearance-none cursor-pointer">
+                            class="w-full bg-slate-950 border border-slate-800 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
                             <option value="">Loading Missions...</option>
                         </select>
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                             <i class="fas fa-chevron-down text-xs"></i>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between mb-4">
-                    <label class="flex text-xs font-bold text-slate-600 uppercase tracking-widest items-center gap-2">
+                    <label class="flex text-xs font-bold text-slate-400 uppercase tracking-widest items-center gap-2">
                         <span class="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]"></span>
                         1. Upload Resume
                     </label>
-                    <div class="flex bg-slate-100 rounded-lg p-1 border border-slate-200">
+                    <div class="flex bg-slate-950 rounded-lg p-1 border border-slate-850">
                         <button onclick="switchInputMode('upload')" id="mode-upload-btn"
-                            class="px-3 py-1 text-[10px] font-bold uppercase rounded-md bg-white shadow-sm text-blue-600 transition-all">Doc</button>
+                            class="px-3 py-1 text-[10px] font-bold uppercase rounded-md bg-slate-800 text-white border border-slate-700/50 shadow-sm transition-all">Doc</button>
                         <button onclick="switchInputMode('paste')" id="mode-paste-btn"
-                            class="px-3 py-1 text-[10px] font-bold uppercase rounded-md text-slate-500 hover:text-slate-700 transition-all">Text</button>
+                            class="px-3 py-1 text-[10px] font-bold uppercase rounded-md text-slate-400 hover:text-white transition-all">Text</button>
                     </div>
                 </div>
 
                 <!-- File Upload Mode -->
                 <div id="dropzone"
-                    class="border-2 border-dashed border-blue-300 bg-white/20 rounded-xl p-6 md:p-10 text-center transition-all duration-300 cursor-pointer hover:border-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.1)] group relative">
+                    class="border-2 border-dashed border-slate-800 bg-slate-950/40 rounded-xl p-6 md:p-10 text-center transition-all duration-300 cursor-pointer hover:border-blue-500/50 hover:bg-slate-950/60 group relative">
                     <input type="file" id="resume-upload" class="hidden" accept=".pdf,.doc,.docx,.txt">
 
                     <div id="upload-idle">
                         <div
-                            class="w-14 h-14 bg-slate-100/50 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:text-blue-600 transition-all shadow-inner border border-slate-200">
-                            <svg class="w-6 h-6 text-slate-600 group-hover:text-blue-600" fill="none"
+                            class="w-14 h-14 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-blue-600/20 group-hover:text-blue-500 transition-all shadow-inner border border-slate-800">
+                            <svg class="w-6 h-6 text-slate-400 group-hover:text-blue-500" fill="none"
                                 stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M7 16a4 4 0 01-.88-7.903A5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
                                 </path>
                             </svg>
                         </div>
-                        <p class="text-sm font-semibold text-slate-800 tracking-wide">DROP RESUME PDF</p>
-                        <p class="text-[10px] text-slate-500 mt-2 font-mono uppercase">Mobile users: Try the 'Text' tab
+                        <p class="text-sm font-semibold text-slate-200 tracking-wide">DROP RESUME PDF</p>
+                        <p class="text-[10px] text-slate-400 mt-2 font-mono uppercase">Mobile users: Try the 'Text' tab
                         </p>
                     </div>
 
                     <div id="upload-success" class="hidden">
                         <div
-                            class="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
+                            class="w-14 h-14 bg-green-950/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-green-500/20 shadow-[0_0_15px_rgba(74,222,128,0.2)]">
                             <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M5 13l4 4L19 7"></path>
                             </svg>
                         </div>
-                        <p class="text-sm font-semibold text-slate-900 truncate px-2" id="filename-display">resume.pdf
+                        <p class="text-sm font-semibold text-white truncate px-2" id="filename-display">resume.pdf
                         </p>
                         <button onclick="resetUpload(event)"
-                            class="text-[10px] text-slate-500 hover:text-red-400 uppercase tracking-wider mt-3 font-bold transition-colors">Remove
+                            class="text-[10px] text-slate-400 hover:text-red-400 uppercase tracking-wider mt-3 font-bold transition-colors">Remove
                             File</button>
                     </div>
                 </div>
@@ -251,7 +250,7 @@
                 <!-- Text Paste Mode -->
                 <div id="pastezone" class="hidden relative group">
                     <textarea id="resume-paste"
-                        class="w-full h-48 bg-white/60 border border-slate-300/60 rounded-xl p-5 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-white resize-none custom-scroll transition-all shadow-inner"
+                        class="w-full h-48 bg-slate-950/60 border border-slate-800 rounded-xl p-5 text-sm text-slate-200 placeholder-slate-505 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-950 resize-none custom-scroll transition-all shadow-inner"
                         placeholder="Paste your resume text or public Google Doc link here..."
                         oninput="handlePasteInput()"></textarea>
                 </div>
@@ -260,16 +259,16 @@
             <!-- Input 2: Job Description -->
             <div>
                 <label
-                    class="block text-xs font-bold text-slate-600 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <span class="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
+                    class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
                     2. Calibrate with Specific Job Description
                 </label>
                 <div class="relative group">
                     <textarea id="job-description"
-                        class="w-full h-48 bg-white/60 border border-slate-300/60 rounded-xl p-5 text-sm text-slate-700 placeholder-slate-600 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-white resize-none custom-scroll transition-all shadow-inner"
+                        class="w-full h-48 bg-slate-950/60 border border-slate-800 rounded-xl p-5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 focus:bg-slate-950 resize-none custom-scroll transition-all shadow-inner"
                         placeholder="Paste the job you want to apply for (Optional)..."></textarea>
                     <div
-                        class="absolute bottom-3 right-3 text-[10px] text-slate-600 font-mono tracking-wider group-focus-within:text-blue-600/50 transition-colors">
+                        class="absolute bottom-3 right-3 text-[10px] text-slate-500 font-mono tracking-wider group-focus-within:text-blue-500/50 transition-colors">
                         OPTIONAL</div>
                 </div>
             </div>
@@ -277,9 +276,9 @@
         </div>
 
         <!-- Footer Action -->
-        <div class="p-6 border-t border-slate-200/60 bg-white/40 backdrop-blur-md">
+        <div class="p-6 border-t border-slate-800 bg-slate-900/90 backdrop-blur-md pb-[calc(1.5rem+env(safe-area-inset-bottom,16px))] md:pb-6 flex-shrink-0 z-10 sticky bottom-0 md:relative w-full">
             <button id="run-btn" onclick="runAnalysis()"
-                class="w-full bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
+                class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
                 <span>SCAN MY RESUME</span>
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -292,7 +291,7 @@
 
 
     <!-- RIGHT PANEL: RESULTS (65%) -->
-    <main class="w-full md:flex-1 flex-1 min-h-0 bg-slate-50 relative overflow-hidden flex flex-col order-2">
+    <main class="w-full md:flex-1 flex-1 min-h-0 bg-[#0c1424]/50 relative overflow-hidden flex flex-col order-2">
         <!-- Top Spacer for Mobile Header -->
         <div class="h-16 md:hidden flex-shrink-0"></div>
 
@@ -300,7 +299,7 @@
         <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"
             style="background-image: linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px); background-size: 40px 40px;">
         </div>
-        <div class="absolute inset-0 z-0 bg-gradient-to-br from-slate-50 via-slate-50 to-blue-50 pointer-events-none">
+        <div class="absolute inset-0 z-0 bg-gradient-to-br from-slate-950/80 via-[#0A2540]/30 to-black/80 pointer-events-none">
         </div>
 
         <!-- CONTAINER -->
@@ -309,21 +308,21 @@
             <!-- STATE A: IDLE -->
             <div id="state-idle" class="flex-1 flex flex-col items-center justify-center text-center">
                 <div
-                    class="w-24 h-24 rounded-2xl bg-white/50 border border-slate-200 flex items-center justify-center mb-8 rotate-3 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
-                    <svg class="w-10 h-10 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    class="w-24 h-24 rounded-2xl bg-slate-900/50 border border-slate-800 flex items-center justify-center mb-8 rotate-3 shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)]">
+                    <svg class="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
                         </path>
                     </svg>
                 </div>
-                <h2 class="text-xl font-bold text-slate-900 mb-2 tracking-tight">Ready to Scan</h2>
-                <p class="text-slate-500 max-w-sm text-sm mb-6">Awaiting source documents to initialize AI analysis
+                <h2 class="text-xl font-bold text-white mb-2 tracking-tight">Ready to Scan</h2>
+                <p class="text-slate-400 max-w-sm text-sm mb-6">Awaiting source documents to initialize AI analysis
                     logic.
                 </p>
 
                 <!-- Mobile Only CTA -->
                 <button onclick="toggleSidebar()"
-                    class="md:hidden flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-slate-900 font-bold rounded-xl shadow-lg transition-all active:scale-95 animate-pulse">
+                    class="md:hidden flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-xl shadow-lg transition-all active:scale-95 animate-pulse">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
@@ -335,10 +334,10 @@
             <!-- STATE B: LOADING -->
             <div id="state-loading"
                 class="hidden flex-1 flex flex-col items-center justify-center max-w-lg mx-auto w-full">
-                <div class="w-full flex justify-between items-center border-b border-slate-200 pb-4 mb-8">
-                    <h3 class="text-sm font-bold text-blue-600 uppercase tracking-widest animate-pulse">Running
+                <div class="w-full flex justify-between items-center border-b border-slate-800 pb-4 mb-8">
+                    <h3 class="text-sm font-bold text-blue-500 uppercase tracking-widest animate-pulse">Running
                         Diagnostics</h3>
-                    <span class="text-xs font-mono text-slate-500">v2.4.0</span>
+                    <span class="text-xs font-mono text-slate-400">v2.4.0</span>
                 </div>
 
                 <div class="w-full space-y-8">
@@ -346,19 +345,19 @@
                     <div class="step-item flex items-center gap-5 group">
                         <div class="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.8)]"
                             id="step-dot-1"></div>
-                        <span class="text-slate-700 font-medium tracking-wide">Parsing Document Structure...</span>
+                        <span class="text-slate-200 font-medium tracking-wide">Parsing Document Structure...</span>
                     </div>
                     <div class="step-item flex items-center gap-5">
                         <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-2"></div>
-                        <span class="text-slate-500 font-medium tracking-wide">Extracting Core Competencies...</span>
+                        <span class="text-slate-400 font-medium tracking-wide">Extracting Core Competencies...</span>
                     </div>
                     <div class="step-item flex items-center gap-5">
                         <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-3"></div>
-                        <span class="text-slate-500 font-medium tracking-wide">Performing Gap Analysis...</span>
+                        <span class="text-slate-400 font-medium tracking-wide">Performing Gap Analysis...</span>
                     </div>
                     <div class="step-item flex items-center gap-5">
                         <div class="w-2 h-2 rounded-full bg-slate-700" id="step-dot-4"></div>
-                        <span class="text-slate-500 font-medium tracking-wide">Generating Impact Models...</span>
+                        <span class="text-slate-400 font-medium tracking-wide">Generating Impact Models...</span>
                     </div>
                 </div>
             </div>
@@ -369,7 +368,7 @@
                 <!-- Score Header -->
                 <!-- Score Header (Compact) -->
                 <div
-                    class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-gradient-to-r from-white to-transparent p-6 rounded-3xl border border-slate-200/60 shadow-2xl">
+                    class="flex flex-col md:flex-row items-center gap-6 mb-8 bg-gradient-to-r from-slate-900/80 to-transparent p-6 rounded-3xl border border-slate-850 shadow-2xl">
                     <div class="relative shrink-0">
                         <!-- Glow Behind -->
                         <div class="absolute inset-0 bg-green-500/20 blur-2xl rounded-full"></div>
@@ -382,19 +381,19 @@
                         </svg>
                         <div
                             class="absolute inset-0 flex flex-col items-center justify-center z-10 scale-75 md:scale-100">
-                            <span class="text-4xl font-black text-slate-900 tracking-tighter drop-shadow-lg">78</span>
+                            <span class="text-4xl font-black text-white tracking-tighter drop-shadow-lg">78</span>
                             <span
                                 class="text-[9px] font-bold text-green-400 uppercase tracking-widest mt-0.5">Match</span>
                         </div>
                     </div>
                     <div>
                         <div
-                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-50 border border-green-500/20 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-2 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
+                            class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-green-950/20 border border-green-500/25 text-green-400 text-[10px] font-bold uppercase tracking-wider mb-2 shadow-[0_0_15px_rgba(74,222,128,0.1)]">
                             <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></span>
                             Top 20% Candidate
                         </div>
-                        <h2 class="text-2xl font-bold text-slate-900 mb-2">Strong Foundation Detected</h2>
-                        <p class="text-slate-600 leading-relaxed text-sm max-w-2xl">Your profile demonstrates
+                        <h2 class="text-2xl font-bold text-white mb-2">Strong Foundation Detected</h2>
+                        <p class="text-slate-300 leading-relaxed text-sm max-w-2xl">Your profile demonstrates
                             senior-level
                             capacity, but semantic layering for the "Product Strategy" vector is below threshold.
                             Refinement required for ATS optimization.</p>
@@ -406,7 +405,7 @@
 
                     <!-- Card 1: Critical Gaps -->
                     <div
-                        class="bg-gradient-to-b from-white to-slate-50 rounded-2xl border border-slate-300/50 p-8 shadow-lg section-card group hover:border-slate-600 transition-colors">
+                        class="bg-slate-900/50 rounded-2xl border border-slate-800 p-8 shadow-lg section-card group hover:border-slate-750 transition-colors">
                         <h3
                             class="flex items-center gap-3 text-xs font-bold text-red-400 uppercase tracking-widest mb-6 border-b border-red-500/10 pb-4">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -426,13 +425,13 @@
                             <span
                                 class="px-3 py-1.5 bg-red-500/10 text-red-400 rounded-lg text-xs font-mono border border-red-500/20">Cross-function</span>
                         </div>
-                        <p class="text-xs text-slate-500 mt-6 italic">High-frequency terms in JD absent from profile
+                        <p class="text-xs text-slate-400 mt-6 italic">High-frequency terms in JD absent from profile
                             vector.</p>
                     </div>
 
                     <!-- Card 2: Formatting -->
                     <div
-                        class="bg-gradient-to-b from-white to-slate-50 rounded-2xl border border-slate-300/50 p-8 shadow-lg section-card hover:border-slate-600 transition-colors">
+                        class="bg-slate-900/50 rounded-2xl border border-slate-800 p-8 shadow-lg section-card hover:border-slate-750 transition-colors">
                         <h3
                             class="flex items-center gap-3 text-xs font-bold text-green-400 uppercase tracking-widest mb-6 border-b border-green-500/10 pb-4">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -441,11 +440,11 @@
                             </svg>
                             Formatting Integrity
                         </h3>
-                        <ul class="space-y-4 text-sm text-slate-600">
+                        <ul class="space-y-4 text-sm text-slate-300">
                             <li class="flex items-center justify-between">
                                 <span>PDF Parsability</span>
                                 <span
-                                    class="text-slate-900 font-bold text-xs bg-green-500/20 px-2 py-0.5 rounded text-green-400">100%</span>
+                                    class="text-white font-bold text-xs bg-green-950/30 px-2 py-0.5 rounded text-green-400 border border-green-900/20">100%</span>
                             </li>
                             <li class="flex items-center justify-between">
                                 <span>Font Legibility</span>
@@ -840,6 +839,9 @@
         // --- INIT ---
         document.addEventListener('DOMContentLoaded', () => {
             checkForPendingResume();
+            if (window.innerWidth < 768) {
+                switchInputMode('paste');
+            }
         });
 
         function checkForPendingResume() {
@@ -983,10 +985,8 @@
             if (mode === 'upload') {
                 dz.classList.remove('hidden');
                 pz.classList.add('hidden');
-                btnUp.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
-                btnUp.classList.remove('text-slate-500');
-                btnPa.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
-                btnPa.classList.add('text-slate-500');
+                btnUp.className = "px-3 py-1 text-[10px] font-bold uppercase rounded-md bg-slate-800 text-white border border-slate-700/50 shadow-sm transition-all";
+                btnPa.className = "px-3 py-1 text-[10px] font-bold uppercase rounded-md text-slate-400 hover:text-white transition-all";
 
                 // TRACKING: User switched to Upload mode
                 if (typeof gtag === 'function') {
@@ -1002,10 +1002,8 @@
             } else {
                 dz.classList.add('hidden');
                 pz.classList.remove('hidden');
-                btnPa.classList.add('bg-white', 'shadow-sm', 'text-blue-600');
-                btnPa.classList.remove('text-slate-500');
-                btnUp.classList.remove('bg-white', 'shadow-sm', 'text-blue-600');
-                btnUp.classList.add('text-slate-500');
+                btnPa.className = "px-3 py-1 text-[10px] font-bold uppercase rounded-md bg-slate-800 text-white border border-slate-700/50 shadow-sm transition-all";
+                btnUp.className = "px-3 py-1 text-[10px] font-bold uppercase rounded-md text-slate-400 hover:text-white transition-all";
 
                 // TRACKING: User switched to Paste mode
                 if (typeof gtag === 'function') {

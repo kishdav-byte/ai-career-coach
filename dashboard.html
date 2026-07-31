@@ -457,7 +457,7 @@
                 class="flex-1 overflow-y-auto p-4 md:p-8 bg-gradient-to-br from-slate-900 via-[#0A2540] to-black scroll-smooth">
                 <div class="max-w-full xl:max-w-7xl mx-auto w-full space-y-8">
                     <!-- Header -->
-                    <div class="flex justify-between items-center mb-8">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                         <div>
                             <h1
                                 class="text-xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
@@ -466,6 +466,19 @@
                             <p class="text-gray-400 text-sm mt-1">Ready to dominate, <span id="user-display-kb"
                                     class="text-teal">Candidate</span>?</p>
                         </div>
+
+                        <!-- View Mode Toggle Pill -->
+                        <div class="flex items-center bg-slate-900/60 border border-white/10 rounded-full p-0.5 text-[10px] md:text-xs font-medium self-center sm:self-auto z-10">
+                            <button id="btn-mode-cc" onclick="toggleViewMode('command-center')" 
+                                class="px-3 py-1 rounded-full transition-all duration-200 text-slate-400 hover:text-white font-semibold">
+                                Command Center
+                            </button>
+                            <button id="btn-mode-hub" onclick="toggleViewMode('career-hub')" 
+                                class="px-3 py-1 rounded-full transition-all duration-200 text-slate-400 hover:text-white font-semibold">
+                                Career Hub
+                            </button>
+                        </div>
+
                         <div class="hidden md:flex items-center gap-4">
                             <a id="admin-btn" href="/admin"
                                 class="hidden bg-slate-800 hover:bg-slate-700 text-teal-400 border border-teal-800 hover:border-teal-500 px-4 py-2 rounded-lg font-bold text-xs tracking-wider transition-all flex items-center gap-2">
@@ -799,6 +812,8 @@
                     </div>
                 </div>
 
+                <div id="command-center-container" class="space-y-8">
+
                 <!-- PROMO BANNER: Free Interview Session -->
                 <div id="promo-interview-banner"
                     class="hidden glass-card rounded-2xl p-6 bg-gradient-to-r from-teal/20 hover:from-teal/30 to-transparent border border-teal/50 transition-all cursor-pointer relative overflow-hidden group mb-6"
@@ -953,6 +968,137 @@
                             </div>
                             <div id="col-offer" class="flex-1 overflow-y-auto custom-scroll p-3 space-y-3"></div>
                         </div>
+                    </div> <!-- End Columns Wrapper -->
+                    </div> <!-- End Kanban Board -->
+                    </div> <!-- End command-center-container -->
+
+                    <!-- Career Hub Container -->
+                    <div id="career-hub-container" class="space-y-4 hidden pb-12 max-w-md mx-auto">
+                        
+                        <!-- 1. The Clinic Card -->
+                        <div class="w-full">
+                            <button onclick="toggleHubGroup('clinic')"
+                                class="glass-card rounded-2xl p-5 w-full text-left transition-all duration-200 border border-slate-800 flex items-center justify-between group active:scale-[0.98] outline-none">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-file-alt text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white group-hover:text-blue-400 transition-colors">The Clinic</h3>
+                                        <p class="text-xs text-slate-400 mt-0.5">Resume Scans & Executive Optimization</p>
+                                    </div>
+                                </div>
+                                <div class="text-slate-500 group-hover:text-blue-400 transition-colors">
+                                    <i id="hub-icon-clinic" class="fas fa-chevron-right transition-transform duration-200"></i>
+                                </div>
+                            </button>
+                            <div id="hub-group-clinic" class="hidden mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                                <a href="/resume-analyzer"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-500/30 rounded-xl transition-all group">
+                                    <i class="fas fa-microscope text-blue-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Resume Scanner</span>
+                                </a>
+                                <a href="/resume-rewriter"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-yellow-500/30 rounded-xl transition-all group">
+                                    <i class="fas fa-pen-nib text-yellow-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Executive Rewrite</span>
+                                </a>
+                                <a href="/app#linkedin"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-400/30 rounded-xl transition-all group">
+                                    <i class="fab fa-linkedin text-blue-300 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">LinkedIn Optimizer</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 2. The Simulator Card -->
+                        <div class="w-full">
+                            <button onclick="toggleHubGroup('simulator')"
+                                class="glass-card rounded-2xl p-5 w-full text-left transition-all duration-200 border border-slate-800 flex items-center justify-between group active:scale-[0.98] outline-none">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center text-teal group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-microphone text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white group-hover:text-teal transition-colors">The Simulator</h3>
+                                        <p class="text-xs text-slate-400 mt-0.5">Voice Interviews & STAR Calibrators</p>
+                                    </div>
+                                </div>
+                                <div class="text-slate-500 group-hover:text-teal transition-colors">
+                                    <i id="hub-icon-simulator" class="fas fa-chevron-right transition-transform duration-200"></i>
+                                </div>
+                            </button>
+                            <div id="hub-group-simulator" class="hidden mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                                <a href="/app"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-teal/30 rounded-xl transition-all group">
+                                    <i class="fas fa-microphone-alt text-teal text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Mock Interview Simulator</span>
+                                </a>
+                                <a href="/role-reversal"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-cyan-500/30 rounded-xl transition-all group">
+                                    <i class="fas fa-undo text-cyan-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Role Reversal Practice</span>
+                                </a>
+                                <a href="/star-drill"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-yellow-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-star text-yellow-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">STAR Method Drill</span>
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- 3. The Strategy Card -->
+                        <div class="w-full">
+                            <button onclick="toggleHubGroup('strategy')"
+                                class="glass-card rounded-2xl p-5 w-full text-left transition-all duration-200 border border-slate-800 flex items-center justify-between group active:scale-[0.98] outline-none">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+                                        <i class="fas fa-crosshairs text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-base font-bold text-white group-hover:text-purple-400 transition-colors">The Strategy</h3>
+                                        <p class="text-xs text-slate-400 mt-0.5">Onboard Plans, Negotiation & Logs</p>
+                                    </div>
+                                </div>
+                                <div class="text-slate-500 group-hover:text-purple-400 transition-colors">
+                                    <i id="hub-icon-strategy" class="fas fa-chevron-right transition-transform duration-200"></i>
+                                </div>
+                            </button>
+                            <div id="hub-group-strategy" class="hidden mt-2 ml-2 space-y-2 border-l border-white/5 pl-2 transition-all">
+                                <a href="/jobs-history"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-blue-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-th-list text-blue-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Job Tracker</span>
+                                </a>
+                                <a href="/strategy/30-60-90"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-cyan-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-calendar-alt text-cyan-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">30-60-90 Day Plan</span>
+                                </a>
+                                <a href="/strategy/closer"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-emerald-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-handshake text-emerald-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">The Closer (Negotiator)</span>
+                                </a>
+                                <a href="/strategy/inquisitor"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-amber-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-question-circle text-amber-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">The Inquisitor (Reverse Qs)</span>
+                                </a>
+                                <a href="/strategy/follow-up"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-indigo-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-paper-plane text-indigo-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Value Follow-Up Email</span>
+                                </a>
+                                <a href="/strategy-lab"
+                                    class="flex items-center gap-3 p-3.5 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/50 hover:border-purple-400/30 rounded-xl transition-all group">
+                                    <i class="fas fa-chess-knight text-purple-400 text-sm group-hover:scale-110 transition-transform"></i>
+                                    <span class="text-sm font-semibold text-slate-300 group-hover:text-white transition-colors">Strategy Lab Dashboard</span>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
                     </div> <!-- End Centered Container -->
             </main>
         </div>
@@ -2471,7 +2617,73 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             window.advisorTip = new TooltipManager();
+            initViewMode();
         });
+
+        // --- VIEW STATE MANAGER ---
+        function initViewMode() {
+            const STORAGE_KEY = 'tpi_dashboard_view_mode';
+            let activeMode = localStorage.getItem(STORAGE_KEY);
+            if (!activeMode) {
+                activeMode = (window.innerWidth < 768) ? 'career-hub' : 'command-center';
+            }
+            applyViewMode(activeMode);
+        }
+
+        function toggleViewMode(mode) {
+            const STORAGE_KEY = 'tpi_dashboard_view_mode';
+            localStorage.setItem(STORAGE_KEY, mode);
+            applyViewMode(mode);
+        }
+
+        function applyViewMode(mode) {
+            const ccBtn = document.getElementById('btn-mode-cc');
+            const hubBtn = document.getElementById('btn-mode-hub');
+            const ccContainer = document.getElementById('command-center-container');
+            const hubContainer = document.getElementById('career-hub-container');
+
+            if (mode === 'career-hub') {
+                if (hubBtn) {
+                    hubBtn.className = "px-3 py-1 rounded-full bg-teal text-navy font-bold transition-all duration-200 shadow-sm";
+                }
+                if (ccBtn) {
+                    ccBtn.className = "px-3 py-1 rounded-full text-slate-400 hover:text-white font-semibold transition-all duration-200";
+                }
+                if (ccContainer) ccContainer.classList.add('hidden');
+                if (hubContainer) hubContainer.classList.remove('hidden');
+            } else {
+                if (ccBtn) {
+                    ccBtn.className = "px-3 py-1 rounded-full bg-slate-800 text-white font-bold transition-all duration-200 border border-slate-700/50 shadow-sm";
+                }
+                if (hubBtn) {
+                    hubBtn.className = "px-3 py-1 rounded-full text-slate-400 hover:text-white font-semibold transition-all duration-200";
+                }
+                if (ccContainer) ccContainer.classList.remove('hidden');
+                if (hubContainer) hubContainer.classList.add('hidden');
+            }
+        }
+
+        // --- CAREER HUB NAVIGATION CONTROLLER ---
+        function toggleHubGroup(groupName) {
+            const groups = ['clinic', 'simulator', 'strategy'];
+            groups.forEach(g => {
+                const groupEl = document.getElementById(`hub-group-${g}`);
+                const iconEl = document.getElementById(`hub-icon-${g}`);
+                if (g === groupName) {
+                    const isHidden = groupEl.classList.contains('hidden');
+                    if (isHidden) {
+                        if (groupEl) groupEl.classList.remove('hidden');
+                        if (iconEl) iconEl.classList.add('rotate-90');
+                    } else {
+                        if (groupEl) groupEl.classList.add('hidden');
+                        if (iconEl) iconEl.classList.remove('rotate-90');
+                    }
+                } else {
+                    if (groupEl) groupEl.classList.add('hidden');
+                    if (iconEl) iconEl.classList.remove('rotate-90');
+                }
+            });
+        }
     </script>
 </body>
 
