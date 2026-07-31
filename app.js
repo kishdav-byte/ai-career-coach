@@ -466,16 +466,18 @@ async function sendVoiceMessage(base64Audio) {
         const transResult = await transResponse.json();
         document.getElementById(loadingId).remove();
 
-        if (transResult.transcript) {
+        if (transResult.transcript && transResult.transcript.trim()) {
             // Show transcript immediately
             window.addMessage(transResult.transcript, 'user');
 
             // 2. Chat: Send transcript to AI for analysis
             await window.sendChatMessage(transResult.transcript, false, true); // true = skipUI
         } else {
-            window.addMessage('Error: ' + (transResult.error || 'Transcription failed'), 'system');
+            hideThinkingState();
+            window.addMessage('Error: ' + (transResult.error || 'No speech detected. Please speak clearly into your mic.'), 'system');
         }
     } catch (e) {
+        hideThinkingState();
         if (document.getElementById(loadingId)) document.getElementById(loadingId).remove();
         window.addMessage('Error: ' + e.message, 'system');
     }
