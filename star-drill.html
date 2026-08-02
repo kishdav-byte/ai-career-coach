@@ -455,6 +455,9 @@
             loadContext();
             startSession();
             initSidebarUser();
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
 
         function initSidebarUser() {

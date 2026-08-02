@@ -454,6 +454,9 @@
                 genBtn.classList.add('bg-green-600', 'hover:bg-green-500');
                 genBtn.onclick = triggerCheckout; // Direct Checkout
             }
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
 
         async function triggerCheckout() {

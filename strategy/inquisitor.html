@@ -475,6 +475,9 @@
                     setTimeout(() => btnCopy.innerHTML = original, 2000);
                 });
             });
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
     </script>
 </body>

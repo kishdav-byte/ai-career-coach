@@ -389,6 +389,9 @@
 
             // Drag and Drop
             setupDragDrop();
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
 
         async function verifyAccess(token) {

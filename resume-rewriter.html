@@ -1029,6 +1029,9 @@
             } catch (e) {
                 console.error("Auth check failed", e);
             }
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
 
         // --- DRAG & DROP LOGIC (Ported from Analyzer) ---

@@ -715,6 +715,9 @@
 
             // Start loading missions in background
             loadMissions();
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
         // Initialize Sidebar Toggle
         window.toggleSidebar = () => {

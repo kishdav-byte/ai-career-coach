@@ -645,6 +645,9 @@
             if (form) form.addEventListener('submit', handleGeneration);
             const copyBtn = document.getElementById('btn-copy');
             if (copyBtn) copyBtn.addEventListener('click', copyContent);
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
     </script>
 </body>

@@ -358,6 +358,9 @@
             const form = document.getElementById('tool-form');
             form.addEventListener('submit', handleGeneration);
             document.getElementById('btn-copy').addEventListener('click', copyContent);
+            if (window.innerWidth < 768) {
+                setTimeout(() => toggleSidebar(), 300);
+            }
         });
 
         async function verifyAccess(token) {
