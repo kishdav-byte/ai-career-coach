@@ -147,14 +147,20 @@
     </style>
 </head>
 
-<div class="flex h-screen bg-slate-950 relative flex-col md:flex-row overflow-hidden">
+<div class="flex h-screen bg-black relative flex-col md:flex-row overflow-hidden">
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
-        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
-        <div class="font-black text-xl tracking-tighter text-blue-500">ACE_CORP</div>
-        <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
-            <i class="fas fa-bars text-xl"></i>
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-black/95 backdrop-blur-md border-b border-slate-900 flex items-center justify-between px-4 z-50">
+        <div class="flex items-center gap-3">
+            <a href="/dashboard" class="text-slate-400 hover:text-white mr-1">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <div class="text-sm font-bold text-white tracking-wide uppercase">Cover Letter</div>
+        </div>
+        <button onclick="toggleSidebar()"
+            class="p-2 text-slate-400 hover:text-white transition-colors border border-slate-800 rounded-lg bg-slate-800/50">
+            <i class="fas fa-sliders-h"></i>
         </button>
     </div>
 
@@ -164,10 +170,10 @@
 
     <!-- LEFT PANEL: INPUTS (35%) -->
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 w-[280px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1">
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-[#0c1424]/90 backdrop-blur-md shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1">
 
         <!-- Header -->
-        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md">THE
                     CLINIC</h1>
@@ -175,7 +181,7 @@
                         class="text-blue-500">_ARCHITECT</span></div>
             </div>
             <a href="dashboard"
-                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide hidden md:block">[EXIT]</a>
         </div>
 
         <!-- Scrollable Controls -->
@@ -246,7 +252,7 @@
         </div>
 
         <!-- Footer Action -->
-        <div class="p-6 border-t border-slate-800/60 bg-slate-900/40 backdrop-blur-md">
+        <div class="p-4 md:p-6 border-t border-slate-800/60 bg-[#0c1424]/95 backdrop-blur-md flex-shrink-0 pb-[calc(1.5rem+env(safe-area-inset-bottom,16px))] md:pb-6">
             <!-- This button text will update based on lock state -->
             <button id="generate-btn" onclick="generateCoverLetter()"
                 class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(37,99,235,0.4)] hover:shadow-[0_0_30px_rgba(37,99,235,0.6)] transition-all active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-3 tracking-widest text-sm">
@@ -260,7 +266,7 @@
 
     <!-- RIGHT PANEL: PREVIEW (65%) -->
     <main
-        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+        class="w-full md:flex-1 h-auto md:h-full bg-black relative overflow-visible md:overflow-hidden flex flex-col order-2">
         <!-- Top Spacer for Mobile Header -->
         <div class="h-16 md:hidden flex-shrink-0"></div>
 
@@ -538,6 +544,9 @@
 
         // --- GENERATE ---
         async function generateCoverLetter() {
+            if (window.innerWidth < 768) {
+                toggleSidebar();
+            }
             if (isLocked) {
                 // If button clicked while locked, trigger checkout
                 if (confirm("Unlock Cover Letter Architect for $6.99?")) triggerCheckout();

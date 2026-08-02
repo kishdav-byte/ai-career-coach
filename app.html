@@ -142,19 +142,20 @@
     </style>
 </head>
 
-<body class="flex min-h-screen h-[100dvh] overflow-hidden bg-slate-950 text-slate-300 md:flex-row relative">
+<body class="flex min-h-screen h-[100dvh] overflow-hidden bg-black text-slate-300 md:flex-row relative">
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
-        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900/95 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-4 z-50">
-        <div class="flex flex-col justify-center">
-            <div class="text-[10px] font-bold text-blue-500 uppercase tracking-widest leading-tight">Total Package
-                Interview</div>
-            <div class="text-sm font-black text-white tracking-wide">THE SIMULATOR</div>
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-black/95 backdrop-blur-md border-b border-slate-900 flex items-center justify-between px-4 z-50">
+        <div class="flex items-center gap-3">
+            <a href="/dashboard" class="text-slate-400 hover:text-white mr-1">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <div class="text-sm font-bold text-white tracking-wide uppercase" id="mobile-title">Interview Lab</div>
         </div>
         <button onclick="toggleSidebar()"
-            class="p-2 text-white hover:text-blue-400 transition-colors border border-blue-500/30 rounded-lg bg-blue-500/10 shadow-[0_0_10px_rgba(59,130,246,0.2)]">
-            <i class="fas fa-bars"></i>
+            class="p-2 text-slate-400 hover:text-white transition-colors border border-slate-800 rounded-lg bg-slate-800/50">
+            <i class="fas fa-sliders-h"></i>
         </button>
     </div>
 
@@ -164,10 +165,10 @@
 
     <!-- LEFT SIDEBAR: INPUTS & CONTROLS (35%) -->
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[35%] h-full flex flex-col z-40 border-r border-slate-800/80 bg-[#0c1424]/90 backdrop-blur-md shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
 
         <!-- Universal Header -->
-        <div class="p-8 border-b border-slate-800/60 flex justify-between items-center bg-slate-900/80">
+        <div class="p-6 md:p-8 border-b border-slate-800/60 flex justify-between items-center">
             <div>
                 <h1 class="text-[10px] font-bold tracking-[0.2em] text-blue-500 uppercase mb-1 drop-shadow-md"
                     id="tool-category">THE SIMULATOR</h1>
@@ -178,7 +179,7 @@
             <div class="flex items-center gap-4">
                 <!-- Simple dropdown or links to switch tools within app.html if needed, or just Exit -->
                 <a href="dashboard"
-                    class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+                    class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide hidden md:block">[EXIT]</a>
             </div>
         </div>
 
@@ -553,6 +554,8 @@
 
                     document.getElementById('tool-category').textContent = "THE CLINIC";
                     document.getElementById('tool-title').innerHTML = 'LINKEDIN<span class="text-blue-500">_OPT</span>';
+                    const mTitle = document.getElementById('mobile-title');
+                    if (mTitle) mTitle.textContent = "LinkedIn Optimizer";
                 }
                 else if (isCoverLetter) {
                     window.location.href = '/strategy/cover-letter';
@@ -565,6 +568,8 @@
 
                     document.getElementById('tool-category').textContent = "THE SIMULATOR";
                     document.getElementById('tool-title').innerHTML = 'INTERVIEW<span class="text-blue-500">_LAB</span>';
+                    const mTitle = document.getElementById('mobile-title');
+                    if (mTitle) mTitle.textContent = "Interview Simulator";
                 }
             }
 

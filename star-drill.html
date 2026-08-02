@@ -70,19 +70,25 @@
     </style>
 </head>
 
-<div class="flex md:h-screen min-h-screen bg-slate-950 relative flex-col md:flex-row">
+<div class="flex md:h-screen min-h-screen bg-black relative flex-col md:flex-row">
 
     <!-- MOBILE HEADER (Visible < md) -->
     <div
-        class="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-900 border-b border-white/5 flex items-center justify-between px-6 z-50">
-        <div class="font-black text-xl tracking-tighter text-teal">ACE_CORP</div>
-        <button onclick="toggleSidebar()" class="p-3 -mr-3 text-slate-400 hover:text-white transition-colors">
-            <i class="fas fa-bars text-xl"></i>
+        class="md:hidden fixed top-0 left-0 w-full h-16 bg-black/95 backdrop-blur-md border-b border-slate-900 flex items-center justify-between px-4 z-50">
+        <div class="flex items-center gap-3">
+            <a href="/dashboard" class="text-slate-400 hover:text-white mr-1">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </a>
+            <div class="text-sm font-bold text-white tracking-wide uppercase">STAR Stories</div>
+        </div>
+        <button onclick="toggleSidebar()"
+            class="p-2 text-slate-400 hover:text-white transition-colors border border-slate-800 rounded-lg bg-slate-800/50">
+            <i class="fas fa-sliders-h"></i>
         </button>
     </div>
 
     <!-- SIDEBAR -->
-    <aside id="sidebar"
+    <aside id="nav-sidebar"
         class="fixed inset-y-0 left-0 w-[260px] bg-slate-900 border-r border-white/5 flex flex-col transition-transform duration-300 ease-in-out z-40 -translate-x-full md:translate-x-0 md:static">
         <!-- Logo -->
         <div class="h-20 flex items-center px-6 mt-4 md:mt-0">
@@ -214,8 +220,8 @@
         onclick="toggleSidebar()"></div>
 
     <!-- LEFT PANEL: INPUT (40%) -->
-    <aside
-        class="w-full md:w-[40%] h-auto md:h-full flex flex-col relative z-20 border-b md:border-b-0 md:border-r border-slate-800 bg-slate-900/50 backdrop-blur-sm shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] order-1">
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-[85vw] max-w-[320px] md:max-w-none md:relative md:w-[40%] h-full flex flex-col z-40 border-r border-slate-800 bg-[#0c1424]/90 backdrop-blur-md shadow-[10px_0_30px_-5px_rgba(0,0,0,0.5)] transition-transform duration-300 -translate-x-full md:translate-x-0 order-1 pt-20 md:pt-0">
 
         <!-- Top Spacer for Mobile Header -->
         <div class="h-16 md:hidden flex-shrink-0"></div>
@@ -234,7 +240,7 @@
                 <i class="fas fa-history mr-1"></i> HISTORY
             </button>
             <a href="/dashboard"
-                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide">[EXIT]</a>
+                class="text-slate-500 hover:text-white transition-colors text-xs font-mono tracking-wide hidden md:block">[EXIT]</a>
         </div>
 
 
@@ -323,7 +329,7 @@
 
     <!-- RIGHT PANEL: RESULTS (60%) -->
     <main
-        class="w-full md:flex-1 h-auto md:h-full bg-slate-950 relative overflow-visible md:overflow-hidden flex flex-col order-2">
+        class="w-full md:flex-1 h-auto md:h-full bg-black relative overflow-visible md:overflow-hidden flex flex-col order-2">
 
         <!-- DECORATIVE GRIDS -->
         <div class="absolute inset-0 z-0 opacity-10 pointer-events-none"

@@ -1611,6 +1611,9 @@ function init() {
             if (jobPosting.trim()) {
                 primeAudio();
                 primeAudio();
+                if (window.toggleSidebar && window.innerWidth < 768) {
+                    window.toggleSidebar();
+                }
                 questionCount = 0; // Correctly start at 0 for Turn 1
                 interviewHistory = []; // Reset history
 
