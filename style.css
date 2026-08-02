@@ -3042,3 +3042,11 @@ body.strategy-lab-theme {
         grid-template-columns: 1fr;
     }
 }
+
+/* Select Dropdown Option Styling */
+select option {
+    background-color: #0c1424 !important;
+    color: #ffffff !important;
+    font-size: 16px !important;
+    padding: 8px !important;
+}
