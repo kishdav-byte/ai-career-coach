@@ -209,16 +209,16 @@
                         <i class="fas fa-crosshairs"></i> Select Active Mission
                     </label>
                     <div class="relative">
-                        <select id="mission-selector" onchange="window.selectMission(this.value)"
-                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white focus:border-blue-500 outline-none appearance-none cursor-pointer">
-                            <option value="">Loading Missions...</option>
-                        </select>
-                        <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
-                            <i class="fas fa-chevron-down text-xs"></i>
+                        <button id="mission-selector-trigger" type="button" onclick="window.toggleMissionDropdown(event)"
+                            class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-white flex items-center justify-between focus:border-blue-500 outline-none cursor-pointer">
+                            <span id="mission-selector-label">Choose a Mission...</span>
+                            <i class="fas fa-chevron-down text-xs text-slate-500"></i>
+                        </button>
+                        <div id="mission-selector-dropdown"
+                            class="absolute left-0 right-0 mt-2 bg-[#0c1424] border border-slate-800 rounded-xl shadow-2xl max-h-60 overflow-y-auto hidden z-50 py-1">
                         </div>
                     </div>
-                    <p class="text-[9px] text-slate-500 mt-2 italic">Switching missions will auto-load JD and Resume
-                        context.</p>
+                    <p class="text-[9px] text-slate-500 mt-2 italic">Switching missions will auto-load JD and Resume context.</p>
                 </div>
 
                 <!-- Locked State -->
@@ -595,6 +595,17 @@
 
             // --- MISSION SELECTOR LOGIC ---
             let allJobs = [];
+            window.toggleMissionDropdown = (e) => {
+                e.stopPropagation();
+                const dropdown = document.getElementById('mission-selector-dropdown');
+                if (dropdown) dropdown.classList.toggle('hidden');
+            };
+
+            document.addEventListener('click', () => {
+                const dropdown = document.getElementById('mission-selector-dropdown');
+                if (dropdown) dropdown.classList.add('hidden');
+            });
+
             window.loadMissions = async () => {
                 try {
                     const session = JSON.parse(localStorage.getItem('aceinterview_session'));
@@ -607,27 +618,61 @@
                     if (!res.ok) return;
                     allJobs = await res.json();
 
-                    const selector = document.getElementById('mission-selector');
+                    const dropdown = document.getElementById('mission-selector-dropdown');
+                    const label = document.getElementById('mission-selector-label');
                     const container = document.getElementById('mission-selector-container');
-                    if (!selector) return;
+                    if (!dropdown) return;
 
                     const activeJobs = allJobs.filter(j => j.status !== 'closed');
 
                     if (activeJobs.length > 0) {
                         if (container) container.classList.remove('hidden');
-                        selector.innerHTML = '<option value="">Choose a Mission...</option>';
+                        dropdown.innerHTML = '';
+
+                        // Default / Reset Option
+                        const defaultOpt = document.createElement('button');
+                        defaultOpt.type = 'button';
+                        defaultOpt.className = 'w-full text-left px-4 py-3 text-sm text-slate-400 hover:bg-slate-800/50 hover:text-white transition-colors border-b border-slate-900/40';
+                        defaultOpt.textContent = 'Choose a Mission...';
+                        defaultOpt.onclick = (e) => {
+                            e.stopPropagation();
+                            label.textContent = 'Choose a Mission...';
+                            window.selectMission('');
+                            dropdown.classList.add('hidden');
+                        };
+                        dropdown.appendChild(defaultOpt);
 
                         activeJobs.forEach(job => {
-                            const opt = document.createElement('option');
-                            opt.value = job.id;
-                            opt.textContent = `${job.job_title} @ ${job.company_name}`;
-                            selector.appendChild(opt);
+                            const btn = document.createElement('button');
+                            btn.type = 'button';
+                            btn.className = 'w-full text-left px-4 py-3 text-sm hover:bg-slate-800/50 transition-colors flex flex-col gap-1 border-b border-slate-900/40 last:border-b-0';
+                            
+                            const titleSpan = document.createElement('span');
+                            titleSpan.className = 'font-bold text-white text-sm';
+                            titleSpan.textContent = job.job_title;
+                            btn.appendChild(titleSpan);
+
+                            const companySpan = document.createElement('span');
+                            companySpan.className = 'text-xs text-slate-400';
+                            companySpan.textContent = job.company_name;
+                            btn.appendChild(companySpan);
+
+                            btn.onclick = (e) => {
+                                e.stopPropagation();
+                                label.textContent = `${job.job_title} @ ${job.company_name}`;
+                                window.selectMission(job.id);
+                                dropdown.classList.add('hidden');
+                            };
+                            dropdown.appendChild(btn);
                         });
 
                         // Pre-select if current exists
                         const currentCtx = JSON.parse(localStorage.getItem('mission_context') || '{}');
                         if (currentCtx.job_id) {
-                            selector.value = currentCtx.job_id;
+                            const activeJob = activeJobs.find(j => j.id == currentCtx.job_id);
+                            if (activeJob) {
+                                label.textContent = `${activeJob.job_title} @ ${activeJob.company_name}`;
+                            }
                         }
                     } else {
                         if (container) container.classList.add('hidden');
